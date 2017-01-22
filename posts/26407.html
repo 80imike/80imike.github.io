@@ -1,0 +1,1221 @@
+<!doctype html>
+
+
+
+  
+
+
+<html class="theme-next mist use-motion" lang="zh-Hans">
+<head>
+  <meta charset="UTF-8"/>
+<meta http-equiv="X-UA-Compatible" content="IE=edge" />
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1"/>
+
+
+
+<meta http-equiv="Cache-Control" content="no-transform" />
+<meta http-equiv="Cache-Control" content="no-siteapp" />
+
+
+
+  <meta name="google-site-verification" content="RhTUr9TCCVuxvnQF2xhQZbwtArG6b5x_-AO42Zl9EIE" />
+
+
+
+
+
+
+
+
+
+
+  
+  
+  <link href="/lib/fancybox/source/jquery.fancybox.css?v=2.1.5" rel="stylesheet" type="text/css" />
+
+
+
+
+  
+  
+  
+  
+
+  
+    
+    
+  
+
+  
+
+  
+
+  
+
+  
+    
+      
+    
+
+    
+  
+
+  
+    
+    
+    <link href="//fonts.lug.ustc.edu.cn/css?family=华文中宋:300,300italic,400,400italic,700,700italic|Source Serif Pro:300,300italic,400,400italic,700,700italic&subset=latin,latin-ext" rel="stylesheet" type="text/css">
+  
+
+
+
+
+
+
+<link href="/lib/font-awesome/css/font-awesome.min.css?v=4.6.2" rel="stylesheet" type="text/css" />
+
+<link href="/css/main.css?v=5.1.0" rel="stylesheet" type="text/css" />
+
+
+  <meta name="keywords" content="Linux,MySQL," />
+
+
+
+
+
+  <link rel="alternate" href="/atom.xml" title="Hi Linux" type="application/atom+xml" />
+
+
+
+
+  <link rel="shortcut icon" type="image/x-icon" href="/favicon.ico?v=5.1.0" />
+
+
+
+
+
+
+<meta name="description" content="Mydumper介绍MySQL在备份方面包含了自身的mysqldump工具，但其只支持单线程工作，这就使得它无法迅速的备份数据。而mydumper作为一个实用工具，能够良好支持多线程工作，这使得它在处理速度方面十倍于传统的mysqldump。其特征之一是在处理过程中需要对列表加以锁定，因此如果我们需要在工作时段执行备份工作，那么会引起DML阻塞。但一般现在的MySQL都有主从，备份也大部分在从上进">
+<meta property="og:type" content="article">
+<meta property="og:title" content="MySQL多线程备份工具Mydumper详解">
+<meta property="og:url" content="http://www.hi-linux.com/posts/26407.html">
+<meta property="og:site_name" content="Hi Linux">
+<meta property="og:description" content="Mydumper介绍MySQL在备份方面包含了自身的mysqldump工具，但其只支持单线程工作，这就使得它无法迅速的备份数据。而mydumper作为一个实用工具，能够良好支持多线程工作，这使得它在处理速度方面十倍于传统的mysqldump。其特征之一是在处理过程中需要对列表加以锁定，因此如果我们需要在工作时段执行备份工作，那么会引起DML阻塞。但一般现在的MySQL都有主从，备份也大部分在从上进">
+<meta property="og:image" content="http://www.hi-linux.com/img/linux/mydumper.png">
+<meta property="og:updated_time" content="2017-01-22T10:13:02.042Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="MySQL多线程备份工具Mydumper详解">
+<meta name="twitter:description" content="Mydumper介绍MySQL在备份方面包含了自身的mysqldump工具，但其只支持单线程工作，这就使得它无法迅速的备份数据。而mydumper作为一个实用工具，能够良好支持多线程工作，这使得它在处理速度方面十倍于传统的mysqldump。其特征之一是在处理过程中需要对列表加以锁定，因此如果我们需要在工作时段执行备份工作，那么会引起DML阻塞。但一般现在的MySQL都有主从，备份也大部分在从上进">
+<meta name="twitter:image" content="http://www.hi-linux.com/img/linux/mydumper.png">
+
+
+
+<script type="text/javascript" id="hexo.configurations">
+  var NexT = window.NexT || {};
+  var CONFIG = {
+    root: '/',
+    scheme: 'Mist',
+    sidebar: {"position":"left","display":"post"},
+    fancybox: true,
+    motion: true,
+    duoshuo: {
+      userId: '0',
+      author: '博主'
+    },
+    algolia: {
+      applicationID: '',
+      apiKey: '',
+      indexName: '',
+      hits: {"per_page":10},
+      labels: {"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}
+    }
+  };
+</script>
+
+
+
+  <link rel="canonical" href="http://www.hi-linux.com/posts/26407.html"/>
+
+
+
+
+
+  <title> MySQL多线程备份工具Mydumper详解 | Hi Linux </title>
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage" lang="zh-Hans">
+
+  
+
+
+
+  <script type="text/javascript">
+    var _hmt = _hmt || [];
+    (function() {
+      var hm = document.createElement("script");
+      hm.src = "//hm.baidu.com/hm.js?3b0564d55846bf6e7a5bbe21deda0c69";
+      var s = document.getElementsByTagName("script")[0];
+      s.parentNode.insertBefore(hm, s);
+    })();
+  </script>
+
+
+
+
+
+
+
+
+  
+  
+    
+  
+
+  <div class="container one-collumn sidebar-position-left page-post-detail ">
+    <div class="headband"></div>
+
+    <header id="header" class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-meta ">
+  
+
+  <div class="custom-logo-site-title">
+    <a href="/"  class="brand" rel="start">
+      <span class="logo-line-before"><i></i></span>
+      <span class="site-title">Hi Linux</span>
+      <span class="logo-line-after"><i></i></span>
+    </a>
+  </div>
+  <p class="site-subtitle">种一棵树最好的时间是十年前，其次是现在。</p>
+</div>
+
+<div class="site-nav-toggle">
+  <button>
+    <span class="btn-bar"></span>
+    <span class="btn-bar"></span>
+    <span class="btn-bar"></span>
+  </button>
+</div>
+
+<nav class="site-nav">
+  
+
+  
+    <ul id="menu" class="menu">
+      
+        
+        <li class="menu-item menu-item-home">
+          <a href="/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-home"></i> <br />
+            
+            首页
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-categories">
+          <a href="/categories" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-th"></i> <br />
+            
+            分类
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-about">
+          <a href="/about" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-user"></i> <br />
+            
+            关于
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-archives">
+          <a href="/archives" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-archive"></i> <br />
+            
+            归档
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-tags">
+          <a href="/tags" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-tags"></i> <br />
+            
+            标签
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-commonweal">
+          <a href="/404.html" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-heartbeat"></i> <br />
+            
+            公益404
+          </a>
+        </li>
+      
+
+      
+        <li class="menu-item menu-item-search">
+          
+            <a href="javascript:;" class="popup-trigger">
+          
+            
+              <i class="menu-item-icon fa fa-search fa-fw"></i> <br />
+            
+            搜索
+          </a>
+        </li>
+      
+    </ul>
+  
+
+  
+    <div class="site-search">
+      
+  <div class="popup">
+ <span class="search-icon fa fa-search"></span>
+ <input type="text" id="local-search-input">
+ <div id="local-search-result"></div>
+ <span class="popup-btn-close">close</span>
+</div>
+
+
+    </div>
+  
+</nav>
+
+
+
+ </div>
+    </header>
+
+    <main id="main" class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          <div id="content" class="content">
+            
+
+  <div id="posts" class="posts-expand">
+    
+
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal " itemscope itemtype="http://schema.org/Article">
+  <link itemprop="mainEntityOfPage" href="http://www.hi-linux.com/posts/26407.html">
+
+  <span style="display:none" itemprop="author" itemscope itemtype="http://schema.org/Person">
+    <meta itemprop="name" content="Mike">
+    <meta itemprop="description" content="">
+    <meta itemprop="image" content="http://0.gravatar.com/avatar/5c1d99604129bc6d96333e7daf784bfc?s=160">
+  </span>
+
+  <span style="display:none" itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+    <meta itemprop="name" content="Hi Linux">
+    <span style="display:none" itemprop="logo" itemscope itemtype="http://schema.org/ImageObject">
+      <img style="display:none;" itemprop="url image" alt="Hi Linux" src="">
+    </span>
+  </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">
+            
+            
+              
+                MySQL多线程备份工具Mydumper详解
+              
+            
+          </h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              <span class="post-meta-item-text">发表于</span>
+              <time title="Post created" itemprop="dateCreated datePublished" datetime="2016-05-17T09:00:00+08:00">
+                2016-05-17
+              </time>
+            
+
+            
+
+            
+          </span>
+
+          
+            <span class="post-category" >
+              <span class="post-meta-divider">|</span>
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              <span class="post-meta-item-text">分类于</span>
+              
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/MySQL/" itemprop="url" rel="index">
+                    <span itemprop="name">MySQL</span>
+                  </a>
+                </span>
+
+                
+                
+              
+            </span>
+          
+
+          
+            
+              <span class="post-comments-count">
+                <span class="post-meta-divider">|</span>
+                <a href="/posts/26407.html#comments" itemprop="discussionUrl">
+                  <span class="post-comments-count ds-thread-count" data-thread-key="posts/26407.html" itemprop="commentCount"></span>
+                </a>
+              </span>
+            
+          
+
+          
+
+          
+          
+             <span id="/posts/26407.html" class="leancloud_visitors" data-flag-title="MySQL多线程备份工具Mydumper详解">
+               <span class="post-meta-divider">|</span>
+               <span class="post-meta-item-icon">
+                 <i class="fa fa-eye"></i>
+               </span>
+               <span class="post-meta-item-text">阅读次数 </span>
+               <span class="leancloud-visitors-count"></span>
+              </span>
+          
+
+          
+
+          
+
+        </div>
+      </header>
+    
+
+
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        <h3 id="Mydumper介绍"><a href="#Mydumper介绍" class="headerlink" title="Mydumper介绍"></a>Mydumper介绍</h3><p>MySQL在备份方面包含了自身的mysqldump工具，但其只支持单线程工作，这就使得它无法迅速的备份数据。而mydumper作为一个实用工具，能够良好支持多线程工作，这使得它在处理速度方面十倍于传统的mysqldump。其特征之一是在处理过程中需要对列表加以锁定，因此如果我们需要在工作时段执行备份工作，那么会引起DML阻塞。但一般现在的MySQL都有主从，备份也大部分在从上进行，所以锁的问题可以不用考虑。这样mydumper能更好的完成备份任务。</p>
+<p>Mydumper是一个针对MySQL和Drizzle的高性能多线程备份和恢复工具，开发人员主要来自MySQL,Facebook,SkySQL公司。<br><a id="more"></a><br><strong>Mydumper特性</strong></p>
+<blockquote>
+<p>轻量级C语言写的<br>执行速度比mysqldump快10倍<br>事务性和非事务性表一致的快照(适用于0.2.2以上版本)<br>快速的文件压缩<br>支持导出binlog(新版本里已经不能备份binlog)<br>支持将备份文件切块<br>多线程备份(因为是多线程逻辑备份，备份后会生成多个备份文件)<br>多线程恢复(适用于0.2.1以上版本)<br>备份时对MyISAM表施加FTWRL(FLUSH TABLES WITH READ LOCK),会阻塞DML语句<br>以守护进程的工作方式，定时快照和连续二进制日志(适用于0.5.0以上版本)<br>开源 (GNU GPLv3)</p>
+</blockquote>
+<p>Mydumper项目地址: <a href="https://launchpad.net/mydumper/" target="_blank" rel="external">https://launchpad.net/mydumper/</a></p>
+<h3 id="Mydumper备份机制"><a href="#Mydumper备份机制" class="headerlink" title="Mydumper备份机制"></a>Mydumper备份机制</h3><h4 id="Mydumper工作流程图"><a href="#Mydumper工作流程图" class="headerlink" title="Mydumper工作流程图"></a>Mydumper工作流程图</h4><p><img src="http://www.hi-linux.com/img/linux/mydumper.png" alt=""></p>
+<p><strong>主要步骤概括</strong></p>
+<ul>
+<li>主线程 FLUSH TABLES WITH READ LOCK, 施加全局只读锁，以阻止DML语句写入，保证数据的一致性</li>
+<li>读取当前时间点的二进制日志文件名和日志写入的位置并记录在metadata文件中，以供即使点恢复使用</li>
+<li>N个（线程数可以指定，默认是4）dump线程 START TRANSACTION WITH CONSISTENT SNAPSHOT; 开启读一致的事物</li>
+<li>dump non-InnoDB tables, 首先导出非事物引擎的表</li>
+<li>主线程 UNLOCK TABLES 非事物引擎备份完后，释放全局只读锁</li>
+<li>dump InnoDB tables, 基于事物导出InnoDB表</li>
+<li>事物结束</li>
+</ul>
+<p><strong>Mydumper的less locking模式</strong></p>
+<p>Mydumper使用<code>--less-locking</code>可以减少锁等待时间，此时mydumper的执行机制大致为</p>
+<ul>
+<li>主线程 FLUSH TABLES WITH READ LOCK(全局锁)</li>
+<li>Dump线程 START TRANSACTION WITH CONSISTENT SNAPSHOT;</li>
+<li>LL Dump线程 LOCK TABLES non-InnoDB(线程内部锁)</li>
+<li>主线程UNLOCK TABLES</li>
+<li>LL Dump线程 dump non-InnoDB tables</li>
+<li>LL DUmp线程 UNLOCK non-InnoDB</li>
+<li>Dump线程 dump InnoDB tables</li>
+</ul>
+<h4 id="Mydumper备份所生成的文件"><a href="#Mydumper备份所生成的文件" class="headerlink" title="Mydumper备份所生成的文件"></a>Mydumper备份所生成的文件</h4><p>所有的备份文件在一个目录中，目录可以自己指定。</p>
+<p><strong>目录中包含一个metadata文件</strong></p>
+<ul>
+<li>记录了备份数据库在备份时间点的二进制日志文件名，日志的写入位置，如果是在从库进行备份，还会记录备份时同步至主库的二进制日志文件及写入位置</li>
+</ul>
+<p><strong>每个表有两个备份文件</strong></p>
+<ul>
+<li>database.table-schema.sql 表结构文件</li>
+<li>database.table.sql 表数据文件</li>
+<li>如果对表文件分片，将生成多个备份数据文件，可以指定行数或指定大小分片</li>
+</ul>
+<p><strong>binary logs(新版已废弃)</strong></p>
+<p>启用<code>--binlogs</code>选项后，二进制文件存放在binlog_snapshot目录下</p>
+<p><strong>daemon mode</strong></p>
+<ul>
+<li>在这个模式下，有五个目录0、1、binlogs、binlog_snapshot、last_dump。</li>
+<li>备份目录是0和1，间隔备份，如果mydumper因某种原因失败而仍然有一个好的快照，当快照完成后，last_dump指向该备份。</li>
+</ul>
+<h3 id="Mydumper安装"><a href="#Mydumper安装" class="headerlink" title="Mydumper安装"></a>Mydumper安装</h3><p>Mydumper使用C语言编写，使用glibc库。mydumper安装所依赖的软件包：<code>glibc</code>、 <code>zlib</code>、 <code>pcre</code>、 <code>pcre-devel</code>、 <code>gcc</code>、 <code>gcc-c++</code>、<code>cmake</code>、<code>make</code>、<code>mysql客户端库文件</code>。</p>
+<p><strong>安装依赖包</strong></p>
+<ul>
+<li>Centos</li>
+</ul>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div></pre></td><td class="code"><pre><div class="line">$ yum install glib2-devel mysql-devel zlib-devel pcre-devel cmake</div></pre></td></tr></table></figure>
+<ul>
+<li>Ubuntu</li>
+</ul>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div></pre></td><td class="code"><pre><div class="line">$ apt-get cmake make install libglib2.0-dev libmysqlclient15-dev zlib1g-dev libpcre3-dev g++</div></pre></td></tr></table></figure>
+<p><strong>编译安装</strong></p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div></pre></td><td class="code"><pre><div class="line">$ wget https://launchpad.net/mydumper/0.9/0.9.1/+download/mydumper-0.9.1.tar.gz</div><div class="line">$ tar xzvf mydumper-0.9.1.tar.gz</div><div class="line">$ cd mydumper-0.9.1</div><div class="line">$ cmake .</div><div class="line">$ make</div><div class="line">$ make install</div></pre></td></tr></table></figure>
+<p>安装完成后生成两个二进制文件mydumper和myloader位于/usr/local/bin目录下</p>
+<p><strong>检查版本</strong></p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div></pre></td><td class="code"><pre><div class="line">$ mydumper -V                    </div><div class="line">mydumper 0.9.1, built against MySQL 5.6.29</div><div class="line"></div><div class="line">$ myloader -V</div><div class="line">myloader 0.9.1, built against MySQL 5.6.29</div></pre></td></tr></table></figure>
+<h3 id="Mydumper使用"><a href="#Mydumper使用" class="headerlink" title="Mydumper使用"></a>Mydumper使用</h3><p>Mydumper主要有以下两个命令：mydumper用于备份，myloader用于恢复。</p>
+<p><strong>mydumper命令一览</strong></p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div><div class="line">23</div><div class="line">24</div><div class="line">25</div><div class="line">26</div><div class="line">27</div><div class="line">28</div><div class="line">29</div><div class="line">30</div><div class="line">31</div><div class="line">32</div><div class="line">33</div><div class="line">34</div><div class="line">35</div><div class="line">36</div><div class="line">37</div><div class="line">38</div><div class="line">39</div><div class="line">40</div><div class="line">41</div><div class="line">42</div><div class="line">43</div><div class="line">44</div><div class="line">45</div><div class="line">46</div><div class="line">47</div></pre></td><td class="code"><pre><div class="line">$ mydumper --help</div><div class="line"></div><div class="line">Usage:</div><div class="line">  mydumper [OPTION...] multi-threaded MySQL dumping</div><div class="line"></div><div class="line">Help Options:</div><div class="line">  -?, --help                  Show help options</div><div class="line"></div><div class="line">-B, --database              要备份的数据库，不指定则备份所有库</div><div class="line">-T, --tables-list           需要备份的表，名字用逗号隔开</div><div class="line">-o, --outputdir             备份文件输出的目录</div><div class="line">-s, --statement-size        生成的insert语句的字节数，默认1000000(这个参数不能太小，不然会报 Row bigger than statement_size for tools.t_serverinfo)</div><div class="line">-r, --rows                  将表按行分块时，指定的块行数，指定这个选项会关闭 --chunk-filesize</div><div class="line">-F, --chunk-filesize        将表按大小分块时，指定的块大小，单位是 MB</div><div class="line">-c, --compress              压缩输出文件</div><div class="line">-e, --build-empty-files     如果表数据是空，还是产生一个空文件（默认无数据则只有表结构文件）</div><div class="line">-x, --regex                 支持正则表达式匹配&apos;db.table&apos;,如mydumper –regex &apos;^(?!(mysql|test))&apos;</div><div class="line">-i, --ignore-engines        忽略的存储引擎，用都厚分割</div><div class="line">-m, --no-schemas            不备份表结构</div><div class="line">-d, --no-data               不备份表数据</div><div class="line">-G, --triggers              不备份触发器</div><div class="line">-E, --events                不备份事件</div><div class="line">-R, --routines              不备份存储过程和函数</div><div class="line">-k, --no-locks              不使用临时共享只读锁，使用这个选项会造成数据不一致</div><div class="line">--less-locking              减少对InnoDB表的锁施加时间（这种模式的机制下文详解）</div><div class="line">-l, --long-query-guard      设定阻塞备份的长查询超时时间，单位是秒，默认是60秒（超时后默认mydumper将会退出）</div><div class="line">--kill-long-queries         杀掉长查询 (不退出)</div><div class="line">-b, --binlogs               导出binlog</div><div class="line">-D, --daemon                启用守护进程模式，守护进程模式以某个间隔不间断对数据库进行备份</div><div class="line">-I, --snapshot-interval     dump快照间隔时间，默认60s，需要在daemon模式下</div><div class="line">-L, --logfile               使用的日志文件名(mydumper所产生的日志), 默认使用标准输出</div><div class="line">--tz-utc                    设置时区，只有备份应用到不同时区的时使用。默认是--skip-tz-utc是关闭的</div><div class="line">--skip-tz-utc               同上</div><div class="line">--use-savepoints            使用savepoints来减少采集metadata所造成的锁时间，需要 SUPER 权限</div><div class="line">--success-on-1146           Not increment error count and Warning instead of Critical in case of table doesn&apos;t exist</div><div class="line">-h, --host                  连接的主机名</div><div class="line">-u, --user                  备份所使用的用户</div><div class="line">-p, --password              密码</div><div class="line">-P, --port                  端口</div><div class="line">-S, --socket                使用socket通信时的socket文件</div><div class="line">-t, --threads               开启的备份线程数，默认是4</div><div class="line">-C, --compress-protocol     压缩与mysql通信的数据</div><div class="line">-V, --version               显示版本号</div><div class="line">-v, --verbose               输出信息模式, 0 = silent, 1 = errors, 2 = warnings, 3 = info, 默认为 2</div><div class="line">--lock-all-tables           锁全表，代替FLUSH TABLE WITH READ LOCK</div><div class="line">-U, --updated-since         Use Update_time to dump only tables updated in the last U days</div><div class="line">--trx-consistency-only      Transactional consistency only</div></pre></td></tr></table></figure>
+<p><strong>myloader命令一览</strong></p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div></pre></td><td class="code"><pre><div class="line">$ myloader --help</div><div class="line">Usage:</div><div class="line">  myloader [OPTION...] multi-threaded MySQL loader </div><div class="line"></div><div class="line">-d, --directory                   备份文件的文件夹</div><div class="line">-q, --queries-per-transaction     每次事物执行的查询数量，默认是1000</div><div class="line">-o, --overwrite-tables            如果要恢复的表存在，则先drop掉该表，使用该参数，需要备份时候要备份表结构</div><div class="line">-B, --database                    需要还原的数据库</div><div class="line">-s, --source-db                   还原的数据库</div><div class="line">-e, --enable-binlog               启用还原数据的二进制日志</div><div class="line">-h, --host                        主机</div><div class="line">-u, --user                        还原的用户</div><div class="line">-p, --password                    密码</div><div class="line">-P, --port                        端口</div><div class="line">-S, --socket                      socket文件</div><div class="line">-t, --threads                     还原所使用的线程数，默认是4</div><div class="line">-C, --compress-protocol           压缩协议</div><div class="line">-V, --version                     显示版本</div><div class="line">-v, --verbose                     输出模式, 0 = silent, 1 = errors, 2 = warnings, 3 = info, 默认为2</div></pre></td></tr></table></figure>
+<h3 id="Mydumper实例"><a href="#Mydumper实例" class="headerlink" title="Mydumper实例"></a>Mydumper实例</h3><h4 id="备份实例"><a href="#备份实例" class="headerlink" title="备份实例"></a>备份实例</h4><p>备份wordpress库到/var/backup/wordpress文件夹中，并压缩备份文件</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div></pre></td><td class="code"><pre><div class="line">$ mydumper -u root -p root -h localhost -B wordpress -c -o /var/backup/wordpress</div></pre></td></tr></table></figure>
+<p>备份所有数据库，并备份二进制日志文件，备份至/var/backup/alldb文件夹</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div></pre></td><td class="code"><pre><div class="line">$ mydumper -u root -p root -h localhost -o /var/backup/alldb</div></pre></td></tr></table></figure>
+<p>备份wordpress.wp_posts表，且不备份表结构，备份至/var/backup/wordpress-01文件夹</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div></pre></td><td class="code"><pre><div class="line">$ mydumper -u root -p root -h localhost -B wordpress -T wp_posts -m -o /var/backup/wordpress-01</div></pre></td></tr></table></figure>
+<p>只导出数据不导出表结构</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div></pre></td><td class="code"><pre><div class="line">$ mydumper -h 127.0.0.1 -u root -p root --database wordpress --no-schemas</div></pre></td></tr></table></figure>
+<p>不指定输出目录会在当前目录下生成一个以当前时间命名的目录，类似<code>export-20160517-114713</code></p>
+<p>默认无数据则只有表结构文件，加上<code>--build-empty-files</code>参数后，即使是一张空表，仍然会创建一个文件。</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div></pre></td><td class="code"><pre><div class="line">$ mydumper -h 127.0.0.1 -u root -p root --build-empty-files</div></pre></td></tr></table></figure>
+<p>设置长查询的上限，如果存在比这个还长的查询则退出mydumper，也可以设置杀掉这个长查询</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div></pre></td><td class="code"><pre><div class="line">$ mydumper -h 127.0.0.1 -u root -p root --long-query-guard 300 --kill-long-queries</div></pre></td></tr></table></figure>
+<p>实现此功能需要指定<code>--long-query-guard</code>参数，后面加上限值即可。同时杀掉长查询，需要指定<code>--kill-long-queries</code>参数。</p>
+<p>设置需要导出的列表<code>-–tables-list</code>，逗号分割</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div></pre></td><td class="code"><pre><div class="line">$ mydumper -h 127.0.0.1 -u root -p root --tables-list=test.mt_test,robin.test</div></pre></td></tr></table></figure>
+<p>只备份t_task和t_guid表</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div></pre></td><td class="code"><pre><div class="line">$ mydumper --database=tools --outputdir=/var/backup/tools/ --tables-list=t_task,t_guid</div></pre></td></tr></table></figure>
+<p>注意此参数需要加上数据库名字。执行完成后，在导出目录即可看到上述两张表的表结构以及数据。</p>
+<p>通过regex设置正则表达式，需要设置数据库名字</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div></pre></td><td class="code"><pre><div class="line">$ mydumper -h 127.0.0.1 -u root -p root --regex=&quot;beebol.*|tools.*&quot;</div></pre></td></tr></table></figure>
+<p>此功能跟上面的<code>-–tables-list</code>类似。</p>
+<p>只备份以t_server开头的表</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div></pre></td><td class="code"><pre><div class="line">$ mydumper --database=tools --outputdir=/var/backup/tools/ --regex=&quot;tools.t_server*&quot;</div></pre></td></tr></table></figure>
+<p>备份出了名称为tmp.*的表，并压缩备份文件</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div></pre></td><td class="code"><pre><div class="line">$ mydumper -u root -p 123456 -P 3306 -m -c -b --regex=tmp.* -B test -o /var/backup/tmp/</div></pre></td></tr></table></figure>
+<p>只备份abc、bcd、cde库</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div></pre></td><td class="code"><pre><div class="line">$ mydumper -u backup -p 123456  -h 192.168.180.13 -P 3306 -t 3 -c -l 3600 -s 10000000 -e --regex &apos;abc|bcd|cde&apos; -o bbb/</div></pre></td></tr></table></figure>
+<p>不备份abc、mysql、test数据库</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div></pre></td><td class="code"><pre><div class="line">$ mydumper -u backup -p 123456  -h 192.168.180.13 -P 3306 -t 3 -c -l 3600 -s 10000000 -e --regex &apos;^(?!(abc|mysql|test))&apos; -o bbb/</div></pre></td></tr></table></figure>
+<p>把单表分成多个chunks</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div></pre></td><td class="code"><pre><div class="line">$ mydumper -h 127.0.0.1 -u root -p root --rows 2000</div></pre></td></tr></table></figure>
+<p>实现此功能，加上<code>--rows</code>参数。如果一张表的记录数超过设置的值，则这张表会拆分成多个SQL文件，命名规则如下：数据库名.表名.0000x.sql，x 从 0 开始。</p>
+<p>过滤某个引擎的表</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div></pre></td><td class="code"><pre><div class="line">$ mydumper -h 127.0.0.1 -u root -p root -B test --ignore-engines=innodb</div></pre></td></tr></table></figure>
+<p>加上<code>--ignore-engines</code>参数后，指定的存储引擎就会被过滤，亦即不导出指定存储引擎的表。</p>
+<p>查看详细日志</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div></pre></td><td class="code"><pre><div class="line">$ mydumper -h 127.0.0.1 -u root -p root -B test -v 3</div></pre></td></tr></table></figure>
+<p>加上-v参数即可查看日志，取值可以是 0、1、2、3，分别表示静默模式、只输出错误、只输出警告、详细信息，默认取值是2。</p>
+<p>指定导出线程数</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div></pre></td><td class="code"><pre><div class="line">$ mydumper -h 127.0.0.1 -u root -p root -B test --threads 10</div></pre></td></tr></table></figure>
+<p>mydumper是多线程的。加上<code>--threads</code>参数后，可以指定线程数，如果导出的数据较多，建议指定此参数，并且设置一个合理的值。另外，加上此参数，明显导出速度快了很多，这就是多线程的优势。当然，多线程肯定会消耗更多的系统资源。</p>
+<p>后台运行</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div></pre></td><td class="code"><pre><div class="line">$ mydumper -h 127.0.0.1 -u root -p root -B test --daemon</div></pre></td></tr></table></figure>
+<p>压缩导出的SQL文件</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div></pre></td><td class="code"><pre><div class="line">$ mydumper -h 127.0.0.1 -u root -p root -B test --compress</div></pre></td></tr></table></figure>
+<p>压缩后的SQL文件以.gz 结尾。我们可以使用gunzip命令来解压。具体用法是：<code>gunzip –c filename.gz &gt; filename</code></p>
+<p>远程备份</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div></pre></td><td class="code"><pre><div class="line">$ mydumper -h 远程服务器地址 -u root -p root -o /var/backup/mydumper -v 3 -c 9 -C -e -t 8</div></pre></td></tr></table></figure>
+<h4 id="还原实例"><a href="#还原实例" class="headerlink" title="还原实例"></a>还原实例</h4><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div></pre></td><td class="code"><pre><div class="line">$ myloader -u root -p root -h localhost -B wordpress -d /var/backup/wordpress</div></pre></td></tr></table></figure>
+<p>还原到另一台服务器</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div></pre></td><td class="code"><pre><div class="line">$ myloader -u root -p 123456 -h 192.168.200.25 -P 3307 -B wordpress -d /var/backup/wordpress</div></pre></td></tr></table></figure>
+<p>如表存在先删除</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div></pre></td><td class="code"><pre><div class="line">$ myloader -u root -p 123456 -h 192.168.200.25 -P 3306 -o -B wordpress -d /var/backup/wordpress</div></pre></td></tr></table></figure>
+<p>这里需要注意使用该参数，备份目录里面需要有表结构的备份文件。</p>
+<h3 id="参考文档"><a href="#参考文档" class="headerlink" title="参考文档"></a>参考文档</h3><p><a href="http://www.google.com" target="_blank" rel="external">http://www.google.com</a><br><a href="http://www.cnblogs.com/linuxnote/p/3817698.html" target="_blank" rel="external">http://www.cnblogs.com/linuxnote/p/3817698.html</a><br><a href="https://dbarobin.com/2015/04/07/mydumper/" target="_blank" rel="external">https://dbarobin.com/2015/04/07/mydumper/</a><br><a href="http://www.cnblogs.com/zhoujinyi/p/3423641.html" target="_blank" rel="external">http://www.cnblogs.com/zhoujinyi/p/3423641.html</a></p>
+
+      
+    </div>
+
+    <div>
+      
+        
+<div id="wechat_subscriber" style="display: block; padding: 10px 0; margin: 20px auto; width: 100%; text-align: center">
+    <img id="wechat_subscriber_qcode" src="/img/donate/wechatqcode.jpg" alt="Mike wechat" style="width: 200px; max-width: 100%;"/>
+    <div>更多精彩内容，请关注微信公众号Hi-Linux，第一时间推送给您!</div>
+</div>
+
+
+      
+    </div>
+
+    <div>
+      
+        
+
+      
+    </div>
+
+
+    <footer class="post-footer">
+      
+        <div class="post-tags">
+          
+            <a href="/tags/Linux/" rel="tag"># Linux</a>
+          
+            <a href="/tags/MySQL/" rel="tag"># MySQL</a>
+          
+        </div>
+      
+
+      
+        <div class="post-nav">
+          <div class="post-nav-next post-nav-item">
+            
+              <a href="/posts/56953.html" rel="next" title="用httping测试WEB页面响应时间">
+                <i class="fa fa-chevron-left"></i> 用httping测试WEB页面响应时间
+              </a>
+            
+          </div>
+
+          <span class="post-nav-divider"></span>
+
+          <div class="post-nav-prev post-nav-item">
+            
+              <a href="/posts/5198.html" rel="prev" title="Linux系统性能监控工具Tsar">
+                Linux系统性能监控工具Tsar <i class="fa fa-chevron-right"></i>
+              </a>
+            
+          </div>
+        </div>
+      
+
+      
+      
+    </footer>
+  </article>
+
+
+
+    <div class="post-spread">
+      
+        <div class="ds-share flat" data-thread-key="posts/26407.html"
+     data-title="MySQL多线程备份工具Mydumper详解"
+     data-content=""
+     data-url="http://www.hi-linux.com/posts/26407.html">
+  <div class="ds-share-inline">
+    <ul  class="ds-share-icons-16">
+
+      <li data-toggle="ds-share-icons-more"><a class="ds-more" href="javascript:void(0);">分享到：</a></li>
+      <li><a class="ds-weibo" href="javascript:void(0);" data-service="weibo">微博</a></li>
+      <li><a class="ds-qzone" href="javascript:void(0);" data-service="qzone">QQ空间</a></li>
+      <li><a class="ds-qqt" href="javascript:void(0);" data-service="qqt">腾讯微博</a></li>
+      <li><a class="ds-wechat" href="javascript:void(0);" data-service="wechat">微信</a></li>
+
+    </ul>
+    <div class="ds-share-icons-more">
+    </div>
+  </div>
+</div>
+      
+    </div>
+  </div>
+
+
+          </div>
+          
+
+
+          
+  <div class="comments" id="comments">
+    
+      <div class="ds-thread" data-thread-key="posts/26407.html"
+           data-title="MySQL多线程备份工具Mydumper详解" data-url="http://www.hi-linux.com/posts/26407.html">
+      </div>
+    
+  </div>
+
+
+        </div>
+        
+          
+  
+  <div class="sidebar-toggle">
+    <div class="sidebar-toggle-line-wrap">
+      <span class="sidebar-toggle-line sidebar-toggle-line-first"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-middle"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-last"></span>
+    </div>
+  </div>
+
+  <aside id="sidebar" class="sidebar">
+    <div class="sidebar-inner">
+
+      
+
+      
+        <ul class="sidebar-nav motion-element">
+          <li class="sidebar-nav-toc sidebar-nav-active" data-target="post-toc-wrap" >
+            文章目录
+          </li>
+          <li class="sidebar-nav-overview" data-target="site-overview">
+            站点概览
+          </li>
+        </ul>
+      
+
+      <section class="site-overview sidebar-panel">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+          <img class="site-author-image" itemprop="image"
+               src="http://0.gravatar.com/avatar/5c1d99604129bc6d96333e7daf784bfc?s=160"
+               alt="Mike" />
+          <p class="site-author-name" itemprop="name">Mike</p>
+          <p class="site-description motion-element" itemprop="description"></p>
+        </div>
+        <nav class="site-state motion-element">
+          <div class="site-state-item site-state-posts">
+            <a href="/archives">
+              <span class="site-state-item-count">110</span>
+              <span class="site-state-item-name">日志</span>
+            </a>
+          </div>
+
+          
+            <div class="site-state-item site-state-categories">
+              <a href="/categories">
+                <span class="site-state-item-count">57</span>
+                <span class="site-state-item-name">分类</span>
+              </a>
+            </div>
+          
+
+          
+            <div class="site-state-item site-state-tags">
+              <a href="/tags">
+                <span class="site-state-item-count">72</span>
+                <span class="site-state-item-name">标签</span>
+              </a>
+            </div>
+          
+
+        </nav>
+
+        
+          <div class="feed-link motion-element">
+            <a href="/atom.xml" rel="alternate">
+              <i class="fa fa-rss"></i>
+              RSS
+            </a>
+          </div>
+        
+
+        <div class="links-of-author motion-element">
+          
+            
+              <span class="links-of-author-item">
+                <a href="https://github.com/80imike" target="_blank" title="GitHub">
+                  
+                    <i class="fa fa-fw fa-github"></i>
+                  
+                  GitHub
+                </a>
+              </span>
+            
+              <span class="links-of-author-item">
+                <a href="http://twitter.com/easylife206" target="_blank" title="Twitter">
+                  
+                    <i class="fa fa-fw fa-twitter"></i>
+                  
+                  Twitter
+                </a>
+              </span>
+            
+              <span class="links-of-author-item">
+                <a href="http://weibo.com/u/2093524665/" target="_blank" title="Weibo">
+                  
+                    <i class="fa fa-fw fa-weibo"></i>
+                  
+                  Weibo
+                </a>
+              </span>
+            
+              <span class="links-of-author-item">
+                <a href="http://zhihu.com/people/80imike" target="_blank" title="zhihu">
+                  
+                    <i class="fa fa-fw fa-globe"></i>
+                  
+                  zhihu
+                </a>
+              </span>
+            
+              <span class="links-of-author-item">
+                <a href="http://shang.qq.com/wpa/qunwpa?idkey=ea4c43493c2269428ac6ef6141de4b6d78e5ab2d41380ca4099b833b62884ee9" target="_blank" title="QQGroup">
+                  
+                    <i class="fa fa-fw fa-globe"></i>
+                  
+                  QQGroup
+                </a>
+              </span>
+            
+          
+        </div>
+
+        
+        
+          <div class="cc-license motion-element" itemprop="license">
+            <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/" class="cc-opacity" target="_blank">
+              <img src="/images/cc-by-nc-sa.svg" alt="Creative Commons" />
+            </a>
+          </div>
+        
+
+        
+        
+          <div class="links-of-blogroll motion-element links-of-blogroll-inline">
+            <div class="links-of-blogroll-title">
+              <i class="fa  fa-fw fa-globe"></i>
+              Links
+            </div>
+            <ul class="links-of-blogroll-list">
+              
+                <li class="links-of-blogroll-item">
+                  <a href="http://www.mike.org.cn/" title="简单.生活" target="_blank">简单.生活</a>
+                </li>
+              
+            </ul>
+          </div>
+        
+
+        
+
+
+      </section>
+
+      
+      <!--noindex-->
+        <section class="post-toc-wrap motion-element sidebar-panel sidebar-panel-active">
+          <div class="post-toc">
+
+            
+              
+            
+
+            
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-3"><a class="nav-link" href="#Mydumper介绍"><span class="nav-number">1.</span> <span class="nav-text">Mydumper介绍</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Mydumper备份机制"><span class="nav-number">2.</span> <span class="nav-text">Mydumper备份机制</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#Mydumper工作流程图"><span class="nav-number">2.1.</span> <span class="nav-text">Mydumper工作流程图</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#Mydumper备份所生成的文件"><span class="nav-number">2.2.</span> <span class="nav-text">Mydumper备份所生成的文件</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Mydumper安装"><span class="nav-number">3.</span> <span class="nav-text">Mydumper安装</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Mydumper使用"><span class="nav-number">4.</span> <span class="nav-text">Mydumper使用</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Mydumper实例"><span class="nav-number">5.</span> <span class="nav-text">Mydumper实例</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#备份实例"><span class="nav-number">5.1.</span> <span class="nav-text">备份实例</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#还原实例"><span class="nav-number">5.2.</span> <span class="nav-text">还原实例</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#参考文档"><span class="nav-number">6.</span> <span class="nav-text">参考文档</span></a></li></ol></div>
+            
+
+          </div>
+        </section>
+      <!--/noindex-->
+      
+
+    </div>
+  </aside>
+
+
+        
+      </div>
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="footer-inner">
+        <div class="copyright" >
+  
+  &copy;  2010 - 
+  <span itemprop="copyrightYear">2017</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">Mike</span>
+</div>
+
+
+<div class="powered-by">
+  由 <a class="theme-link" href="https://hexo.io">Hexo</a> 强力驱动
+</div>
+
+<div class="theme-info">
+  主题 -
+  <a class="theme-link" href="https://github.com/iissnan/hexo-theme-next">
+    NexT.Mist
+  </a>
+</div>
+
+
+        
+
+        
+      </div>
+    </footer>
+
+    <div class="back-to-top">
+      <i class="fa fa-arrow-up"></i>
+    </div>
+  </div>
+
+  
+
+<script type="text/javascript">
+  if (Object.prototype.toString.call(window.Promise) !== '[object Function]') {
+    window.Promise = null;
+  }
+</script>
+
+
+
+
+
+
+
+
+
+  
+
+
+
+  
+  <script type="text/javascript" src="/lib/jquery/index.js?v=2.1.3"></script>
+
+  
+  <script type="text/javascript" src="/lib/fastclick/lib/fastclick.min.js?v=1.0.6"></script>
+
+  
+  <script type="text/javascript" src="/lib/jquery_lazyload/jquery.lazyload.js?v=1.9.7"></script>
+
+  
+  <script type="text/javascript" src="/lib/velocity/velocity.min.js?v=1.2.1"></script>
+
+  
+  <script type="text/javascript" src="/lib/velocity/velocity.ui.min.js?v=1.2.1"></script>
+
+  
+  <script type="text/javascript" src="/lib/fancybox/source/jquery.fancybox.pack.js?v=2.1.5"></script>
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/utils.js?v=5.1.0"></script>
+
+  <script type="text/javascript" src="/js/src/motion.js?v=5.1.0"></script>
+
+
+
+  
+  
+
+  
+  <script type="text/javascript" src="/js/src/scrollspy.js?v=5.1.0"></script>
+<script type="text/javascript" src="/js/src/post-details.js?v=5.1.0"></script>
+
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/bootstrap.js?v=5.1.0"></script>
+
+
+
+  
+
+  
+    
+  
+
+  <script type="text/javascript">
+    var duoshuoQuery = {short_name:"imike"};
+    (function() {
+      var ds = document.createElement('script');
+      ds.type = 'text/javascript';ds.async = true;
+      ds.id = 'duoshuo-script';
+      ds.src = (document.location.protocol == 'https:' ? 'https:' : 'http:') + '//static.duoshuo.com/embed.js';
+      ds.charset = 'UTF-8';
+      (document.getElementsByTagName('head')[0]
+      || document.getElementsByTagName('body')[0]).appendChild(ds);
+    })();
+  </script>
+
+  
+    
+    
+    <script src="/lib/ua-parser-js/dist/ua-parser.min.js?v=0.7.9"></script>
+    <script src="/js/src/hook-duoshuo.js"></script>
+  
+
+
+
+
+
+
+
+
+  
+  
+  <script type="text/javascript">
+    // Popup Window;
+    var isfetched = false;
+    // Search DB path;
+    var search_path = "search.xml";
+    if (search_path.length == 0) {
+      search_path = "search.xml";
+    }
+    var path = "/" + search_path;
+    // monitor main search box;
+
+    function proceedsearch() {
+      $("body").append('<div class="popoverlay">').css('overflow', 'hidden');
+      $('.popup').toggle();
+    }
+    // search function;
+    var searchFunc = function(path, search_id, content_id) {
+      'use strict';
+      $.ajax({
+        url: path,
+        dataType: "xml",
+        async: true,
+        success: function( xmlResponse ) {
+          // get the contents from search data
+          isfetched = true;
+          $('.popup').detach().appendTo('.header-inner');
+          var datas = $( "entry", xmlResponse ).map(function() {
+            return {
+              title: $( "title", this ).text(),
+              content: $("content",this).text(),
+              url: $( "url" , this).text()
+            };
+          }).get();
+          var $input = document.getElementById(search_id);
+          var $resultContent = document.getElementById(content_id);
+          $input.addEventListener('input', function(){
+            var matchcounts = 0;
+            var str='<ul class=\"search-result-list\">';
+            var keywords = this.value.trim().toLowerCase().split(/[\s\-]+/);
+            $resultContent.innerHTML = "";
+            if (this.value.trim().length > 1) {
+              // perform local searching
+              datas.forEach(function(data) {
+                var isMatch = false;
+                var content_index = [];
+                var data_title = data.title.trim().toLowerCase();
+                var data_content = data.content.trim().replace(/<[^>]+>/g,"").toLowerCase();
+                var data_url = decodeURIComponent(data.url);
+                var index_title = -1;
+                var index_content = -1;
+                var first_occur = -1;
+                // only match artiles with not empty titles and contents
+                if(data_title != '') {
+                  keywords.forEach(function(keyword, i) {
+                    index_title = data_title.indexOf(keyword);
+                    index_content = data_content.indexOf(keyword);
+                    if( index_title >= 0 || index_content >= 0 ){
+                      isMatch = true;
+                      if (i == 0) {
+                        first_occur = index_content;
+                      }
+                    }
+
+                  });
+                }
+                // show search results
+                if (isMatch) {
+                  matchcounts += 1;
+                  str += "<li><a href='"+ data_url +"' class='search-result-title'>"+ data_title +"</a>";
+                  var content = data.content.trim().replace(/<[^>]+>/g,"");
+                  if (first_occur >= 0) {
+                    // cut out 100 characters
+                    var start = first_occur - 20;
+                    var end = first_occur + 80;
+                    if(start < 0){
+                      start = 0;
+                    }
+                    if(start == 0){
+                      end = 50;
+                    }
+                    if(end > content.length){
+                      end = content.length;
+                    }
+                    var match_content = content.substring(start, end);
+                    // highlight all keywords
+                    keywords.forEach(function(keyword){
+                      var regS = new RegExp(keyword, "gi");
+                      match_content = match_content.replace(regS, "<b class=\"search-keyword\">"+keyword+"</b>");
+                    });
+
+                    str += "<p class=\"search-result\">" + match_content +"...</p>"
+                  }
+                  str += "</li>";
+                }
+              })};
+            str += "</ul>";
+            if (matchcounts == 0) { str = '<div id="no-result"><i class="fa fa-frown-o fa-5x" /></div>' }
+            if (keywords == "") { str = '<div id="no-result"><i class="fa fa-search fa-5x" /></div>' }
+            $resultContent.innerHTML = str;
+          });
+          proceedsearch();
+        }
+      });}
+
+    // handle and trigger popup window;
+    $('.popup-trigger').click(function(e) {
+      e.stopPropagation();
+      if (isfetched == false) {
+        searchFunc(path, 'local-search-input', 'local-search-result');
+      } else {
+        proceedsearch();
+      };
+    });
+
+    $('.popup-btn-close').click(function(e){
+      $('.popup').hide();
+      $(".popoverlay").remove();
+      $('body').css('overflow', '');
+    });
+    $('.popup').click(function(e){
+      e.stopPropagation();
+    });
+  </script>
+
+
+  
+
+  
+
+  
+  <script src="https://cdn1.lncld.net/static/js/av-core-mini-0.6.1.js"></script>
+  <script>AV.initialize("EeCjSUdsGRpRB9IrXppQ5KrB-gzGzoHsz", "JzmNE4oVCYAxJ1Whfn49rCkK");</script>
+  <script>
+    function showTime(Counter) {
+      var query = new AV.Query(Counter);
+      var entries = [];
+      var $visitors = $(".leancloud_visitors");
+
+      $visitors.each(function () {
+        entries.push( $(this).attr("id").trim() );
+      });
+
+      query.containedIn('url', entries);
+      query.find()
+        .done(function (results) {
+          var COUNT_CONTAINER_REF = '.leancloud-visitors-count';
+
+          if (results.length === 0) {
+            $visitors.find(COUNT_CONTAINER_REF).text(0);
+            return;
+          }
+
+          for (var i = 0; i < results.length; i++) {
+            var item = results[i];
+            var url = item.get('url');
+            var time = item.get('time');
+            var element = document.getElementById(url);
+
+            $(element).find(COUNT_CONTAINER_REF).text(time);
+          }
+          for(var i = 0; i < entries.length; i++) {
+            var url = entries[i];
+            var element = document.getElementById(url);
+            var countSpan = $(element).find(COUNT_CONTAINER_REF);
+            if( countSpan.text() == '') {
+              countSpan.text(0);
+            }
+          }
+        })
+        .fail(function (object, error) {
+          console.log("Error: " + error.code + " " + error.message);
+        });
+    }
+
+    function addCount(Counter) {
+      var $visitors = $(".leancloud_visitors");
+      var url = $visitors.attr('id').trim();
+      var title = $visitors.attr('data-flag-title').trim();
+      var query = new AV.Query(Counter);
+
+      query.equalTo("url", url);
+      query.find({
+        success: function(results) {
+          if (results.length > 0) {
+            var counter = results[0];
+            counter.fetchWhenSave(true);
+            counter.increment("time");
+            counter.save(null, {
+              success: function(counter) {
+                var $element = $(document.getElementById(url));
+                $element.find('.leancloud-visitors-count').text(counter.get('time'));
+              },
+              error: function(counter, error) {
+                console.log('Failed to save Visitor num, with error message: ' + error.message);
+              }
+            });
+          } else {
+            var newcounter = new Counter();
+            /* Set ACL */
+            var acl = new AV.ACL();
+            acl.setPublicReadAccess(true);
+            acl.setPublicWriteAccess(true);
+            newcounter.setACL(acl);
+            /* End Set ACL */
+            newcounter.set("title", title);
+            newcounter.set("url", url);
+            newcounter.set("time", 1);
+            newcounter.save(null, {
+              success: function(newcounter) {
+                var $element = $(document.getElementById(url));
+                $element.find('.leancloud-visitors-count').text(newcounter.get('time'));
+              },
+              error: function(newcounter, error) {
+                console.log('Failed to create');
+              }
+            });
+          }
+        },
+        error: function(error) {
+          console.log('Error:' + error.code + " " + error.message);
+        }
+      });
+    }
+
+    $(function() {
+      var Counter = AV.Object.extend("Counter");
+      if ($('.leancloud_visitors').length == 1) {
+        addCount(Counter);
+      } else if ($('.post-title-link').length > 1) {
+        showTime(Counter);
+      }
+    });
+  </script>
+
+
+
+  
+<script>
+(function(){
+    var bp = document.createElement('script');
+    var curProtocol = window.location.protocol.split(':')[0];
+    if (curProtocol === 'https') {
+        bp.src = 'https://zz.bdstatic.com/linksubmit/push.js';        
+    }
+    else {
+        bp.src = 'http://push.zhanzhang.baidu.com/push.js';
+    }
+    var s = document.getElementsByTagName("script")[0];
+    s.parentNode.insertBefore(bp, s);
+})();
+</script>
+
+
+  
+
+
+</body>
+</html>

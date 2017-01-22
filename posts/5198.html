@@ -1,0 +1,1230 @@
+<!doctype html>
+
+
+
+  
+
+
+<html class="theme-next mist use-motion" lang="zh-Hans">
+<head>
+  <meta charset="UTF-8"/>
+<meta http-equiv="X-UA-Compatible" content="IE=edge" />
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1"/>
+
+
+
+<meta http-equiv="Cache-Control" content="no-transform" />
+<meta http-equiv="Cache-Control" content="no-siteapp" />
+
+
+
+  <meta name="google-site-verification" content="RhTUr9TCCVuxvnQF2xhQZbwtArG6b5x_-AO42Zl9EIE" />
+
+
+
+
+
+
+
+
+
+
+  
+  
+  <link href="/lib/fancybox/source/jquery.fancybox.css?v=2.1.5" rel="stylesheet" type="text/css" />
+
+
+
+
+  
+  
+  
+  
+
+  
+    
+    
+  
+
+  
+
+  
+
+  
+
+  
+    
+      
+    
+
+    
+  
+
+  
+    
+    
+    <link href="//fonts.lug.ustc.edu.cn/css?family=华文中宋:300,300italic,400,400italic,700,700italic|Source Serif Pro:300,300italic,400,400italic,700,700italic&subset=latin,latin-ext" rel="stylesheet" type="text/css">
+  
+
+
+
+
+
+
+<link href="/lib/font-awesome/css/font-awesome.min.css?v=4.6.2" rel="stylesheet" type="text/css" />
+
+<link href="/css/main.css?v=5.1.0" rel="stylesheet" type="text/css" />
+
+
+  <meta name="keywords" content="Linux,tsar," />
+
+
+
+
+
+  <link rel="alternate" href="/atom.xml" title="Hi Linux" type="application/atom+xml" />
+
+
+
+
+  <link rel="shortcut icon" type="image/x-icon" href="/favicon.ico?v=5.1.0" />
+
+
+
+
+
+
+<meta name="description" content="Tsar简介
+Tsar是淘宝自己开发的一个采集工具，主要用来收集服务器的系统信息(如cpu，io，mem，tcp等)，以及应用数据(如squid haproxy nginx等)。
+收集到的数据存储在磁盘上，可以随时查询历史信息，输出方式灵活多样，另外支持将数据存储到mysql中，也可以将数据发送到nagios报警服务器。
+Tsar在展示数据时，可以指定模块，并且可以对多条信息的数据进行merge输">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Linux系统性能监控工具Tsar">
+<meta property="og:url" content="http://www.hi-linux.com/posts/5198.html">
+<meta property="og:site_name" content="Hi Linux">
+<meta property="og:description" content="Tsar简介
+Tsar是淘宝自己开发的一个采集工具，主要用来收集服务器的系统信息(如cpu，io，mem，tcp等)，以及应用数据(如squid haproxy nginx等)。
+收集到的数据存储在磁盘上，可以随时查询历史信息，输出方式灵活多样，另外支持将数据存储到mysql中，也可以将数据发送到nagios报警服务器。
+Tsar在展示数据时，可以指定模块，并且可以对多条信息的数据进行merge输">
+<meta property="og:image" content="http://www.hi-linux.com/img/linux/tsar.png">
+<meta property="og:updated_time" content="2017-01-22T10:13:02.038Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="Linux系统性能监控工具Tsar">
+<meta name="twitter:description" content="Tsar简介
+Tsar是淘宝自己开发的一个采集工具，主要用来收集服务器的系统信息(如cpu，io，mem，tcp等)，以及应用数据(如squid haproxy nginx等)。
+收集到的数据存储在磁盘上，可以随时查询历史信息，输出方式灵活多样，另外支持将数据存储到mysql中，也可以将数据发送到nagios报警服务器。
+Tsar在展示数据时，可以指定模块，并且可以对多条信息的数据进行merge输">
+<meta name="twitter:image" content="http://www.hi-linux.com/img/linux/tsar.png">
+
+
+
+<script type="text/javascript" id="hexo.configurations">
+  var NexT = window.NexT || {};
+  var CONFIG = {
+    root: '/',
+    scheme: 'Mist',
+    sidebar: {"position":"left","display":"post"},
+    fancybox: true,
+    motion: true,
+    duoshuo: {
+      userId: '0',
+      author: '博主'
+    },
+    algolia: {
+      applicationID: '',
+      apiKey: '',
+      indexName: '',
+      hits: {"per_page":10},
+      labels: {"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}
+    }
+  };
+</script>
+
+
+
+  <link rel="canonical" href="http://www.hi-linux.com/posts/5198.html"/>
+
+
+
+
+
+  <title> Linux系统性能监控工具Tsar | Hi Linux </title>
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage" lang="zh-Hans">
+
+  
+
+
+
+  <script type="text/javascript">
+    var _hmt = _hmt || [];
+    (function() {
+      var hm = document.createElement("script");
+      hm.src = "//hm.baidu.com/hm.js?3b0564d55846bf6e7a5bbe21deda0c69";
+      var s = document.getElementsByTagName("script")[0];
+      s.parentNode.insertBefore(hm, s);
+    })();
+  </script>
+
+
+
+
+
+
+
+
+  
+  
+    
+  
+
+  <div class="container one-collumn sidebar-position-left page-post-detail ">
+    <div class="headband"></div>
+
+    <header id="header" class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-meta ">
+  
+
+  <div class="custom-logo-site-title">
+    <a href="/"  class="brand" rel="start">
+      <span class="logo-line-before"><i></i></span>
+      <span class="site-title">Hi Linux</span>
+      <span class="logo-line-after"><i></i></span>
+    </a>
+  </div>
+  <p class="site-subtitle">种一棵树最好的时间是十年前，其次是现在。</p>
+</div>
+
+<div class="site-nav-toggle">
+  <button>
+    <span class="btn-bar"></span>
+    <span class="btn-bar"></span>
+    <span class="btn-bar"></span>
+  </button>
+</div>
+
+<nav class="site-nav">
+  
+
+  
+    <ul id="menu" class="menu">
+      
+        
+        <li class="menu-item menu-item-home">
+          <a href="/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-home"></i> <br />
+            
+            首页
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-categories">
+          <a href="/categories" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-th"></i> <br />
+            
+            分类
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-about">
+          <a href="/about" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-user"></i> <br />
+            
+            关于
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-archives">
+          <a href="/archives" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-archive"></i> <br />
+            
+            归档
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-tags">
+          <a href="/tags" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-tags"></i> <br />
+            
+            标签
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-commonweal">
+          <a href="/404.html" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-heartbeat"></i> <br />
+            
+            公益404
+          </a>
+        </li>
+      
+
+      
+        <li class="menu-item menu-item-search">
+          
+            <a href="javascript:;" class="popup-trigger">
+          
+            
+              <i class="menu-item-icon fa fa-search fa-fw"></i> <br />
+            
+            搜索
+          </a>
+        </li>
+      
+    </ul>
+  
+
+  
+    <div class="site-search">
+      
+  <div class="popup">
+ <span class="search-icon fa fa-search"></span>
+ <input type="text" id="local-search-input">
+ <div id="local-search-result"></div>
+ <span class="popup-btn-close">close</span>
+</div>
+
+
+    </div>
+  
+</nav>
+
+
+
+ </div>
+    </header>
+
+    <main id="main" class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          <div id="content" class="content">
+            
+
+  <div id="posts" class="posts-expand">
+    
+
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal " itemscope itemtype="http://schema.org/Article">
+  <link itemprop="mainEntityOfPage" href="http://www.hi-linux.com/posts/5198.html">
+
+  <span style="display:none" itemprop="author" itemscope itemtype="http://schema.org/Person">
+    <meta itemprop="name" content="Mike">
+    <meta itemprop="description" content="">
+    <meta itemprop="image" content="http://0.gravatar.com/avatar/5c1d99604129bc6d96333e7daf784bfc?s=160">
+  </span>
+
+  <span style="display:none" itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+    <meta itemprop="name" content="Hi Linux">
+    <span style="display:none" itemprop="logo" itemscope itemtype="http://schema.org/ImageObject">
+      <img style="display:none;" itemprop="url image" alt="Hi Linux" src="">
+    </span>
+  </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">
+            
+            
+              
+                Linux系统性能监控工具Tsar
+              
+            
+          </h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              <span class="post-meta-item-text">发表于</span>
+              <time title="Post created" itemprop="dateCreated datePublished" datetime="2016-05-18T09:00:00+08:00">
+                2016-05-18
+              </time>
+            
+
+            
+
+            
+          </span>
+
+          
+            <span class="post-category" >
+              <span class="post-meta-divider">|</span>
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              <span class="post-meta-item-text">分类于</span>
+              
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/tsar/" itemprop="url" rel="index">
+                    <span itemprop="name">tsar</span>
+                  </a>
+                </span>
+
+                
+                
+              
+            </span>
+          
+
+          
+            
+              <span class="post-comments-count">
+                <span class="post-meta-divider">|</span>
+                <a href="/posts/5198.html#comments" itemprop="discussionUrl">
+                  <span class="post-comments-count ds-thread-count" data-thread-key="posts/5198.html" itemprop="commentCount"></span>
+                </a>
+              </span>
+            
+          
+
+          
+
+          
+          
+             <span id="/posts/5198.html" class="leancloud_visitors" data-flag-title="Linux系统性能监控工具Tsar">
+               <span class="post-meta-divider">|</span>
+               <span class="post-meta-item-icon">
+                 <i class="fa fa-eye"></i>
+               </span>
+               <span class="post-meta-item-text">阅读次数 </span>
+               <span class="leancloud-visitors-count"></span>
+              </span>
+          
+
+          
+
+          
+
+        </div>
+      </header>
+    
+
+
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        <h3 id="Tsar简介"><a href="#Tsar简介" class="headerlink" title="Tsar简介"></a>Tsar简介</h3><ul>
+<li>Tsar是淘宝自己开发的一个采集工具，主要用来收集服务器的系统信息(如cpu，io，mem，tcp等)，以及应用数据(如squid haproxy nginx等)。</li>
+<li>收集到的数据存储在磁盘上，可以随时查询历史信息，输出方式灵活多样，另外支持将数据存储到mysql中，也可以将数据发送到nagios报警服务器。</li>
+<li>Tsar在展示数据时，可以指定模块，并且可以对多条信息的数据进行merge输出，带–live参数可以输出秒级的实时信息。</li>
+<li>Tsar能够比较方便的增加模块，只需要按照tsar的要求编写数据的采集函数和展现函数，就可以把自定义的模块加入到Tsar中。<a id="more"></a>
+</li>
+</ul>
+<p><strong>总体架构</strong></p>
+<ul>
+<li>Tsar是基于模块化设计的程序，程序有两部分组成：框架和模块。</li>
+<li>框架程序源代码主要在src目录，而模块源代码主要在modules目录中。</li>
+<li>框架提供对配置文件的解析，模块的加载，命令行参数的解析，应用模块的接口对模块原始数据的解析与输出。 模块提供接口给框架调用。</li>
+<li>Tsar依赖与cron每分钟执行采集数据，因此它需要系统安装并启用crond，安装后，tsar每分钟会执行<code>tsar --cron</code>来定时采集信息，并且记录到原始日志文件。</li>
+</ul>
+<p><strong>Tsar的运行流程图</strong></p>
+<p><img src="http://www.hi-linux.com/img/linux/tsar.png" alt=""></p>
+<p>主要执行流程</p>
+<blockquote>
+<p>1.解析输入<br>根据用户的输入，初始化一些全局信息，如间隔时间，是否merge，是否指定模块，运行模式</p>
+<p>2.读取配置文件信息<br>主要解析tsar的配置文件，如果include生效，则会解析include的配置文件<br>配置文件用来获得tsar需要加载的模块，输出方式，每一类输出方式包含的模块，和此输出方式的接收信息<br>如mod_cpu on代表采集cpu的信息<br>output_interface file,nagios表示向文件和nagios服务器发送采集信息和报警信息</p>
+<p>3.加载相应模块<br>根据配置文件的模块开启关闭情况，将模块的动态库load到系统</p>
+<p>4.tsar的三种运行模式<br>tsar在运行的时候有三种模式：<br>print模式仅仅输出指定的模块信息，默认显示最近一天的；<br>live模式是输出当前信息，可以精确到秒级<br>cron模式，此一般是crontab定时执行，每一分钟采集一次所有配置的模块信息，并将数据写入原始文件，在cron运行的时候 会判断是否配置输出到db或者nagios，如果配置则将相应格式的数据输出到对应接口。</p>
+<p>5.释放资源<br>程序最后，释放动态库，程序结束</p>
+</blockquote>
+<p>项目地址: <a href="https://github.com/alibaba/tsar" target="_blank" rel="external">https://github.com/alibaba/tsar</a></p>
+<h3 id="Tsar安装"><a href="#Tsar安装" class="headerlink" title="Tsar安装"></a>Tsar安装</h3><p><strong>从github上检出代码</strong></p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div></pre></td><td class="code"><pre><div class="line">$ git clone git://github.com/alibaba/tsar.git</div><div class="line">$ cd tsar</div><div class="line">$ make</div><div class="line">$ make install</div></pre></td></tr></table></figure>
+<p><strong>从github上下载源码</strong></p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div></pre></td><td class="code"><pre><div class="line">$ wget -O tsar.zip https://github.com/alibaba/tsar/archive/master.zip --no-check-certificate</div><div class="line">$ unzip tsar.zip</div><div class="line">$ cd tsar</div><div class="line">$ make</div><div class="line">$ make install</div></pre></td></tr></table></figure>
+<p><strong>安装后生成的文件</strong></p>
+<blockquote>
+<p>Tsar配置文件路径：/etc/tsar/tsar.conf，tsar的采集模块和输出的具体配置；<br>定时任务配置:/etc/cron.d/tsar，负责每分钟调用tsar执行采集任务；<br>日志文件轮转配置:/etc/logrotate.d/tsar，每个月会把tsar的本地存储进行轮转；<br>模块路径：/usr/local/tsar/modules，各个模块的动态库so文件；</p>
+</blockquote>
+<h3 id="Tsar配置"><a href="#Tsar配置" class="headerlink" title="Tsar配置"></a>Tsar配置</h3><p><strong>Tsar配置文件介绍</strong></p>
+<ul>
+<li>定时任务配置</li>
+</ul>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div></pre></td><td class="code"><pre><div class="line">$ cat  /etc/cron.d/tsar</div><div class="line"># cron tsar collect once per minute</div><div class="line">MAILTO=&quot;&quot;</div><div class="line">* * * * * root /usr/bin/tsar --cron &gt; /dev/null 2&gt;&amp;1</div></pre></td></tr></table></figure>
+<p>如上所示，<code>/etc/cron.d/tsar</code>里面负责每分钟以root用户的角色调用tsar命令来执行数据采集。</p>
+<ul>
+<li>日志文件轮转</li>
+</ul>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div></pre></td><td class="code"><pre><div class="line">$ cat /etc/logrotate.d/tsar </div><div class="line">/var/log/tsar.data</div><div class="line">&#123;</div><div class="line">monthly</div><div class="line">rotate 120</div><div class="line">create</div><div class="line">nocompress</div><div class="line">nodateext</div><div class="line">notifempty</div><div class="line">prerotate</div><div class="line">/usr/bin/chattr -a /var/log/tsar.data</div><div class="line">endscript</div><div class="line">postrotate</div><div class="line">/usr/bin/chattr +a /var/log/tsar.data</div><div class="line">endscript</div><div class="line">&#125;</div></pre></td></tr></table></figure>
+<p>在日志文件轮转配置中，每个月会把tsar的本地存储进行轮转，此外这里也设定了数据在<code>/var/log/tsar.data</code>下</p>
+<ul>
+<li>配置文件</li>
+</ul>
+<p><code>/etc/tsar/tsar.conf</code>负责tsar的采集模块和输出的具体配置；在这里配置启用哪些模块，输出等内容。</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div><div class="line">23</div><div class="line">24</div><div class="line">25</div><div class="line">26</div><div class="line">27</div><div class="line">28</div><div class="line">29</div><div class="line">30</div><div class="line">31</div><div class="line">32</div><div class="line">33</div><div class="line">34</div><div class="line">35</div><div class="line">36</div><div class="line">37</div><div class="line">38</div><div class="line">39</div><div class="line">40</div><div class="line">41</div><div class="line">42</div><div class="line">43</div><div class="line">44</div><div class="line">45</div><div class="line">46</div><div class="line">47</div><div class="line">48</div><div class="line">49</div><div class="line">50</div><div class="line">51</div><div class="line">52</div><div class="line">53</div><div class="line">54</div><div class="line">55</div><div class="line">56</div><div class="line">57</div><div class="line">58</div><div class="line">59</div><div class="line">60</div><div class="line">61</div><div class="line">62</div><div class="line">63</div><div class="line">64</div><div class="line">65</div><div class="line">66</div><div class="line">67</div><div class="line">68</div><div class="line">69</div><div class="line">70</div><div class="line">71</div><div class="line">72</div><div class="line">73</div><div class="line">74</div><div class="line">75</div><div class="line">76</div><div class="line">77</div></pre></td><td class="code"><pre><div class="line">$ cat /etc/tsar/tsar.conf</div><div class="line">####debug_level(INFO DEBUG WARN ERROR FATAL)</div><div class="line">debug_level ERROR</div><div class="line">####[module]</div><div class="line">mod_cpu on</div><div class="line">mod_mem on</div><div class="line">mod_swap on</div><div class="line">mod_tcp on</div><div class="line">mod_udp on</div><div class="line">mod_traffic on</div><div class="line">mod_io on</div><div class="line">mod_pcsw on</div><div class="line">mod_partition on</div><div class="line">mod_tcpx on</div><div class="line">mod_load on</div><div class="line">mod_apache off</div><div class="line">mod_lvs off</div><div class="line">mod_haproxy off</div><div class="line">mod_squid off</div><div class="line">mod_nginx off</div><div class="line">mod_nginx_multiport off</div><div class="line">mod_nginx_live off</div><div class="line">#mod_nginx_sys_mport on 80 8080</div><div class="line">mod_swift off</div><div class="line">mod_swift_code off</div><div class="line">mod_swift_domain off</div><div class="line">mod_swift_esi off</div><div class="line">mod_swift_fwd off</div><div class="line">mod_swift_store off</div><div class="line">mod_swift_swapdir off</div><div class="line">mod_swift_purge off</div><div class="line">mod_swift_sys off</div><div class="line">mod_swift_tcmalloc off</div><div class="line">mod_tmd off</div><div class="line">mod_percpu off</div><div class="line">mod_tcprt off</div><div class="line">mod_proc off pidname</div><div class="line">mod_pharos off</div><div class="line">mod_tmd4 off</div><div class="line">mod_keyserver off</div><div class="line">#mod_erpc on /etc/tsar/erpc.conf</div><div class="line">#mod_search on</div><div class="line"></div><div class="line">####output_interface file,db,nagios</div><div class="line">output_interface file</div><div class="line"></div><div class="line">####[output_file] original data to store</div><div class="line">output_file_path /var/log/tsar.data</div><div class="line"></div><div class="line">####[output_stdio] these mod will be show as using tsar command</div><div class="line">output_stdio_mod mod_swap,mod_partition,mod_cpu,mod_mem,mod_lvs,mod_haproxy,mod_traffic,mod_squid,mod_load,mod_tcp,mod_udp,mod_tcpx,mod_apache,mod_pcsw,mod_io,mod_percpu</div><div class="line"></div><div class="line">####[output_db]</div><div class="line">#output_db_mod mod_swap,mod_partition,mod_cpu,mod_mem,mod_traffic,mod_load,mod_tcp,mod_udp,mod_pcsw,mod_io</div><div class="line">#output_db_addr console2:56677</div><div class="line"></div><div class="line">####[output_tcp]</div><div class="line">#output_tcp_mod mod_swap,mod_cpu</div><div class="line">#output_tcp_addr localhost:9666</div><div class="line">#output_tcp_merge on</div><div class="line"></div><div class="line">####support include other mod conf</div><div class="line">include /etc/tsar/conf.d/*.conf</div><div class="line"></div><div class="line">####The IP address or the host running the NSCA daemon</div><div class="line">#server_addr nagios.server.com</div><div class="line">####The port on which the daemon is running - default is 5667</div><div class="line">#server_port 8086</div><div class="line">####The cycle of send alert to nagios</div><div class="line">#cycle_time 300</div><div class="line">####nsca client program</div><div class="line">#send_nsca_cmd /usr/bin/send_nsca</div><div class="line">#send_nsca_conf /home/a/conf/amon/send_nsca.conf</div><div class="line"></div><div class="line">####tsar mod alert config file</div><div class="line">####threshold servicename.key;w-min;w-max;c-min;cmax;</div><div class="line">#threshold cpu.util;N;N;N;N;</div></pre></td></tr></table></figure>
+<p><strong>常用参数说明</strong></p>
+<blockquote>
+<p>debug_level       指定tsar的运行级别，主要用来调试使用<br>mod_xxx on/off    开启指定模块<br>out_interface     设置输出类型，支持file，nagios，db<br>out_stdio_mod     设置用户终端默认显示的模块<br>output_db_mod     设置哪些模块输出到数据库<br>output_db_addr    数据库的ip和端口<br>output_nagios_mod 设置哪些模块输出到nagios<br>include           支持include配置，主要用来加载用户的自定义模块<br>cycle_time        指定上报的间隔时间，由于tsar每一分钟采集一次，上报时会判断是否符合时间间隔，如设置300的话，则在0，5等整点分钟会上报nagios<br>threshold         设置某个要报警项的阀值,前面是模块和要监控的具体名称，后面的四个数据代表报警的范围，warn和critical的范围</p>
+</blockquote>
+<ul>
+<li>自定义模块配置文件</li>
+</ul>
+<p><code>/etc/tsar/conf.d/</code>这个目录下是用户的自定义模块配置文件,配置基本在用户开发自定义模块时确定，主要包含模块的开启，输出类型和报警范围</p>
+<h3 id="Tsar使用介绍"><a href="#Tsar使用介绍" class="headerlink" title="Tsar使用介绍"></a>Tsar使用介绍</h3><p>在Tsar的使用中，可以参考下面的帮助信息，完成对应的监控。</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div><div class="line">23</div><div class="line">24</div><div class="line">25</div><div class="line">26</div><div class="line">27</div><div class="line">28</div><div class="line">29</div><div class="line">30</div></pre></td><td class="code"><pre><div class="line">$ tsar -h</div><div class="line">Usage: tsar [options]</div><div class="line">Options:</div><div class="line">    -check         查看最后一次的采集数据</div><div class="line">    --check/-C     查看最后一次tsar的提醒信息，如：tsar --check / tsar --check --cpu --io</div><div class="line">    --cron/-c      使用crond模式来进行tsar监控</div><div class="line">    --interval/-i  指明tsar的间隔时间，默认单位分钟,默认显示间隔5分钟；带上--live参数则单位是秒，默认是5秒。 </div><div class="line">    --list/-L      列出启用的模块</div><div class="line">    --live/-l      启用实时模式，类似iostat等，可以配合-i参数和模块参数使用。</div><div class="line">    --file/-f      指定输入文件</div><div class="line">    --ndays/-n     控制显示多长时间的历史数据，默认1天</div><div class="line">    --date/-d      指定日期,YYYYMMDD或者n代表n天前</div><div class="line">    --detail/-D    能够指定查看主要字段还是模块的所有字段</div><div class="line">    --spec/-s      指定字段,tsar –cpu -s sys,util</div><div class="line">    --watch/-w     显示最后多少分钟的记录. 如:tsar --watch 30 / tsar --watch 30 --cpu --io</div><div class="line">    --merge/-m     对有多个数据的展示，进行汇总，如机器上跑了3个squid，可以用 tsar –squid -m的放式进行展示汇总。</div><div class="line">    --item/-I      显示指定项目数据, 如:tsar --io -I sda</div><div class="line">    -–help/-h      显示提示信息和模块信息</div><div class="line">Modules Enabled:</div><div class="line">    --cpu          列出cpu相关的监控计数</div><div class="line">    --mem          物理内存的使用情况</div><div class="line">    --swap         虚拟内存的使用情况</div><div class="line">    --tcp          TCP协议IPV4的使用情况</div><div class="line">    --udp          UDP协议IPV4的使用情况</div><div class="line">    --traffic      网络传出的使用情况</div><div class="line">    --io           Linux IO的情况</div><div class="line">    --pcsw         进程和上下文切换</div><div class="line">    --partition    磁盘使用情况</div><div class="line">    --tcpx         TCP连接相关的数据参数</div><div class="line">    --load         系统负载情况</div></pre></td></tr></table></figure>
+<ul>
+<li>tsar命令行主要担负显示历史数据和实时数据的功能，因此有控制展示模块和格式化输出的参数，默认不带任何参数/选项的情况下，tsar打印汇总信息。</li>
+<li>tsar命令行主要显示给人看的，所以数据展示中都进行了k/m/g等的进位。</li>
+<li>tsar命令会在显示20行数据后再次打印各个列的列头，以利于用户理解数据的含义。</li>
+<li>tsar的列头信息包括2行，第一行为模块名，第二行为列名。</li>
+<li>tsar输出最后会作min/avg/max的汇总统计，统计所展示中的最小/平均/最大数据。</li>
+</ul>
+<h3 id="Tsar使用实例"><a href="#Tsar使用实例" class="headerlink" title="Tsar使用实例"></a>Tsar使用实例</h3><h4 id="Tsar监控系统"><a href="#Tsar监控系统" class="headerlink" title="Tsar监控系统"></a>Tsar监控系统</h4><p>查看可用的模块列表</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div></pre></td><td class="code"><pre><div class="line">$ tsar -L</div><div class="line">tsar enable follow modules:</div><div class="line">    cpu</div><div class="line">    mem</div><div class="line">    swap</div><div class="line">    tcp</div><div class="line">    udp</div><div class="line">    traffic</div><div class="line">    io</div><div class="line">    pcsw</div><div class="line">    partition</div><div class="line">    tcpx</div><div class="line">    load</div></pre></td></tr></table></figure>
+<p>查看指定模块的运行状况,模块是指<code>tsar -L</code>列出来的名称。如查看CPU运行情况</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div><div class="line">23</div><div class="line">24</div><div class="line">25</div><div class="line">26</div><div class="line">27</div><div class="line">28</div><div class="line">29</div><div class="line">30</div><div class="line">31</div><div class="line">32</div><div class="line">33</div><div class="line">34</div><div class="line">35</div></pre></td><td class="code"><pre><div class="line">$ tsar --cpu</div><div class="line">Time           -----------------------cpu---------------------- </div><div class="line">Time             user     sys    wait    hirq    sirq    util   </div><div class="line">18/05/16-09:20   0.03    0.08    0.01    0.00    0.02    0.12   </div><div class="line">18/05/16-09:25   0.00    0.02    0.00    0.00    0.01    0.04   </div><div class="line">18/05/16-09:30   0.00    0.02    0.00    0.00    0.02    0.05   </div><div class="line">18/05/16-09:35   0.00    0.87    2.06    0.00    0.02    0.90   </div><div class="line">18/05/16-09:40   0.00    0.03    0.00    0.00    0.02    0.05   </div><div class="line">18/05/16-09:45   0.00    0.02    0.00    0.00    0.02    0.04   </div><div class="line">18/05/16-09:50   0.00    0.02    0.00    0.00    0.02    0.04   </div><div class="line">18/05/16-09:55   0.01    0.02    0.00    0.00    0.02    0.05   </div><div class="line">18/05/16-10:00   0.00    0.02    0.00    0.00    0.02    0.05   </div><div class="line">18/05/16-10:05   0.07    0.16    0.00    0.00    0.02    0.24   </div><div class="line">18/05/16-10:10   0.12    0.32    0.04    0.00    0.02    0.46   </div><div class="line">18/05/16-10:15   0.02    0.09    0.00    0.00    0.02    0.13   </div><div class="line">18/05/16-10:20   0.04    0.15    0.00    0.00    0.02    0.20   </div><div class="line">18/05/16-10:25   0.03    0.07    0.00    0.00    0.02    0.11   </div><div class="line">18/05/16-10:30   0.01    0.03    0.00    0.00    0.02    0.05   </div><div class="line">18/05/16-10:35   0.00    0.02    0.00    0.00    0.02    0.04   </div><div class="line">18/05/16-10:40   0.01    0.03    0.00    0.00    0.02    0.05   </div><div class="line">18/05/16-10:45   0.00    0.02    0.00    0.00    0.02    0.05   </div><div class="line">18/05/16-10:50   0.00    0.03    0.00    0.00    0.02    0.05   </div><div class="line">Time           -----------------------cpu---------------------- </div><div class="line">Time             user     sys    wait    hirq    sirq    util   </div><div class="line">18/05/16-10:55   0.07    0.10    0.00    0.00    0.02    0.19   </div><div class="line">18/05/16-11:00   0.02    0.07    0.00    0.00    0.02    0.10   </div><div class="line">18/05/16-11:05   0.02    0.05    0.00    0.00    0.01    0.09   </div><div class="line">18/05/16-11:10   0.01    0.03    0.00    0.00    0.01    0.06   </div><div class="line">18/05/16-11:15   0.01    0.03    0.00    0.00    0.01    0.05   </div><div class="line">18/05/16-11:20   0.01    0.03    0.00    0.00    0.02    0.06   </div><div class="line">18/05/16-11:25   0.01    0.03    0.00    0.00    0.01    0.05   </div><div class="line"></div><div class="line">MAX              0.03    0.87    2.06    0.00    0.02    0.90   </div><div class="line">MEAN             0.02    0.09    0.08    0.00    0.02    0.13   </div><div class="line">MIN              0.03    0.08    0.01    0.00    0.02    0.12</div></pre></td></tr></table></figure>
+<p>查看实时数据</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div></pre></td><td class="code"><pre><div class="line">$ tsar -l   </div><div class="line">Time              ---cpu-- ---mem-- ---tcp-- -----traffic---- --sda--- --dm-0-- --dm-1-- --dm-2--  ---load- </div><div class="line">Time                util     util   retran    bytin  bytout     util     util     util     util     load1   </div><div class="line">18/05/16-11:27:47   0.05    33.16     0.00    24.00   74.00     0.04     0.04     0.00     0.00      0.00   </div><div class="line">18/05/16-11:27:52   0.05    33.15     0.00    30.00   52.00     0.06     0.06     0.00     0.00      0.00   </div><div class="line">18/05/16-11:27:57   0.20    33.15     0.00    12.00   40.00     0.02     0.02     0.00     0.00      0.00   </div><div class="line">18/05/16-11:28:02   0.50    33.18     0.00    12.00   40.00     0.00     0.00     0.00     0.00      0.00   </div><div class="line">18/05/16-11:28:07   0.15    33.18     0.00    85.00   40.00     0.04     0.04     0.00     0.00      0.00   </div><div class="line">18/05/16-11:28:12   0.15    33.18     0.00   159.00   40.00     0.00     0.00     0.00     0.00      0.00   </div><div class="line">18/05/16-11:28:17   0.05    33.18     0.00    12.00   40.00     0.06     0.06     0.00     0.00      0.00   </div><div class="line">18/05/16-11:28:22   0.10    33.18     0.00    24.00   52.00     0.00     0.00     0.00     0.00      0.00   </div><div class="line">18/05/16-11:28:27   0.15    33.17     0.00    48.00   40.00     0.00     0.00     0.00     0.00      0.00</div></pre></td></tr></table></figure>
+<p>显示1天内的历史汇总(summury)信息，以默认5分钟为间隔</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div><div class="line">23</div><div class="line">24</div><div class="line">25</div><div class="line">26</div><div class="line">27</div><div class="line">28</div><div class="line">29</div><div class="line">30</div><div class="line">31</div><div class="line">32</div><div class="line">33</div><div class="line">34</div><div class="line">35</div></pre></td><td class="code"><pre><div class="line">$ tsar</div><div class="line">Time           ---cpu-- ---mem-- ---tcp-- -----traffic---- --sda--- --dm-0-- --dm-1-- --dm-2--  ---load- </div><div class="line">Time             util     util   retran    bytin  bytout     util     util     util     util     load1   </div><div class="line">18/05/16-09:20   0.12    24.61     0.00    42.00   33.00     0.07     0.07     0.00     0.00      0.00   </div><div class="line">18/05/16-09:25   0.04    24.58     0.00    12.00    2.00     0.03     0.03     0.00     0.00      0.00   </div><div class="line">18/05/16-09:30   0.05    24.62     0.00     6.00    3.00     0.03     0.03     0.00     0.00      0.00   </div><div class="line">18/05/16-09:35   0.90    32.99     0.00     3.00    2.00    11.16    11.05     0.00     0.11      0.35   </div><div class="line">18/05/16-09:40   0.05    32.98     0.00     8.00    2.00     0.14     0.14     0.00     0.00      0.00   </div><div class="line">18/05/16-09:45   0.04    32.98     0.00    16.00    2.00     0.01     0.01     0.00     0.00      0.00   </div><div class="line">18/05/16-09:50   0.04    33.03     0.00    11.00    3.00     0.03     0.03     0.00     0.00      0.00   </div><div class="line">18/05/16-09:55   0.05    32.95     0.00     8.00    2.00     0.03     0.03     0.00     0.00      0.00   </div><div class="line">18/05/16-10:00   0.05    33.00     0.00     9.00    2.00     0.02     0.02     0.00     0.00      0.00   </div><div class="line">18/05/16-10:05   0.24    33.00     0.00    77.00  167.00     0.05     0.05     0.00     0.00      0.00   </div><div class="line">18/05/16-10:10   0.46    33.50     0.00   146.00  377.00     0.23     0.23     0.00     0.00      0.00   </div><div class="line">18/05/16-10:15   0.13    33.01     0.00    31.00   60.00     0.04     0.04     0.00     0.00      0.00   </div><div class="line">18/05/16-10:20   0.20    33.03     0.00    51.00  120.00     0.05     0.05     0.00     0.00      0.00   </div><div class="line">18/05/16-10:25   0.11    33.01     0.00    27.00   26.00     0.04     0.04     0.00     0.00      0.01   </div><div class="line">18/05/16-10:30   0.05    33.04     0.00     2.00    3.00     0.02     0.02     0.00     0.00      0.00   </div><div class="line">18/05/16-10:35   0.04    32.99     0.00    10.00    2.00     0.01     0.01     0.00     0.00      0.00   </div><div class="line">18/05/16-10:40   0.05    33.03     0.00    22.00    2.00     0.02     0.02     0.00     0.00      0.00   </div><div class="line">18/05/16-10:45   0.05    33.00     0.00    10.00    3.00     0.03     0.03     0.00     0.00      0.00   </div><div class="line">18/05/16-10:50   0.05    33.01     0.00    16.00    3.00     0.02     0.02     0.00     0.00      0.00   </div><div class="line">Time           ---cpu-- ---mem-- ---tcp-- -----traffic---- --sda--- --dm-0-- --dm-1-- --dm-2--  ---load- </div><div class="line">Time             util     util   retran    bytin  bytout     util     util     util     util     load1   </div><div class="line">18/05/16-10:55   0.19    33.02     0.00    45.00   63.00     0.02     0.02     0.00     0.00      0.00   </div><div class="line">18/05/16-11:00   0.10    33.04     0.00    21.00   30.00     0.02     0.02     0.00     0.00      0.00   </div><div class="line">18/05/16-11:05   0.09    33.01     0.00    32.00   23.00     0.03     0.03     0.00     0.00      0.00   </div><div class="line">18/05/16-11:10   0.06    33.04     0.00    14.00    3.00     0.01     0.01     0.00     0.00      0.01   </div><div class="line">18/05/16-11:15   0.05    33.02     0.00    12.00    2.00     0.01     0.01     0.00     0.00      0.00   </div><div class="line">18/05/16-11:20   0.06    33.03     0.00    10.00    2.00     0.04     0.04     0.00     0.00      0.03   </div><div class="line">18/05/16-11:25   0.05    33.03     0.00     7.00    2.00     0.01     0.01     0.00     0.00      0.03   </div><div class="line"></div><div class="line">MAX              0.90    33.50     0.00   146.00  377.00    11.16    11.05     0.00     0.11      0.35   </div><div class="line">MEAN             0.13    32.36     0.00    24.24   36.24     0.48     0.48     0.00     0.00      0.02   </div><div class="line">MIN              0.12    24.61     0.00     2.00    2.00     0.07     0.07     0.00     0.00      0.00</div></pre></td></tr></table></figure>
+<p>以1秒钟为间隔，实时打印tsar的概述数据</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div></pre></td><td class="code"><pre><div class="line">$ tsar -i 1 -l</div><div class="line">Time              ---cpu-- ---mem-- ---tcp-- -----traffic---- --sda--- --dm-0-- --dm-1-- --dm-2--  ---load- </div><div class="line">Time                util     util   retran    bytin  bytout     util     util     util     util     load1   </div><div class="line">18/05/16-10:17:17   0.25    33.13     0.00    60.00  314.00     0.00     0.00     0.00     0.00      0.00   </div><div class="line">18/05/16-10:17:18   0.00    33.13     0.00    60.00  202.00     0.50     0.50     0.00     0.00      0.00   </div><div class="line">18/05/16-10:17:19   0.49    33.13     0.00    60.00  202.00     0.00     0.00     0.00     0.00      0.00   </div><div class="line">18/05/16-10:17:21   0.00    33.13     0.00    60.00  202.00     0.00     0.00     0.00     0.00      0.00   </div><div class="line">18/05/16-10:17:22   0.49    33.13     0.00    60.00  202.00     0.00     0.00     0.00     0.00      0.00   </div><div class="line">18/05/16-10:17:23   0.25    33.13     0.00   120.00  262.00     0.20     0.20     0.00     0.00      0.00   </div><div class="line">18/05/16-10:17:24   0.25    33.13     0.00    60.00  202.00     0.40     0.40     0.00     0.00      0.00   </div><div class="line">18/05/16-10:17:25   0.00    33.13     0.00    60.00  202.00     0.00     0.00     0.00     0.00      0.00   </div><div class="line">18/05/16-10:17:26   0.00    33.13     0.00    60.00  202.00     0.00     0.00     0.00     0.00      0.00   </div><div class="line">18/05/16-10:17:27   0.49    33.13     0.00    60.00  202.00     0.00     0.00     0.00     0.00      0.00   </div><div class="line">18/05/16-10:17:28   0.25    33.13     0.00    60.00  202.00     0.00     0.00     0.00     0.00      0.00   </div><div class="line">18/05/16-10:17:29   0.25    33.13     0.00    60.00  202.00     0.00     0.00     0.00     0.00      0.00</div></pre></td></tr></table></figure>
+<p>tsar cpu监控</p>
+<p>使用参数<code>-–cpu</code>可以监控系统的cpu，参数user表示用户空间cpu, sys内核空间cpu使用情况，wait是IO对应的cpu使用情况，hirq,sirq分别是硬件中断，软件中断的使用情况，util是系统使用cpu的总计情况。</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div><div class="line">23</div><div class="line">24</div><div class="line">25</div><div class="line">26</div><div class="line">27</div><div class="line">28</div><div class="line">29</div><div class="line">30</div><div class="line">31</div><div class="line">32</div><div class="line">33</div><div class="line">34</div><div class="line">35</div></pre></td><td class="code"><pre><div class="line">$ tsar  --cpu</div><div class="line">Time           -----------------------cpu---------------------- </div><div class="line">Time             user     sys    wait    hirq    sirq    util   </div><div class="line">18/05/16-09:20   0.03    0.08    0.01    0.00    0.02    0.12   </div><div class="line">18/05/16-09:25   0.00    0.02    0.00    0.00    0.01    0.04   </div><div class="line">18/05/16-09:30   0.00    0.02    0.00    0.00    0.02    0.05   </div><div class="line">18/05/16-09:35   0.00    0.87    2.06    0.00    0.02    0.90   </div><div class="line">18/05/16-09:40   0.00    0.03    0.00    0.00    0.02    0.05   </div><div class="line">18/05/16-09:45   0.00    0.02    0.00    0.00    0.02    0.04   </div><div class="line">18/05/16-09:50   0.00    0.02    0.00    0.00    0.02    0.04   </div><div class="line">18/05/16-09:55   0.01    0.02    0.00    0.00    0.02    0.05   </div><div class="line">18/05/16-10:00   0.00    0.02    0.00    0.00    0.02    0.05   </div><div class="line">18/05/16-10:05   0.07    0.16    0.00    0.00    0.02    0.24   </div><div class="line">18/05/16-10:10   0.12    0.32    0.04    0.00    0.02    0.46   </div><div class="line">18/05/16-10:15   0.02    0.09    0.00    0.00    0.02    0.13   </div><div class="line">18/05/16-10:20   0.04    0.15    0.00    0.00    0.02    0.20   </div><div class="line">18/05/16-10:25   0.03    0.07    0.00    0.00    0.02    0.11   </div><div class="line">18/05/16-10:30   0.01    0.03    0.00    0.00    0.02    0.05   </div><div class="line">18/05/16-10:35   0.00    0.02    0.00    0.00    0.02    0.04   </div><div class="line">18/05/16-10:40   0.01    0.03    0.00    0.00    0.02    0.05   </div><div class="line">18/05/16-10:45   0.00    0.02    0.00    0.00    0.02    0.05   </div><div class="line">18/05/16-10:50   0.00    0.03    0.00    0.00    0.02    0.05   </div><div class="line">Time           -----------------------cpu---------------------- </div><div class="line">Time             user     sys    wait    hirq    sirq    util   </div><div class="line">18/05/16-10:55   0.07    0.10    0.00    0.00    0.02    0.19   </div><div class="line">18/05/16-11:00   0.02    0.07    0.00    0.00    0.02    0.10   </div><div class="line">18/05/16-11:05   0.02    0.05    0.00    0.00    0.01    0.09   </div><div class="line">18/05/16-11:10   0.01    0.03    0.00    0.00    0.01    0.06   </div><div class="line">18/05/16-11:15   0.01    0.03    0.00    0.00    0.01    0.05   </div><div class="line">18/05/16-11:20   0.01    0.03    0.00    0.00    0.02    0.06   </div><div class="line">18/05/16-11:25   0.01    0.03    0.00    0.00    0.01    0.05   </div><div class="line"></div><div class="line">MAX              0.03    0.87    2.06    0.00    0.02    0.90   </div><div class="line">MEAN             0.02    0.09    0.08    0.00    0.02    0.13   </div><div class="line">MIN              0.03    0.08    0.01    0.00    0.02    0.12</div></pre></td></tr></table></figure>
+<p>显示一天内的cpu和内存历史数据，以1分钟为间隔</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div></pre></td><td class="code"><pre><div class="line">$ tsar --cpu --mem -i 1</div><div class="line">Time           -----------------------cpu---------------------- -----------------------mem---------------------- </div><div class="line">Time             user     sys    wait    hirq    sirq    util     free    used    buff    cach   total    util   </div><div class="line">18/05/16-09:14   0.00    0.02    0.00    0.00    0.01    0.04     1.2G  456.9M   35.9M   95.8M    1.8G   24.54   </div><div class="line">18/05/16-09:15   0.01    0.02    0.00    0.00    0.02    0.05     1.2G  456.9M   35.9M   95.8M    1.8G   24.53   </div><div class="line">18/05/16-09:16   0.00    0.02    0.00    0.00    0.01    0.04     1.2G  456.8M   36.0M   95.8M    1.8G   24.53   </div><div class="line">18/05/16-09:17   0.01    0.03    0.00    0.00    0.02    0.06     1.2G  456.6M   36.0M   95.8M    1.8G   24.52   </div><div class="line">18/05/16-09:18   0.19    0.46    0.08    0.00    0.02    0.67     1.2G  458.8M   36.7M   95.8M    1.8G   24.64   </div><div class="line">18/05/16-09:19   0.00    0.03    0.00    0.00    0.02    0.05     1.2G  457.9M   36.8M   95.8M    1.8G   24.59   </div><div class="line">18/05/16-09:20   0.00    0.02    0.00    0.00    0.02    0.05     1.2G  458.3M   36.8M   95.8M    1.8G   24.61   </div><div class="line">18/05/16-09:21   0.00    0.02    0.00    0.00    0.01    0.04     1.2G  457.8M   36.8M   95.8M    1.8G   24.58   </div><div class="line">18/05/16-09:22   0.01    0.02    0.00    0.00    0.02    0.05     1.2G  457.5M   36.8M   95.8M    1.8G   24.57   </div><div class="line">18/05/16-09:23   0.00    0.03    0.00    0.00    0.02    0.05     1.2G  457.6M   36.9M   95.8M    1.8G   24.57   </div><div class="line">18/05/16-09:24   0.00    0.02    0.00    0.00    0.02    0.05     1.2G  457.7M   36.9M   95.8M    1.8G   24.58   </div><div class="line">18/05/16-09:25   0.00    0.02    0.00    0.00    0.01    0.04     1.2G  457.7M   36.9M   95.8M    1.8G   24.58   </div><div class="line">18/05/16-09:26   0.00    0.02    0.00    0.00    0.02    0.05     1.2G  457.7M   36.9M   95.9M    1.8G   24.58   </div><div class="line">18/05/16-09:27   0.01    0.03    0.00    0.00    0.02    0.06     1.2G  457.4M   36.9M   95.9M    1.8G   24.56   </div><div class="line">18/05/16-09:28   0.00    0.02    0.00    0.00    0.02    0.04     1.2G  457.5M   36.9M   95.9M    1.8G   24.57   </div><div class="line">18/05/16-09:29   0.00    0.02    0.00    0.00    0.02    0.03     1.2G  457.5M   37.0M   95.9M    1.8G   24.57   </div><div class="line">18/05/16-09:30   0.00    0.03    0.00    0.00    0.02    0.05     1.2G  458.4M   37.0M   95.8M    1.8G   24.62   </div><div class="line">18/05/16-09:31   0.00    0.02    0.01    0.00    0.02    0.05     1.2G  457.5M   37.0M   95.9M    1.8G   24.57   </div><div class="line">18/05/16-09:32   0.00    0.02    0.00    0.00    0.02    0.04     1.2G  457.5M   37.0M   95.9M    1.8G   24.57</div></pre></td></tr></table></figure>
+<p>显示一天内cpu的历史信息，以1分钟为间隔</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div></pre></td><td class="code"><pre><div class="line">$ tsar --cpu -i 1</div><div class="line">Time           -----------------------cpu---------------------- -----------------------mem---------------------- </div><div class="line">Time             user     sys    wait    hirq    sirq    util     free    used    buff    cach   total    util   </div><div class="line">18/05/16-09:14   0.00    0.02    0.00    0.00    0.01    0.04     1.2G  456.9M   35.9M   95.8M    1.8G   24.54   </div><div class="line">18/05/16-09:15   0.01    0.02    0.00    0.00    0.02    0.05     1.2G  456.9M   35.9M   95.8M    1.8G   24.53   </div><div class="line">18/05/16-09:16   0.00    0.02    0.00    0.00    0.01    0.04     1.2G  456.8M   36.0M   95.8M    1.8G   24.53   </div><div class="line">18/05/16-09:17   0.01    0.03    0.00    0.00    0.02    0.06     1.2G  456.6M   36.0M   95.8M    1.8G   24.52   </div><div class="line">18/05/16-09:18   0.19    0.46    0.08    0.00    0.02    0.67     1.2G  458.8M   36.7M   95.8M    1.8G   24.64   </div><div class="line">18/05/16-09:19   0.00    0.03    0.00    0.00    0.02    0.05     1.2G  457.9M   36.8M   95.8M    1.8G   24.59   </div><div class="line">18/05/16-09:20   0.00    0.02    0.00    0.00    0.02    0.05     1.2G  458.3M   36.8M   95.8M    1.8G   24.61   </div><div class="line">18/05/16-09:21   0.00    0.02    0.00    0.00    0.01    0.04     1.2G  457.8M   36.8M   95.8M    1.8G   24.58   </div><div class="line">18/05/16-09:22   0.01    0.02    0.00    0.00    0.02    0.05     1.2G  457.5M   36.8M   95.8M    1.8G   24.57   </div><div class="line">18/05/16-09:23   0.00    0.03    0.00    0.00    0.02    0.05     1.2G  457.6M   36.9M   95.8M    1.8G   24.57   </div><div class="line">18/05/16-09:24   0.00    0.02    0.00    0.00    0.02    0.05     1.2G  457.7M   36.9M   95.8M    1.8G   24.58   </div><div class="line">18/05/16-09:25   0.00    0.02    0.00    0.00    0.01    0.04     1.2G  457.7M   36.9M   95.8M    1.8G   24.58   </div><div class="line">18/05/16-09:26   0.00    0.02    0.00    0.00    0.02    0.05     1.2G  457.7M   36.9M   95.9M    1.8G   24.58   </div><div class="line">18/05/16-09:27   0.01    0.03    0.00    0.00    0.02    0.06     1.2G  457.4M   36.9M   95.9M    1.8G   24.56   </div><div class="line">18/05/16-09:28   0.00    0.02    0.00    0.00    0.02    0.04     1.2G  457.5M   36.9M   95.9M    1.8G   24.57   </div><div class="line">18/05/16-09:29   0.00    0.02    0.00    0.00    0.02    0.03     1.2G  457.5M   37.0M   95.9M    1.8G   24.57   </div><div class="line">18/05/16-09:30   0.00    0.03    0.00    0.00    0.02    0.05     1.2G  458.4M   37.0M   95.8M    1.8G   24.62   </div><div class="line">18/05/16-09:31   0.00    0.02    0.01    0.00    0.02    0.05     1.2G  457.5M   37.0M   95.9M    1.8G   24.57   </div><div class="line">18/05/16-09:32   0.00    0.02    0.00    0.00    0.02    0.04     1.2G  457.5M   37.0M   95.9M    1.8G   24.57</div></pre></td></tr></table></figure>
+<p>tsar监控虚拟内存和load情况</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div></pre></td><td class="code"><pre><div class="line">$ tsar  --swap --load</div><div class="line">Time           ---------------swap------------- -------------------load----------------- </div><div class="line">Time            swpin  swpout   total    util    load1   load5  load15    runq    plit   </div><div class="line">18/05/16-09:20   0.00    0.00    1.9G    0.00     0.00    0.00    0.00    0.00  147.00   </div><div class="line">18/05/16-09:25   0.00    0.00    1.9G    0.00     0.00    0.00    0.00    0.00  147.00   </div><div class="line">18/05/16-09:30   0.00    0.00    1.9G    0.00     0.00    0.00    0.00    0.00  149.00   </div><div class="line">18/05/16-09:35   0.00    0.00    1.9G    0.00     0.35    0.11    0.04    0.00  147.00   </div><div class="line">18/05/16-09:40   0.00    0.00    1.9G    0.00     0.00    0.03    0.01    0.00  147.00   </div><div class="line">18/05/16-09:45   0.00    0.00    1.9G    0.00     0.00    0.00    0.00    0.00  147.00   </div><div class="line">18/05/16-09:50   0.00    0.00    1.9G    0.00     0.00    0.00    0.00    0.00  147.00   </div><div class="line">18/05/16-09:55   0.00    0.00    1.9G    0.00     0.00    0.00    0.00    0.00  146.00   </div><div class="line">18/05/16-10:00   0.00    0.00    1.9G    0.00     0.00    0.00    0.00    0.00  146.00   </div><div class="line">18/05/16-10:05   0.00    0.00    1.9G    0.00     0.00    0.00    0.00    0.00  146.00   </div><div class="line">18/05/16-10:10   0.00    0.00    1.9G    0.00     0.00    0.00    0.00    0.00  147.00   </div><div class="line">18/05/16-10:15   0.00    0.00    1.9G    0.00     0.00    0.00    0.00    0.00  146.00   </div><div class="line">18/05/16-10:20   0.00    0.00    1.9G    0.00     0.00    0.00    0.00    1.00  148.00   </div><div class="line">18/05/16-10:25   0.00    0.00    1.9G    0.00     0.01    0.01    0.00    0.00  146.00   </div><div class="line">18/05/16-10:30   0.00    0.00    1.9G    0.00     0.00    0.00    0.00    0.00  146.00   </div><div class="line">18/05/16-10:35   0.00    0.00    1.9G    0.00     0.00    0.00    0.00    0.00  146.00   </div><div class="line">18/05/16-10:40   0.00    0.00    1.9G    0.00     0.00    0.00    0.00    0.00  146.00   </div><div class="line">18/05/16-10:45   0.00    0.00    1.9G    0.00     0.00    0.00    0.00    0.00  146.00   </div><div class="line">18/05/16-10:50   0.00    0.00    1.9G    0.00     0.00    0.00    0.00    0.00  146.00</div></pre></td></tr></table></figure>
+<p>tsar监控内存使用情况</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div></pre></td><td class="code"><pre><div class="line">$ tsar  --mem</div><div class="line">Time           -----------------------mem---------------------- </div><div class="line">Time             free    used    buff    cach   total    util   </div><div class="line">23/08/15-21:25   2.1G    5.7G    0.00  164.0M    8.0G   71.44   </div><div class="line">23/08/15-21:30   2.1G    5.7G    0.00  181.4M    8.0G   71.43   </div><div class="line">23/08/15-21:35   2.1G    5.7G    0.00  213.9M    8.0G   71.42   </div><div class="line">23/08/15-21:40   2.1G    5.7G    0.00  233.8M    8.0G   71.43   </div><div class="line">23/08/15-21:45   1.4G    5.7G    0.00  924.6M    8.0G   71.43   </div><div class="line">23/08/15-21:50   1.4G    5.7G    0.00  889.4M    8.0G   71.42</div></pre></td></tr></table></figure>
+<p>以2秒钟为间隔，实时打印mem的数据</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div></pre></td><td class="code"><pre><div class="line">$ tsar --live --mem -i 2</div><div class="line">Time              -----------------------mem---------------------- </div><div class="line">Time                free    used    buff    cach   total    util   </div><div class="line">18/05/16-11:30:59 905.8M  617.2M  219.4M  119.8M    1.8G   33.14   </div><div class="line">18/05/16-11:31:01 904.9M  618.1M  219.4M  119.8M    1.8G   33.19   </div><div class="line">18/05/16-11:31:03 904.9M  618.1M  219.4M  119.8M    1.8G   33.19   </div><div class="line">18/05/16-11:31:05 904.9M  618.0M  219.4M  119.8M    1.8G   33.19   </div><div class="line">18/05/16-11:31:07 904.9M  618.0M  219.4M  119.8M    1.8G   33.19   </div><div class="line">18/05/16-11:31:09 905.0M  618.0M  219.4M  119.8M    1.8G   33.19</div></pre></td></tr></table></figure>
+<p>tsar监控io使用情况</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div></pre></td><td class="code"><pre><div class="line">$ tsar --io</div><div class="line">Time           ------------------------------------------sda-------------------------------------------  </div><div class="line">Time            rrqms   wrqms      rs      ws   rsecs   wsecs  rqsize  qusize   await   svctm    util    </div><div class="line">18/08/16-21:25   0.28    3.4K  184.40  389.25    4.9K   15.0K   35.47    3.00    6.35    0.29   16.44   </div><div class="line">18/08/16-21:30   0.00    3.2K  109.71  382.74    2.5K   14.5K   35.27    3.00    7.33    0.30   14.68   </div><div class="line">18/08/16-21:35   0.15    3.1K  156.91  342.16    3.8K   13.8K   36.15    3.00    6.60    0.29   14.37   </div><div class="line">18/08/16-21:40   0.86    3.3K  234.00  371.43    6.9K   14.6K   36.43    3.00    5.93    0.28   16.83   </div><div class="line">18/08/16-21:45   0.72    3.4K  376.80  357.13   11.7K   14.8K   37.03    3.00    4.84    0.25   18.50</div></pre></td></tr></table></figure>
+<p>tsar监控网络监控统计</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div><div class="line">23</div><div class="line">24</div><div class="line">25</div><div class="line">26</div><div class="line">27</div><div class="line">28</div><div class="line">29</div><div class="line">30</div><div class="line">31</div><div class="line">32</div><div class="line">33</div><div class="line">34</div><div class="line">35</div><div class="line">36</div></pre></td><td class="code"><pre><div class="line">$ tsar  --traffic</div><div class="line">Time           ---------------------traffic-------------------- </div><div class="line">Time            bytin  bytout   pktin  pktout  pkterr  pktdrp   </div><div class="line">18/05/16-09:20  42.00   33.00    0.00    0.00    0.00    0.00   </div><div class="line">18/05/16-09:25  12.00    2.00    0.00    0.00    0.00    0.00   </div><div class="line">18/05/16-09:30   6.00    3.00    0.00    0.00    0.00    0.00   </div><div class="line">18/05/16-09:35   3.00    2.00    0.00    0.00    0.00    0.00   </div><div class="line">18/05/16-09:40   8.00    2.00    0.00    0.00    0.00    0.00   </div><div class="line">18/05/16-09:45  16.00    2.00    0.00    0.00    0.00    0.00   </div><div class="line">18/05/16-09:50  11.00    3.00    0.00    0.00    0.00    0.00   </div><div class="line">18/05/16-09:55   8.00    2.00    0.00    0.00    0.00    0.00   </div><div class="line">18/05/16-10:00   9.00    2.00    0.00    0.00    0.00    0.00   </div><div class="line">18/05/16-10:05  77.00  167.00    1.00    0.00    0.00    0.00   </div><div class="line">18/05/16-10:10 146.00  377.00    2.00    1.00    0.00    0.00   </div><div class="line">18/05/16-10:15  31.00   60.00    0.00    0.00    0.00    0.00   </div><div class="line">18/05/16-10:20  51.00  120.00    0.00    0.00    0.00    0.00   </div><div class="line">18/05/16-10:25  27.00   26.00    0.00    0.00    0.00    0.00   </div><div class="line">18/05/16-10:30   2.00    3.00    0.00    0.00    0.00    0.00   </div><div class="line">18/05/16-10:35  10.00    2.00    0.00    0.00    0.00    0.00   </div><div class="line">18/05/16-10:40  22.00    2.00    0.00    0.00    0.00    0.00   </div><div class="line">18/05/16-10:45  10.00    3.00    0.00    0.00    0.00    0.00   </div><div class="line">18/05/16-10:50  16.00    3.00    0.00    0.00    0.00    0.00   </div><div class="line">Time           ---------------------traffic-------------------- </div><div class="line">Time            bytin  bytout   pktin  pktout  pkterr  pktdrp   </div><div class="line">18/05/16-10:55  45.00   63.00    0.00    0.00    0.00    0.00   </div><div class="line">18/05/16-11:00  21.00   30.00    0.00    0.00    0.00    0.00   </div><div class="line">18/05/16-11:05  32.00   23.00    0.00    0.00    0.00    0.00   </div><div class="line">18/05/16-11:10  14.00    3.00    0.00    0.00    0.00    0.00   </div><div class="line">18/05/16-11:15  12.00    2.00    0.00    0.00    0.00    0.00   </div><div class="line">18/05/16-11:20  10.00    2.00    0.00    0.00    0.00    0.00   </div><div class="line">18/05/16-11:25   7.00    2.00    0.00    0.00    0.00    0.00   </div><div class="line">18/05/16-11:30  97.00  241.00    1.00    1.00    0.00    0.00   </div><div class="line"></div><div class="line">MAX            146.00  377.00    2.00    1.00    0.00    0.00   </div><div class="line">MEAN            27.04   44.12    0.15    0.08    0.00    0.00   </div><div class="line">MIN              2.00    2.00    0.00    0.00    0.00    0.00</div></pre></td></tr></table></figure>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div></pre></td><td class="code"><pre><div class="line">$ tsar --tcp --udp -d 1</div><div class="line">Time           -------------------------------tcp------------------------------ ---------------udp-------------- </div><div class="line">Time           active  pasive    iseg  outseg  EstRes  AtmpFa  CurrEs  retran     idgm    odgm  noport  idmerr   </div><div class="line">18/05/16-00:05   0.79    1.52    1.6K    2.1K    0.00    0.03    3.4K    0.02     0.00    2.00    0.00    0.00   </div><div class="line">18/05/16-00:10   0.73    1.40  884.25  921.56    0.00    0.03    3.4K    0.01     0.00    3.00    0.00    0.00   </div><div class="line">18/05/16-00:15   0.77    1.46  959.62    1.0K    0.00    0.03    3.4K    0.01     0.00    3.00    0.00    0.00   </div><div class="line">18/05/16-00:20   0.69    1.43    1.0K    1.0K    0.00    0.03    3.4K    0.01     0.00    3.00    0.00    0.00   </div><div class="line">18/05/16-00:25   0.72    1.42    1.2K    1.1K    0.00    0.03    3.4K    0.00     0.00    3.00    0.00    0.00</div></pre></td></tr></table></figure>
+<p>tsar监控查看系统tcp连接情况，5秒刷新一次</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div></pre></td><td class="code"><pre><div class="line">$ tsar --tcp -l 5</div><div class="line">Time              -------------------------------tcp------------------------------ </div><div class="line">Time              active  pasive    iseg  outseg  EstRes  AtmpFa  CurrEs  retran   </div><div class="line">18/05/16-11:34:01   0.00    0.00    0.20    0.20    0.00    0.00    1.00    0.00   </div><div class="line">18/05/16-11:34:06   0.00    0.20    6.20    4.60    0.00    0.00    2.00    0.00   </div><div class="line">18/05/16-11:34:11   0.00    0.00    4.60    2.80    0.00    0.00    2.00    0.00   </div><div class="line">18/05/16-11:34:16   0.20    0.00    1.20    1.20    0.00    0.00    2.00    0.00   </div><div class="line">18/05/16-11:34:21   0.40    0.00    1.40    1.80    0.00    0.00    4.00    0.00</div></pre></td></tr></table></figure>
+<p>tsar检查告警信息</p>
+<p>查看最后一次tsar的提醒信息,这里包括了系统的cpu,io的告警情况。</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div></pre></td><td class="code"><pre><div class="line">$ tsar --check --cpu --io</div><div class="line">localhost.localdomain       tsar    cpu:user=25.0 cpu:sys=2.1 cpu:wait=0.1 cpu:hirq=0.0 cpu:sirq=0.2 cpu:util=27.4 io:sda:rrqms=0.0 io:sda:wrqms=4172.4 io:sda:rs=80.3 io:sda:ws=493.0 io:sda:rsecs=1664.0 io:sda:wsecs=18661.7 io:sda:rqsize=35.5 io:sda:qusize=4.0 io:sda:await=7.7 io:sda:svctm=0.3 io:sda:util=18.5</div></pre></td></tr></table></figure>
+<p>tsar历史数据回溯</p>
+<p>通过参数<code>-d 2</code>可以查出两天前到现在的数据，<code>-i 1</code>表示以每次1分钟作为采集显示。</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div></pre></td><td class="code"><pre><div class="line">$ tsar -d 2 -i 1 </div><div class="line">Time           ---cpu-- ---mem-- ---tcp-- -----traffic---- --sda---  ---load- </div><div class="line">Time             util     util   retran    bytin  bytout     util     load1   </div><div class="line">15/05/16-00:02 ------    71.40     0.03   754.2K  421.4K    14.38     1.59   </div><div class="line">15/05/16-00:03  34.55    71.41     0.01   773.7K  400.9K    13.39     1.42   </div><div class="line">15/05/16-00:04  31.80    71.41     0.03   708.6K  391.9K    12.88     1.54   </div><div class="line">15/05/16-00:05  28.70    71.40     0.00   544.5K  305.9K    11.32     1.68   </div><div class="line">15/05/16-00:06  25.83    71.41     0.02   521.1K  280.4K    13.32     1.48   </div><div class="line">15/05/16-00:07  25.68    71.42     0.00   495.0K  265.2K    12.08     1.21   </div><div class="line">15/05/16-00:08  30.89    71.41     0.01   811.0K  280.1K    14.92     0.92   </div><div class="line">15/05/16-00:09  23.83    71.41     0.03   636.7K  349.4K    11.81     1.47</div></pre></td></tr></table></figure>
+<p>tsar查看指定日期的数据</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div></pre></td><td class="code"><pre><div class="line">$ tsar  --load  -d 20160518 #指定日期,格式YYYYMMDD</div><div class="line">Time           -------------------load----------------- </div><div class="line">Time            load1   load5  load15    runq    plit   </div><div class="line">18/05/16-09:20   0.00    0.00    0.00    0.00  147.00   </div><div class="line">18/05/16-09:25   0.00    0.00    0.00    0.00  147.00   </div><div class="line">18/05/16-09:30   0.00    0.00    0.00    0.00  149.00   </div><div class="line">18/05/16-09:35   0.35    0.11    0.04    0.00  147.00   </div><div class="line">18/05/16-09:40   0.00    0.03    0.01    0.00  147.00   </div><div class="line">18/05/16-09:45   0.00    0.00    0.00    0.00  147.00   </div><div class="line">18/05/16-09:50   0.00    0.00    0.00    0.00  147.00   </div><div class="line">18/05/16-09:55   0.00    0.00    0.00    0.00  146.00   </div><div class="line">18/05/16-10:00   0.00    0.00    0.00    0.00  146.00   </div><div class="line">18/05/16-10:05   0.00    0.00    0.00    0.00  146.00   </div><div class="line">18/05/16-10:10   0.00    0.00    0.00    0.00  147.00   </div><div class="line">18/05/16-10:15   0.00    0.00    0.00    0.00  146.00   </div><div class="line">18/05/16-10:20   0.00    0.00    0.00    1.00  148.00   </div><div class="line">18/05/16-10:25   0.01    0.01    0.00    0.00  146.00   </div><div class="line">18/05/16-10:30   0.00    0.00    0.00    0.00  146.00   </div><div class="line">18/05/16-10:35   0.00    0.00    0.00    0.00  146.00   </div><div class="line">18/05/16-10:40   0.00    0.00    0.00    0.00  146.00   </div><div class="line">18/05/16-10:45   0.00    0.00    0.00    0.00  146.00   </div><div class="line">18/05/16-10:50   0.00    0.00    0.00    0.00  146.00</div></pre></td></tr></table></figure>
+<p>tsar查看所有字段</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div></pre></td><td class="code"><pre><div class="line">$ tsar --mem -D</div><div class="line">Time           -----------------------mem---------------------- </div><div class="line">Time             free    used    buff    cach   total    util   </div><div class="line">18/05/16-09:20 1333063680.00  480555008.00  38567936.00  100483072.00  1952669696.00   24.61   </div><div class="line">18/05/16-09:25 1333542912.00  479940608.00  38682624.00  100503552.00  1952669696.00   24.58   </div><div class="line">18/05/16-09:30 1332707328.00  480657408.00  38801408.00  100503552.00  1952669696.00   24.62   </div><div class="line">18/05/16-09:35 961646592.00  644251648.00  227205120.00  119566336.00  1952669696.00   32.99   </div><div class="line">18/05/16-09:40 961708032.00  644059136.00  227336192.00  119566336.00  1952669696.00   32.98   </div><div class="line">18/05/16-09:45 961646592.00  643997696.00  227434496.00  119590912.00  1952669696.00   32.98   </div><div class="line">18/05/16-09:50 960610304.00  644898816.00  227569664.00  119590912.00  1952669696.00   33.03</div></pre></td></tr></table></figure>
+<p>查看fstab指定挂在的系统目录的使用情况 ，<code>-I</code>指定查看某个目录</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div><div class="line">23</div><div class="line">24</div><div class="line">25</div><div class="line">26</div><div class="line">27</div><div class="line">28</div><div class="line">29</div><div class="line">30</div><div class="line">31</div><div class="line">32</div><div class="line">33</div><div class="line">34</div><div class="line">35</div><div class="line">36</div><div class="line">37</div></pre></td><td class="code"><pre><div class="line">$ tsar --partition -I /</div><div class="line">Time           ---------------------------/----------------------------  </div><div class="line">Time            bfree   bused   btotl    util   ifree   itotl   iutil    </div><div class="line">18/05/16-09:20  27.5G   19.1G   49.1G   42.00    2.7M    3.1M   14.71    </div><div class="line">18/05/16-09:25  27.5G   19.1G   49.1G   42.00    2.7M    3.1M   14.71    </div><div class="line">18/05/16-09:30  27.5G   19.1G   49.1G   42.00    2.7M    3.1M   14.71    </div><div class="line">18/05/16-09:35  27.5G   19.1G   49.1G   42.00    2.7M    3.1M   14.71    </div><div class="line">18/05/16-09:40  27.5G   19.1G   49.1G   42.00    2.7M    3.1M   14.71    </div><div class="line">18/05/16-09:45  27.5G   19.1G   49.1G   42.00    2.7M    3.1M   14.71    </div><div class="line">18/05/16-09:50  27.5G   19.1G   49.1G   42.00    2.7M    3.1M   14.71    </div><div class="line">18/05/16-09:55  27.5G   19.1G   49.1G   42.00    2.7M    3.1M   14.71    </div><div class="line">18/05/16-10:00  27.5G   19.1G   49.1G   42.00    2.7M    3.1M   14.71    </div><div class="line">18/05/16-10:05  27.5G   19.1G   49.1G   42.00    2.7M    3.1M   14.71    </div><div class="line">18/05/16-10:10  27.5G   19.1G   49.1G   42.00    2.7M    3.1M   14.71    </div><div class="line">18/05/16-10:15  27.5G   19.1G   49.1G   42.00    2.7M    3.1M   14.71    </div><div class="line">18/05/16-10:20  27.5G   19.1G   49.1G   42.00    2.7M    3.1M   14.71    </div><div class="line">18/05/16-10:25  27.5G   19.1G   49.1G   42.00    2.7M    3.1M   14.71    </div><div class="line">18/05/16-10:30  27.5G   19.1G   49.1G   42.00    2.7M    3.1M   14.71    </div><div class="line">18/05/16-10:35  27.5G   19.1G   49.1G   42.00    2.7M    3.1M   14.71    </div><div class="line">18/05/16-10:40  27.5G   19.1G   49.1G   42.00    2.7M    3.1M   14.71    </div><div class="line">18/05/16-10:45  27.5G   19.1G   49.1G   42.00    2.7M    3.1M   14.71    </div><div class="line">18/05/16-10:50  27.5G   19.1G   49.1G   42.00    2.7M    3.1M   14.71    </div><div class="line">Time           ---------------------------/----------------------------  </div><div class="line">Time            bfree   bused   btotl    util   ifree   itotl   iutil    </div><div class="line">18/05/16-10:55  27.5G   19.1G   49.1G   42.00    2.7M    3.1M   14.71    </div><div class="line">18/05/16-11:00  27.5G   19.1G   49.1G   42.00    2.7M    3.1M   14.71    </div><div class="line">18/05/16-11:05  27.5G   19.1G   49.1G   42.00    2.7M    3.1M   14.71    </div><div class="line">18/05/16-11:10  27.5G   19.1G   49.1G   42.00    2.7M    3.1M   14.71    </div><div class="line">18/05/16-11:15  27.5G   19.1G   49.1G   42.00    2.7M    3.1M   14.71    </div><div class="line">18/05/16-11:20  27.5G   19.1G   49.1G   42.00    2.7M    3.1M   14.71    </div><div class="line">18/05/16-11:25  27.5G   19.1G   49.1G   42.00    2.7M    3.1M   14.71    </div><div class="line">18/05/16-11:30  27.5G   19.1G   49.1G   42.00    2.7M    3.1M   14.71    </div><div class="line">18/05/16-11:35  27.5G   19.1G   49.1G   42.00    2.7M    3.1M   14.71    </div><div class="line"></div><div class="line">MAX             27.5G   19.1G   49.1G   42.00    2.7M    3.1M   14.71    </div><div class="line">MEAN            27.5G   19.1G   49.1G   42.00    2.7M    3.1M   14.71    </div><div class="line">MIN             27.5G   19.1G   49.1G   42.00    2.7M    3.1M   14.71</div></pre></td></tr></table></figure>
+<h4 id="Tsar监控应用"><a href="#Tsar监控应用" class="headerlink" title="Tsar监控应用"></a>Tsar监控应用</h4><p>Tsar默认支持的模块,如下</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div></pre></td><td class="code"><pre><div class="line">$ ls /usr/local/tsar/modules    </div><div class="line">mod_apache.so  mod_haproxy.so  mod_load.so  mod_mem.so   mod_nginx.so      mod_pcsw.so    mod_pernic.so  mod_squid.so  mod_tcp.so   mod_traffic.so</div><div class="line">mod_cpu.so     mod_io.so       mod_lvs.so   mod_ncpu.so  mod_partition.so  mod_percpu.so  mod_proc.so    mod_swap.so   mod_tcpx.so  mod_udp.so</div></pre></td></tr></table></figure>
+<p>默认安装完后，只启用了系统相关的模块。如要监控应用就需手动启用相应模块，以Nginx为例</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div></pre></td><td class="code"><pre><div class="line">$ vim /etc/tsar/tsar.conf</div><div class="line">mod_nginx on</div></pre></td></tr></table></figure>
+<p>验证Nginx模块是否启用</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div></pre></td><td class="code"><pre><div class="line">$ tsar -L|grep nginx</div><div class="line">    nginx</div></pre></td></tr></table></figure>
+<p>配置Nginx</p>
+<p>该配置主要是为nginx开启status统计页面,给tsar提供http数据。Tsar统计的原理是通过获取status页面的输出结果，并对输出内容进行统计和计算得出的结果。而且其获取状态页的url默认是<a href="http://127.0.0.1/nginx_status" target="_blank" rel="external">http://127.0.0.1/nginx_status</a> ，所以在nginx上你必须有如下的配置</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div></pre></td><td class="code"><pre><div class="line">location /nginx_status &#123;</div><div class="line">          stub_status on;</div><div class="line">          access_log   off;</div><div class="line">          allow 127.0.0.1;</div><div class="line">          deny all;</div><div class="line">        &#125;</div></pre></td></tr></table></figure>
+<p>注：以上的url并非不能更改，可以修改环境变量实现。其自带的几个环境变量如下。</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div></pre></td><td class="code"><pre><div class="line">export NGX_TSAR_HOST=192.168.0.1</div><div class="line">export NGX_TSAR_PORT=8080</div><div class="line">export NGX_TSAR_SERVER_NAME=status.taobao.com</div><div class="line">export NGX_TSAR_URI=/nginx_status</div></pre></td></tr></table></figure>
+<p>监控Nginx状态</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div></pre></td><td class="code"><pre><div class="line">$ tsar --nginx -l -i 2</div><div class="line">Time              ----------------------------------------------nginx--------------------------------------------- </div><div class="line">Time              accept  handle    reqs  active    read   write    wait     qps      rt  sslqps  spdyps  sslhst   </div><div class="line">18/05/16-13:11:30   1.00    1.00    1.00    1.00    0.00    1.00    0.00    0.20    0.00    0.00    0.00    0.00   </div><div class="line">18/05/16-13:11:35   1.00    1.00    1.00    1.00    0.00    1.00    0.00    0.20    0.00    0.00    0.00    0.00   </div><div class="line">18/05/16-13:11:40   1.00    1.00    1.00    1.00    0.00    1.00    0.00    0.20    0.00    0.00    0.00    0.00   </div><div class="line">18/05/16-13:11:45   1.4K    1.4K    1.4K    1.00    0.00    1.00    0.00  280.40    0.00    0.00    0.00    0.00   </div><div class="line">18/05/16-13:11:50   1.00    1.00    1.00    1.00    0.00    1.00    0.00    0.20    0.00    0.00    0.00    0.00   </div><div class="line">18/05/16-13:11:55   1.00    1.00    1.00    1.00    0.00    1.00    0.00    0.20    0.00    0.00    0.00    0.00   </div><div class="line">18/05/16-13:12:00  10.1K   10.1K   10.1K    1.00    0.00    1.00    0.00    2.0K    0.00    0.00    0.00    0.00   </div><div class="line">18/05/16-13:12:05   2.00    2.00    2.00    1.00    0.00    1.00    0.00    0.40    0.00    0.00    0.00    0.00   </div><div class="line">18/05/16-13:12:10   1.00    1.00    1.00    1.00    0.00    1.00    0.00    0.20    0.00    0.00    0.00    0.00</div></pre></td></tr></table></figure>
+<h3 id="参考文档"><a href="#参考文档" class="headerlink" title="参考文档"></a>参考文档</h3><p><a href="http://www.google.com" target="_blank" rel="external">http://www.google.com</a><br><a href="http://code.taobao.org/p/tsar/wiki/index/" target="_blank" rel="external">http://code.taobao.org/p/tsar/wiki/index/</a><br><a href="http://blog.csdn.net/Road_long/article/details/47959221" target="_blank" rel="external">http://blog.csdn.net/Road_long/article/details/47959221</a><br><a href="http://blog.itpub.net/22664653/viewspace-1273519/" target="_blank" rel="external">http://blog.itpub.net/22664653/viewspace-1273519/</a><br><a href="http://www.361way.com/tsar-nginx/2308.html" target="_blank" rel="external">http://www.361way.com/tsar-nginx/2308.html</a></p>
+
+      
+    </div>
+
+    <div>
+      
+        
+<div id="wechat_subscriber" style="display: block; padding: 10px 0; margin: 20px auto; width: 100%; text-align: center">
+    <img id="wechat_subscriber_qcode" src="/img/donate/wechatqcode.jpg" alt="Mike wechat" style="width: 200px; max-width: 100%;"/>
+    <div>更多精彩内容，请关注微信公众号Hi-Linux，第一时间推送给您!</div>
+</div>
+
+
+      
+    </div>
+
+    <div>
+      
+        
+
+      
+    </div>
+
+
+    <footer class="post-footer">
+      
+        <div class="post-tags">
+          
+            <a href="/tags/Linux/" rel="tag"># Linux</a>
+          
+            <a href="/tags/tsar/" rel="tag"># tsar</a>
+          
+        </div>
+      
+
+      
+        <div class="post-nav">
+          <div class="post-nav-next post-nav-item">
+            
+              <a href="/posts/26407.html" rel="next" title="MySQL多线程备份工具Mydumper详解">
+                <i class="fa fa-chevron-left"></i> MySQL多线程备份工具Mydumper详解
+              </a>
+            
+          </div>
+
+          <span class="post-nav-divider"></span>
+
+          <div class="post-nav-prev post-nav-item">
+            
+              <a href="/posts/23030.html" rel="prev" title="MySQL的增强型语法高亮终端-MyCli">
+                MySQL的增强型语法高亮终端-MyCli <i class="fa fa-chevron-right"></i>
+              </a>
+            
+          </div>
+        </div>
+      
+
+      
+      
+    </footer>
+  </article>
+
+
+
+    <div class="post-spread">
+      
+        <div class="ds-share flat" data-thread-key="posts/5198.html"
+     data-title="Linux系统性能监控工具Tsar"
+     data-content=""
+     data-url="http://www.hi-linux.com/posts/5198.html">
+  <div class="ds-share-inline">
+    <ul  class="ds-share-icons-16">
+
+      <li data-toggle="ds-share-icons-more"><a class="ds-more" href="javascript:void(0);">分享到：</a></li>
+      <li><a class="ds-weibo" href="javascript:void(0);" data-service="weibo">微博</a></li>
+      <li><a class="ds-qzone" href="javascript:void(0);" data-service="qzone">QQ空间</a></li>
+      <li><a class="ds-qqt" href="javascript:void(0);" data-service="qqt">腾讯微博</a></li>
+      <li><a class="ds-wechat" href="javascript:void(0);" data-service="wechat">微信</a></li>
+
+    </ul>
+    <div class="ds-share-icons-more">
+    </div>
+  </div>
+</div>
+      
+    </div>
+  </div>
+
+
+          </div>
+          
+
+
+          
+  <div class="comments" id="comments">
+    
+      <div class="ds-thread" data-thread-key="posts/5198.html"
+           data-title="Linux系统性能监控工具Tsar" data-url="http://www.hi-linux.com/posts/5198.html">
+      </div>
+    
+  </div>
+
+
+        </div>
+        
+          
+  
+  <div class="sidebar-toggle">
+    <div class="sidebar-toggle-line-wrap">
+      <span class="sidebar-toggle-line sidebar-toggle-line-first"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-middle"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-last"></span>
+    </div>
+  </div>
+
+  <aside id="sidebar" class="sidebar">
+    <div class="sidebar-inner">
+
+      
+
+      
+        <ul class="sidebar-nav motion-element">
+          <li class="sidebar-nav-toc sidebar-nav-active" data-target="post-toc-wrap" >
+            文章目录
+          </li>
+          <li class="sidebar-nav-overview" data-target="site-overview">
+            站点概览
+          </li>
+        </ul>
+      
+
+      <section class="site-overview sidebar-panel">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+          <img class="site-author-image" itemprop="image"
+               src="http://0.gravatar.com/avatar/5c1d99604129bc6d96333e7daf784bfc?s=160"
+               alt="Mike" />
+          <p class="site-author-name" itemprop="name">Mike</p>
+          <p class="site-description motion-element" itemprop="description"></p>
+        </div>
+        <nav class="site-state motion-element">
+          <div class="site-state-item site-state-posts">
+            <a href="/archives">
+              <span class="site-state-item-count">110</span>
+              <span class="site-state-item-name">日志</span>
+            </a>
+          </div>
+
+          
+            <div class="site-state-item site-state-categories">
+              <a href="/categories">
+                <span class="site-state-item-count">57</span>
+                <span class="site-state-item-name">分类</span>
+              </a>
+            </div>
+          
+
+          
+            <div class="site-state-item site-state-tags">
+              <a href="/tags">
+                <span class="site-state-item-count">72</span>
+                <span class="site-state-item-name">标签</span>
+              </a>
+            </div>
+          
+
+        </nav>
+
+        
+          <div class="feed-link motion-element">
+            <a href="/atom.xml" rel="alternate">
+              <i class="fa fa-rss"></i>
+              RSS
+            </a>
+          </div>
+        
+
+        <div class="links-of-author motion-element">
+          
+            
+              <span class="links-of-author-item">
+                <a href="https://github.com/80imike" target="_blank" title="GitHub">
+                  
+                    <i class="fa fa-fw fa-github"></i>
+                  
+                  GitHub
+                </a>
+              </span>
+            
+              <span class="links-of-author-item">
+                <a href="http://twitter.com/easylife206" target="_blank" title="Twitter">
+                  
+                    <i class="fa fa-fw fa-twitter"></i>
+                  
+                  Twitter
+                </a>
+              </span>
+            
+              <span class="links-of-author-item">
+                <a href="http://weibo.com/u/2093524665/" target="_blank" title="Weibo">
+                  
+                    <i class="fa fa-fw fa-weibo"></i>
+                  
+                  Weibo
+                </a>
+              </span>
+            
+              <span class="links-of-author-item">
+                <a href="http://zhihu.com/people/80imike" target="_blank" title="zhihu">
+                  
+                    <i class="fa fa-fw fa-globe"></i>
+                  
+                  zhihu
+                </a>
+              </span>
+            
+              <span class="links-of-author-item">
+                <a href="http://shang.qq.com/wpa/qunwpa?idkey=ea4c43493c2269428ac6ef6141de4b6d78e5ab2d41380ca4099b833b62884ee9" target="_blank" title="QQGroup">
+                  
+                    <i class="fa fa-fw fa-globe"></i>
+                  
+                  QQGroup
+                </a>
+              </span>
+            
+          
+        </div>
+
+        
+        
+          <div class="cc-license motion-element" itemprop="license">
+            <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/" class="cc-opacity" target="_blank">
+              <img src="/images/cc-by-nc-sa.svg" alt="Creative Commons" />
+            </a>
+          </div>
+        
+
+        
+        
+          <div class="links-of-blogroll motion-element links-of-blogroll-inline">
+            <div class="links-of-blogroll-title">
+              <i class="fa  fa-fw fa-globe"></i>
+              Links
+            </div>
+            <ul class="links-of-blogroll-list">
+              
+                <li class="links-of-blogroll-item">
+                  <a href="http://www.mike.org.cn/" title="简单.生活" target="_blank">简单.生活</a>
+                </li>
+              
+            </ul>
+          </div>
+        
+
+        
+
+
+      </section>
+
+      
+      <!--noindex-->
+        <section class="post-toc-wrap motion-element sidebar-panel sidebar-panel-active">
+          <div class="post-toc">
+
+            
+              
+            
+
+            
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-3"><a class="nav-link" href="#Tsar简介"><span class="nav-number">1.</span> <span class="nav-text">Tsar简介</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Tsar安装"><span class="nav-number">2.</span> <span class="nav-text">Tsar安装</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Tsar配置"><span class="nav-number">3.</span> <span class="nav-text">Tsar配置</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Tsar使用介绍"><span class="nav-number">4.</span> <span class="nav-text">Tsar使用介绍</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Tsar使用实例"><span class="nav-number">5.</span> <span class="nav-text">Tsar使用实例</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#Tsar监控系统"><span class="nav-number">5.1.</span> <span class="nav-text">Tsar监控系统</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#Tsar监控应用"><span class="nav-number">5.2.</span> <span class="nav-text">Tsar监控应用</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#参考文档"><span class="nav-number">6.</span> <span class="nav-text">参考文档</span></a></li></ol></div>
+            
+
+          </div>
+        </section>
+      <!--/noindex-->
+      
+
+    </div>
+  </aside>
+
+
+        
+      </div>
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="footer-inner">
+        <div class="copyright" >
+  
+  &copy;  2010 - 
+  <span itemprop="copyrightYear">2017</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">Mike</span>
+</div>
+
+
+<div class="powered-by">
+  由 <a class="theme-link" href="https://hexo.io">Hexo</a> 强力驱动
+</div>
+
+<div class="theme-info">
+  主题 -
+  <a class="theme-link" href="https://github.com/iissnan/hexo-theme-next">
+    NexT.Mist
+  </a>
+</div>
+
+
+        
+
+        
+      </div>
+    </footer>
+
+    <div class="back-to-top">
+      <i class="fa fa-arrow-up"></i>
+    </div>
+  </div>
+
+  
+
+<script type="text/javascript">
+  if (Object.prototype.toString.call(window.Promise) !== '[object Function]') {
+    window.Promise = null;
+  }
+</script>
+
+
+
+
+
+
+
+
+
+  
+
+
+
+  
+  <script type="text/javascript" src="/lib/jquery/index.js?v=2.1.3"></script>
+
+  
+  <script type="text/javascript" src="/lib/fastclick/lib/fastclick.min.js?v=1.0.6"></script>
+
+  
+  <script type="text/javascript" src="/lib/jquery_lazyload/jquery.lazyload.js?v=1.9.7"></script>
+
+  
+  <script type="text/javascript" src="/lib/velocity/velocity.min.js?v=1.2.1"></script>
+
+  
+  <script type="text/javascript" src="/lib/velocity/velocity.ui.min.js?v=1.2.1"></script>
+
+  
+  <script type="text/javascript" src="/lib/fancybox/source/jquery.fancybox.pack.js?v=2.1.5"></script>
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/utils.js?v=5.1.0"></script>
+
+  <script type="text/javascript" src="/js/src/motion.js?v=5.1.0"></script>
+
+
+
+  
+  
+
+  
+  <script type="text/javascript" src="/js/src/scrollspy.js?v=5.1.0"></script>
+<script type="text/javascript" src="/js/src/post-details.js?v=5.1.0"></script>
+
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/bootstrap.js?v=5.1.0"></script>
+
+
+
+  
+
+  
+    
+  
+
+  <script type="text/javascript">
+    var duoshuoQuery = {short_name:"imike"};
+    (function() {
+      var ds = document.createElement('script');
+      ds.type = 'text/javascript';ds.async = true;
+      ds.id = 'duoshuo-script';
+      ds.src = (document.location.protocol == 'https:' ? 'https:' : 'http:') + '//static.duoshuo.com/embed.js';
+      ds.charset = 'UTF-8';
+      (document.getElementsByTagName('head')[0]
+      || document.getElementsByTagName('body')[0]).appendChild(ds);
+    })();
+  </script>
+
+  
+    
+    
+    <script src="/lib/ua-parser-js/dist/ua-parser.min.js?v=0.7.9"></script>
+    <script src="/js/src/hook-duoshuo.js"></script>
+  
+
+
+
+
+
+
+
+
+  
+  
+  <script type="text/javascript">
+    // Popup Window;
+    var isfetched = false;
+    // Search DB path;
+    var search_path = "search.xml";
+    if (search_path.length == 0) {
+      search_path = "search.xml";
+    }
+    var path = "/" + search_path;
+    // monitor main search box;
+
+    function proceedsearch() {
+      $("body").append('<div class="popoverlay">').css('overflow', 'hidden');
+      $('.popup').toggle();
+    }
+    // search function;
+    var searchFunc = function(path, search_id, content_id) {
+      'use strict';
+      $.ajax({
+        url: path,
+        dataType: "xml",
+        async: true,
+        success: function( xmlResponse ) {
+          // get the contents from search data
+          isfetched = true;
+          $('.popup').detach().appendTo('.header-inner');
+          var datas = $( "entry", xmlResponse ).map(function() {
+            return {
+              title: $( "title", this ).text(),
+              content: $("content",this).text(),
+              url: $( "url" , this).text()
+            };
+          }).get();
+          var $input = document.getElementById(search_id);
+          var $resultContent = document.getElementById(content_id);
+          $input.addEventListener('input', function(){
+            var matchcounts = 0;
+            var str='<ul class=\"search-result-list\">';
+            var keywords = this.value.trim().toLowerCase().split(/[\s\-]+/);
+            $resultContent.innerHTML = "";
+            if (this.value.trim().length > 1) {
+              // perform local searching
+              datas.forEach(function(data) {
+                var isMatch = false;
+                var content_index = [];
+                var data_title = data.title.trim().toLowerCase();
+                var data_content = data.content.trim().replace(/<[^>]+>/g,"").toLowerCase();
+                var data_url = decodeURIComponent(data.url);
+                var index_title = -1;
+                var index_content = -1;
+                var first_occur = -1;
+                // only match artiles with not empty titles and contents
+                if(data_title != '') {
+                  keywords.forEach(function(keyword, i) {
+                    index_title = data_title.indexOf(keyword);
+                    index_content = data_content.indexOf(keyword);
+                    if( index_title >= 0 || index_content >= 0 ){
+                      isMatch = true;
+                      if (i == 0) {
+                        first_occur = index_content;
+                      }
+                    }
+
+                  });
+                }
+                // show search results
+                if (isMatch) {
+                  matchcounts += 1;
+                  str += "<li><a href='"+ data_url +"' class='search-result-title'>"+ data_title +"</a>";
+                  var content = data.content.trim().replace(/<[^>]+>/g,"");
+                  if (first_occur >= 0) {
+                    // cut out 100 characters
+                    var start = first_occur - 20;
+                    var end = first_occur + 80;
+                    if(start < 0){
+                      start = 0;
+                    }
+                    if(start == 0){
+                      end = 50;
+                    }
+                    if(end > content.length){
+                      end = content.length;
+                    }
+                    var match_content = content.substring(start, end);
+                    // highlight all keywords
+                    keywords.forEach(function(keyword){
+                      var regS = new RegExp(keyword, "gi");
+                      match_content = match_content.replace(regS, "<b class=\"search-keyword\">"+keyword+"</b>");
+                    });
+
+                    str += "<p class=\"search-result\">" + match_content +"...</p>"
+                  }
+                  str += "</li>";
+                }
+              })};
+            str += "</ul>";
+            if (matchcounts == 0) { str = '<div id="no-result"><i class="fa fa-frown-o fa-5x" /></div>' }
+            if (keywords == "") { str = '<div id="no-result"><i class="fa fa-search fa-5x" /></div>' }
+            $resultContent.innerHTML = str;
+          });
+          proceedsearch();
+        }
+      });}
+
+    // handle and trigger popup window;
+    $('.popup-trigger').click(function(e) {
+      e.stopPropagation();
+      if (isfetched == false) {
+        searchFunc(path, 'local-search-input', 'local-search-result');
+      } else {
+        proceedsearch();
+      };
+    });
+
+    $('.popup-btn-close').click(function(e){
+      $('.popup').hide();
+      $(".popoverlay").remove();
+      $('body').css('overflow', '');
+    });
+    $('.popup').click(function(e){
+      e.stopPropagation();
+    });
+  </script>
+
+
+  
+
+  
+
+  
+  <script src="https://cdn1.lncld.net/static/js/av-core-mini-0.6.1.js"></script>
+  <script>AV.initialize("EeCjSUdsGRpRB9IrXppQ5KrB-gzGzoHsz", "JzmNE4oVCYAxJ1Whfn49rCkK");</script>
+  <script>
+    function showTime(Counter) {
+      var query = new AV.Query(Counter);
+      var entries = [];
+      var $visitors = $(".leancloud_visitors");
+
+      $visitors.each(function () {
+        entries.push( $(this).attr("id").trim() );
+      });
+
+      query.containedIn('url', entries);
+      query.find()
+        .done(function (results) {
+          var COUNT_CONTAINER_REF = '.leancloud-visitors-count';
+
+          if (results.length === 0) {
+            $visitors.find(COUNT_CONTAINER_REF).text(0);
+            return;
+          }
+
+          for (var i = 0; i < results.length; i++) {
+            var item = results[i];
+            var url = item.get('url');
+            var time = item.get('time');
+            var element = document.getElementById(url);
+
+            $(element).find(COUNT_CONTAINER_REF).text(time);
+          }
+          for(var i = 0; i < entries.length; i++) {
+            var url = entries[i];
+            var element = document.getElementById(url);
+            var countSpan = $(element).find(COUNT_CONTAINER_REF);
+            if( countSpan.text() == '') {
+              countSpan.text(0);
+            }
+          }
+        })
+        .fail(function (object, error) {
+          console.log("Error: " + error.code + " " + error.message);
+        });
+    }
+
+    function addCount(Counter) {
+      var $visitors = $(".leancloud_visitors");
+      var url = $visitors.attr('id').trim();
+      var title = $visitors.attr('data-flag-title').trim();
+      var query = new AV.Query(Counter);
+
+      query.equalTo("url", url);
+      query.find({
+        success: function(results) {
+          if (results.length > 0) {
+            var counter = results[0];
+            counter.fetchWhenSave(true);
+            counter.increment("time");
+            counter.save(null, {
+              success: function(counter) {
+                var $element = $(document.getElementById(url));
+                $element.find('.leancloud-visitors-count').text(counter.get('time'));
+              },
+              error: function(counter, error) {
+                console.log('Failed to save Visitor num, with error message: ' + error.message);
+              }
+            });
+          } else {
+            var newcounter = new Counter();
+            /* Set ACL */
+            var acl = new AV.ACL();
+            acl.setPublicReadAccess(true);
+            acl.setPublicWriteAccess(true);
+            newcounter.setACL(acl);
+            /* End Set ACL */
+            newcounter.set("title", title);
+            newcounter.set("url", url);
+            newcounter.set("time", 1);
+            newcounter.save(null, {
+              success: function(newcounter) {
+                var $element = $(document.getElementById(url));
+                $element.find('.leancloud-visitors-count').text(newcounter.get('time'));
+              },
+              error: function(newcounter, error) {
+                console.log('Failed to create');
+              }
+            });
+          }
+        },
+        error: function(error) {
+          console.log('Error:' + error.code + " " + error.message);
+        }
+      });
+    }
+
+    $(function() {
+      var Counter = AV.Object.extend("Counter");
+      if ($('.leancloud_visitors').length == 1) {
+        addCount(Counter);
+      } else if ($('.post-title-link').length > 1) {
+        showTime(Counter);
+      }
+    });
+  </script>
+
+
+
+  
+<script>
+(function(){
+    var bp = document.createElement('script');
+    var curProtocol = window.location.protocol.split(':')[0];
+    if (curProtocol === 'https') {
+        bp.src = 'https://zz.bdstatic.com/linksubmit/push.js';        
+    }
+    else {
+        bp.src = 'http://push.zhanzhang.baidu.com/push.js';
+    }
+    var s = document.getElementsByTagName("script")[0];
+    s.parentNode.insertBefore(bp, s);
+})();
+</script>
+
+
+  
+
+
+</body>
+</html>

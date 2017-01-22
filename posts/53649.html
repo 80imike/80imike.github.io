@@ -1,0 +1,1333 @@
+<!doctype html>
+
+
+
+  
+
+
+<html class="theme-next mist use-motion" lang="zh-Hans">
+<head>
+  <meta charset="UTF-8"/>
+<meta http-equiv="X-UA-Compatible" content="IE=edge" />
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1"/>
+
+
+
+<meta http-equiv="Cache-Control" content="no-transform" />
+<meta http-equiv="Cache-Control" content="no-siteapp" />
+
+
+
+  <meta name="google-site-verification" content="RhTUr9TCCVuxvnQF2xhQZbwtArG6b5x_-AO42Zl9EIE" />
+
+
+
+
+
+
+
+
+
+
+  
+  
+  <link href="/lib/fancybox/source/jquery.fancybox.css?v=2.1.5" rel="stylesheet" type="text/css" />
+
+
+
+
+  
+  
+  
+  
+
+  
+    
+    
+  
+
+  
+
+  
+
+  
+
+  
+    
+      
+    
+
+    
+  
+
+  
+    
+    
+    <link href="//fonts.lug.ustc.edu.cn/css?family=华文中宋:300,300italic,400,400italic,700,700italic|Source Serif Pro:300,300italic,400,400italic,700,700italic&subset=latin,latin-ext" rel="stylesheet" type="text/css">
+  
+
+
+
+
+
+
+<link href="/lib/font-awesome/css/font-awesome.min.css?v=4.6.2" rel="stylesheet" type="text/css" />
+
+<link href="/css/main.css?v=5.1.0" rel="stylesheet" type="text/css" />
+
+
+  <meta name="keywords" content="Linux,Codis," />
+
+
+
+
+
+  <link rel="alternate" href="/atom.xml" title="Hi Linux" type="application/atom+xml" />
+
+
+
+
+  <link rel="shortcut icon" type="image/x-icon" href="/favicon.ico?v=5.1.0" />
+
+
+
+
+
+
+<meta name="description" content="Codis简介
+Codis是豌豆荚使用Go和C语言开发、以代理的方式实现的一个Redis分布式集群解决方案,且完全兼容Twemproxy。Twemproxy对于上一层的应用来说, 连接Codis Proxy(Redis代理服务)和连接原生的Redis服务器没有明显的区别,上一层应用能够像使用单机的Redis一样对待。Codis底层会处理请求的转发、不停机的数据迁移等工作, 所有底层的一切处理, 对">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Centos6下Codis集群的搭建与使用">
+<meta property="og:url" content="http://www.hi-linux.com/posts/53649.html">
+<meta property="og:site_name" content="Hi Linux">
+<meta property="og:description" content="Codis简介
+Codis是豌豆荚使用Go和C语言开发、以代理的方式实现的一个Redis分布式集群解决方案,且完全兼容Twemproxy。Twemproxy对于上一层的应用来说, 连接Codis Proxy(Redis代理服务)和连接原生的Redis服务器没有明显的区别,上一层应用能够像使用单机的Redis一样对待。Codis底层会处理请求的转发、不停机的数据迁移等工作, 所有底层的一切处理, 对">
+<meta property="og:image" content="http://www.hi-linux.com/img/linux/architecture.png">
+<meta property="og:updated_time" content="2017-01-22T10:13:02.038Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="Centos6下Codis集群的搭建与使用">
+<meta name="twitter:description" content="Codis简介
+Codis是豌豆荚使用Go和C语言开发、以代理的方式实现的一个Redis分布式集群解决方案,且完全兼容Twemproxy。Twemproxy对于上一层的应用来说, 连接Codis Proxy(Redis代理服务)和连接原生的Redis服务器没有明显的区别,上一层应用能够像使用单机的Redis一样对待。Codis底层会处理请求的转发、不停机的数据迁移等工作, 所有底层的一切处理, 对">
+<meta name="twitter:image" content="http://www.hi-linux.com/img/linux/architecture.png">
+
+
+
+<script type="text/javascript" id="hexo.configurations">
+  var NexT = window.NexT || {};
+  var CONFIG = {
+    root: '/',
+    scheme: 'Mist',
+    sidebar: {"position":"left","display":"post"},
+    fancybox: true,
+    motion: true,
+    duoshuo: {
+      userId: '0',
+      author: '博主'
+    },
+    algolia: {
+      applicationID: '',
+      apiKey: '',
+      indexName: '',
+      hits: {"per_page":10},
+      labels: {"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}
+    }
+  };
+</script>
+
+
+
+  <link rel="canonical" href="http://www.hi-linux.com/posts/53649.html"/>
+
+
+
+
+
+  <title> Centos6下Codis集群的搭建与使用 | Hi Linux </title>
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage" lang="zh-Hans">
+
+  
+
+
+
+  <script type="text/javascript">
+    var _hmt = _hmt || [];
+    (function() {
+      var hm = document.createElement("script");
+      hm.src = "//hm.baidu.com/hm.js?3b0564d55846bf6e7a5bbe21deda0c69";
+      var s = document.getElementsByTagName("script")[0];
+      s.parentNode.insertBefore(hm, s);
+    })();
+  </script>
+
+
+
+
+
+
+
+
+  
+  
+    
+  
+
+  <div class="container one-collumn sidebar-position-left page-post-detail ">
+    <div class="headband"></div>
+
+    <header id="header" class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-meta ">
+  
+
+  <div class="custom-logo-site-title">
+    <a href="/"  class="brand" rel="start">
+      <span class="logo-line-before"><i></i></span>
+      <span class="site-title">Hi Linux</span>
+      <span class="logo-line-after"><i></i></span>
+    </a>
+  </div>
+  <p class="site-subtitle">种一棵树最好的时间是十年前，其次是现在。</p>
+</div>
+
+<div class="site-nav-toggle">
+  <button>
+    <span class="btn-bar"></span>
+    <span class="btn-bar"></span>
+    <span class="btn-bar"></span>
+  </button>
+</div>
+
+<nav class="site-nav">
+  
+
+  
+    <ul id="menu" class="menu">
+      
+        
+        <li class="menu-item menu-item-home">
+          <a href="/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-home"></i> <br />
+            
+            首页
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-categories">
+          <a href="/categories" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-th"></i> <br />
+            
+            分类
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-about">
+          <a href="/about" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-user"></i> <br />
+            
+            关于
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-archives">
+          <a href="/archives" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-archive"></i> <br />
+            
+            归档
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-tags">
+          <a href="/tags" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-tags"></i> <br />
+            
+            标签
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-commonweal">
+          <a href="/404.html" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-heartbeat"></i> <br />
+            
+            公益404
+          </a>
+        </li>
+      
+
+      
+        <li class="menu-item menu-item-search">
+          
+            <a href="javascript:;" class="popup-trigger">
+          
+            
+              <i class="menu-item-icon fa fa-search fa-fw"></i> <br />
+            
+            搜索
+          </a>
+        </li>
+      
+    </ul>
+  
+
+  
+    <div class="site-search">
+      
+  <div class="popup">
+ <span class="search-icon fa fa-search"></span>
+ <input type="text" id="local-search-input">
+ <div id="local-search-result"></div>
+ <span class="popup-btn-close">close</span>
+</div>
+
+
+    </div>
+  
+</nav>
+
+
+
+ </div>
+    </header>
+
+    <main id="main" class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          <div id="content" class="content">
+            
+
+  <div id="posts" class="posts-expand">
+    
+
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal " itemscope itemtype="http://schema.org/Article">
+  <link itemprop="mainEntityOfPage" href="http://www.hi-linux.com/posts/53649.html">
+
+  <span style="display:none" itemprop="author" itemscope itemtype="http://schema.org/Person">
+    <meta itemprop="name" content="Mike">
+    <meta itemprop="description" content="">
+    <meta itemprop="image" content="http://0.gravatar.com/avatar/5c1d99604129bc6d96333e7daf784bfc?s=160">
+  </span>
+
+  <span style="display:none" itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+    <meta itemprop="name" content="Hi Linux">
+    <span style="display:none" itemprop="logo" itemscope itemtype="http://schema.org/ImageObject">
+      <img style="display:none;" itemprop="url image" alt="Hi Linux" src="">
+    </span>
+  </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">
+            
+            
+              
+                Centos6下Codis集群的搭建与使用
+              
+            
+          </h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              <span class="post-meta-item-text">发表于</span>
+              <time title="Post created" itemprop="dateCreated datePublished" datetime="2016-03-28T09:00:00+08:00">
+                2016-03-28
+              </time>
+            
+
+            
+
+            
+          </span>
+
+          
+            <span class="post-category" >
+              <span class="post-meta-divider">|</span>
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              <span class="post-meta-item-text">分类于</span>
+              
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/Codis/" itemprop="url" rel="index">
+                    <span itemprop="name">Codis</span>
+                  </a>
+                </span>
+
+                
+                
+              
+            </span>
+          
+
+          
+            
+              <span class="post-comments-count">
+                <span class="post-meta-divider">|</span>
+                <a href="/posts/53649.html#comments" itemprop="discussionUrl">
+                  <span class="post-comments-count ds-thread-count" data-thread-key="posts/53649.html" itemprop="commentCount"></span>
+                </a>
+              </span>
+            
+          
+
+          
+
+          
+          
+             <span id="/posts/53649.html" class="leancloud_visitors" data-flag-title="Centos6下Codis集群的搭建与使用">
+               <span class="post-meta-divider">|</span>
+               <span class="post-meta-item-icon">
+                 <i class="fa fa-eye"></i>
+               </span>
+               <span class="post-meta-item-text">阅读次数 </span>
+               <span class="leancloud-visitors-count"></span>
+              </span>
+          
+
+          
+
+          
+
+        </div>
+      </header>
+    
+
+
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        <h3 id="Codis简介"><a href="#Codis简介" class="headerlink" title="Codis简介"></a>Codis简介</h3><blockquote>
+<p>Codis是豌豆荚使用Go和C语言开发、以代理的方式实现的一个Redis分布式集群解决方案,且完全兼容Twemproxy。Twemproxy对于上一层的应用来说, 连接Codis Proxy(Redis代理服务)和连接原生的Redis服务器没有明显的区别,上一层应用能够像使用单机的Redis一样对待。Codis底层会处理请求的转发、不停机的数据迁移等工作, 所有底层的一切处理, 对于客户端来说是透明的。总之，可以简单的认为后台连接的是一个内存无限大的Redis服务。Codis遵循MIT开源协议发布，更多关于Codis的信息请登录其在GitHub的主页查看。</p>
+<p>Codis是一个分布式Redis解决方案, 对于上层的应用来说, 连接到Codis Proxy和连接原生的Redis Server没有明显的区别(不支持的命令列表), 上层应用可以像使用单机的Redis一样使用, Codis底层会处理请求的转发, 不停机的数据迁移等工作, 所有后边的一切事情, 对于前面的客户端来说是透明的, 可以简单的认为后边连接的是一个内存无限大的Redis服务。<a id="more"></a></p>
+<p>Codis 由四部分组成:</p>
+<p>Codis Proxy     (codis-proxy)<br>Codis Manager     (codis-config)<br>Codis Redis     (codis-server)<br>ZooKeeper</p>
+<p>codis-proxy是客户端连接的Redis代理服务, codis-proxy本身实现了Redis协议, 表现得和一个原生的Redis没什么区别(就像Twemproxy), 对于一个业务来说, 可以部署多个codis-proxy, codis-proxy本身是无状态的. 可以执行多个Codis Dashboard(codis-config)是Codis的管理工具, 支持包括, 添加/删除 Redis 节点, 添加/删除Proxy节点, 发起数据迁移等操作. codis-config本身还自带了一个 http server, 会启动一个dashboard, 用户可以直接在浏览器上观察Codis集群的运行状态。</p>
+<p>Codis Redis(codis-server)是Codis项目维护的一个Redis分支, 基于2.8.21开发, 加入了slot的支持和原子的数据迁移指令. Codis上层的codis-proxy和codis-config只能和这个版本的Redis交互才能正常运行。</p>
+<p>Codis依赖ZooKeeper来存放数据路由表和codis-proxy节点的元信息, codis-config 发起的命令都会通过ZooKeeper同步到各个存活的codis-proxy。</p>
+<p>Codis支持按照Namespace区分不同的产品, 拥有不同的product name 的产品, 各项配置都不会冲突。</p>
+<p><strong>Codis架构</strong><br><img src="http://www.hi-linux.com/img/linux/architecture.png" alt=""></p>
+</blockquote>
+<h3 id="安装并测试Codis"><a href="#安装并测试Codis" class="headerlink" title="安装并测试Codis"></a>安装并测试Codis</h3><p>本文使用Codis分支的2.0版本，也是很多公司正在用的版本，Codis3.0版本已经有分支了，但是有线上使用的用户不确定。Codis3.0可以不依赖zookeeper，dashboard和proxy直接通过HTTP方式通讯。出于稳定性考虑，我们还是用目前的版本，避免在新版本上踩坑。</p>
+<p>Codis新增一个group的概念，每个group包含一个Redis Master和至少一个Redis Slave。Codis可以支持数据热迁移.Codis采用预先分片机制，分成1024个slots，也就是最多可以支持1024个Codis server,这些信息保存在zookeeper中。</p>
+<h4 id="安装GO语言和编译安装codis"><a href="#安装GO语言和编译安装codis" class="headerlink" title="安装GO语言和编译安装codis"></a>安装GO语言和编译安装codis</h4><p>Codis由Go语言写的，所以需要安装Go语言包</p>
+<h5 id="安装go"><a href="#安装go" class="headerlink" title="安装go"></a>安装go</h5><figure class="highlight bash"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div></pre></td><td class="code"><pre><div class="line">wget  https://storage.googleapis.com/golang/go1.6.linux-amd64.tar.gz</div><div class="line">wget  http://golangtc.com/static/go/1.6/go1.6.linux-amd64.tar.gz   <span class="comment">#国内镜像地址</span></div><div class="line">tar -C /usr/<span class="built_in">local</span> -xzf go1.6.linux-amd64.tar.gz</div><div class="line">配置环境变量</div><div class="line">vi /etc/profile</div><div class="line">在最后添加：</div><div class="line"><span class="built_in">export</span> GOROOT=/usr/<span class="built_in">local</span>/go</div><div class="line"><span class="built_in">export</span> PATH=<span class="variable">$PATH</span>:<span class="variable">$GOROOT</span>/bin</div><div class="line">保存，执行：</div><div class="line"><span class="built_in">source</span> /etc/profile</div><div class="line">判断go是否安装成功，运行go version</div><div class="line">[root@centos6 <span class="built_in">local</span>]<span class="comment"># go version</span></div><div class="line">go version go1.6 linux/amd64</div><div class="line"></div><div class="line">也可以yum安装：</div><div class="line"><span class="comment">#yum -y install gcc gcc-c++ make git wget go </span></div><div class="line"><span class="comment">#export GOROOT=/usr/local/go</span></div><div class="line"><span class="comment">#export PATH=$GOROOT/bin:$JAVA_HOME/bin:$PATH</span></div></pre></td></tr></table></figure>
+<h5 id="安装codis"><a href="#安装codis" class="headerlink" title="安装codis"></a>安装codis</h5><figure class="highlight bash"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div></pre></td><td class="code"><pre><div class="line"><span class="comment">#安装编译工具</span></div><div class="line">yum groupinstall <span class="string">"Development Tools"</span></div><div class="line"><span class="comment">#下载并编译codis</span></div><div class="line">mkdir <span class="variable">$HOME</span>/goproj</div><div class="line"><span class="built_in">export</span> GOPATH=<span class="variable">$HOME</span>/goproj</div><div class="line"><span class="built_in">export</span> PATH=<span class="variable">$PATH</span>:<span class="variable">$GOROOT</span>/bin:<span class="variable">$GOPATH</span>/bin</div><div class="line">go get -u <span class="_">-d</span> github.com/CodisLabs/codis</div><div class="line"><span class="built_in">cd</span> <span class="variable">$GOPATH</span>/src/github.com/CodisLabs/codis</div><div class="line">make</div><div class="line">make gotest</div></pre></td></tr></table></figure>
+<blockquote>
+<p>这里需要注意的是，最好按照Codis的文档使用go get载codis，我尝试过自己下载需要的依赖包然后编译codis，但是总是报错说是GOPATH设置不正确。这里对于初次接触GO项目编译的人来说有点诡异。</p>
+</blockquote>
+<p>编译完成后会在bin目录下生成3个二进制文件</p>
+<blockquote>
+<p>codis-config    Codis的管理工具，支持添加/删除Redis节点，添加/删除Proxy节点，执行Auto Rebalance等操作</p>
+<p>codis-server    Codis 项目维护的一个Redis分支, 基于2.8.21开发, 加入了slot的支持和原子的数据迁移指令. Codis上层的codis-proxy和codis-config只能和这个版本的Redis交互才能正常运行.</p>
+<p>codis-proxy     是客户端连接的 Redis 代理服务, codis-proxy本身实现了Redis协议, 表现得和一个原生的Redis没什么区别(就像 Twemproxy), 对于一个业务来说, 可以部署多个codis-proxy, codis-proxy本身是无状态的.</p>
+<p>Codis 支持按照 Namespace 区分不同的产品, 拥有不同的product name的产品, 各项配置都不会冲突</p>
+</blockquote>
+<p><strong>另外值得注意的是</strong></p>
+<blockquote>
+<p>bin/assets文件夹是codis-config的dashboard http服务需要的前端资源, 需要和codis-config放置在同一文件夹下。</p>
+<p>把Codis编译完成后直接复制bin目录下的codis-proxy,codis-config,codis-server三个二进制文件和assets资源目录到其他机器上也是可以直接运行的。目标主机不一定安装有go语言。</p>
+</blockquote>
+<h5 id="常用命令维护说明"><a href="#常用命令维护说明" class="headerlink" title="常用命令维护说明"></a>常用命令维护说明</h5><figure class="highlight bash"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div><div class="line">23</div><div class="line">24</div><div class="line">25</div><div class="line">26</div><div class="line">27</div><div class="line">28</div><div class="line">29</div><div class="line">30</div><div class="line">31</div><div class="line">32</div><div class="line">33</div><div class="line">34</div><div class="line">35</div><div class="line">36</div><div class="line">37</div><div class="line">38</div><div class="line">39</div><div class="line">40</div><div class="line">41</div><div class="line">42</div><div class="line">43</div><div class="line">44</div><div class="line">45</div><div class="line">46</div><div class="line">47</div><div class="line">48</div><div class="line">49</div><div class="line">50</div><div class="line">51</div><div class="line">52</div><div class="line">53</div><div class="line">54</div><div class="line">55</div><div class="line">56</div><div class="line">57</div><div class="line">58</div><div class="line">59</div><div class="line">60</div><div class="line">61</div><div class="line">62</div><div class="line">63</div><div class="line">64</div><div class="line">65</div><div class="line">66</div><div class="line">67</div><div class="line">68</div><div class="line">69</div><div class="line">70</div><div class="line">71</div><div class="line">72</div><div class="line">73</div><div class="line">74</div><div class="line">75</div><div class="line">76</div><div class="line">77</div><div class="line">78</div><div class="line">79</div><div class="line">80</div><div class="line">81</div><div class="line">82</div><div class="line">83</div><div class="line">84</div><div class="line">85</div><div class="line">86</div><div class="line">87</div><div class="line">88</div><div class="line">89</div><div class="line">90</div><div class="line">91</div><div class="line">92</div><div class="line">93</div><div class="line">94</div></pre></td><td class="code"><pre><div class="line">server：</div><div class="line">主要用来添加,删除，提权，查找 server group（实际操作zookeeper）</div><div class="line">./codis-config server --help</div><div class="line">codis-config server list</div><div class="line">codis-config server add &lt;group_id&gt; &lt;redis_addr&gt; &lt;role&gt;</div><div class="line">codis-config server remove &lt;group_id&gt; &lt;redis_addr&gt;</div><div class="line">codis-config server promote &lt;group_id&gt; &lt;redis_addr&gt;</div><div class="line">codis-config server add-group &lt;group_id&gt;</div><div class="line">codis-config server remove-group &lt;group_id&gt;</div><div class="line"></div><div class="line">slot：</div><div class="line">主要用来初始化,迁移，设置range-set，查询slot</div><div class="line"></div><div class="line">./codis-config slot --help</div><div class="line">usage:</div><div class="line">codis-config slot init [<span class="_">-f</span>]</div><div class="line">codis-config slot info &lt;slot_id&gt;</div><div class="line">codis-config slot <span class="built_in">set</span> &lt;slot_id&gt; &lt;group_id&gt; &lt;status&gt;</div><div class="line">codis-config slot range-set &lt;slot_from&gt; &lt;slot_to&gt; &lt;group_id&gt; &lt;status&gt;</div><div class="line">codis-config slot migrate &lt;slot_from&gt; &lt;slot_to&gt; &lt;group_id&gt;</div><div class="line">[--delay=&lt;delay_time_in_ms&gt;]</div><div class="line">codis-config slot rebalance [--delay=&lt;delay_time_in_ms&gt;]</div><div class="line"></div><div class="line">dashboard：</div><div class="line">主要用来启动dashboard</div><div class="line">./codis-config dashboard --help</div><div class="line">usage: codis-config dashboard [--addr=&lt;address&gt;] [--http-log=&lt;log_file&gt;]</div><div class="line">options:</div><div class="line">--addr listen ip:port, e.g. localhost:12345, :8086, [default: :8086]</div><div class="line">--http-log http request <span class="built_in">log</span> [default: request.log ]</div><div class="line"></div><div class="line">action:</div><div class="line">主要用来操作codis保存的事件记录，并解除zk锁（迁移异常会出现锁）</div><div class="line"> </div><div class="line">./codis-config action --help</div><div class="line">usage: codis-config action (gc [-n &lt;num&gt; | <span class="_">-s</span> &lt;seconds&gt;] | remove-lock)</div><div class="line">options:</div><div class="line">gc:</div><div class="line">gc -n N</div><div class="line">gc <span class="_">-s</span> Sec</div><div class="line">keep last N actions;</div><div class="line">keep last Sec seconds actions;</div><div class="line">remove-lock force remove zookeeper lock;</div><div class="line"></div><div class="line">proxy：</div><div class="line">主要用来实现proxy上线，下线，查询</div><div class="line">./codis-config proxy</div><div class="line">usage:</div><div class="line">codis-config proxy list</div><div class="line">codis-config proxy offline &lt;proxy_name&gt;</div><div class="line">codis-config proxy online &lt;proxy_name&gt;</div><div class="line"></div><div class="line">codis-proxy</div><div class="line">主要用来启动proxy进程</div><div class="line">./codis-proxy --help</div><div class="line">usage: proxy [-c &lt;config_file&gt;] [-L &lt;log_file&gt;] [--log-level=&lt;loglevel&gt;] [--cpu=&lt;cpu_num&gt;]</div><div class="line">[--addr=&lt;proxy_listen_addr&gt;] [--http-addr=&lt;debug_http_server_addr&gt;]</div><div class="line"></div><div class="line">options:</div><div class="line">-cset config file</div><div class="line">-L<span class="built_in">set</span> output <span class="built_in">log</span> file, default is stdout</div><div class="line">--log-level=&lt;loglevel&gt; <span class="built_in">set</span> <span class="built_in">log</span> level: info, warn, error, debug [default: info]</div><div class="line">--cpu=&lt;cpu_num&gt;</div><div class="line">num of cpu cores that proxy can use</div><div class="line">--addr=&lt;proxy_listen_addr&gt;</div><div class="line">proxy listen address, example: 0.0.0.0:9000</div><div class="line">--http-addr=&lt;debug_http_server_addr&gt;</div><div class="line">debug vars http server</div><div class="line"></div><div class="line">codis-server</div><div class="line">主要用来启动 codis(redis 实例)</div><div class="line">./codis-server --help</div><div class="line">Usage: ./redis-server [/path/to/redis.conf] [options]</div><div class="line">./redis-server - (<span class="built_in">read</span> config from stdin)</div><div class="line">./redis-server -v or --version</div><div class="line">./redis-server -h or --help</div><div class="line">./redis-server --test-memory &lt;megabytes&gt;</div><div class="line"></div><div class="line">Examples:</div><div class="line">./redis-server (run the server with default conf)</div><div class="line">./redis-server /etc/redis/6379.conf</div><div class="line">./redis-server --port 7777</div><div class="line">./redis-server --port 7777 --slaveof 127.0.0.1 8888</div><div class="line">./redis-server /etc/myredis.conf --loglevel verbose</div><div class="line"></div><div class="line">Sentinel mode:</div><div class="line">./redis-server /etc/sentinel.conf –sentinel</div><div class="line"></div><div class="line">codis-ha</div><div class="line">主要来实现 server_group 中的主从 ha</div><div class="line">./codis-ha --help</div><div class="line">Usage of ./codis-ha:</div><div class="line">-codis-config=<span class="string">"localhost:18087"</span>: api server address</div><div class="line">-productName=<span class="string">"test"</span>: product name, can be found <span class="keyword">in</span> codis-proxy<span class="string">'s config</span></div></pre></td></tr></table></figure>
+<h5 id="Codis不支持的命令"><a href="#Codis不支持的命令" class="headerlink" title="Codis不支持的命令"></a>Codis不支持的命令</h5><figure class="highlight bash"><table><tr><td class="gutter"><pre><div class="line">1</div></pre></td><td class="code"><pre><div class="line">KEYS, MOVE, OBJECT, RENAME, RENAMENX, SORT, SCAN, BITOP,MSETNX, BLPOP, BRPOP, BRPOPLPUSH, PSUBSCRIBE，PUBLISH, PUNSUBSCRIBE, SUBSCRIBE, UNSUBSCRIBE, DISCARD, EXEC, MULTI, UNWATCH, WATCH, SCRIPT EXISTS, SCRIPT FLUSH, SCRIPT KILL, SCRIPT LOAD, AUTH, ECHO, SELECT, BGREWRITEAOF, BGSAVE, CLIENT KILL, CLIENT LIST, CONFIG GET, CONFIG SET, CONFIG RESETSTAT, DBSIZE, DEBUG OBJECT, DEBUG SEGFAULT, FLUSHALL, FLUSHDB, INFO, LASTSAVE, MONITOR, SAVE, SHUTDOWN, SLAVEOF, SLOWLOG, SYNC, TIME、MIGRATE、RANDOMKEY、PSUBSCRIBE、PUBLISH、PUNSUBSCRIBE、BGREWRITEAOF、RESTORE、SLOTSCHECK、SLOTSDEL、SLOTSINFO、SLOTSMGRTONE、SLOTSMGRTSLOT、SLOTSMGRTTAGONE、SLOTSMGRTTAGSLOT</div></pre></td></tr></table></figure>
+<h5 id="Codis半支持的命令"><a href="#Codis半支持的命令" class="headerlink" title="Codis半支持的命令"></a>Codis半支持的命令</h5><p>需要将以下key放入同一slot才能支持，方式采用{}，如key为”bar{zap}”，则只会对zap进行hash</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><div class="line">1</div></pre></td><td class="code"><pre><div class="line">RPOPLPUSH、SDIFF、SINTER、SINTERSTORE、SMOVE、SUNION、SUNIONSTORE、ZINTERSTORE、ZUNIONSTORE、PFMERGE、EVAL、EVALSHA</div></pre></td></tr></table></figure>
+<h5 id="安装JDK"><a href="#安装JDK" class="headerlink" title="安装JDK"></a>安装JDK</h5><p>zookeeper依赖java环境，所以要先安装JDK。<br><figure class="highlight bash"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div></pre></td><td class="code"><pre><div class="line">wget --no-cookies --no-check-certificate --header <span class="string">"Cookie: oraclelicense=accept-securebackup-cookie"</span> rpm<span class="string">" -O jdk-7u65-linux-x64.rpm</span></div><div class="line">rpm -ivh jdk-7u65-linux-x64.rpm</div></pre></td></tr></table></figure></p>
+<h5 id="安装和配置zookeeper"><a href="#安装和配置zookeeper" class="headerlink" title="安装和配置zookeeper"></a>安装和配置zookeeper</h5><figure class="highlight bash"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div></pre></td><td class="code"><pre><div class="line">wget http://www.us.apache.org/dist/zookeeper/zookeeper-3.4.6/zookeeper-3.4.6.tar.gz</div><div class="line">tar zxvf zookeeper-3.4.6.tar.gz</div><div class="line"><span class="built_in">cd</span> zookeeper-3.4.6/conf/</div><div class="line">cp zoo_sample.cfg zoo.cfg</div></pre></td></tr></table></figure>
+<h5 id="部署zookeeper集群"><a href="#部署zookeeper集群" class="headerlink" title="部署zookeeper集群"></a>部署zookeeper集群</h5><ul>
+<li><p>复制三份zookeeper实例</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div></pre></td><td class="code"><pre><div class="line">cp -rf  zookeeper-3.4.6 zookeeper-1</div><div class="line">cp -rf  zookeeper-3.4.6 zookeeper-2</div><div class="line">cp -rf  zookeeper-3.4.6 zookeeper-3</div></pre></td></tr></table></figure>
+</li>
+<li><p>创建三个数据和日志目录</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div></pre></td><td class="code"><pre><div class="line">mkdir -p /var/<span class="built_in">local</span>/zookeeper/data&#123;1..3&#125;</div><div class="line">mkdir -p /var/<span class="built_in">local</span>/zookeeper/logs&#123;1..3&#125;</div></pre></td></tr></table></figure>
+</li>
+<li><p>编辑配置文件</p>
+<p>修改数据目录和日志目录.并且添加server(由于是一台机器，端口则不能相同)，如下</p>
+</li>
+</ul>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div><div class="line">23</div><div class="line">24</div><div class="line">25</div><div class="line">26</div><div class="line">27</div><div class="line">28</div><div class="line">29</div><div class="line">30</div></pre></td><td class="code"><pre><div class="line">vim /opt/zookeeper-1/conf/zoo.cfg</div><div class="line">tickTime=2000</div><div class="line">initLimit=10</div><div class="line">syncLimit=5</div><div class="line">dataDir=/var/<span class="built_in">local</span>/zookeeper/data1</div><div class="line">dataLogDir=/var/<span class="built_in">local</span>/zookeeper/logs1</div><div class="line">clientPort=2181</div><div class="line">server.1=server01:2887:3887</div><div class="line">server.2=server01:2888:3888</div><div class="line">server.3=server01:2889:3889</div><div class="line"></div><div class="line">vim /opt/zookeeper-2/conf/zoo.cfg</div><div class="line">tickTime=2000</div><div class="line">initLimit=10</div><div class="line">syncLimit=5</div><div class="line">dataDir=/var/<span class="built_in">local</span>/zookeeper/data2</div><div class="line">clientPort=2182</div><div class="line">server.1=192.168.119.100:2887:3887</div><div class="line">server.2=192.168.119.100:2888:3888</div><div class="line">server.3=192.168.119.100:2889:3889</div><div class="line"></div><div class="line">vim /opt/zookeeper-3/conf/zoo.cfg</div><div class="line">tickTime=2000</div><div class="line">initLimit=10</div><div class="line">syncLimit=5</div><div class="line">dataDir=/var/<span class="built_in">local</span>/zookeeper/data3</div><div class="line">clientPort=2183</div><div class="line">server.1=192.168.119.100:2887:3887</div><div class="line">server.2=192.168.119.100:2888:3888</div><div class="line">server.3=192.168.119.100:2889:3889</div></pre></td></tr></table></figure>
+<ul>
+<li><p>创建myid文件</p>
+<p>要在每台机器的dataDir下，新建一个myid文件，里面存放一个数字，用来标识当前主机。</p>
+</li>
+</ul>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div></pre></td><td class="code"><pre><div class="line"><span class="built_in">echo</span> <span class="string">"1"</span>&gt;/var/<span class="built_in">local</span>/zookeeper/data1/myid</div><div class="line"><span class="built_in">echo</span> <span class="string">"2"</span>&gt;/var/<span class="built_in">local</span>/zookeeper/data2/myid</div><div class="line"><span class="built_in">echo</span> <span class="string">"3"</span>&gt;/var/<span class="built_in">local</span>/zookeeper/data3/myid</div></pre></td></tr></table></figure>
+<ul>
+<li>启动三个zookeeper</li>
+</ul>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div></pre></td><td class="code"><pre><div class="line">/opt/zookeeper-1/bin/zkServer.sh start</div><div class="line">/opt/zookeeper-2/bin/zkServer.sh start</div><div class="line">/opt/zookeeper-3/bin/zkServer.sh start</div></pre></td></tr></table></figure>
+<ul>
+<li>查看是否已经自动选举</li>
+</ul>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div></pre></td><td class="code"><pre><div class="line">/opt/zookeeper-1/bin/zkServer.sh status</div><div class="line">JMX enabled by default</div><div class="line">Using config: /opt/zookeeper-1/bin/../conf/zoo.cfg</div><div class="line">Mode: follower</div><div class="line"></div><div class="line">/opt/zookeeper-2/bin/zkServer.sh status</div><div class="line">JMX enabled by default</div><div class="line">Using config: /opt/zookeeper-2/bin/../conf/zoo.cfg</div><div class="line">Mode: leader</div><div class="line"></div><div class="line">/opt/zookeeper-3/bin/zkServer.sh status</div><div class="line">JMX enabled by default</div><div class="line">Using config: /opt/zookeeper-3/bin/../conf/zoo.cfg</div><div class="line">Mode: follower</div></pre></td></tr></table></figure>
+<ul>
+<li>备注</li>
+</ul>
+<blockquote>
+<p>  三种类型的节点<br>  Leader   : 处理写请求，最终更新状态；<br>  Follower : 处理客户端请求，参与投票；<br>  Observer : 不参加投票，只处理客户端请求，主要是为提升zookeeper的性能；</p>
+<p>  当leader重启或宕机后，通过paxos算法，重新选出Leader，并以Leader为准，进行数据同步；<br>  关于为Server ID，是标识host机器在集群中的机器序号，在每个ZK机器上，需要在dataDir目录下创建一个myid文件，myid中就是这个Server ID的数字。</p>
+</blockquote>
+<ul>
+<li>连接测试</li>
+</ul>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div><div class="line">23</div><div class="line">24</div><div class="line">25</div><div class="line">26</div><div class="line">27</div><div class="line">28</div><div class="line">29</div><div class="line">30</div><div class="line">31</div><div class="line">32</div></pre></td><td class="code"><pre><div class="line"></div><div class="line">/opt/zookeeper-1/bin/zkCli.sh -server 192.168.119.100:2181</div><div class="line">Connecting to 192.168.119.100:2181</div><div class="line">2016-03-25 13:35:12,972 [myid:] - INFO  [main:Environment@100] - Client environment:zookeeper.version=3.4.6-1569965, built on 02/20/2014 09:09 GMT</div><div class="line">2016-03-25 13:35:12,974 [myid:] - INFO  [main:Environment@100] - Client environment:host.name=localhost</div><div class="line">2016-03-25 13:35:12,974 [myid:] - INFO  [main:Environment@100] - Client environment:java.version=1.8.0_65</div><div class="line">2016-03-25 13:35:12,987 [myid:] - INFO  [main:Environment@100] - Client environment:java.vendor=Oracle Corporation</div><div class="line">2016-03-25 13:35:12,987 [myid:] - INFO  [main:Environment@100] - Client environment:java.home=/usr/java/jdk1.8.0_65/jre</div><div class="line">2016-03-25 13:35:12,987 [myid:] - INFO  [main:Environment@100] - Client environment:java.class.path=/opt/zookeeper-1/bin/../build/classes:/opt/zookeeper-1/bin/../build/lib/*.jar:/opt/zookeeper-1/bin/../lib/slf4j-log4j12-1.6.1.jar:/opt/zookeeper-1/bin/../lib/slf4j-api-1.6.1.jar:/opt/zookeeper-1/bin/../lib/netty-3.7.0.Final.jar:/opt/zookeeper-1/bin/../lib/<span class="built_in">log</span>4j-1.2.16.jar:/opt/zookeeper-1/bin/../lib/jline-0.9.94.jar:/opt/zookeeper-1/bin/../zookeeper-3.4.6.jar:/opt/zookeeper-1/bin/../src/java/lib/*.jar:/opt/zookeeper-1/bin/../conf:.:/usr/java/jdk1.8.0_65//lib/dt.jar:/usr/java/jdk1.8.0_65//lib/tools.jar</div><div class="line">2016-03-25 13:35:12,987 [myid:] - INFO  [main:Environment@100] - Client environment:java.library.path=/usr/java/packages/lib/amd64:/usr/lib64:/lib64:/lib:/usr/lib</div><div class="line">2016-03-25 13:35:12,987 [myid:] - INFO  [main:Environment@100] - Client environment:java.io.tmpdir=/tmp</div><div class="line">2016-03-25 13:35:12,987 [myid:] - INFO  [main:Environment@100] - Client environment:java.compiler=&lt;NA&gt;</div><div class="line">2016-03-25 13:35:12,987 [myid:] - INFO  [main:Environment@100] - Client environment:os.name=Linux</div><div class="line">2016-03-25 13:35:12,987 [myid:] - INFO  [main:Environment@100] - Client environment:os.arch=amd64</div><div class="line">2016-03-25 13:35:12,988 [myid:] - INFO  [main:Environment@100] - Client environment:os.version=2.6.32-573.12.1.el6.x86_64</div><div class="line">2016-03-25 13:35:12,988 [myid:] - INFO  [main:Environment@100] - Client environment:user.name=root</div><div class="line">2016-03-25 13:35:12,988 [myid:] - INFO  [main:Environment@100] - Client environment:user.home=/root</div><div class="line">2016-03-25 13:35:12,988 [myid:] - INFO  [main:Environment@100] - Client environment:user.dir=/root</div><div class="line">2016-03-25 13:35:12,989 [myid:] - INFO  [main:ZooKeeper@438] - Initiating client connection, connectString=192.168.119.100:2181 sessionTimeout=30000 watcher=org.apache.zookeeper.ZooKeeperMain<span class="variable">$MyWatcher</span>@67424e82</div><div class="line">Welcome to ZooKeeper!</div><div class="line">JLine support is enabled</div><div class="line">2016-03-25 13:35:13,125 [myid:] - INFO  [main-SendThread(192.168.119.100:2181):ClientCnxn<span class="variable">$SendThread</span>@975] - Opening socket connection to server 192.168.119.100/192.168.119.100:2181. Will not attempt to authenticate using SASL (unknown error)</div><div class="line">2016-03-25 13:35:13,236 [myid:] - INFO  [main-SendThread(192.168.119.100:2181):ClientCnxn<span class="variable">$SendThread</span>@852] - Socket connection established to 192.168.119.100/192.168.119.100:2181, initiating session</div><div class="line">[zk: 192.168.119.100:2181(CONNECTING) 0] 2016-03-25 13:35:13,345 [myid:] - INFO  [main-SendThread(192.168.119.100:2181):ClientCnxn<span class="variable">$SendThread</span>@1235] - Session establishment complete on server 192.168.119.100/192.168.119.100:2181, sessionid = 0x153ab70dc7c0001, negotiated timeout = 30000</div><div class="line"></div><div class="line">WATCHER::</div><div class="line">WatchedEvent state:SyncConnected <span class="built_in">type</span>:None path:null</div><div class="line">[zk: 192.168.119.100:2181(CONNECTED) 0] ls /</div><div class="line">[zk, zookeeper]</div><div class="line">[zk: 192.168.119.100:2181(CONNECTED) 1] ls /zookeeper</div><div class="line">[quota]</div><div class="line">[zk: 192.168.119.100:2181(CONNECTED) 2]</div></pre></td></tr></table></figure>
+<h5 id="启动Codis服务"><a href="#启动Codis服务" class="headerlink" title="启动Codis服务"></a>启动Codis服务</h5><h6 id="启动dashboard"><a href="#启动dashboard" class="headerlink" title="启动dashboard"></a>启动dashboard</h6><p>codis-config和codis-proxy使用config.ini这个配置文件,编辑配置文件</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div></pre></td><td class="code"><pre><div class="line">grep -v <span class="string">'#'</span>  config.ini|grep  -v <span class="string">'^$'</span></div><div class="line"><span class="comment">#根据实际情况，修改以下项</span></div><div class="line">coordinator=zookeeper</div><div class="line">zk=192.168.119.100:2181,192.168.119.100:2182,192.168.119.100:2183</div><div class="line">product=<span class="built_in">test</span></div><div class="line">dashboard_addr=192.168.119.100:18087</div><div class="line">password=</div><div class="line">backend_ping_period=5</div><div class="line">session_max_timeout=1800</div><div class="line">session_max_bufsize=131072</div><div class="line">session_max_pipeline=1024</div><div class="line">zk_session_timeout=30000</div><div class="line">proxy_id=proxy_1   <span class="comment">#如果有多个proxy，proxy_id 需要唯一。</span></div></pre></td></tr></table></figure>
+<ul>
+<li>启动dashboard</li>
+</ul>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><div class="line">1</div></pre></td><td class="code"><pre><div class="line">bin/codis-config dashboard</div></pre></td></tr></table></figure>
+<ul>
+<li>关闭dashboard</li>
+</ul>
+<p>我们在启动了dashboard后，他打印了一堆内容，如下</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div></pre></td><td class="code"><pre><div class="line">[code]2015/09/26 11:18:41 dashboard.go:160: [INFO] dashboard listening on addr: :18087</div><div class="line">2015/09/26 11:18:41 dashboard.go:143: [INFO] dashboard node created: /zk/codis/db_test/dashboard, &#123;<span class="string">"addr"</span>: <span class="string">"localhost:18087"</span>, <span class="string">"pid"</span>: 1701&#125;</div><div class="line">2015/09/26 11:18:41 dashboard.go:144: [WARN] ********** Attention **********</div><div class="line">2015/09/26 11:18:41 dashboard.go:145: [WARN] You should use `<span class="built_in">kill</span> &#123;pid&#125;` rather than `<span class="built_in">kill</span> -9 &#123;pid&#125;` to stop me,</div><div class="line">2015/09/26 11:18:41 dashboard.go:146: [WARN] or the node resisted on zk will not be cleaned when I<span class="string">'m quiting and you must remove it manually</span></div><div class="line">2015/09/26 11:18:41 dashboard.go:147: [WARN] *******************************</div></pre></td></tr></table></figure>
+<p>是的，如内容说说的，如果要关闭，记得要<code>kill -{pid}</code></p>
+<p>要不然突然电脑没电之类的bug，导致异常退出的时候，就得手动关闭，要不然在下次启动的时候，就会遇到下面的内容：<br><figure class="highlight bash"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div></pre></td><td class="code"><pre><div class="line">bin/codis-config dashboard</div><div class="line">2015/09/26 11:14:10 dashboard.go:160: [INFO] dashboard listening on addr: :18087</div><div class="line">2015/09/26 11:14:10 dashboard.go:234: [PANIC] create zk node failed</div><div class="line">[error]: dashboard already exists: &#123;<span class="string">"addr"</span>: <span class="string">"192.168.0.123:18087"</span>, <span class="string">"pid"</span>: 30155&#125;</div><div class="line">[stack]: </div><div class="line">    3   /usr/<span class="built_in">local</span>/codis/src/github.com/wandoulabs/codis/cmd/cconfig/dashboard.go:234</div><div class="line">            main.runDashboard</div><div class="line">    2   /usr/<span class="built_in">local</span>/codis/src/github.com/wandoulabs/codis/cmd/cconfig/dashboard.go:54</div><div class="line">            main.cmdDashboard</div><div class="line">    1   /usr/<span class="built_in">local</span>/codis/src/github.com/wandoulabs/codis/cmd/cconfig/main.go:84</div><div class="line">            main.runCommand</div><div class="line">    0   /usr/<span class="built_in">local</span>/codis/src/github.com/wandoulabs/codis/cmd/cconfig/main.go:151</div><div class="line">            main.main</div><div class="line">        ... ...</div></pre></td></tr></table></figure></p>
+<blockquote>
+<p>备注:必须先启动zookeeper</p>
+</blockquote>
+<ul>
+<li><p>通过NGINX代理认证访问dashboard</p>
+<p>配置nginx</p>
+</li>
+</ul>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div></pre></td><td class="code"><pre><div class="line">yum install -y nginx httpd</div><div class="line">vim /etc/nginx/conf.d/codis.conf</div><div class="line">修改如下参数：</div><div class="line">server &#123;</div><div class="line">  listen       80;</div><div class="line">  server_name  192.168.119.100;</div><div class="line"></div><div class="line">  location / &#123;</div><div class="line">    auth_basic <span class="string">"codis auth"</span>;</div><div class="line">    auth_basic_user_file /etc/nginx/passwd.db;</div><div class="line">    proxy_set_header Host <span class="variable">$host</span>;</div><div class="line">    proxy_set_header X-Forwarded-For <span class="variable">$remote_addr</span>;</div><div class="line">    proxy_pass http://192.168.119.100:18087;</div><div class="line">  &#125;</div><div class="line">&#125;</div></pre></td></tr></table></figure>
+<p>  启动nginx</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div></pre></td><td class="code"><pre><div class="line">htpasswd -c /etc/nginx/passwd codis</div><div class="line">service nginx start</div><div class="line">chkconfig nginx on</div><div class="line">chkconfig httpd off</div></pre></td></tr></table></figure>
+<blockquote>
+<p>备注：因为codis的dashboard不支持认证访问，可以通过nginx代理做认证访问(htpasswd的apache的一个命令工具，用于生成http 基本认证的密码文件)，可以用防火墙关闭18087端口。通过URL浏览器访问codis的dashboard。</p>
+</blockquote>
+<h5 id="初始化slots"><a href="#初始化slots" class="headerlink" title="初始化slots"></a>初始化slots</h5><p>初始化slots(codis-config上操作)</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><div class="line">1</div></pre></td><td class="code"><pre><div class="line">bin/codis-config slot init</div></pre></td></tr></table></figure>
+<p>该命令会在zookeepr上创建slot相关信息</p>
+<p>重新初始化slot</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div></pre></td><td class="code"><pre><div class="line">bin/codis-config slot init <span class="_">-f</span></div><div class="line">&#123;</div><div class="line">  <span class="string">"msg"</span>: <span class="string">"OK"</span>,</div><div class="line">  <span class="string">"ret"</span>: 0</div><div class="line">&#125;</div></pre></td></tr></table></figure>
+<h5 id="部署codis-server"><a href="#部署codis-server" class="headerlink" title="部署codis-server"></a>部署codis-server</h5><p>Codis Redis和普通的Redis启动方式一样的,这里创建4个Codis Redis实例，两两一组</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div></pre></td><td class="code"><pre><div class="line">Master  192.168.119.100:26379</div><div class="line">Slave   192.168.119.100:26380</div><div class="line">Master  192.168.119.100:26479</div><div class="line">Slave   192.168.119.100:26480</div></pre></td></tr></table></figure>
+<ul>
+<li>调整内存分配策略</li>
+</ul>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div></pre></td><td class="code"><pre><div class="line"><span class="built_in">echo</span> <span class="string">"1"</span> &gt; /proc/sys/vm/overcommit_memory</div><div class="line"><span class="built_in">echo</span> <span class="string">"512"</span> &gt; /proc/sys/net/core/somaxconn</div><div class="line">vim /etc/sysctl.conf</div><div class="line"></div><div class="line">修改如下参数：</div><div class="line">vm.overcommit_memory = 1</div><div class="line">net.core.somaxconn = 512</div><div class="line"></div><div class="line">让sysctl生效</div><div class="line">sysctl -p</div><div class="line"></div><div class="line">禁用大内存页面</div><div class="line"><span class="built_in">echo</span> <span class="string">"never"</span> &gt; /sys/kernel/mm/transparent_hugepage/enabled</div><div class="line"></div><div class="line">加入开机自启</div><div class="line">vim /etc/rc.local</div><div class="line">加入如下参数：</div><div class="line"><span class="keyword">if</span> <span class="built_in">test</span> <span class="_">-f</span> /sys/kernel/mm/transparent_hugepage/enabled ; <span class="keyword">then</span>  </div><div class="line">  <span class="built_in">echo</span> never &gt; /sys/kernel/mm/transparent_hugepage/enabled  </div><div class="line"><span class="keyword">fi</span></div></pre></td></tr></table></figure>
+<ul>
+<li>生成配置文件</li>
+</ul>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div></pre></td><td class="code"><pre><div class="line">cp extern/redis-2.8.21/redis.conf redis26379.conf</div><div class="line">cp extern/redis-2.8.21/redis.conf redis26380.conf</div><div class="line">cp extern/redis-2.8.21/redis.conf redis26479.conf</div><div class="line">cp extern/redis-2.8.21/redis.conf redis26480.conf</div></pre></td></tr></table></figure>
+<ul>
+<li><p>修改配置文件</p>
+<p>将几个Redis实例的pidfile、port和dbfilename进行区分,以redis26379.conf为例(配置文件主要更改以下几点)</p>
+</li>
+</ul>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div><div class="line">23</div></pre></td><td class="code"><pre><div class="line">grep -v <span class="string">'#'</span> redis26379.conf|egrep <span class="string">'pidfile|port|dbfilename|slaveof'</span></div><div class="line">pidfile /var/run/redis26379.pid</div><div class="line">port 26379</div><div class="line">dbfilename dump26379.rdb</div><div class="line"></div><div class="line"></div><div class="line">grep -v <span class="string">'#'</span> redis26380.conf|egrep <span class="string">'pidfile|port|dbfilename|slaveof'</span></div><div class="line">pidfile /var/run/redis26380.pid</div><div class="line">port 26380</div><div class="line">dbfilename dump26380.rdb</div><div class="line">slaveof localhost 26379    <span class="comment">#将26380设置成为26379的从库</span></div><div class="line"></div><div class="line"></div><div class="line">grep -v <span class="string">'#'</span> redis26479.conf|egrep <span class="string">'pidfile|port|dbfilename|slaveof'</span></div><div class="line">pidfile /var/run/redis26479.pid</div><div class="line">port 26479</div><div class="line">dbfilename dump26479.rdb</div><div class="line"></div><div class="line">grep -v <span class="string">'#'</span> redis26480.conf|egrep <span class="string">'pidfile|port|dbfilename|slaveof'</span></div><div class="line">pidfile /var/run/redis26480.pid</div><div class="line">port 26480</div><div class="line">dbfilename dump26480.rdb   </div><div class="line">slaveof localhost 26479   <span class="comment">#将26480设置成为26479的从库</span></div></pre></td></tr></table></figure>
+<ul>
+<li>启动codis</li>
+</ul>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div></pre></td><td class="code"><pre><div class="line">bin/codis-server redis26379.conf</div><div class="line">bin/codis-server redis26380.conf </div><div class="line">bin/codis-server redis26479.conf</div><div class="line">bin/codis-server redis26480.conf</div></pre></td></tr></table></figure>
+<blockquote>
+<p>备注：codis不是不负责维护主从，而是不会自动持续维护主从状态。在手动添加slave的时候会发送slave of指令，如果redis的slave of不写在配置文件里，重启会被重置。</p>
+</blockquote>
+<h5 id="配置Redis-Server-Group"><a href="#配置Redis-Server-Group" class="headerlink" title="配置Redis Server Group"></a>配置Redis Server Group</h5><p>每个Server Group就是一个Redis服务器组，包括一个Master和多个Slave，group id从1开始算起</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div></pre></td><td class="code"><pre><div class="line">bin/codis-config server add 1 localhost:26379 master</div><div class="line">bin/codis-config server add 1 localhost:26380 slave</div><div class="line">bin/codis-config server add 2 localhost:26479 master</div><div class="line">bin/codis-config server add 2 localhost:26480 slave</div></pre></td></tr></table></figure>
+<p>移除节点</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div></pre></td><td class="code"><pre><div class="line">bin/codis-config server remove-group 1</div><div class="line">bin/codis-config server remove-group 2</div></pre></td></tr></table></figure>
+<blockquote>
+<p>备注：添加Redis Server Group，只允许有一个master，可以有多个slave，group id需要是大于等于1的整数。</p>
+</blockquote>
+<h5 id="设置server-group服务的slot范围"><a href="#设置server-group服务的slot范围" class="headerlink" title="设置server group服务的slot范围"></a>设置server group服务的slot范围</h5><p>Codis采用Pre-sharding的技术来实现数据的分片，默认分成1024个slots(0-1023)，对于每个key通过公式SlotID=crc32(key)%1024确定属于哪个Slot，每个slot都会有一个且必须有一个特定的server group id来表示这个slot的数据由哪个server group来提供</p>
+<p>例如：设置编号为[0, 511]的slot由server group 1 提供服务, 编号[512, 1023]的slot由server group 2提供服务</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div></pre></td><td class="code"><pre><div class="line">bin/codis-config slot range-set 0 511 1 online</div><div class="line">bin/codis-config slot range-set 512 1023 2 online</div></pre></td></tr></table></figure>
+<blockquote>
+<p>备注：Codis采用Pre-sharding 的技术来实现数据的分片，默认分成1024个slots (0-1023)，每一个slot都会有一个特定的server group id，后端最多支持1024个Codis Server，路由信息保存在ZooKeeper中。</p>
+</blockquote>
+<h5 id="启动coids-proxy"><a href="#启动coids-proxy" class="headerlink" title="启动coids-proxy"></a>启动coids-proxy</h5><figure class="highlight bash"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div></pre></td><td class="code"><pre><div class="line">bin/codis-proxy -c config.ini -L ./<span class="built_in">log</span>/proxy.log  --cpu=32 --addr=0.0.0.0:19000 --http-addr=0.0.0.0:11000 &amp;</div><div class="line"></div><div class="line">备注：</div><div class="line">--cpu 是codis-proxy 使用的CPU核数，根据主机的情况设置；</div><div class="line">--addr是codis-proxy的redis server监听地址；</div><div class="line">--http-addr是codis-proxy启动的http server，显示的调试信息可以访问 http://server_addr:port/debug/vars ；</div></pre></td></tr></table></figure>
+<p>启动dashboard时，codis管理界面端口为18087，10086的端口，实际上用不到；刚启动codis-proxy默认是处于offline的状态，需要设置为online状态</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><div class="line">1</div></pre></td><td class="code"><pre><div class="line">bin/codis-config -c config.ini proxy online proxy_1</div></pre></td></tr></table></figure>
+<p>设置proxy为offline</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div></pre></td><td class="code"><pre><div class="line">bin/codis-config proxy offline proxy_1</div><div class="line">&#123;</div><div class="line">  <span class="string">"msg"</span>: <span class="string">"OK"</span>,</div><div class="line">  <span class="string">"ret"</span>: 0</div><div class="line">&#125;</div><div class="line">[5]   Exit 1                  bin/codis-proxy -c config.ini -L proxy.log --cpu=2 --addr=0.0.0.0:19000 --http-addr=0.0.0.0:11000</div></pre></td></tr></table></figure>
+<p>通过浏览器访问codis的管理界面:<code>http://192.168.119.100:18087/admin/</code></p>
+<h5 id="测试"><a href="#测试" class="headerlink" title="测试"></a>测试</h5><p>使用redis-benchmark随意写入一些数据</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div></pre></td><td class="code"><pre><div class="line">redis-benchmark -h 192.168.119.100 -p 19000 -n 500000 -P 100  -r 1048576 <span class="_">-d</span> 256 -t get,<span class="built_in">set</span>,mset -c 800</div><div class="line">-n 发起的请求总数</div><div class="line">-P Pipeline请求数</div><div class="line"><span class="_">-d</span> SET/GET值大小</div><div class="line">-c 并列连接的客户端数量</div></pre></td></tr></table></figure>
+<p>使用脚本插入数据</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div></pre></td><td class="code"><pre><div class="line"><span class="comment">#/bin/bash</span></div><div class="line"><span class="keyword">for</span> i <span class="keyword">in</span> &#123;1..1000&#125;</div><div class="line"><span class="keyword">do</span></div><div class="line">  <span class="built_in">echo</span> <span class="variable">$i</span></div><div class="line">  redis-cli -h 192.168.119.100 -p 19000 <span class="built_in">set</span> name<span class="variable">$i</span> <span class="variable">$i</span></div><div class="line"><span class="keyword">done</span></div></pre></td></tr></table></figure>
+<p>测试一下redis-master和redis-slave是否正常同步数据了</p>
+<p>在redis-master上写数据</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div></pre></td><td class="code"><pre><div class="line">redis-cli -h 192.168.119.100  -p 26379</div><div class="line">192.168.119.100:26379&gt;<span class="built_in">set</span> name <span class="built_in">test</span></div><div class="line">OK</div><div class="line">192.168.119.100:26379&gt;<span class="built_in">set</span> age 24</div><div class="line">OK</div><div class="line">192.168.119.100:26379:7000&gt;</div></pre></td></tr></table></figure>
+<p>在redis-slave查看是否把数据同步过来了</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div></pre></td><td class="code"><pre><div class="line">redis-cli -h 192.168.119.100  -p 26380</div><div class="line">192.168.119.100:26380&gt; get name</div><div class="line"><span class="string">"test"</span></div><div class="line">192.168.119.100:26380&gt; get age</div><div class="line"><span class="string">"29"</span></div><div class="line">192.168.119.100:26380&gt; </div><div class="line">可以看到正常同步的。</div></pre></td></tr></table></figure>
+<p>下面做个测试，测试大体内容是</p>
+<p>1)假设redis-master有问题，也可以理解为挂了<br>2)在页面把redis-slave手动提升为master<br>3)把有问题的master下线<br>4)假如刚刚有问题的master已经正常恢复服务了，转为redis-slave</p>
+<p>在上面已经测试了，在redis-master写数据,redis-slave上是可以看到数据同步过来的，现在在redis-slave上写数据，看主能不能看到</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div></pre></td><td class="code"><pre><div class="line">redis-cli -h 192.168.119.100  -p 26380</div><div class="line">192.168.119.100:26380&gt; <span class="built_in">set</span> MySQL innodb</div><div class="line">OK</div><div class="line">192.168.119.100:26380&gt; get MySQL</div><div class="line"><span class="string">"innodb"</span></div><div class="line">192.168.119.100:26380&gt;</div></pre></td></tr></table></figure>
+<p>在redis-master查看</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div></pre></td><td class="code"><pre><div class="line">redis-cli -h 192.168.119.100  -p 26379</div><div class="line">192.168.119.100:26379&gt; keys *</div><div class="line">1) <span class="string">"name"</span></div><div class="line">2) <span class="string">"age"</span></div><div class="line">192.168.119.100:26379&gt; </div><div class="line"></div><div class="line">可以看到，redis-slave写数据，是不会到master上的。</div></pre></td></tr></table></figure>
+<p>现在模拟redis-master down机</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div></pre></td><td class="code"><pre><div class="line">ps -ef |grep 26379 </div><div class="line">root       6466      1  0 09:28 ?        00:00:32 bin/codis-server *:26379  </div><div class="line"><span class="built_in">kill</span> -9 6466</div></pre></td></tr></table></figure>
+<p>在web页面刷新可以看到master已经挂了<br>我们把redis-slave提升master，点Promote to Master按钮即可：<br>可以看到本来的master已经变成offline下线状态了，这时我们把它删除掉，点后面的X删除主机。假如刚刚下线的redis服务器恢复正常了，再点上面的Add New Redis Instance按钮添加主机：<br>可以看到刚刚下线redis服务器，现在变成了redis-slave的角色了。我们测试下数据是否正常同步</p>
+<p><strong>注意：现在26380端口的角色是master的了，在它上面写数据</strong></p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div></pre></td><td class="code"><pre><div class="line">redis-cli -h 192.168.119.100  -p 26380</div><div class="line">192.168.119.100:26380&gt; <span class="built_in">set</span> aa bb</div><div class="line">OK</div><div class="line">192.168.119.100:26380&gt; <span class="built_in">set</span> cc dd</div><div class="line">OK</div><div class="line">192.168.119.100:26380&gt;</div></pre></td></tr></table></figure>
+<p>新的redis-slave上查看数据也是就26379端口对应的redis</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div></pre></td><td class="code"><pre><div class="line">192.168.119.100:26379&gt; get aa</div><div class="line"><span class="string">"bb"</span></div><div class="line">192.168.119.100:26379&gt; get cc</div><div class="line"><span class="string">"dd"</span></div><div class="line">192.168.119.100:26379&gt;</div></pre></td></tr></table></figure>
+<p>可以看到是正常同步的。</p>
+<h5 id="在线增加分片"><a href="#在线增加分片" class="headerlink" title="在线增加分片"></a>在线增加分片</h5><p>添加redis master和slave到group 4</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div></pre></td><td class="code"><pre><div class="line">codis-config -c config.ini server add 4 10.13.43.144:6379 master</div><div class="line">codis-config -c config.ini server add 4 10.13.50.214:6380 slave</div></pre></td></tr></table></figure>
+<h5 id="数据迁移"><a href="#数据迁移" class="headerlink" title="数据迁移"></a>数据迁移</h5><p>将slot id为[768-1023]的slot数据，迁移到 server group 4上，执行完命令后，数据会在后台迁移，web页面中可以看到迁移的状态。</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><div class="line">1</div></pre></td><td class="code"><pre><div class="line">codis-config -c <span class="variable">$CODISCONF</span>/config.ini slot migrate 768 1023 4</div></pre></td></tr></table></figure>
+<p>通过访问<code>http://192.168.119.100:18087/slots</code></p>
+<p>可以看到slots的排列情况，不同的Group是不同的颜色。这样作数据迁移后很容易看到slot迁移后的情况。<br>如果要迁移slots可以在管理界面选择Migrate Slot(s) 然后选择需要将哪些slots迁移到哪个Group</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><div class="line">1</div></pre></td><td class="code"><pre><div class="line">bin/codis-config slot migrate 0 511 2 --delay=10</div></pre></td></tr></table></figure>
+<p>正常的slots的状态是online，正在迁移的slots的状态是migrate</p>
+<p>数据迁移migrate的问题</p>
+<p>因为填错了组，所以导致这个迁移任务一致显示出错，reblance卡住不能动，对此的解决方法是，到zk下面的migrate_task里面删掉任务</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div></pre></td><td class="code"><pre><div class="line">sh /usr/<span class="built_in">local</span>/zookeeper/bin/zkCli.sh</div><div class="line">ls /zk/codis/db_test/migrate_tasks</div><div class="line">＃在显示的里面最小的那个任务号码。放到下面这一个去</div><div class="line">delete /zk/codis/db_test/migrate_tasks/XXXXX任务号码XXXX</div></pre></td></tr></table></figure>
+<h5 id="自动均衡"><a href="#自动均衡" class="headerlink" title="自动均衡"></a>自动均衡</h5><p>Codis支持动态的根据实例内存, 自动对slot进行迁移, 以均衡数据分布.</p>
+<p>自动均衡slots分布需要满足几个条件</p>
+<blockquote>
+<p>所有的codis-server都必须设置了maxmemory参数<br>所有的slots都应该处于online状态, 即没有迁移任务正在执行<br>所有server group都必须有Master</p>
+</blockquote>
+<ul>
+<li>执行自动均衡</li>
+</ul>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div></pre></td><td class="code"><pre><div class="line">管理界面</div><div class="line">在管理界面点击Auto Rebalance</div><div class="line"></div><div class="line">命令行方式</div><div class="line">bin/codis-config slot rebalance</div></pre></td></tr></table></figure>
+<p>关于redis的配置maxmemory </p>
+<p>为何要设置这个maxmemory呢，因为codes在做主从切换的时候，用的是codis-ha; </p>
+<p>codis-ha实现codis-server的主从切换，codis-server主库挂了会提升一个从库为主库，从库挂了会设置这个从库从集群下线。 而这个codes－ha需要我们明确每个redis可以使用的最大内存。不能是NAN GB，所以需要我们配置这个属性。拉到redis自带的配置文件的中间地方，有下面这段，我们取消maxmemory的注释就好了。</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div><div class="line">23</div><div class="line">24</div></pre></td><td class="code"><pre><div class="line"><span class="comment"># Don't use more memory than the specified amount of bytes.</span></div><div class="line"><span class="comment"># When the memory limit is reached Redis will try to remove keys</span></div><div class="line"><span class="comment"># according to the eviction policy selected (see maxmemory-policy).</span></div><div class="line"><span class="comment">#</span></div><div class="line"><span class="comment"># If Redis can't remove keys according to the policy, or if the policy is</span></div><div class="line"><span class="comment"># set to 'noeviction', Redis will start to reply with errors to commands</span></div><div class="line"><span class="comment"># that would use more memory, like SET, LPUSH, and so on, and will continue</span></div><div class="line"><span class="comment"># to reply to read-only commands like GET.</span></div><div class="line"><span class="comment">#</span></div><div class="line"><span class="comment"># This option is usually useful when using Redis as an LRU cache, or to set</span></div><div class="line"><span class="comment"># a hard memory limit for an instance (using the 'noeviction' policy).</span></div><div class="line"><span class="comment">#</span></div><div class="line"><span class="comment"># WARNING: If you have slaves attached to an instance with maxmemory on,</span></div><div class="line"><span class="comment"># the size of the output buffers needed to feed the slaves are subtracted</span></div><div class="line"><span class="comment"># from the used memory count, so that network problems / resyncs will</span></div><div class="line"><span class="comment"># not trigger a loop where keys are evicted, and in turn the output</span></div><div class="line"><span class="comment"># buffer of slaves is full with DELs of keys evicted triggering the deletion</span></div><div class="line"><span class="comment"># of more keys, and so forth until the database is completely emptied.</span></div><div class="line"><span class="comment">#</span></div><div class="line"><span class="comment"># In short... if you have slaves attached it is suggested that you set a lower</span></div><div class="line"><span class="comment"># limit for maxmemory so that there is some free RAM on the system for slave</span></div><div class="line"><span class="comment"># output buffers (but this is not needed if the policy is 'noeviction').</span></div><div class="line"><span class="comment">#</span></div><div class="line">maxmemory 1GB</div></pre></td></tr></table></figure>
+<h5 id="codis-server的HA"><a href="#codis-server的HA" class="headerlink" title="codis-server的HA"></a>codis-server的HA</h5><p>当一个group的master挂掉的时候，codis不会自动的将某个slave升级成master，codis-ha实现codis-server的主从切换，codis-server主库挂了会提升一个从库为主库，从库挂了会设置这个从库从集群下线。</p>
+<ul>
+<li>安装</li>
+</ul>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div></pre></td><td class="code"><pre><div class="line"><span class="built_in">export</span> GOPATH=<span class="variable">$HOME</span>/goproj</div><div class="line"><span class="built_in">cd</span> <span class="variable">$GOPATH</span></div><div class="line">go get github.com/ngaut/codis-ha</div><div class="line"><span class="built_in">cd</span> src/github.com/ngaut/codis-ha</div><div class="line">go build</div></pre></td></tr></table></figure>
+<ul>
+<li>使用方法</li>
+</ul>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><div class="line">1</div></pre></td><td class="code"><pre><div class="line">./codis-ha--codis-config=192.168.92.136:18087 --productName=<span class="built_in">test</span> &amp;</div></pre></td></tr></table></figure>
+<p>注:productName为集群项目名称，codis-config为codis dashboard地址。</p>
+<ul>
+<li>使用supervisord管理codis-ha进程</li>
+</ul>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div></pre></td><td class="code"><pre><div class="line">yum -y install supervisord</div><div class="line">/etc/supervisord.conf中添加如下内容：</div><div class="line">[program:codis-ha]</div><div class="line">autorestart = True</div><div class="line">stopwaitsecs = 10</div><div class="line">startsecs = 1</div><div class="line">stopsignal = QUIT</div><div class="line"><span class="built_in">command</span> = /root/goproj/src/github.com/ngaut/codis-ha --codis-config=192.168.92.136:18087 --productName=<span class="built_in">test</span></div><div class="line">user = root</div><div class="line">startretries = 3</div><div class="line">autostart = True</div><div class="line">exitcodes = 0,2</div></pre></td></tr></table></figure>
+<ul>
+<li>启动supervisord服务</li>
+</ul>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div></pre></td><td class="code"><pre><div class="line">/etc/init.d/supervisord start</div><div class="line">chkconfig supervisord  on</div></pre></td></tr></table></figure>
+<p>此时，<code>ps -ef |grep codis-ha</code>你会发现codis-ha进程已经启动，这个时候你去停掉一个codis-server的master，看看slave会不会提升为master呢</p>
+<h5 id="常见错误处理"><a href="#常见错误处理" class="headerlink" title="常见错误处理"></a>常见错误处理</h5><p>错误1：启动dashboard报错，提示已经存在pid文件</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div><div class="line">23</div><div class="line">24</div><div class="line">25</div><div class="line">26</div><div class="line">27</div><div class="line">28</div><div class="line">29</div><div class="line">30</div><div class="line">31</div><div class="line">32</div><div class="line">33</div><div class="line">34</div></pre></td><td class="code"><pre><div class="line">bin/codis-config -c config.ini dashboard &amp;</div><div class="line">[1] 441</div><div class="line">[root@Mike codis]<span class="comment"># 2015/09/15 10:23:05 dashboard.go:160: [INFO] dashboard listening on addr: :18087</span></div><div class="line">2015/09/15 10:23:05 dashboard.go:234: [PANIC] create zk node failed</div><div class="line">[error]: dashboard already exists: &#123;<span class="string">"addr"</span>: <span class="string">"10.19.21.241:18087"</span>, <span class="string">"pid"</span>: 12687&#125;</div><div class="line">[stack]: </div><div class="line">    3   /usr/<span class="built_in">local</span>/codis/src/github.com/wandoulabs/codis/cmd/cconfig/dashboard.go:234</div><div class="line">            main.runDashboard</div><div class="line">    2   /usr/<span class="built_in">local</span>/codis/src/github.com/wandoulabs/codis/cmd/cconfig/dashboard.go:54</div><div class="line">            main.cmdDashboard</div><div class="line">    1   /usr/<span class="built_in">local</span>/codis/src/github.com/wandoulabs/codis/cmd/cconfig/main.go:84</div><div class="line">            main.runCommand</div><div class="line">    0   /usr/<span class="built_in">local</span>/codis/src/github.com/wandoulabs/codis/cmd/cconfig/main.go:151</div><div class="line">            main.main</div><div class="line">        ... ...</div><div class="line"></div><div class="line">[1]+  Exit 1                  bin/codis-config -c config.ini dashboard</div><div class="line"></div><div class="line">解决办法：</div><div class="line">到zk里删除dashboard</div><div class="line">/usr/<span class="built_in">local</span>/zookeeper/bin/zkCli.sh </div><div class="line">Connecting to localhost:2181</div><div class="line">.....</div><div class="line">[zk: localhost:2181(CONNECTED) 6] delete /zk/codis/db_test/dashboard</div><div class="line">[zk: localhost:2181(CONNECTED) 7] quit</div><div class="line"></div><div class="line">bin/codis-config -c config.ini dashboard &amp;</div><div class="line">[1] 623</div><div class="line">[root@Mike codis]<span class="comment"># 2015/09/15 10:26:11 dashboard.go:160: [INFO] dashboard listening on addr: :18087</span></div><div class="line">2015/09/15 10:26:11 dashboard.go:143: [INFO] dashboard node created: /zk/codis/db_test/dashboard, &#123;<span class="string">"addr"</span>: <span class="string">"10.19.21.241:18087"</span>, <span class="string">"pid"</span>: 623&#125;</div><div class="line">2015/09/15 10:26:11 dashboard.go:144: [WARN] ********** Attention **********</div><div class="line">2015/09/15 10:26:11 dashboard.go:145: [WARN] You should use `<span class="built_in">kill</span> &#123;pid&#125;` rather than `<span class="built_in">kill</span> -9 &#123;pid&#125;` to stop me,</div><div class="line">2015/09/15 10:26:11 dashboard.go:146: [WARN] or the node resisted on zk will not be cleaned when I<span class="string">'m quiting and you must remove it manually</span></div><div class="line">2015/09/15 10:26:11 dashboard.go:147: [WARN] *******************************</div></pre></td></tr></table></figure>
+<p>错误2:删除group下的节点被锁</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div><div class="line">23</div><div class="line">24</div><div class="line">25</div><div class="line">26</div><div class="line">27</div><div class="line">28</div><div class="line">29</div><div class="line">30</div><div class="line">31</div><div class="line">32</div><div class="line">33</div><div class="line">34</div><div class="line">35</div><div class="line">36</div><div class="line">37</div><div class="line">38</div><div class="line">39</div><div class="line">40</div><div class="line">41</div><div class="line">42</div><div class="line">43</div><div class="line">44</div><div class="line">45</div><div class="line">46</div><div class="line">47</div><div class="line">48</div><div class="line">49</div><div class="line">50</div><div class="line">51</div><div class="line">52</div><div class="line">53</div><div class="line">54</div><div class="line">55</div><div class="line">56</div><div class="line">57</div><div class="line">58</div><div class="line">59</div><div class="line">60</div><div class="line">61</div><div class="line">62</div><div class="line">63</div><div class="line">64</div><div class="line">65</div><div class="line">66</div><div class="line">67</div><div class="line">68</div><div class="line">69</div><div class="line">70</div><div class="line">71</div><div class="line">72</div><div class="line">73</div><div class="line">74</div><div class="line">75</div><div class="line">76</div><div class="line">77</div><div class="line">78</div><div class="line">79</div><div class="line">80</div><div class="line">81</div><div class="line">82</div><div class="line">83</div><div class="line">84</div><div class="line">85</div><div class="line">86</div><div class="line">87</div><div class="line">88</div><div class="line">89</div><div class="line">90</div><div class="line">91</div><div class="line">92</div><div class="line">93</div><div class="line">94</div><div class="line">95</div><div class="line">96</div><div class="line">97</div><div class="line">98</div><div class="line">99</div><div class="line">100</div><div class="line">101</div><div class="line">102</div><div class="line">103</div><div class="line">104</div><div class="line">105</div><div class="line">106</div><div class="line">107</div><div class="line">108</div><div class="line">109</div><div class="line">110</div><div class="line">111</div><div class="line">112</div><div class="line">113</div><div class="line">114</div><div class="line">115</div><div class="line">116</div><div class="line">117</div><div class="line">118</div><div class="line">119</div><div class="line">120</div><div class="line">121</div><div class="line">122</div><div class="line">123</div><div class="line">124</div><div class="line">125</div><div class="line">126</div></pre></td><td class="code"><pre><div class="line">bin/codis-config server remove 2 10.19.21.241:6380</div><div class="line">2015/09/15 10:29:41 main.go:153: [PANIC] run sub-command failed</div><div class="line">[error]: http status code 500, zkutil: obtaining lock timed out</div><div class="line">    4   /usr/<span class="built_in">local</span>/codis/src/github.com/wandoulabs/codis/cmd/cconfig/utils.go:66</div><div class="line">            main.callApi</div><div class="line">    3   /usr/<span class="built_in">local</span>/codis/src/github.com/wandoulabs/codis/cmd/cconfig/server_group.go:124</div><div class="line">            main.runRemoveServerFromGroup</div><div class="line">    2   /usr/<span class="built_in">local</span>/codis/src/github.com/wandoulabs/codis/cmd/cconfig/server_group.go:57</div><div class="line">            main.cmdServer</div><div class="line">    1   /usr/<span class="built_in">local</span>/codis/src/github.com/wandoulabs/codis/cmd/cconfig/main.go:86</div><div class="line">            main.runCommand</div><div class="line">    0   /usr/<span class="built_in">local</span>/codis/src/github.com/wandoulabs/codis/cmd/cconfig/main.go:151</div><div class="line">            main.main</div><div class="line">        ... ...</div><div class="line">[stack]: </div><div class="line">    0   /usr/<span class="built_in">local</span>/codis/src/github.com/wandoulabs/codis/cmd/cconfig/main.go:153</div><div class="line">            main.main</div><div class="line">        ... ...</div><div class="line"></div><div class="line"></div><div class="line">同样到zk里删除整个db_test</div><div class="line">[zk: localhost:2181(CONNECTED) 5] ls /zk/codis/db_test</div><div class="line">[proxy, slots, servers, LOCK, migrate_tasks, actions, fence, ActionResponse, dashboard]</div><div class="line">[zk: localhost:2181(CONNECTED) 6] delete /zk/codis/db_test</div><div class="line">Node not empty: /zk/codis/db_test</div><div class="line"></div><div class="line">停止服务</div><div class="line">ps -ef |grep codis</div><div class="line">root       623 32515  0 10:26 pts/3    00:00:01 bin/codis-config -c config.ini dashboard</div><div class="line">root      1663 32515  0 10:35 pts/3    00:00:00 grep codis</div><div class="line">root     13115     1  0 Sep14 ?        00:00:42 bin/codis-server *:6379     </div><div class="line">root     13134     1  0 Sep14 ?        00:00:42 bin/codis-server *:6380     </div><div class="line">root     13210     1  0 Sep14 ?        00:00:41 bin/codis-server *:6480     </div><div class="line">root     13229     1  0 Sep14 ?        00:00:41 bin/codis-server *:6479     </div><div class="line"></div><div class="line">pkill codis</div><div class="line">2015/09/15 10:35:29 dashboard.go:154: [INFO] removing dashboard node</div><div class="line">2015/09/15 10:35:29 main.go:104: [PANIC] ctrl-c or SIGTERM found, <span class="built_in">exit</span></div><div class="line">[stack]: </div><div class="line">    0   /usr/<span class="built_in">local</span>/codis/src/github.com/wandoulabs/codis/cmd/cconfig/main.go:104</div><div class="line">            main.func·010</div><div class="line">        ... ...</div><div class="line">[1]+  Exit 1                  bin/codis-config -c config.ini dashboard</div><div class="line"></div><div class="line">ps -ef |grep codis</div><div class="line">root      1694 32515  0 10:35 pts/3    00:00:00 grep codis</div><div class="line"></div><div class="line"></div><div class="line">bin/codis-config action remove-lock</div><div class="line">2015/09/15 10:50:29 action.go:331: [INFO] deleting../zk/codis/db_test/LOCK/lock-0000000038</div><div class="line">&#123;</div><div class="line">  <span class="string">"msg"</span>: <span class="string">"OK"</span>,</div><div class="line">  <span class="string">"ret"</span>: 0</div><div class="line">&#125;</div><div class="line">bin/codis-config server list</div><div class="line">[</div><div class="line">  &#123;</div><div class="line">    <span class="string">"id"</span>: 1,</div><div class="line">    <span class="string">"product_name"</span>: <span class="string">"test"</span>,</div><div class="line">    <span class="string">"servers"</span>: [</div><div class="line">      &#123;</div><div class="line">        <span class="string">"addr"</span>: <span class="string">"localhost:6380"</span>,</div><div class="line">        <span class="string">"group_id"</span>: 1,</div><div class="line">        <span class="string">"type"</span>: <span class="string">"slave"</span></div><div class="line">      &#125;,</div><div class="line">      &#123;</div><div class="line">        <span class="string">"addr"</span>: <span class="string">"localhost:6379"</span>,</div><div class="line">        <span class="string">"group_id"</span>: 1,</div><div class="line">        <span class="string">"type"</span>: <span class="string">"master"</span></div><div class="line">      &#125;</div><div class="line">    ]</div><div class="line">  &#125;,</div><div class="line">  &#123;</div><div class="line">    <span class="string">"id"</span>: 2,</div><div class="line">    <span class="string">"product_name"</span>: <span class="string">"test"</span>,</div><div class="line">    <span class="string">"servers"</span>: [</div><div class="line">      &#123;</div><div class="line">        <span class="string">"addr"</span>: <span class="string">"10.19.21.241:6380"</span>,</div><div class="line">        <span class="string">"group_id"</span>: 2,</div><div class="line">        <span class="string">"type"</span>: <span class="string">"offline"</span></div><div class="line">      &#125;,</div><div class="line">      &#123;</div><div class="line">        <span class="string">"addr"</span>: <span class="string">"localhost:6480"</span>,</div><div class="line">        <span class="string">"group_id"</span>: 2,</div><div class="line">        <span class="string">"type"</span>: <span class="string">"master"</span></div><div class="line">      &#125;</div><div class="line">    ]</div><div class="line">  &#125;</div><div class="line">]</div><div class="line"></div><div class="line">bin/codis-config server remove 2 10.19.21.241:6380</div><div class="line">2015/09/15 10:52:24 server_group.go:182: [INFO] &#123;offline 2 10.19.21.241:6380&#125;</div><div class="line">&#123;</div><div class="line">  <span class="string">"msg"</span>: <span class="string">"OK"</span>,</div><div class="line">  <span class="string">"ret"</span>: 0</div><div class="line">&#125;</div><div class="line">bin/codis-config server list</div><div class="line">[</div><div class="line">  &#123;</div><div class="line">    <span class="string">"id"</span>: 1,</div><div class="line">    <span class="string">"product_name"</span>: <span class="string">"test"</span>,</div><div class="line">    <span class="string">"servers"</span>: [</div><div class="line">      &#123;</div><div class="line">        <span class="string">"addr"</span>: <span class="string">"localhost:6380"</span>,</div><div class="line">        <span class="string">"group_id"</span>: 1,</div><div class="line">        <span class="string">"type"</span>: <span class="string">"slave"</span></div><div class="line">      &#125;,</div><div class="line">      &#123;</div><div class="line">        <span class="string">"addr"</span>: <span class="string">"localhost:6379"</span>,</div><div class="line">        <span class="string">"group_id"</span>: 1,</div><div class="line">        <span class="string">"type"</span>: <span class="string">"master"</span></div><div class="line">      &#125;</div><div class="line">    ]</div><div class="line">  &#125;,</div><div class="line">  &#123;</div><div class="line">    <span class="string">"id"</span>: 2,</div><div class="line">    <span class="string">"product_name"</span>: <span class="string">"test"</span>,</div><div class="line">    <span class="string">"servers"</span>: [</div><div class="line">      &#123;</div><div class="line">        <span class="string">"addr"</span>: <span class="string">"localhost:6480"</span>,</div><div class="line">        <span class="string">"group_id"</span>: 2,</div><div class="line">        <span class="string">"type"</span>: <span class="string">"master"</span></div><div class="line">      &#125;</div><div class="line">    ]</div><div class="line">  &#125;</div><div class="line">]</div></pre></td></tr></table></figure>
+<p>错误3:Ulimit的大小问题</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div></pre></td><td class="code"><pre><div class="line">启动proxy的时候</div><div class="line">bin/codis-proxy -c config.ini -L ./<span class="built_in">log</span>/proxy.log –cpu=8 –addr=0.0.0.0:19000 –http-addr=0.0.0.0:11000 </div><div class="line">打印的<span class="built_in">log</span>显示了下面的问题： </div><div class="line">[code]2015/09/28 23:39:13 main.go:102: [PANIC] <span class="built_in">ulimit</span> too small: 256, should be at  least 1024</div><div class="line">[stack]: </div><div class="line">1   /usr/<span class="built_in">local</span>/codis/src/github.com/wandoulabs/codis/cmd/proxy/main.go:102</div><div class="line">                    main.checkU<span class="built_in">limit</span></div><div class="line">0   /usr/<span class="built_in">local</span>/codis/src/github.com/wandoulabs/codis/cmd/proxy/main.go:166</div><div class="line">                    main.main</div><div class="line">                ... ...</div><div class="line"></div><div class="line"></div><div class="line">这时候需要我们调大一下<span class="built_in">ulimit</span>：</div><div class="line">$ <span class="built_in">ulimit</span> -n 1024</div></pre></td></tr></table></figure>
+<h5 id="使用过程中遇到的问题"><a href="#使用过程中遇到的问题" class="headerlink" title="使用过程中遇到的问题"></a>使用过程中遇到的问题</h5><ul>
+<li><p>codis-proxy的日志切割，codis-proxy的默认日志级别是info，日志量很大，我们这边每天产生50多G日志，目前codis-proxy还不支持热重启，想修改启动参数还是比较麻烦的，日志切割推荐用logrotate</p>
+</li>
+<li><p>codis-proxy的监听地址默认没有具体ipv4，也就是codis-proxy启动之后没有0.0.0.0:19000这样的监听，这样会导致的问题就是前端lvs没有办法负载均衡codis-proxy，不能转发请求过，这个问题已联系作者处理了，在codis-proxy启动的配置文件中加上proto=tcp4这个参数就支持监听ipv4了</p>
+</li>
+<li><p>添加Redis Server Group的时候，非codis-server(原生的redis)竟然也能加入到codis集群里面，在redis和codis-server共存在一个物理机上的清楚，很容易加错，希望能有个验证，非codis-server不能加入到codis集群</p>
+</li>
+<li><p>codis集群内部通讯是通过主机名的，如果主机名没有做域名解析那dashboard是通过主机名访问不到proxy的http-addr地址的，这会导致从web界面上看不到OP/s的数据，至于还有没有其他问题，目前我这边还没有发现，建议内部通讯直接用内网IP </p>
+</li>
+</ul>
+<h3 id="参考文档"><a href="#参考文档" class="headerlink" title="参考文档"></a>参考文档</h3><p><a href="http://www.google.com" target="_blank" rel="external">http://www.google.com</a><br><a href="http://navyaijm.blog.51cto.com/4647068/1637688" target="_blank" rel="external">http://navyaijm.blog.51cto.com/4647068/1637688</a><br><a href="http://www.cnblogs.com/xuanzhi201111/p/4425194.html" target="_blank" rel="external">http://www.cnblogs.com/xuanzhi201111/p/4425194.html</a><br><a href="http://467754239.blog.51cto.com/4878013/1728423" target="_blank" rel="external">http://467754239.blog.51cto.com/4878013/1728423</a></p>
+
+      
+    </div>
+
+    <div>
+      
+        
+<div id="wechat_subscriber" style="display: block; padding: 10px 0; margin: 20px auto; width: 100%; text-align: center">
+    <img id="wechat_subscriber_qcode" src="/img/donate/wechatqcode.jpg" alt="Mike wechat" style="width: 200px; max-width: 100%;"/>
+    <div>更多精彩内容，请关注微信公众号Hi-Linux，第一时间推送给您!</div>
+</div>
+
+
+      
+    </div>
+
+    <div>
+      
+        
+
+      
+    </div>
+
+
+    <footer class="post-footer">
+      
+        <div class="post-tags">
+          
+            <a href="/tags/Linux/" rel="tag"># Linux</a>
+          
+            <a href="/tags/Codis/" rel="tag"># Codis</a>
+          
+        </div>
+      
+
+      
+        <div class="post-nav">
+          <div class="post-nav-next post-nav-item">
+            
+              <a href="/posts/20296.html" rel="next" title="使用PM2管理Node应用">
+                <i class="fa fa-chevron-left"></i> 使用PM2管理Node应用
+              </a>
+            
+          </div>
+
+          <span class="post-nav-divider"></span>
+
+          <div class="post-nav-prev post-nav-item">
+            
+              <a href="/posts/50680.html" rel="prev" title="让MySQL支持emoji表情符号存储">
+                让MySQL支持emoji表情符号存储 <i class="fa fa-chevron-right"></i>
+              </a>
+            
+          </div>
+        </div>
+      
+
+      
+      
+    </footer>
+  </article>
+
+
+
+    <div class="post-spread">
+      
+        <div class="ds-share flat" data-thread-key="posts/53649.html"
+     data-title="Centos6下Codis集群的搭建与使用"
+     data-content=""
+     data-url="http://www.hi-linux.com/posts/53649.html">
+  <div class="ds-share-inline">
+    <ul  class="ds-share-icons-16">
+
+      <li data-toggle="ds-share-icons-more"><a class="ds-more" href="javascript:void(0);">分享到：</a></li>
+      <li><a class="ds-weibo" href="javascript:void(0);" data-service="weibo">微博</a></li>
+      <li><a class="ds-qzone" href="javascript:void(0);" data-service="qzone">QQ空间</a></li>
+      <li><a class="ds-qqt" href="javascript:void(0);" data-service="qqt">腾讯微博</a></li>
+      <li><a class="ds-wechat" href="javascript:void(0);" data-service="wechat">微信</a></li>
+
+    </ul>
+    <div class="ds-share-icons-more">
+    </div>
+  </div>
+</div>
+      
+    </div>
+  </div>
+
+
+          </div>
+          
+
+
+          
+  <div class="comments" id="comments">
+    
+      <div class="ds-thread" data-thread-key="posts/53649.html"
+           data-title="Centos6下Codis集群的搭建与使用" data-url="http://www.hi-linux.com/posts/53649.html">
+      </div>
+    
+  </div>
+
+
+        </div>
+        
+          
+  
+  <div class="sidebar-toggle">
+    <div class="sidebar-toggle-line-wrap">
+      <span class="sidebar-toggle-line sidebar-toggle-line-first"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-middle"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-last"></span>
+    </div>
+  </div>
+
+  <aside id="sidebar" class="sidebar">
+    <div class="sidebar-inner">
+
+      
+
+      
+        <ul class="sidebar-nav motion-element">
+          <li class="sidebar-nav-toc sidebar-nav-active" data-target="post-toc-wrap" >
+            文章目录
+          </li>
+          <li class="sidebar-nav-overview" data-target="site-overview">
+            站点概览
+          </li>
+        </ul>
+      
+
+      <section class="site-overview sidebar-panel">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+          <img class="site-author-image" itemprop="image"
+               src="http://0.gravatar.com/avatar/5c1d99604129bc6d96333e7daf784bfc?s=160"
+               alt="Mike" />
+          <p class="site-author-name" itemprop="name">Mike</p>
+          <p class="site-description motion-element" itemprop="description"></p>
+        </div>
+        <nav class="site-state motion-element">
+          <div class="site-state-item site-state-posts">
+            <a href="/archives">
+              <span class="site-state-item-count">110</span>
+              <span class="site-state-item-name">日志</span>
+            </a>
+          </div>
+
+          
+            <div class="site-state-item site-state-categories">
+              <a href="/categories">
+                <span class="site-state-item-count">57</span>
+                <span class="site-state-item-name">分类</span>
+              </a>
+            </div>
+          
+
+          
+            <div class="site-state-item site-state-tags">
+              <a href="/tags">
+                <span class="site-state-item-count">72</span>
+                <span class="site-state-item-name">标签</span>
+              </a>
+            </div>
+          
+
+        </nav>
+
+        
+          <div class="feed-link motion-element">
+            <a href="/atom.xml" rel="alternate">
+              <i class="fa fa-rss"></i>
+              RSS
+            </a>
+          </div>
+        
+
+        <div class="links-of-author motion-element">
+          
+            
+              <span class="links-of-author-item">
+                <a href="https://github.com/80imike" target="_blank" title="GitHub">
+                  
+                    <i class="fa fa-fw fa-github"></i>
+                  
+                  GitHub
+                </a>
+              </span>
+            
+              <span class="links-of-author-item">
+                <a href="http://twitter.com/easylife206" target="_blank" title="Twitter">
+                  
+                    <i class="fa fa-fw fa-twitter"></i>
+                  
+                  Twitter
+                </a>
+              </span>
+            
+              <span class="links-of-author-item">
+                <a href="http://weibo.com/u/2093524665/" target="_blank" title="Weibo">
+                  
+                    <i class="fa fa-fw fa-weibo"></i>
+                  
+                  Weibo
+                </a>
+              </span>
+            
+              <span class="links-of-author-item">
+                <a href="http://zhihu.com/people/80imike" target="_blank" title="zhihu">
+                  
+                    <i class="fa fa-fw fa-globe"></i>
+                  
+                  zhihu
+                </a>
+              </span>
+            
+              <span class="links-of-author-item">
+                <a href="http://shang.qq.com/wpa/qunwpa?idkey=ea4c43493c2269428ac6ef6141de4b6d78e5ab2d41380ca4099b833b62884ee9" target="_blank" title="QQGroup">
+                  
+                    <i class="fa fa-fw fa-globe"></i>
+                  
+                  QQGroup
+                </a>
+              </span>
+            
+          
+        </div>
+
+        
+        
+          <div class="cc-license motion-element" itemprop="license">
+            <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/" class="cc-opacity" target="_blank">
+              <img src="/images/cc-by-nc-sa.svg" alt="Creative Commons" />
+            </a>
+          </div>
+        
+
+        
+        
+          <div class="links-of-blogroll motion-element links-of-blogroll-inline">
+            <div class="links-of-blogroll-title">
+              <i class="fa  fa-fw fa-globe"></i>
+              Links
+            </div>
+            <ul class="links-of-blogroll-list">
+              
+                <li class="links-of-blogroll-item">
+                  <a href="http://www.mike.org.cn/" title="简单.生活" target="_blank">简单.生活</a>
+                </li>
+              
+            </ul>
+          </div>
+        
+
+        
+
+
+      </section>
+
+      
+      <!--noindex-->
+        <section class="post-toc-wrap motion-element sidebar-panel sidebar-panel-active">
+          <div class="post-toc">
+
+            
+              
+            
+
+            
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-3"><a class="nav-link" href="#Codis简介"><span class="nav-number">1.</span> <span class="nav-text">Codis简介</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#安装并测试Codis"><span class="nav-number">2.</span> <span class="nav-text">安装并测试Codis</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#安装GO语言和编译安装codis"><span class="nav-number">2.1.</span> <span class="nav-text">安装GO语言和编译安装codis</span></a><ol class="nav-child"><li class="nav-item nav-level-5"><a class="nav-link" href="#安装go"><span class="nav-number">2.1.1.</span> <span class="nav-text">安装go</span></a></li><li class="nav-item nav-level-5"><a class="nav-link" href="#安装codis"><span class="nav-number">2.1.2.</span> <span class="nav-text">安装codis</span></a></li><li class="nav-item nav-level-5"><a class="nav-link" href="#常用命令维护说明"><span class="nav-number">2.1.3.</span> <span class="nav-text">常用命令维护说明</span></a></li><li class="nav-item nav-level-5"><a class="nav-link" href="#Codis不支持的命令"><span class="nav-number">2.1.4.</span> <span class="nav-text">Codis不支持的命令</span></a></li><li class="nav-item nav-level-5"><a class="nav-link" href="#Codis半支持的命令"><span class="nav-number">2.1.5.</span> <span class="nav-text">Codis半支持的命令</span></a></li><li class="nav-item nav-level-5"><a class="nav-link" href="#安装JDK"><span class="nav-number">2.1.6.</span> <span class="nav-text">安装JDK</span></a></li><li class="nav-item nav-level-5"><a class="nav-link" href="#安装和配置zookeeper"><span class="nav-number">2.1.7.</span> <span class="nav-text">安装和配置zookeeper</span></a></li><li class="nav-item nav-level-5"><a class="nav-link" href="#部署zookeeper集群"><span class="nav-number">2.1.8.</span> <span class="nav-text">部署zookeeper集群</span></a></li><li class="nav-item nav-level-5"><a class="nav-link" href="#启动Codis服务"><span class="nav-number">2.1.9.</span> <span class="nav-text">启动Codis服务</span></a><ol class="nav-child"><li class="nav-item nav-level-6"><a class="nav-link" href="#启动dashboard"><span class="nav-number">2.1.9.1.</span> <span class="nav-text">启动dashboard</span></a></li></ol></li><li class="nav-item nav-level-5"><a class="nav-link" href="#初始化slots"><span class="nav-number">2.1.10.</span> <span class="nav-text">初始化slots</span></a></li><li class="nav-item nav-level-5"><a class="nav-link" href="#部署codis-server"><span class="nav-number">2.1.11.</span> <span class="nav-text">部署codis-server</span></a></li><li class="nav-item nav-level-5"><a class="nav-link" href="#配置Redis-Server-Group"><span class="nav-number">2.1.12.</span> <span class="nav-text">配置Redis Server Group</span></a></li><li class="nav-item nav-level-5"><a class="nav-link" href="#设置server-group服务的slot范围"><span class="nav-number">2.1.13.</span> <span class="nav-text">设置server group服务的slot范围</span></a></li><li class="nav-item nav-level-5"><a class="nav-link" href="#启动coids-proxy"><span class="nav-number">2.1.14.</span> <span class="nav-text">启动coids-proxy</span></a></li><li class="nav-item nav-level-5"><a class="nav-link" href="#测试"><span class="nav-number">2.1.15.</span> <span class="nav-text">测试</span></a></li><li class="nav-item nav-level-5"><a class="nav-link" href="#在线增加分片"><span class="nav-number">2.1.16.</span> <span class="nav-text">在线增加分片</span></a></li><li class="nav-item nav-level-5"><a class="nav-link" href="#数据迁移"><span class="nav-number">2.1.17.</span> <span class="nav-text">数据迁移</span></a></li><li class="nav-item nav-level-5"><a class="nav-link" href="#自动均衡"><span class="nav-number">2.1.18.</span> <span class="nav-text">自动均衡</span></a></li><li class="nav-item nav-level-5"><a class="nav-link" href="#codis-server的HA"><span class="nav-number">2.1.19.</span> <span class="nav-text">codis-server的HA</span></a></li><li class="nav-item nav-level-5"><a class="nav-link" href="#常见错误处理"><span class="nav-number">2.1.20.</span> <span class="nav-text">常见错误处理</span></a></li><li class="nav-item nav-level-5"><a class="nav-link" href="#使用过程中遇到的问题"><span class="nav-number">2.1.21.</span> <span class="nav-text">使用过程中遇到的问题</span></a></li></ol></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#参考文档"><span class="nav-number">3.</span> <span class="nav-text">参考文档</span></a></li></ol></div>
+            
+
+          </div>
+        </section>
+      <!--/noindex-->
+      
+
+    </div>
+  </aside>
+
+
+        
+      </div>
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="footer-inner">
+        <div class="copyright" >
+  
+  &copy;  2010 - 
+  <span itemprop="copyrightYear">2017</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">Mike</span>
+</div>
+
+
+<div class="powered-by">
+  由 <a class="theme-link" href="https://hexo.io">Hexo</a> 强力驱动
+</div>
+
+<div class="theme-info">
+  主题 -
+  <a class="theme-link" href="https://github.com/iissnan/hexo-theme-next">
+    NexT.Mist
+  </a>
+</div>
+
+
+        
+
+        
+      </div>
+    </footer>
+
+    <div class="back-to-top">
+      <i class="fa fa-arrow-up"></i>
+    </div>
+  </div>
+
+  
+
+<script type="text/javascript">
+  if (Object.prototype.toString.call(window.Promise) !== '[object Function]') {
+    window.Promise = null;
+  }
+</script>
+
+
+
+
+
+
+
+
+
+  
+
+
+
+  
+  <script type="text/javascript" src="/lib/jquery/index.js?v=2.1.3"></script>
+
+  
+  <script type="text/javascript" src="/lib/fastclick/lib/fastclick.min.js?v=1.0.6"></script>
+
+  
+  <script type="text/javascript" src="/lib/jquery_lazyload/jquery.lazyload.js?v=1.9.7"></script>
+
+  
+  <script type="text/javascript" src="/lib/velocity/velocity.min.js?v=1.2.1"></script>
+
+  
+  <script type="text/javascript" src="/lib/velocity/velocity.ui.min.js?v=1.2.1"></script>
+
+  
+  <script type="text/javascript" src="/lib/fancybox/source/jquery.fancybox.pack.js?v=2.1.5"></script>
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/utils.js?v=5.1.0"></script>
+
+  <script type="text/javascript" src="/js/src/motion.js?v=5.1.0"></script>
+
+
+
+  
+  
+
+  
+  <script type="text/javascript" src="/js/src/scrollspy.js?v=5.1.0"></script>
+<script type="text/javascript" src="/js/src/post-details.js?v=5.1.0"></script>
+
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/bootstrap.js?v=5.1.0"></script>
+
+
+
+  
+
+  
+    
+  
+
+  <script type="text/javascript">
+    var duoshuoQuery = {short_name:"imike"};
+    (function() {
+      var ds = document.createElement('script');
+      ds.type = 'text/javascript';ds.async = true;
+      ds.id = 'duoshuo-script';
+      ds.src = (document.location.protocol == 'https:' ? 'https:' : 'http:') + '//static.duoshuo.com/embed.js';
+      ds.charset = 'UTF-8';
+      (document.getElementsByTagName('head')[0]
+      || document.getElementsByTagName('body')[0]).appendChild(ds);
+    })();
+  </script>
+
+  
+    
+    
+    <script src="/lib/ua-parser-js/dist/ua-parser.min.js?v=0.7.9"></script>
+    <script src="/js/src/hook-duoshuo.js"></script>
+  
+
+
+
+
+
+
+
+
+  
+  
+  <script type="text/javascript">
+    // Popup Window;
+    var isfetched = false;
+    // Search DB path;
+    var search_path = "search.xml";
+    if (search_path.length == 0) {
+      search_path = "search.xml";
+    }
+    var path = "/" + search_path;
+    // monitor main search box;
+
+    function proceedsearch() {
+      $("body").append('<div class="popoverlay">').css('overflow', 'hidden');
+      $('.popup').toggle();
+    }
+    // search function;
+    var searchFunc = function(path, search_id, content_id) {
+      'use strict';
+      $.ajax({
+        url: path,
+        dataType: "xml",
+        async: true,
+        success: function( xmlResponse ) {
+          // get the contents from search data
+          isfetched = true;
+          $('.popup').detach().appendTo('.header-inner');
+          var datas = $( "entry", xmlResponse ).map(function() {
+            return {
+              title: $( "title", this ).text(),
+              content: $("content",this).text(),
+              url: $( "url" , this).text()
+            };
+          }).get();
+          var $input = document.getElementById(search_id);
+          var $resultContent = document.getElementById(content_id);
+          $input.addEventListener('input', function(){
+            var matchcounts = 0;
+            var str='<ul class=\"search-result-list\">';
+            var keywords = this.value.trim().toLowerCase().split(/[\s\-]+/);
+            $resultContent.innerHTML = "";
+            if (this.value.trim().length > 1) {
+              // perform local searching
+              datas.forEach(function(data) {
+                var isMatch = false;
+                var content_index = [];
+                var data_title = data.title.trim().toLowerCase();
+                var data_content = data.content.trim().replace(/<[^>]+>/g,"").toLowerCase();
+                var data_url = decodeURIComponent(data.url);
+                var index_title = -1;
+                var index_content = -1;
+                var first_occur = -1;
+                // only match artiles with not empty titles and contents
+                if(data_title != '') {
+                  keywords.forEach(function(keyword, i) {
+                    index_title = data_title.indexOf(keyword);
+                    index_content = data_content.indexOf(keyword);
+                    if( index_title >= 0 || index_content >= 0 ){
+                      isMatch = true;
+                      if (i == 0) {
+                        first_occur = index_content;
+                      }
+                    }
+
+                  });
+                }
+                // show search results
+                if (isMatch) {
+                  matchcounts += 1;
+                  str += "<li><a href='"+ data_url +"' class='search-result-title'>"+ data_title +"</a>";
+                  var content = data.content.trim().replace(/<[^>]+>/g,"");
+                  if (first_occur >= 0) {
+                    // cut out 100 characters
+                    var start = first_occur - 20;
+                    var end = first_occur + 80;
+                    if(start < 0){
+                      start = 0;
+                    }
+                    if(start == 0){
+                      end = 50;
+                    }
+                    if(end > content.length){
+                      end = content.length;
+                    }
+                    var match_content = content.substring(start, end);
+                    // highlight all keywords
+                    keywords.forEach(function(keyword){
+                      var regS = new RegExp(keyword, "gi");
+                      match_content = match_content.replace(regS, "<b class=\"search-keyword\">"+keyword+"</b>");
+                    });
+
+                    str += "<p class=\"search-result\">" + match_content +"...</p>"
+                  }
+                  str += "</li>";
+                }
+              })};
+            str += "</ul>";
+            if (matchcounts == 0) { str = '<div id="no-result"><i class="fa fa-frown-o fa-5x" /></div>' }
+            if (keywords == "") { str = '<div id="no-result"><i class="fa fa-search fa-5x" /></div>' }
+            $resultContent.innerHTML = str;
+          });
+          proceedsearch();
+        }
+      });}
+
+    // handle and trigger popup window;
+    $('.popup-trigger').click(function(e) {
+      e.stopPropagation();
+      if (isfetched == false) {
+        searchFunc(path, 'local-search-input', 'local-search-result');
+      } else {
+        proceedsearch();
+      };
+    });
+
+    $('.popup-btn-close').click(function(e){
+      $('.popup').hide();
+      $(".popoverlay").remove();
+      $('body').css('overflow', '');
+    });
+    $('.popup').click(function(e){
+      e.stopPropagation();
+    });
+  </script>
+
+
+  
+
+  
+
+  
+  <script src="https://cdn1.lncld.net/static/js/av-core-mini-0.6.1.js"></script>
+  <script>AV.initialize("EeCjSUdsGRpRB9IrXppQ5KrB-gzGzoHsz", "JzmNE4oVCYAxJ1Whfn49rCkK");</script>
+  <script>
+    function showTime(Counter) {
+      var query = new AV.Query(Counter);
+      var entries = [];
+      var $visitors = $(".leancloud_visitors");
+
+      $visitors.each(function () {
+        entries.push( $(this).attr("id").trim() );
+      });
+
+      query.containedIn('url', entries);
+      query.find()
+        .done(function (results) {
+          var COUNT_CONTAINER_REF = '.leancloud-visitors-count';
+
+          if (results.length === 0) {
+            $visitors.find(COUNT_CONTAINER_REF).text(0);
+            return;
+          }
+
+          for (var i = 0; i < results.length; i++) {
+            var item = results[i];
+            var url = item.get('url');
+            var time = item.get('time');
+            var element = document.getElementById(url);
+
+            $(element).find(COUNT_CONTAINER_REF).text(time);
+          }
+          for(var i = 0; i < entries.length; i++) {
+            var url = entries[i];
+            var element = document.getElementById(url);
+            var countSpan = $(element).find(COUNT_CONTAINER_REF);
+            if( countSpan.text() == '') {
+              countSpan.text(0);
+            }
+          }
+        })
+        .fail(function (object, error) {
+          console.log("Error: " + error.code + " " + error.message);
+        });
+    }
+
+    function addCount(Counter) {
+      var $visitors = $(".leancloud_visitors");
+      var url = $visitors.attr('id').trim();
+      var title = $visitors.attr('data-flag-title').trim();
+      var query = new AV.Query(Counter);
+
+      query.equalTo("url", url);
+      query.find({
+        success: function(results) {
+          if (results.length > 0) {
+            var counter = results[0];
+            counter.fetchWhenSave(true);
+            counter.increment("time");
+            counter.save(null, {
+              success: function(counter) {
+                var $element = $(document.getElementById(url));
+                $element.find('.leancloud-visitors-count').text(counter.get('time'));
+              },
+              error: function(counter, error) {
+                console.log('Failed to save Visitor num, with error message: ' + error.message);
+              }
+            });
+          } else {
+            var newcounter = new Counter();
+            /* Set ACL */
+            var acl = new AV.ACL();
+            acl.setPublicReadAccess(true);
+            acl.setPublicWriteAccess(true);
+            newcounter.setACL(acl);
+            /* End Set ACL */
+            newcounter.set("title", title);
+            newcounter.set("url", url);
+            newcounter.set("time", 1);
+            newcounter.save(null, {
+              success: function(newcounter) {
+                var $element = $(document.getElementById(url));
+                $element.find('.leancloud-visitors-count').text(newcounter.get('time'));
+              },
+              error: function(newcounter, error) {
+                console.log('Failed to create');
+              }
+            });
+          }
+        },
+        error: function(error) {
+          console.log('Error:' + error.code + " " + error.message);
+        }
+      });
+    }
+
+    $(function() {
+      var Counter = AV.Object.extend("Counter");
+      if ($('.leancloud_visitors').length == 1) {
+        addCount(Counter);
+      } else if ($('.post-title-link').length > 1) {
+        showTime(Counter);
+      }
+    });
+  </script>
+
+
+
+  
+<script>
+(function(){
+    var bp = document.createElement('script');
+    var curProtocol = window.location.protocol.split(':')[0];
+    if (curProtocol === 'https') {
+        bp.src = 'https://zz.bdstatic.com/linksubmit/push.js';        
+    }
+    else {
+        bp.src = 'http://push.zhanzhang.baidu.com/push.js';
+    }
+    var s = document.getElementsByTagName("script")[0];
+    s.parentNode.insertBefore(bp, s);
+})();
+</script>
+
+
+  
+
+
+</body>
+</html>
