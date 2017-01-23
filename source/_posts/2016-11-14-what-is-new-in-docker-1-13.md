@@ -17,6 +17,7 @@ tags: [docker, linux]
 - [安装](#安装)
 	- [解决 `GFW` 影响 `Docker` 安装问题](#解决-gfw-影响-docker-安装问题)
 	- [增加更多的系统支持](#增加更多的系统支持)
+<!-- more -->
 - [网络](#网络)
 	- [允许 `docker run` 连入指定的 `swarm mode` 的网络](#允许-docker-run-连入指定的-swarm-mode-的网络)
 	- [允许 `docker service create` 映射宿主端口，而不是边界负载均衡网络端口](#允许-docker-service-create-映射宿主端口而不是边界负载均衡网络端口)
@@ -67,7 +68,7 @@ tags: [docker, linux]
 curl -fsSL https://get.docker.com/ | sh -s -- --mirror AzureChinaCloud
 ```
 
-<!-- more -->
+
 
 ## Top 10 新增功能
 
