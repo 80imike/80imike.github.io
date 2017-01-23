@@ -1,11 +1,56 @@
 ---
 category: docker
 title: Docker 1.13 新增功能
-date: 2017-01-23
+date: 2017-01-23 09:00:00
 tags: [docker, linux]
 ---
 
 <!-- toc -->
+
+- [前言](#前言)
+	- [Top 10 新增功能](#top-10-新增功能)
+- [Docker 镜像构建](#docker-镜像构建)
+	- [从已有镜像取得缓存](#从已有镜像取得缓存)
+	- [压扁(`squash`)镜像（实验阶段）](#压扁squash镜像实验阶段)
+	- [构建镜像时支持用 `--network` 指定网络](#构建镜像时支持用-network-指定网络)
+	- [开始允许 `docker build` 中定义 `Dockerfile` 未使用的参数（ARG）](#开始允许-docker-build-中定义-dockerfile-未使用的参数arg)
+- [安装](#安装)
+	- [解决 `GFW` 影响 `Docker` 安装问题](#解决-gfw-影响-docker-安装问题)
+	- [增加更多的系统支持](#增加更多的系统支持)
+- [网络](#网络)
+	- [允许 `docker run` 连入指定的 `swarm mode` 的网络](#允许-docker-run-连入指定的-swarm-mode-的网络)
+	- [允许 `docker service create` 映射宿主端口，而不是边界负载均衡网络端口](#允许-docker-service-create-映射宿主端口而不是边界负载均衡网络端口)
+	- [`iptables` 的转发规则将默认拒绝](#iptables-的转发规则将默认拒绝)
+	- [在 `docker network inspect` 里显示连入的节点](#在-docker-network-inspect-里显示连入的节点)
+	- [允许 `service` `VIP` 可以被 `ping`](#允许-service-vip-可以被-ping)
+- [插件](#插件)
+	- [插件功能正式启用](#插件功能正式启用)
+- [命令行](#命令行)
+	- [`checkpoint` 功能（试验功能）](#checkpoint-功能试验功能)
+		- [准备工作](#准备工作)
+		- [创建 Checkpoint 及恢复](#创建-checkpoint-及恢复)
+	- [`docker stats` 终于可以显示容器名了](#docker-stats-终于可以显示容器名了)
+	- [给 `docker ps` 增加 `is-task` 过滤器](#给-docker-ps-增加-is-task-过滤器)
+	- [再也不会出现客户端和服务端不同版本导致的错误了](#再也不会出现客户端和服务端不同版本导致的错误了)
+	- [`docker inspect` 将可以查看任何 docker 对象](#docker-inspect-将可以查看任何-docker-对象)
+- [运行时](#运行时)
+	- [不在分别构建试验可执行文件，直接使用 `--experimental` 参数](#不在分别构建试验可执行文件直接使用-experimental-参数)
+	- [在 `overlay2` 存储驱动使用于 `xfs` 时可以添加磁盘配额](#在-overlay2-存储驱动使用于-xfs-时可以添加磁盘配额)
+	- [增加 `docker system` 命令](#增加-docker-system-命令)
+	- [提升 `overlay2` 的优先级](#提升-overlay2-的优先级)
+	- [`docker exec -t` 自动添加 TERM 环境变量](#docker-exec-t-自动添加-term-环境变量)
+	- [Windows 内置的运行 Windows 程序的 Docker on Windows 的改进](#windows-内置的运行-windows-程序的-docker-on-windows-的改进)
+- [Swarm Mode](#swarm-mode)
+	- [正式支持 `docker stack`](#正式支持-docker-stack)
+	- [添加 `secret` 管理](#添加-secret-管理)
+	- [添加负载均衡和DNS记录对新增的健康检查的支持](#添加负载均衡和dns记录对新增的健康检查的支持)
+	- [添加滚动升级回滚的功能](#添加滚动升级回滚的功能)
+	- [补充了一些 `docker service create` 所缺失的参数](#补充了一些-docker-service-create-所缺失的参数)
+	- [添加命令 `docker service logs` 以查看服务日志（试验功能）](#添加命令-docker-service-logs-以查看服务日志试验功能)
+	- [增加强制再发布选项 `docker service update --force`](#增加强制再发布选项-docker-service-update-force)
+- [废弃](#废弃)
+
+<!-- tocstop -->
 
 # 前言
 
