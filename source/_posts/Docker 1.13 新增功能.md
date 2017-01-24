@@ -5,6 +5,8 @@ date: 2017-01-23 09:00:00
 tags: [docker, linux]
 ---
 
+原文出处：http://blog.lab99.org/post/docker-2016-11-14-what-is-new-in-docker-1-13.html
+
 # 前言
 
 *2017年1月19日更新*
