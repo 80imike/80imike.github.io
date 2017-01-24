@@ -1,6 +1,8 @@
 language: node_js
 node_js:
 - "7"  # nodejs的版本
+services:
+- docker
 sudo: required
 branches:
   only:
@@ -29,3 +31,12 @@ install:
 # 执行的命令
 script:
 - hexo clean && hexo g -d
+
+# Build Docker image
+- docker build -t 80imike/www.hi-linux.com .
+- docker images
+- docker login -u "$DOCKER_USERNAME" -p "$DOCKER_PASSWORD"
+- export TAG=$(date +%Y-%m-%d)
+- docker tag 80imike/www.hi-linux.com "80imike/www.hi-linux.com:$TAG"
+- docker push 80imike/www.hi-linux.com
+- docker push "80imike/www.hi-linux.com:$TAG"
