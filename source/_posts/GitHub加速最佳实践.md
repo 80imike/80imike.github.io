@@ -13,6 +13,8 @@ GitHub，又称世界上最大的同性交友平台(GayHub)。但由于众所周
 
 Git 目前支持的两种协议 `ssh://` 和 `https://`，其代理配置各不相同：`http.proxy`用于 `https://` 协议，`ssh://` 协议的代理需要配置 `ssh` 的 `ProxyCommand` 参数。
 
+<!-- more -->
+
 ### 针对HTTPS 协议(https://)配置代理
 
 配置 git 对 https:// 协议开头的仓库使用 http 代理,可以通过以下两种方法：
