@@ -145,9 +145,9 @@ proxychains-ng支持多种代理模式,默认是选择 strict_chain。
 - round_robin_chain ：轮询模式，自动跳过不可用代理
 - random_chain ：随机模式,随机使用代理
 
-### proxychains 使用
+### proxychains-ng 使用
 
-#### proxychains语法
+#### proxychains-ng语法
 
 proxychains用法非常简单，使用格式如下:
 
@@ -156,7 +156,7 @@ proxychains用法非常简单，使用格式如下:
 $ proxychains4 程序 参数
 ```
 
-#### proxychains测试
+#### proxychains-ng测试
 
 ```bash
 $ proxychains4 curl ip.cn
@@ -237,7 +237,7 @@ ZSH
 $ proxychains4  -q /bin/zsh
 ```
 
-这样在当前 shell 中运行的所有程序的网络请求都会走代理了。可以把上面的命令加入到用户的.bashrc或者.zshrc中,用户登录后自动代理一个shell,这就类似一个全局代理了。在这个SHELL下的所有命令都可以使用代理了。
+这样在当前 shell 中运行的所有程序的网络请求都会走代理了。可以把上面的命令加入到用户目录的.bashrc或者.zshrc中,用户登录后自动代理一个shell,这就类似一个全局代理了。在这个SHELL下的所有命令都可以使用代理了。
 
 ### 参考文档
 
