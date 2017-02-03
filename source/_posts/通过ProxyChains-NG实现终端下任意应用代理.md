@@ -17,7 +17,7 @@ toc_number: false
 
 项目主页：https://github.com/rofl0r/proxychains-ng
 
-#### proxychains-ng介绍
+#### proxychains-ng 介绍
 
 > proxychains ng (new generation) - a preloader which hooks calls to sockets in dynamically linked programs and redirects it through one or more socks/http proxies. continuation of the unmaintained proxychains project.
 
@@ -147,7 +147,7 @@ proxychains-ng支持多种代理模式,默认是选择 strict_chain。
 
 ### proxychains-ng 使用
 
-#### proxychains-ng语法
+#### proxychains-ng 语法
 
 proxychains用法非常简单，使用格式如下:
 
@@ -156,13 +156,13 @@ proxychains用法非常简单，使用格式如下:
 $ proxychains4 程序 参数
 ```
 
-#### proxychains-ng测试
+#### proxychains-ng 测试
 
 ```bash
 $ proxychains4 curl ip.cn
 ```
 
-#### proxychains-ng优化
+#### proxychains-ng 优化
 
 **alias**
 
