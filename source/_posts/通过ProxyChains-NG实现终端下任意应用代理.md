@@ -11,8 +11,6 @@ toc_number: false
 
 与vpn的全局代理不同，shadowsocks仅针对浏览器代理，不能代理应用软件，比如curl、wget等一些命令行软件。如果要让终端下的命令行工具都能支持代理，这时我们就要用上proxychains-ng这款神器了。
 
-<!-- more -->
-
 ### 什么是 proxychains-ng
 
 项目主页：https://github.com/rofl0r/proxychains-ng
@@ -20,6 +18,8 @@ toc_number: false
 #### proxychains-ng 介绍
 
 > proxychains ng (new generation) - a preloader which hooks calls to sockets in dynamically linked programs and redirects it through one or more socks/http proxies. continuation of the unmaintained proxychains project.
+
+<!-- more -->
 
 proxychains-ng是proxychains的加强版，主要有以下功能和不足：
 
@@ -82,7 +82,7 @@ $ make install-config (安装proxychains.conf配置文件)
 
 **关闭 SIP**
 
-macOS 10.11 后下由于开启了 SIP（System Integrity Protection） 会导致命令行下 proxychains 代理的模式失效，如果你要使用 proxychains 这种简单的方法，就需要先关闭 SIP。
+macOS 10.11 后下由于开启了 SIP（System Integrity Protection） 会导致命令行下 proxychains-ng 代理的模式失效，如果你要使用 proxychains-ng 这种简单的方法，就需要先关闭 SIP。
 
 具体的关闭方法如下：
 
@@ -101,7 +101,7 @@ macOS 10.11 后下由于开启了 SIP（System Integrity Protection） 会导致
 > 输入命令`csrutil disable`运行。
 > 重启进入系统后，终端里输入 csrutil status，结果中如果有 System Integrity Protection status:disabled. 则说明关闭成功。
 
-**安装 Proxychains**
+**安装 Proxychains-ng**
 
 安装好 Homebrew 后，终端中输入
 
@@ -111,7 +111,7 @@ $ brew install proxychains-ng
 
 ### 配置 proxychains-ng
 
-proxychains默认配置文件名为`proxychains.conf`。
+proxychains-ng默认配置文件名为`proxychains.conf`。
 
 - 通过源代码编译安装的默认为`/etc/proxychains.conf`。
 - Mac下用Homebrew安装的默认为`/usr/local/etc/proxychains.conf`。
@@ -149,7 +149,7 @@ proxychains-ng支持多种代理模式,默认是选择 strict_chain。
 
 #### proxychains-ng 语法
 
-proxychains用法非常简单，使用格式如下:
+proxychains-ng用法非常简单，使用格式如下:
 
 
 ```
@@ -209,7 +209,7 @@ $ echo "plugins+=(zsh-proxychains-ng)" >> ~/.zshrc
 
 - 通过代理SHELL实现全局代理
 
-如果你还是觉得每次使用都要输入proxychains4或其别名，比较麻烦。你还可以用proxychains4代理一个shell，在shell中执行的命令就会自动使用代理了。
+如果你还是觉得每次使用都要输入proxychains4或其别名，比较麻烦。你还可以用proxychains-ng代理一个shell，在shell中执行的命令就会自动使用代理了。
 
 方法一
 
@@ -223,7 +223,7 @@ $ export DYLD_FORCE_FLAT_NAMESPACE=1
 
 方法二
 
-proxychains4直接调用SHELL
+proxychains-ng直接调用SHELL
 
 BASH
 
