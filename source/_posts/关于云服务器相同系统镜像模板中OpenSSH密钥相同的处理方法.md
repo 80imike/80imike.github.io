@@ -4,7 +4,7 @@ title: 关于云服务器相同系统镜像模板中OpenSSH密钥相同的处理
 date: 2017-02-13 09:00:00
 tags: [linux, openssh]
 updated:
-toc_number: false
+toc_number: true
 ---
 
 OpenSSH 通信过程中有两类证书会被使用，一是服务器端证书，共八个文件，四种加密类型 `rsa` 、`dsa` 、`ecdsa` 、`ed25519`。
