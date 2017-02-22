@@ -3,6 +3,7 @@ category: docker
 title: 使用Docker-Compose编排容器
 date: 2017-02-22 09:00:00
 tags: [linux, docker]
+abbrlink: 12554
 updated:
 toc_number: false
 ---
