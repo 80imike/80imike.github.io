@@ -1,6 +1,6 @@
 ---
 category: docker
-title: 使用 Docker-Compose 编排容器集群
+title: 使用Docker-Compose编排容器
 date: 2017-02-22 09:00:00
 tags: [linux, docker]
 updated:
@@ -19,10 +19,10 @@ Docker-Compose是Docker的一种编排服务，是一个用于在Docker上定义
 
 ### 安装Docker-Compose
 
-Docker Compose 1.7.1
+Docker-Compose
 
-- 如Docker Compose文件格式为2.0，Docker Engine版本必须大于1.10.0
-- 如Docker Compose文件格式为1.0，Docker Engine版本必须大于1.9.1
+- 如Docker-Compose文件格式为2.0，Docker Engine版本必须大于1.10.0
+- 如Docker-Compose文件格式为1.0，Docker Engine版本必须大于1.9.1
 
 #### 安装Docker-Compose
 
@@ -45,7 +45,7 @@ $ pip install -U docker-compose
 
 ```bash
 $ pip list|grep compose
-docker-compose (1.5.2)
+docker-compose (1.11.1)
 ```
 
 - 方法二
