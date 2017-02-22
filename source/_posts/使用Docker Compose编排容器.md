@@ -15,7 +15,7 @@ Compose是用于定义和运行复杂Docker应用的工具。你可以在一个�
 
 **Docker Compose 工作原理图**
 
-![](http://dockerone.com/uploads/article/20141208/b345a0caa0850b9d3557f2266ad91694.png)
+![](http://www.hi-linux.com/img/linux/docker-compose.png)
 
 ### 安装Docker Compose
 
@@ -38,7 +38,6 @@ $ curl -sSL http://acs-public-mirror.oss-cn-hangzhou.aliyuncs.com/docker-engine/
 
 ```bash
 Note: pip version 6.0 or greater is required
-
 $ pip install -U docker-compose
 ```
 
@@ -137,7 +136,7 @@ plugins+=(docker-compose)
 $ exec $SHELL -l
 ```
 
-#### 卸载
+#### 卸载Docker
 
 - 通过二进制文件
 
@@ -153,7 +152,7 @@ $ pip uninstall docker-compose
 
 ### 使用Docker Compose
 
-#### docker-compose常用命令
+#### Docker-Compose常用命令
 
 查看docker-compose的用法
 
@@ -207,7 +206,7 @@ Commands:
   version            Show the Docker-Compose version information
 ```
 
-#### docker-compose命令说明
+#### Docker-Compose命令说明
 
 大部分命令都可以运行在一个或多个服务上。如果没有特别的说明，命令则应用在项目所有的服务上。
 
@@ -372,7 +371,7 @@ volumes_from
 
 从另一个服务或容器挂载它的所有卷。
 
-#### Docker Compose YAML语法使用说明
+#### Docker-Compose YAML语法使用说明
 
 默认的模板文件是 `docker-compose.yml`，其中定义的每个服务都必须通过image指令指定镜像或build指令(需要 Dockerfile)来自动构建。其它大部分指令都跟docker run中的类似。
 
@@ -665,7 +664,7 @@ stdin_open: true
 tty: true
 ```
 
-### docker-compose使用实例
+### Docker-Compose使用实例
 
 创建一个Wordpress应用,首先建立一个应用的目录
 
@@ -717,7 +716,7 @@ Starting wordpress_db_1
 Starting wordpress_wordpress_1
 ```
 
-确认
+确认启动成功
 
 ```Bash
 $ docker-compose ps
@@ -730,16 +729,15 @@ $ docker-compose ps
 
 http://localhost:8000/
 
-
 初始化设置后，就可以看到Wordpress的页面
 
-#### 其它
+![](http://www.hi-linux.com/img/linux/wordpress.png)
 
-Docker Compose UI
+**其它**
 
-一个可在网页上的直观的进行Docker Compose操作的项目
+Docker Compose UI，一个可在网页上的直观的进行Docker Compose操作的项目。
 
-https://github.com/francescou/docker-compose-ui
+项目地址：https://github.com/francescou/docker-compose-ui
 
 
 ### 参考文档
