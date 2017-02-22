@@ -17,14 +17,14 @@ Compose是用于定义和运行复杂Docker应用的工具。你可以在一个�
 
 ![](http://www.hi-linux.com/img/linux/docker-compose.png)
 
-### 安装Docker Compose
+### 安装Docker-Compose
 
 Docker Compose 1.7.1
 
 > 如Docker Compose文件格式为2.0，Docker Engine版本必须大于1.10.0
 > 如Docker Compose文件格式为1.0，Docker Engine版本必须大于1.9.1
 
-#### 安装Docker
+#### 安装Docker-Compose
 
 这里使用的是阿里云镜像安装，速度比官方的快一些。
 
@@ -136,7 +136,7 @@ plugins+=(docker-compose)
 $ exec $SHELL -l
 ```
 
-#### 卸载Docker
+#### 卸载Docker-Compose
 
 - 通过二进制文件
 
@@ -150,7 +150,7 @@ $ rm /usr/local/bin/docker-compose
 $ pip uninstall docker-compose
 ```
 
-### 使用Docker Compose
+### 使用Docker-Compose
 
 #### Docker-Compose常用命令
 
