@@ -1,13 +1,15 @@
 ---
 category: docker
-title: 使用 Docker Compose 编排容器集群
+title: 使用 Docker-Compose 编排容器集群
 date: 2017-02-22 09:00:00
 tags: [linux, docker]
 updated:
 toc_number: false
 ---
 
-Docker Compose是Docker的一种编排服务，是一个用于在Docker上定义并运行复杂应用的工具，可以让用户在集群中部署分布式应用。通过Compose用户可以很容易地用一个配置文件定义一个多容器的应用，然后使用一条指令安装这个应用的所有依赖，完成构建。Docker Compose解决了容器与容器之间如何管理编排的问题。
+Docker-Compose是Docker的一种编排服务，是一个用于在Docker上定义并运行复杂应用的工具，可以让用户在集群中部署分布式应用。
+
+通过Docker-Compose用户可以很容易地用一个配置文件定义一个多容器的应用，然后使用一条指令安装这个应用的所有依赖，完成构建。Docker-Compose解决了容器与容器之间如何管理编排的问题。
 
 <!-- more -->
 
