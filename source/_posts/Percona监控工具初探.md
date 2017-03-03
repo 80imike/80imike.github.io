@@ -56,7 +56,7 @@ Metrics Monitor(MM)组件提供了MySQL和MongoDB历史监控信息，其组件�
 - mysqld_exporter：Prometheus exporter用于搜集MySQL Server的信息。
 - mongodb_exporter：Prometheus exporter用于搜集MongoDB server的信息。
 
-### PMM Server安装
+### PMM安装
 
 概览：用一台A服务器运行监控程序，监控程序是基于Docker构建的。然后在需要被统计的服务器上安装pm-admin，这个工具会将数据实时的发送到A服务器，A服务器会分析统计数据，然后将数据展示在web端。
 
