@@ -88,7 +88,7 @@ ffa2d14aca65        rancher/server:v1.5.1   "/usr/bin/entry /u..."   19 minutes 
 
 可以看到我们已经建立了一个新的Admin权限的账号：mike。当前的登录账号也换成了mike。
 
-### Agent部署
+### Rancher Agent部署
 
 访问http://10.211.55.5:8000/,点击["INFRASTRUCTURE"->"Host"->"Add host"]。执行下图中Sever管理端生成的Add Host命令，即可将Host添加到Server端管理。
 
