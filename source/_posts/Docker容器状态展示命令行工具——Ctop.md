@@ -1,6 +1,6 @@
 ---
 category: docker
-title: Docker容器状态展示命令行工具——Ctop
+title: Docker容器状态命令行工具——Ctop
 date: 2017-03-16 09:00:00
 tags: [linux, docker]
 abbrlink:
