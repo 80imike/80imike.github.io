@@ -59,7 +59,7 @@ $ ctop
 
 运行效果
 
-![](https://www.hi-linux.com/img/linux/grid.gif)
+![](http://www.hi-linux.com/img/linux/grid.gif)
 
 选项说明
 
@@ -134,7 +134,7 @@ $ ctop
 
 运行效果
 
-![](https://www.hi-linux.com/img/linux/screenshot.png)
+![](http://www.hi-linux.com/img/linux/screenshot.png)
 
 当你进入ctop屏幕，可使用上（↑）和下（↓）箭头键在容器间导航。按q或Ctrl+C退出。
 
