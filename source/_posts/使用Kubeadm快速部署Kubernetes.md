@@ -151,11 +151,9 @@ $ docker pull gcr.io/google_containers/kubernetes-dashboard-amd64:v1.6.0
 $ docker pull quay.io/coreos/flannel:v0.7.0-amd64    
 ```
 
-#### 部署 Kubernetes master
+#### 部署Kubernetes master
 
-理论上通过kubeadm使用init和join命令即可建立一个集群，这init就是在master节点对集群进行初始化。
-
-和k8s 1.4之前的部署方式不同的是kubeadm安装的k8s核心组件都是以容器的形式运行于master node上的。
+理论上通过kubeadm使用init和join命令即可建立一个集群，这init就是在master节点对集群进行初始化。和k8s 1.4之前的部署方式不同的是kubeadm安装的k8s核心组件都是以容器的形式运行于master node上的。
 
 **初始化master**
 
