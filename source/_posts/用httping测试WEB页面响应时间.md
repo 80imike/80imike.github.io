@@ -14,7 +14,7 @@ httping是一个用来测试 HTTP 请求的连接、发送请求、等待回应�
 
 httping项目地址: https://www.vanheusden.com/httping/
 
-![](http://www.hi-linux.com/img/linux/httping.jpg)
+![](https://www.hi-linux.com/img/linux/httping.jpg)
 
 <!-- more -->
 

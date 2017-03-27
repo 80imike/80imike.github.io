@@ -16,7 +16,7 @@ Docker-Compose是Docker的一种编排服务，是一个用于在Docker上定义
 
 **Docker Compose 工作原理图**
 
-![](http://www.hi-linux.com/img/linux/docker-compose.png)
+![](https://www.hi-linux.com/img/linux/docker-compose.png)
 
 ### 安装Docker-Compose
 
@@ -732,7 +732,7 @@ http://localhost:8000/
 
 初始化设置后，就可以看到Wordpress的页面
 
-![](http://www.hi-linux.com/img/linux/wordpress.png)
+![](https://www.hi-linux.com/img/linux/wordpress.png)
 
 **其它**
 

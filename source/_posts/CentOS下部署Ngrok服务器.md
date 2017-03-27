@@ -15,7 +15,7 @@ Ngrok是一款用go语言开发的开源软件，它是一个反向代理。通�
 
 下图简述了Ngrok的原理
 
-![ngrok](http://www.hi-linux.com/img/linux/ngrok-768x478.png)
+![ngrok](https://www.hi-linux.com/img/linux/ngrok-768x478.png)
 <!-- more -->
 ### 应用场景
 

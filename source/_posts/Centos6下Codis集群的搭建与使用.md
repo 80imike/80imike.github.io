@@ -30,7 +30,7 @@ updated:
 > Codis支持按照Namespace区分不同的产品, 拥有不同的product name 的产品, 各项配置都不会冲突。
 > 
 > **Codis架构**
-> ![](http://www.hi-linux.com/img/linux/architecture.png)
+> ![](https://www.hi-linux.com/img/linux/architecture.png)
 
 
 ### 安装并测试Codis

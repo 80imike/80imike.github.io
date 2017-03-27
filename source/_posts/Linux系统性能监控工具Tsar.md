@@ -26,7 +26,7 @@ toc_number:
 
 **Tsar的运行流程图**
 
-![](http://www.hi-linux.com/img/linux/tsar.png)
+![](https://www.hi-linux.com/img/linux/tsar.png)
 
 
 主要执行流程

@@ -63,7 +63,7 @@ $ service mysqld start
 
 通过命令`SHOW PLUGINS`进行观察，应该观察到插件已启用。
 
-![](http://www.hi-linux.com/img/linux/pvp.png)
+![](https://www.hi-linux.com/img/linux/pvp.png)
 
 #### 测试插件
 

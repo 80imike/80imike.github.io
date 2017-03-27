@@ -36,7 +36,7 @@ Mydumper项目地址: https://launchpad.net/mydumper/
 
 #### Mydumper工作流程图
 
-![](http://www.hi-linux.com/img/linux/mydumper.png)
+![](https://www.hi-linux.com/img/linux/mydumper.png)
 
 **主要步骤概括**
 

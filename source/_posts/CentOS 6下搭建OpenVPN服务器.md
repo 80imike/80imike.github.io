@@ -15,7 +15,7 @@ OpenVPN是一个用于创建虚拟专用网络(Virtual Private Network)加密通
 
 **OpenVPN架构图**
 
-![](http://www.hi-linux.com/img/linux/openvpnflows.jpg)
+![](https://www.hi-linux.com/img/linux/openvpnflows.jpg)
 
 <!-- more -->
 

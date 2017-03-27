@@ -21,11 +21,11 @@ Kubernetes(K8s)是一个真正的平台，提供运行环境，使得复杂要�
 
 **Kubernetes架构**
 
-![](http://www.hi-linux.com/img/linux/k8s_01.jpg)
+![](https://www.hi-linux.com/img/linux/k8s_01.jpg)
 
 **Kubernetes地位**
 
-![](http://www.hi-linux.com/img/linux/k8s_02.png)
+![](https://www.hi-linux.com/img/linux/k8s_02.png)
 
 
 K8s的地位如上图所示，优点是有很好的可移植性和可扩展性。关于K8s，这两个重要的性质表现在：

@@ -27,7 +27,7 @@ MyCli是一个MySQL的命令行客户端，可以实现自动补全(auto-complet
 
 **效果展示**
 
-![](http://www.hi-linux.com/img/linux/mycli.gif)
+![](https://www.hi-linux.com/img/linux/mycli.gif)
 
 ### MyCli安装
 

@@ -108,7 +108,7 @@ shell> ./install.sh
 
 安装完成后我们就可以在iTerm2或者Terminal的字体选项里看到并选择多个xxx for powerline的字体了。*注意：对于ASCII fonts和non-ASCII fonts都需要选择for powerline的字体。如下图：
 
-![](http://www.hi-linux.com/img/linux/powerlinefonts.png)
+![](https://www.hi-linux.com/img/linux/powerlinefonts.png)
 
 2.Windows字体
 
@@ -196,7 +196,7 @@ fi
 
 项目地址：https://github.com/jeremyFreeAgent/oh-my-zsh-powerline-theme
 
-![](http://www.hi-linux.com/img/linux/oh-my-zsh-powerline-theme.png)
+![](https://www.hi-linux.com/img/linux/oh-my-zsh-powerline-theme.png)
 
 安装
 
@@ -218,7 +218,7 @@ ZSH_THEME="powerline"
 
 项目地址：https://github.com/caiogondim/bullet-train-oh-my-zsh-theme
 
-![](http://www.hi-linux.com/img/linux/bullet-train-oh-my-zsh-theme.png)
+![](https://www.hi-linux.com/img/linux/bullet-train-oh-my-zsh-theme.png)
 
 安装
 

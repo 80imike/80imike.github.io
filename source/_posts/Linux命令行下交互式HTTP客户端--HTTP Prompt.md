@@ -18,7 +18,7 @@ HTTP Prompt是一个交互式的命令行HTTP客户端，支持自动完成、�
 
 先展示一下HTTP Prompt官方给出的效果图。
 
-![](http://www.hi-linux.com/img/linux/http-prompt.gif)
+![](https://www.hi-linux.com/img/linux/http-prompt.gif)
 
 有没有觉得很酷！
 

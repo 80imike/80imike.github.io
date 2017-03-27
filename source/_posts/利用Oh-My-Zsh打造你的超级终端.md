@@ -180,7 +180,7 @@ ZSH_THEME="robbyrussel"
 
 可以看到，我们默认使用的主题叫做`robbyrussel`。 它的显示效果嘛，大概是这样
 
-![](http://www.hi-linux.com/img/linux/omz.jpg)
+![](https://www.hi-linux.com/img/linux/omz.jpg)
 
 Oh My Zsh默认自带了一些默认主题，存放在`~/.oh-my-zsh/themes`目录中。我们可以查看这些主题
 

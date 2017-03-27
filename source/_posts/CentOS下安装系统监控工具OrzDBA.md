@@ -232,7 +232,7 @@ Sample :
 $ orzdba  -lazy -rt -S /var/lib/mysql/mysql.sock
 ```
 
-![](http://www.hi-linux.com/img/linux/orzdba1.png)
+![](https://www.hi-linux.com/img/linux/orzdba1.png)
 
 > count：此间隔内完成的请求数量
 > avg：此间隔内所有完成的请求，响应的平均时间
@@ -255,7 +255,7 @@ $ orzdba -innodb -S /var/lib/mysql/mysql.sock
 ```
 $ orzdba -mysql -S /var/lib/mysql/mysql.sock
 ```
-![](http://www.hi-linux.com/img/linux/orzdba2.jpg)
+![](https://www.hi-linux.com/img/linux/orzdba2.jpg)
 
 显示出数据库常用变量值、insert/update/delete/select的统计值、innodb请求命中率、线程状态、mysql收发字节数
 
@@ -265,7 +265,7 @@ $ orzdba -mysql -S /var/lib/mysql/mysql.sock
 $ orzdba -sys
 ```
 
-![](http://www.hi-linux.com/img/linux/orzdba3.png)
+![](https://www.hi-linux.com/img/linux/orzdba3.png)
 
 显示出了当前负载状况、CPU使用状况、swap状况
 
@@ -276,7 +276,7 @@ $ orzdba -sys
 $ orzdba -c -i 2 -C 10 -L cpu.log
 ```
 
-![](http://www.hi-linux.com/img/linux/orzdba4.jpg)
+![](https://www.hi-linux.com/img/linux/orzdba4.jpg)
 
 ### 参考文档
 

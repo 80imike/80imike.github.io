@@ -15,7 +15,7 @@ toc_number:
 babun是windows上的一个第三方shell，在这个shell上面你可以使用几乎所有linux，unix上面的命令，他几乎可以取代windows的shell。用官方的题目说就是A Windows shell you will love!
 
 
-![](http://www.hi-linux.com/img/linux/screen_zsh_update.png)
+![](https://www.hi-linux.com/img/linux/screen_zsh_update.png)
 <!-- more -->
 > babun的几个特点
 > 
@@ -114,14 +114,14 @@ babun update(用于判断是否有新的更新包)
 
 babun默认编码是UTF-8的，而windows的cmd命令输出是GBK编码的，所以在Babun里面运行ipconfig等windows命令时，中文会是一大堆乱码。
 
-![](http://www.hi-linux.com/img/linux/ipconfig-error1.png)
+![](https://www.hi-linux.com/img/linux/ipconfig-error1.png)
 
 
 解决：在babun自带的shell(mintty)右上角右键options-text,在character set选择default或者GBK,之后执行ipconfig等cmd内置的命令时就正常显示中文了。
 
 如果把Babun的编码改成GBK的话，命令的中文输出倒是正常了，PS1却会出现一个乱码字符，如图
 
-![](http://www.hi-linux.com/img/linux/ipconfig-error2.jpg)
+![](https://www.hi-linux.com/img/linux/ipconfig-error2.jpg)
 
 去掉命令提示符乱码
 

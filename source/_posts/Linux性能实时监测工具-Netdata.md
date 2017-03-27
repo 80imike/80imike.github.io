@@ -19,7 +19,7 @@ Netdata是一个高度优化的Linux守护进程，它为Linux系统，应用程
 
 GITHUB地址：https://github.com/firehol/netdata
 
-![](http://www.hi-linux.com/img/linux/netdata1.gif)
+![](https://www.hi-linux.com/img/linux/netdata1.gif)
 <!-- more -->
 
 使用此软件，你可以得到：
@@ -40,7 +40,7 @@ GITHUB地址：https://github.com/firehol/netdata
 > 2.RAM，互换和内核内存的使用率(包括KSM和内核内存deduper)
 > 3.硬盘输入/输出(每个硬盘的带宽，操作，整理，利用等)
  
-![](http://www.hi-linux.com/img/linux/netdata2.gif)
+![](https://www.hi-linux.com/img/linux/netdata2.gif)
  
 > 4.IPv4网络(数据包，错误，分片)：
 > TCP：连接，数据包，错误，握手
@@ -48,7 +48,7 @@ GITHUB地址：https://github.com/firehol/netdata
 > 广播：带宽，数据包
 > 组播：带宽，数据包
 
-![](http://www.hi-linux.com/img/linux/netdata3.gif)
+![](https://www.hi-linux.com/img/linux/netdata3.gif)
 
 > 5.Netfilter/iptables Linux防火墙(连接，连接跟踪事件，错误等)
 > 6.IPv4/IPv6 networking 
@@ -57,11 +57,11 @@ GITHUB地址：https://github.com/firehol/netdata
 > 9.NFS文件服务器，v2,v3,v4(输入/输出，缓存，预读，RPC调用)
 > 10.网络服务质量(唯一一个可实时可视化网络状况的工具)
 
-![](http://www.hi-linux.com/img/linux/netdata4.gif)
+![](https://www.hi-linux.com/img/linux/netdata4.gif)
 
 > 11.应用程序，通过对进程树进行分组(CPU,内存，硬盘读取，硬盘写入，交换，线程，管道，套接字等)
 
-![](http://www.hi-linux.com/img/linux/netdata5.gif)
+![](https://www.hi-linux.com/img/linux/netdata5.gif)
 
 > 12.Apache Web服务器状态(v2.2, v2.4)
 > 13.Nginx Web服务器状态

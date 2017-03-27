@@ -11,13 +11,13 @@ toc_number:
 ---
 在终端环境下，两个文件要进行差异比对，通常我们会使用系统内建的diff指令，效果如下
 
-![](http://www.hi-linux.com/img/linux/regular-diff-demo.png)
+![](https://www.hi-linux.com/img/linux/regular-diff-demo.png)
 
 diff指令仅仅是将文件差异处以上下对照呈现，并不会以颜色标示差异处。
 <!-- more -->
 再看看icdiff比较文件的结果，效果如下
 
-![](http://www.hi-linux.com/img/linux/icdiff-css-demo-tall.png)
+![](https://www.hi-linux.com/img/linux/icdiff-css-demo-tall.png)
 
 其中各种颜色代表的意义如下
 

@@ -24,7 +24,7 @@ PMM针对操作系统的部份也提供了硬盘、网络、CPU和RAM的监控�
 
 PMM架构如下图所示
 
-![](http://www.hi-linux.com/img/linux/pmm-arch.jpg)
+![](https://www.hi-linux.com/img/linux/pmm-arch.jpg)
 
 PMM Server是作为Docker镜像distributed，而PMM Client就是一般的RPM，它需要安装Server端和Client端软件。
 
@@ -235,26 +235,26 @@ Global Flags:
 
 **查看配置后的结果**
 
-![](http://www.hi-linux.com/img/linux/pmm-admin.png)
+![](https://www.hi-linux.com/img/linux/pmm-admin.png)
 
 ### 监控页面展示
 
 - OS系统
 
-![](http://www.hi-linux.com/img/linux/pmm-system.png)
+![](https://www.hi-linux.com/img/linux/pmm-system.png)
 
 - MySQL
 
-![](http://www.hi-linux.com/img/linux/pmm-mysql-1.png)
+![](https://www.hi-linux.com/img/linux/pmm-mysql-1.png)
 
-![](http://www.hi-linux.com/img/linux/pmm-mysql-2.png)
+![](https://www.hi-linux.com/img/linux/pmm-mysql-2.png)
 
 
 MySQL慢查询分析
 
-![](http://www.hi-linux.com/img/linux/pmm-mysql-slow-1.png)
+![](https://www.hi-linux.com/img/linux/pmm-mysql-slow-1.png)
 
-![](http://www.hi-linux.com/img/linux/pmm-mysql-slow-2.png)
+![](https://www.hi-linux.com/img/linux/pmm-mysql-slow-2.png)
 
 ### 常见错误
 

@@ -10,7 +10,7 @@ updated:
 toc_number:
 ---
 
-![](http://www.hi-linux.com/img/linux/ProxyCommand.png)
+![](https://www.hi-linux.com/img/linux/ProxyCommand.png)
 
 一般公司为了安全起见，线上服务器都无法直接访问，必须通过一台跳板机来访问。比如要访问机器webserver01，则必须先ssh到跳板机gateway，然后再ssh到webserver01机器。这样做自然可以减少攻击面，但是每次去webserver01机器执行命令，或者上传文件的时候都要两次ssh，对线上的调试和监控效率影响很大。<!-- more -->
 

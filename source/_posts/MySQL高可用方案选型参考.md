@@ -49,7 +49,7 @@ MySQL的各种高可用方案，大多是基于以下几种基础来部署的：
 
 双节点主从+keepalived/heartbeat方案架构示意图见下：
 
-![](http://www.hi-linux.com/img/linux/mysqlha-2node-keepalived-wm.png)
+![](https://www.hi-linux.com/img/linux/mysqlha-2node-keepalived-wm.png)
 
 图解：MySQL双节点（单向/双向主从复制），采用keepalived实现高可用架构。
 
@@ -86,11 +86,11 @@ Galera是Codership提供的多主数据同步复制机制，可以实现多个�
 基于Galera的高可用方案主要有MariaDB Galera Cluster和Percona XtraDB Cluster（简称PXC），目前PXC用的会比较多一些。
 
 PXC的架构示意图见下
-![](http://www.hi-linux.com/img/linux/galera-overview1.png)
+![](https://www.hi-linux.com/img/linux/galera-overview1.png)
 
 图解：在底层采用wsrep接口实现数据在多节点间的同步复制。
  
-![](http://www.hi-linux.com/img/linux/certificationbasedreplication1.png)
+![](https://www.hi-linux.com/img/linux/certificationbasedreplication1.png)
 图解：在PXC中，一次数据写入在各个节点间的验证/回滚流程。
 
 PXC的优点

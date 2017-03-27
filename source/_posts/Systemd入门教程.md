@@ -40,7 +40,7 @@ Systemd的优点是功能强大，使用方便，缺点是体系庞大，非常�
 
 **Systemd架构图**
 
-![](http://www.hi-linux.com/img/linux/systemd.png)
+![](https://www.hi-linux.com/img/linux/systemd.png)
 
 
 ### Systemd基本工具

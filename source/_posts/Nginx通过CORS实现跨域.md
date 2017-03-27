@@ -77,7 +77,7 @@ xhr.send();
 
 要实现CORS跨域，服务端需要下图中这样一个流程
 
-![](http://www.hi-linux.com/img/linux/cors_server_flowchart.png)
+![](https://www.hi-linux.com/img/linux/cors_server_flowchart.png)
 
 - 对于简单请求，如GET，只需要在HTTP Response后添加Access-Control-Allow-Origin。
 - 对于非简单请求，比如POST、PUT、DELETE等，浏览器会分两次应答。第一次preflight（method: OPTIONS），主要验证来源是否合法，并返回允许的Header等。第二次才是真正的HTTP应答。所以服务器必须处理OPTIONS应答。

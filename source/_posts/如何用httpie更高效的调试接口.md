@@ -18,7 +18,7 @@ HTTPie(读aych-tee-tee-pie)是一款开源的命令行HTTP工具。HTTPie采用P
 
 先展示一下HTTPie官方的一个HTTPie VS cURL的图给大家看看。
 
-![](http://www.hi-linux.com/img/linux/httpie.png)
+![](https://www.hi-linux.com/img/linux/httpie.png)
 
 ### 安装HTTPie
 

@@ -198,7 +198,7 @@ tail -n 100 /var/log/zabbix/zabbix_server.log
 浏览器访问`http://${IP}/zabbix`，进行配置即可，此处不再详解！
 默认用户名/密码:`Admin/zabbix`(区分大小写)
 
-![](http://www.hi-linux.com/img/linux/zabbix3.0.png)
+![](https://www.hi-linux.com/img/linux/zabbix3.0.png)
 
 ### 安装客户端
 

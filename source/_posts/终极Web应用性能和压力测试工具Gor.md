@@ -30,7 +30,7 @@ Gor还可以把请求记录到文件，以备回放和分析。Gor支持和Elast
 
 **Gor的架构**
 
-![](http://www.hi-linux.com/img/linux/gor.png)
+![](https://www.hi-linux.com/img/linux/gor.png)
 
 
 **非http协议的流量复制**

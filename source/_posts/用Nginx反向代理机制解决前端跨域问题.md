@@ -22,7 +22,7 @@ toc_number:
 
 更直观的跨域情况见下表
 
-![](http://www.hi-linux.com/img/linux/nginx_sop.png)
+![](https://www.hi-linux.com/img/linux/nginx_sop.png)
 
 ### 跨域常见解决方案
 
