@@ -12,7 +12,7 @@ Rancher是继Apache Mesos、 Google Kubernetes以及Docker Swarm 之后，又一
 
 Rancher致力于为 DevOps team打造一个最好的容器管理平台，让容器的部署和管理变得更加Easy。它把自己定位在持续交付流水线上的后半段上，如下图所示:
 
-![](http://www.hi-linux.com/img/linux/rancher-feature.png)
+![](https://www.hi-linux.com/img/linux/rancher-feature.png)
 
 本文将带大家与Rancher来个亲密接触，直观的体会一下Rancher的入门级使用方法。
 
@@ -62,7 +62,7 @@ ffa2d14aca65        rancher/server:v1.5.1   "/usr/bin/entry /u..."   19 minutes 
 
 映射的8000端口既服务于Rancher UI，也是Rancher API的服务端口。用浏览器打开http://10.211.55.5:8000/，如果你看到如下页面，则说明你的Rancher Server搭建成功了。
 
-![](http://www.hi-linux.com/img/linux/rancher1.png)
+![](https://www.hi-linux.com/img/linux/rancher1.png)
 
 ### 设置Account
 
@@ -72,19 +72,19 @@ ffa2d14aca65        rancher/server:v1.5.1   "/usr/bin/entry /u..."   19 minutes 
 
 在Rancher UI中，也许你已经注意到了，在第一行菜单栏中，“ADMIN”菜单项右侧有一个红色的“!”，这也是在提醒你Rancher当前未设防。我们点击 “ADMIN”，选择出现的二级菜单中的”ACCOUNTS”菜单项，我们将看到如下页面。
 
-![](http://www.hi-linux.com/img/linux/rancher2.png)
+![](https://www.hi-linux.com/img/linux/rancher2.png)
 
-![](http://www.hi-linux.com/img/linux/rancher3.png)
+![](https://www.hi-linux.com/img/linux/rancher3.png)
 
 添加权限控制，需要在["ADMIN" -> "ACCESS CONTROL"]中。Rancher支持多种权限控制方案，分别是：Active Directory、Azure AD、GitHub、Local Auth、OpenLDAP和SHIBBOLETH。
 
 我们使用最简单的Local Auth，即设置一个用户名和密码，然后点击“Enable Local Auth”按钮即可。
 
-![](http://www.hi-linux.com/img/linux/rancher4.png)
+![](https://www.hi-linux.com/img/linux/rancher4.png)
 
 然后我们再回到"ACCOUNTS"页面。
 
-![](http://www.hi-linux.com/img/linux/rancher5.png)
+![](https://www.hi-linux.com/img/linux/rancher5.png)
 
 可以看到我们已经建立了一个新的Admin权限的账号：mike。当前的登录账号也换成了mike。
 
@@ -92,9 +92,9 @@ ffa2d14aca65        rancher/server:v1.5.1   "/usr/bin/entry /u..."   19 minutes 
 
 访问http://10.211.55.5:8000/,点击["INFRASTRUCTURE"->"Host"->"Add host"]。执行下图中Sever管理端生成的Add Host命令，即可将Host添加到Server端管理。
 
-![](http://www.hi-linux.com/img/linux/rancher6.png)
+![](https://www.hi-linux.com/img/linux/rancher6.png)
 
-![](http://www.hi-linux.com/img/linux/rancher7.png)
+![](https://www.hi-linux.com/img/linux/rancher7.png)
 
 - 在Agent 1上运行
 
@@ -112,7 +112,7 @@ $ sudo docker run -e CATTLE_AGENT_IP="10.211.55.8"  -d --privileged -v /var/run/
 
 在Agent 2上也执行一遍类似命令，把Agent2也加入到Hosts里了。
 
-![](http://www.hi-linux.com/img/linux/rancher8.png)
+![](https://www.hi-linux.com/img/linux/rancher8.png)
 
 ### 运行容器
 
@@ -125,27 +125,27 @@ $ sudo docker run -e CATTLE_AGENT_IP="10.211.55.8"  -d --privileged -v /var/run/
 
 然后点击最下方的Create按钮。
 
-![](http://www.hi-linux.com/img/linux/rancher9.png)
+![](https://www.hi-linux.com/img/linux/rancher9.png)
 
 过一段时间，便能看到如下的容器已经启动完成了。
 
-![](http://www.hi-linux.com/img/linux/rancher12.png)
+![](https://www.hi-linux.com/img/linux/rancher12.png)
 
 之所以需要等一段时间，是因为需要给容器配一个网络代理Network Agent，不过功能要复杂得多，拥有跨网络通信、健康检查等功能。
 
 在Agent 1上运行`docker ps`便能看到这些容器。
 
-![](http://www.hi-linux.com/img/linux/rancher13.png)
+![](https://www.hi-linux.com/img/linux/rancher13.png)
 
 在页面上点击某个容器比如tomcat，可以看到容器的基本信息和一些基本监控数据。
 
-![](http://www.hi-linux.com/img/linux/rancher10.png)
+![](https://www.hi-linux.com/img/linux/rancher10.png)
 
-![](http://www.hi-linux.com/img/linux/rancher11.png)
+![](https://www.hi-linux.com/img/linux/rancher11.png)
 
 通过http://10.211.55.4:8080/来访问已部署tomcat服务。
 
-![](http://www.hi-linux.com/img/linux/rancher14.png)
+![](https://www.hi-linux.com/img/linux/rancher14.png)
 
 自行启动的容器也能被Rancher监控到。我们来启动一个小容器：
 
@@ -156,7 +156,7 @@ $  docker run -d --name=busybox  busybox:1.24.1 sleep 3600
 
 在界面上便能看到这个busybox容器已经启动完成了。
 
-![](http://www.hi-linux.com/img/linux/rancher15.png)
+![](https://www.hi-linux.com/img/linux/rancher15.png)
 
 通过Rancher启动的容器IP是在`10.42.*.*`区间的，自行启动的busybox容器的IP是在它之外的。如果想用相同IP段，可以使用以下命令：
 
@@ -166,7 +166,7 @@ $ docker run -d --name=busybox2 --label io.rancher.container.network=true busybo
 
 在界面上可以看到busybox2容器的IP已经落入区间了。
 
-![](http://www.hi-linux.com/img/linux/rancher16.png)
+![](https://www.hi-linux.com/img/linux/rancher16.png)
 
 
 ### 运行应用
@@ -177,11 +177,11 @@ Rancher通过Stack功能创建应用，这里的Stack概念和Docker Swarm 1.13�
 
 下面这幅图直观描述了stacks的用途：
 
-![](http://www.hi-linux.com/img/linux/rancher-env-user-stack.png)
+![](https://www.hi-linux.com/img/linux/rancher-env-user-stack.png)
 
 我们来创建一个这样的WordPress应用。它包含一个MySQL数据库，两个WordPress实例和一套负载均衡。点击["STACKS"->"Add Stack"]来创建一个新的STACKS。
 
-![](http://www.hi-linux.com/img/linux/rancher17.png)
+![](https://www.hi-linux.com/img/linux/rancher17.png)
 
 然后点击Create来创建这个Stack。
 
@@ -196,7 +196,7 @@ Rancher通过Stack功能创建应用，这里的Stack概念和Docker Swarm 1.13�
 
 填入以上信息，并点击Create来创建MySQL服务。
 
-![](http://www.hi-linux.com/img/linux/rancher18.png)
+![](https://www.hi-linux.com/img/linux/rancher18.png)
 
 - 创建WordPress服务
 
@@ -207,7 +207,7 @@ Rancher通过Stack功能创建应用，这里的Stack概念和Docker Swarm 1.13�
 
 填入以上信息，并点击Create来创建WordPress服务。
 
-![](http://www.hi-linux.com/img/linux/rancher19.png)
+![](https://www.hi-linux.com/img/linux/rancher19.png)
 
 - 创建负载均衡
 
@@ -221,19 +221,19 @@ Rancher通过Stack功能创建应用，这里的Stack概念和Docker Swarm 1.13�
 
 填入以上信息，并点击Create来创建这个负载均衡。
 
-![](http://www.hi-linux.com/img/linux/rancher20.png)
+![](https://www.hi-linux.com/img/linux/rancher20.png)
 
-![](http://www.hi-linux.com/img/linux/rancher22.png)
+![](https://www.hi-linux.com/img/linux/rancher22.png)
 
 稍待片刻，就可以访问http://10.211.55.8/或http://10.211.55.4/来使用WordPress服务了。
 
-![](http://www.hi-linux.com/img/linux/rancher21.png)
+![](https://www.hi-linux.com/img/linux/rancher21.png)
 
 ### 预置模板
 
 Rancher为我们预置了一系列的应用模板，方便我们快速部署应用。
 
-![](http://www.hi-linux.com/img/linux/rancher23.png)
+![](https://www.hi-linux.com/img/linux/rancher23.png)
 
 这里用gogs试试看，点击CATALOG找到gogs的模板。
 
@@ -246,18 +246,18 @@ Rancher为我们预置了一系列的应用模板，方便我们快速部署应�
 
 填入以上信息，并点击Lanuch来快速运行这个应用。
 
-![](http://www.hi-linux.com/img/linux/rancher24.png)
+![](https://www.hi-linux.com/img/linux/rancher24.png)
 
 
 还可以点击Preview来查看docker-compose.yml和rancher-compose.yml文件，里面也有比较详细的注释。
 
-![](http://www.hi-linux.com/img/linux/rancher26.png)
+![](https://www.hi-linux.com/img/linux/rancher26.png)
 
 docker-compose.yml不必多说，rancher-compose.yml类似于它但更小一些。可以在任何Rancher页面的右下方点击Download CLI来下载rancher compose命令行工具，这样就可以通过命令行而非在网页上点来点去来管理容器和服务了。
 
 最后附上部署好的两个Stack的大图一张
 
-![](http://www.hi-linux.com/img/linux/rancher25.png)
+![](https://www.hi-linux.com/img/linux/rancher25.png)
 
 
 ### 参考文档
