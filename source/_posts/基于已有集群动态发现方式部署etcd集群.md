@@ -43,7 +43,7 @@ https://discovery.etcd.io/c5b52d9d8fd7af9017bd7b54cf13e420
 
 ```
 # 编辑etcd配置文件
-$ vim /etc/etcd/etcd.conf
+$ vim /opt/etcd/config/etcd.conf
 
 ETCD_NAME=etcd1
 ETCD_DATA_DIR="/var/lib/etcd/etcd1"
