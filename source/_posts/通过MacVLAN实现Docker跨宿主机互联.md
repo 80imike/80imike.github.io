@@ -10,7 +10,7 @@ toc_number: false
 
 Docker以前的版本不支持直接配置宿主机所在网段ip并跟其直接互通的功能，当然也可以借助一些第三方工具，如pipework把这些琐碎的过程封装起来。Docker从1.12开始支持了overlay和macvlan网络，macvlan已经可以直接支持了使用宿主机所在网段资源。
 
-**Docker工作原理**
+**Macvlan工作原理**
 
 - Macvlan是Linux内核支持的网络接口。要求的Linux内部版本是v3.9–3.19和4.0+。
 - 通过为物理网卡创建Macvlan子接口，允许一块物理网卡拥有多个独立的MAC地址和IP地址。虚拟出来的子接口将直接暴露在底层物理网络中。从外界看来，就像是把网线分成多股，分别接到了不同的主机上一样。
@@ -103,11 +103,7 @@ enp0s5    Link encap:Ethernet  HWaddr 00:1c:42:97:53:2a
 
 ### 使用Macvlan构建Docker网络
 
-**创建docker macvlan网络**
-
-两台主机上均使用enp0s5网卡创建一个192.168.2.0网段的macvlan网络。
-
-macvlan驱动实际上是利用的Linux macvlan内核驱动，这意味着这样子运行的容器，网络通讯将会直接送到下层vlan。这是目前最高网络效率的驱动。这里没有NAT，没有端口映射，通讯直接通过VLan送出。
+两台主机上均使用enp0s5网卡创建一个192.168.2.0网段的macvlan网络。macvlan驱动实际上是利用的Linux macvlan内核驱动，这意味着这样子运行的容器，网络通讯将会直接送到下层vlan。这是目前最高网络效率的驱动。这里没有NAT，没有端口映射，通讯直接通过VLan送出。
 
 - master主机
 
@@ -574,7 +570,7 @@ $ docker run --net=macvlan200 --ip=192.168.200.103 -id --name c8 busybox sh
 7bd2a36e24846b383ab3aca6b9b48227600aed7352956c2c974db1ceb97efb54
 ```
 
-### 测试网络连通情况
+**测试网络连通情况**
 
 所有测试在master主机上进行。
 
