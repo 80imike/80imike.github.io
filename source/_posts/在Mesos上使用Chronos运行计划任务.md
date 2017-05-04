@@ -1,7 +1,7 @@
 ---
 category: Docker
 title: 在Mesos上使用Chronos运行计划任务
-date: 2017-05-03 09:00:00
+date: 2017-05-04 09:00:00
 tags: [Chronos,Docker]
 abbrlink:
 updated:
