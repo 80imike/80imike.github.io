@@ -9,13 +9,13 @@ toc_number: false
 ---
 Upsync是新浪微博开源的基于Nginx实现动态配置的三方模块。`Nginx-Upsync-Module`的功能是拉取Consul的后端server的列表，并动态更新Nginx的路由信息。此模块不依赖于任何第三方模块。Consul作为Nginx的DB，利用Consul的KV服务，每个Nginx Work进程独立的去拉取各个upstream的配置，并更新各自的路由。
 
-<!-- more -->
-
 ### Upsync模块工作原理
 
 在Nginx的设计中，每一个upstream维护了一张静态路由表，存储了backend的ip、port以及其他的meta信息。每次请求到达后，会依据location检索路由表，然后依据具体的调度算法(如round robin )选择一个backend转发请求。但这张路由表是静态的，如果变更后，则必须reload，经常reload的话这对SLA有较大影响。
 
 为了达到减少reload的目的，大多通过动态更新维护路由表来解决这个问题。通常路由表的维护有Push与Pull两种方式。
+
+<!-- more -->
 
 - Push方案
 
