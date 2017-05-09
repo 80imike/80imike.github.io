@@ -26,7 +26,7 @@ Consul是HashiCorp公司推出的开源工具，用于实现分布式系统的�
 
 Consul架构图
 
-![](https://www.consul.io/assets/images/consul-arch-420ce04a.png)
+![](https://www.hi-linux.com/img/linux/consul-arch.png)
 
 - Consul Cluster由部署和运行了Consul Agent的节点组成。在Cluster中有两种角色:Server和 Client。
 
