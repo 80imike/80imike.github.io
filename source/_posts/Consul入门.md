@@ -20,6 +20,8 @@ Consul是HashiCorp公司推出的开源工具，用于实现分布式系统的�
 
 - 多数据中心: Consul支持开箱即用的多数据中心. 这意味着用户不需要担心需要建立额外的抽象层让业务扩展到多个区域。
 
+<!-- more -->
+
 **Consul架构**
 
 Consul架构图
@@ -35,8 +37,6 @@ Consul架构图
 - Consul Client: 只维护自身的状态, 并将HTTP和DNS接口请求转发给服务端。
 
 项目官方网址：https://www.consul.io/
-
-<!-- more -->
 
 ### Consul安装
 
