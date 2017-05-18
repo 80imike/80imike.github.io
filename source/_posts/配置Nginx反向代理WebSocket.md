@@ -2,7 +2,7 @@
 category: Nginx
 title: 配置Nginx反向代理WebSocket
 date: 2017-05-18 09:00:00
-tags: [技巧,Nginx]
+tags: [技巧, Nginx]
 abbrlink:
 updated:
 toc_number: false

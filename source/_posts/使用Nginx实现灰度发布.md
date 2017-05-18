@@ -2,7 +2,7 @@
 category: Nginx
 title: 使用Nginx实现灰度发布
 date: 2017-04-13 09:00:00
-tags: [Nginx, 技巧]
+tags: [Nginx,技巧]
 abbrlink:
 updated:
 toc_number: false
