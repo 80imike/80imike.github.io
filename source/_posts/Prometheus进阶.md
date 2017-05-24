@@ -10,8 +10,6 @@ toc_number: false
 
 在「[Prometheus入门](https://www.hi-linux.com/posts/25047.html)」一文中我们对Prometheus基本知识点做了讲解，并演示了如何监控一个Linux服务器。这篇文章我们将讲解如何对几个常见的应用进行监控。
 
-<!-- more -->
-
 ### 监控MySQL服务器
 
 Prometheus通过安装在远程机器上的exporter来收集监控数据，这里要用到的是mysqld_exporter。
@@ -19,6 +17,8 @@ Prometheus通过安装在远程机器上的exporter来收集监控数据，这�
 - 部署的架构图
 
 ![](https://www.hi-linux.com/img/linux/prometheus33.png)
+
+<!-- more -->
 
 - 安装mysqld_exporter
 
@@ -138,13 +138,13 @@ grafana-dashboards/dashboards/MySQL_TokuDB_Metrics.json
 
 b) 导入模板
 
-1. 单个导入
+1.单个导入
 
 以MySQL_Overview模板为例，在Grafana--Dashboard中导入这个文件，数据源选择Prometheus。
 
 ![](https://www.hi-linux.com/img/linux/prometheus20.png)
 
-2. 批量导入
+2.批量导入
 
 复制所有模板到指定位置
 
