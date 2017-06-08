@@ -106,7 +106,7 @@ c) 点击确定，即可在桌面上看到「这台电脑」、「网络」等�
 
 ![](https://www.hi-linux.com/img/linux/uinstall11.jpg)
 
-### 参考文档
+**参考文档**
 
 http://www.google.com
 http://www.candura.us/posts/post-344/
