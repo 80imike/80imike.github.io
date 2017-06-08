@@ -64,7 +64,6 @@ $ exit
 
 都说是通常了，如果你运气不好会碰到下面的第二个问题。
 
-
 **无法进行配置和包管理步骤**
 
 正常情况下安装到这一步的时候会弹出一个窗口提示需要安装什么软件，通常会选择先让系统装好必备的`OpenSSH Server`的。但是这次到这个步骤后，直接弹出了下面的手动选择安装菜单。
@@ -87,6 +86,22 @@ $ exit
 经过九九八十一难后，最终成功的完成了通过U盘来安装Ubuntu Server 14.04。
 
 > 注：以上过程都已经验证过了。由于安装过程中没法截图，以上图片来自网络。前后有点不一致，将究着看嘛。
+
+**终极解决方法**
+
+如果觉得文中提供的方法太过复杂，这里提供一种终极解决方法：
+
+U盘安装Ubuntu Server过程中找不到光驱是因为官方提供的ISO文件中默认的vmlinuz和initrd.gz文件是不进行ISO扫描的，只需替换掉默认ISO中这两个文件就能解决此问题。
+
+```
+# 14.04
+$ wget http://mirrors.163.com/ubuntu/dists/trusty/main/installer-amd64/current/images/hd-media/initrd.gz
+$ wget http://mirrors.163.com/ubuntu/dists/trusty/main/installer-amd64/current/images/hd-media/vmlinuz
+
+# 16.04
+$ wget http://mirrors.163.com/ubuntu/dists/xenial/main/installer-amd64/current/images/hd-media/initrd.gz
+$ wget http://mirrors.163.com/ubuntu/dists/xenial/main/installer-amd64/current/images/hd-media/vmlinuz
+```
 
 **附送一个Windows 2012技巧**
 
