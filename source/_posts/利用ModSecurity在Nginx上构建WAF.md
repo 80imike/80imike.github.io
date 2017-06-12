@@ -1,7 +1,7 @@
 ---
 category: Nginx
 title: 利用ModSecurity在Nginx上构建WAF
-date: 2017-06-02 9:00:00
+date: 2017-06-12 9:00:00
 tags: [Nginx,技巧]
 abbrlink:
 updated:
