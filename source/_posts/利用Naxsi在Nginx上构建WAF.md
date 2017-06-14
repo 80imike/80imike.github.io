@@ -32,7 +32,7 @@ $ wget 'http://nginx.org/download/nginx-1.9.2.tar.gz'
 $ wget -O naxsi-0.55.3.tar.gz https://github.com/nbs-system/naxsi/archive/0.55.3.tar.gz
 ```
 
-- 安装Nginx和ModSecurity依赖包
+- 安装Nginx和Naxsi依赖包
 
 Centos/RHEL
 
