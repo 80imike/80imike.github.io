@@ -545,9 +545,3 @@ http://dbaplus.cn/news-11-857-1.html
 http://www.jianshu.com/p/3675fa74bc72
 http://www.cnblogs.com/abobo/p/4242417.html
 http://cenalulu.github.io/mysql/mysql-5-6-gtid-basic/
-
-<center>
-![](https://www.hi-linux.com/img/linux/wechat-line-01.jpeg)
-![](https://www.hi-linux.com/img/linux/logo_Simkai_noline.png)
-![](https://www.hi-linux.com/img/linux/wechat-line-01.jpeg)
-</center>
