@@ -6,6 +6,11 @@
     <i class="fa fa-{{ theme.authoricon }}"></i>
   </span>
   <span class="author" itemprop="copyrightHolder">{{ config.author }}</span>
+
+  <span class="">
+  <p> | Hosted by <a href="https://pages.coding.me" style="font-weight: bold">Coding Pages</a></p>
+  </span>
+
 </div>
 
 {% if theme.copyright %}
@@ -18,10 +23,6 @@
   <a class="theme-link" href="https://github.com/iissnan/hexo-theme-next">
     NexT.{{ theme.scheme }}
   </a>
-</div>
-
-<div class="theme-info">
-<p>Hosted by <a href="https://pages.coding.me" style="font-weight: bold">Coding Pages</a></p>
 </div>
 
 {% endif %}
