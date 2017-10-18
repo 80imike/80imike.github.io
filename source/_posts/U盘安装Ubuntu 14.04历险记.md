@@ -1,10 +1,12 @@
-<center>**「运维之美」原创文章系列**</center>
-
-***
-本文首发于：微信公众号「运维之美」，公众号ID：Hi-Linux。「运维之美」是一个有情怀、有逼格，专注于 Linux 运维相关技术实战文章分享的公众号。如果你想第一时间获取最新技术文档，欢迎关注！
-
-关于作者：Mike，从事 IT 技术相关工作超过十五年，2010 年开始专职从事 Linux/Unix 运维工作，对运维相关技术有一定程度上的理解。如果你想联系到他，可在公众号上留言。
-***
+---
+category: Ubuntu
+title: U盘安装 Ubuntu 14.04 历险记
+date: 2017-06-07 09:00:00
+tags: [linux, Ubuntu]
+abbrlink:
+updated:
+toc_number: false
+---
 
 对于做运维的同学来说U盘装个系统不就是分分钟的事吗，这有什么好说的？U盘安装系统一般就是如下几步：
 
@@ -131,9 +133,3 @@ http://www.google.com
 http://www.candura.us/posts/post-344/
 http://www.cnblogs.com/oloroso/p/4665107.html
 http://lorysun.blog.51cto.com/1035880/1317770
-
-<center>
-![](https://www.hi-linux.com/img/linux/wechat-line-01.jpeg)
-![](https://www.hi-linux.com/img/linux/logo_Simkai_noline.png)
-![](https://www.hi-linux.com/img/linux/wechat-line-01.jpeg)
-</center>
