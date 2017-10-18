@@ -1,12 +1,10 @@
----
-category: Ubuntu
-title: U盘安装Ubuntu 14.04历险记
-date: 2017-06-08 9:00:00
-tags: [Ubuntu,Linux]
-abbrlink:
-updated:
-toc_number: false
----
+<center>**「运维之美」原创文章系列**</center>
+
+***
+本文首发于：微信公众号「运维之美」，公众号ID：Hi-Linux。「运维之美」是一个有情怀、有逼格，专注于 Linux 运维相关技术实战文章分享的公众号。如果你想第一时间获取最新技术文档，欢迎关注！
+
+关于作者：Mike，从事 IT 技术相关工作超过十五年，2010 年开始专职从事 Linux/Unix 运维工作，对运维相关技术有一定程度上的理解。如果你想联系到他，可在公众号上留言。
+***
 
 对于做运维的同学来说U盘装个系统不就是分分钟的事吗，这有什么好说的？U盘安装系统一般就是如下几步：
 
@@ -103,6 +101,12 @@ $ wget http://mirrors.163.com/ubuntu/dists/xenial/main/installer-amd64/current/i
 $ wget http://mirrors.163.com/ubuntu/dists/xenial/main/installer-amd64/current/images/hd-media/vmlinuz
 ```
 
+**终终极解决方法**
+
+终极解决方法在新版本的 Ubuntu Server 的 ISO 文件中并不生效。这时可使用 `Win32DiskImager` 这个软件来写镜像到U盘，这样制作的U盘安装盘是可以正常安装的。
+
+`Win32DiskImager` 下载地址：https://sourceforge.net/projects/win32diskimager/files/Archive/Win32DiskImager-1.0.0-binary.zip/download
+
 **附送一个Windows 2012技巧**
 
 - Windows Server 2012 R2在桌面上显示我的电脑等图标
@@ -127,3 +131,9 @@ http://www.google.com
 http://www.candura.us/posts/post-344/
 http://www.cnblogs.com/oloroso/p/4665107.html
 http://lorysun.blog.51cto.com/1035880/1317770
+
+<center>
+![](https://www.hi-linux.com/img/linux/wechat-line-01.jpeg)
+![](https://www.hi-linux.com/img/linux/logo_Simkai_noline.png)
+![](https://www.hi-linux.com/img/linux/wechat-line-01.jpeg)
+</center>
