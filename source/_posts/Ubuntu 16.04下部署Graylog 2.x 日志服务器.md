@@ -274,7 +274,7 @@ $ sudo systemctl enable graylog-server.service
 
 使用浏览器访问 `http://your_ip_or_doamin:9000`，能成功看到如下界面则表示安装成功。默认用户名为:admin，密码为：`root_password_sha2` 参数中设置的。
 
-[](https://www.hi-linux.com/img/linux/graylog2-00.png)
+![](https://www.hi-linux.com/img/linux/graylog2-00.png)
 
 ### 添加一个需收集日志的服务器
 
@@ -294,7 +294,7 @@ Ubuntu 系统自带 Rsyslog 服务无需安装，只需要配置一下即可。
 
 配置完成后就生成了一个监听在 8514 端口上的 Syslog 服务端，下面可以用它来收集其它服务器上的日志。
 
-[](https://www.hi-linux.com/img/linux/graylog2-01.png)
+![](https://www.hi-linux.com/img/linux/graylog2-01.png)
 
 > 本次测试采用同一台服务器做演示，所以绑定到所有网卡接口。如只在特定网络中访问，请按实际情况填写 `Bind address` 的 IP 地址。
 
@@ -335,17 +335,17 @@ $ sudo systemctl restart rsyslog
 
 配置完成之后，回到 Graylog Web，点击 Sources，查看是否有新添加 Rsyslog 来源的图形。
 
-[](https://www.hi-linux.com/img/linux/graylog2-02.png)
+![](https://www.hi-linux.com/img/linux/graylog2-02.png)
 
 #### 搜素 Graylog
 
 在 Graylog Web 上，点击 Search 可以访问 Graylog 搜索页面。 在这里可以根据条件查询指定的日志。
 
-[](https://www.hi-linux.com/img/linux/graylog2-03.png)
+![](https://www.hi-linux.com/img/linux/graylog2-03.png)
 
 假如你要搜索 ssh 的活动日志，输入关键字 sshd，点搜索图标：
 
-[](https://www.hi-linux.com/img/linux/graylog2-04.png)
+![](https://www.hi-linux.com/img/linux/graylog2-04.png)
 
 **一些常用的搜索语法**
 
