@@ -337,7 +337,7 @@ $ sudo systemctl restart rsyslog
 
 ![](https://www.hi-linux.com/img/linux/graylog2-02.png)
 
-#### 搜素 Graylog
+#### 搜索 Graylog
 
 在 Graylog Web 上，点击 Search 可以访问 Graylog 搜索页面。 在这里可以根据条件查询指定的日志。
 
