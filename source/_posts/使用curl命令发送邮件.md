@@ -16,35 +16,52 @@ updated:
 首先确认你的curl是否支持smtp
 
 ```bash
-curl-config --protocols | grep SMTP
+$ curl-config --protocols | grep SMTP
 SMTP
 SMTPS
 ```
-如果不支持smtp协议，那么升级curl(需7.20以上版本才支持)<!-- more -->
+
+`curl-config` 命令默认是没有安装的，需要安装一下。
+
+- CentOS / RHEL
+
+```
+$ yum install libcurl-devel
+```
+
+- Debian / Ubuntu
+
+```
+$ apt-get install libcurl4-openssl-dev
+```
+
+如果不支持 smtp 协议，那么升级 curl (需7.20以上版本才支持)
+
+<!-- more -->
 
 ### 安装高版本CURL
 
-使用yum安装的curl一般不支持smtp协议，接下来我们使用源码包来安装curl
+使用 yum 安装的 curl 一般不支持smtp协议，接下来我们使用源码包来安装curl
 
 ```bash
-cd /usr/local/src
-wget https://curl.haxx.se/download/curl-7.48.0.tar.gz
-unzip master.zip
-cd curl-master
-./buildconf
-./configure 
-make && make install
+$ cd /usr/local/src
+$ wget https://curl.haxx.se/download/curl-7.48.0.tar.gz
+$ tar xzvf curl-7.48.0.tar.gz
+$ cd curl-7.48.0
+$ ./buildconf
+$ ./configure 
+$ make && make install
 ```
 
 再次确认下是否支持curl
 
 ```bash
-/usr/local/bin/curl-config --protocols | grep SMTP
+$ /usr/local/bin/curl-config --protocols | grep SMTP
 SMTP
 SMTPS
 ```
 
-备注：默认情况下，curl会被安装到/usr/local/bin下，与老版本同时存在。
+备注：默认情况下，curl 会被安装到 /usr/local/bin 下，与老版本同时存在。
 
 ### 使用curl发送邮件
 
@@ -64,7 +81,7 @@ Subject: curl发送邮件标题
 #### 发送邮件
 
 ```bash
-/usr/local/bin/curl -s --url "smtp://smtp.ttlsa.com" --mail-from "support@ttlsa.com" \
+$ /usr/local/bin/curl -s --url "smtp://smtp.ttlsa.com" --mail-from "support@ttlsa.com" \
 --mail-rcpt "dengyun@ttlsa.com" --upload-file mail.txt --user "support@ttlsa.com:123456"
 ```
 
@@ -103,13 +120,12 @@ SMTPS
 TELNET
 TFTP
 ```
-
 ### zabbix curl发邮件脚本
 
 我们通常使用sendEmail来发送告警，下面分享一个zabbix使用curl发送告警邮件的脚本
 
 ```bash
-curl zabbix_curl_sendmail.sh
+$ curl zabbix_curl_sendmail.sh
 
 #!/bin/bash
 # -------------------------------------------------------------------------------
