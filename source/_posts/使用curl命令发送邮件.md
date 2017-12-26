@@ -9,11 +9,11 @@ date: 2016-04-01 09:00:00
 updated:
 ---
 
-关于curl，大家都知道可以用它来访问web页面、下载文件等等。其实它的功能远不止这么点，它支持众多协议，今天，来随凉白开看看如何使用curl发送邮件
+关于 curl，大家都知道可以用它来访问 web 页面、下载文件等等。其实它的功能远不止这么点，它支持众多协议，今天，来随凉白开看看如何使用 curl 发送邮件。
 
-### 确认curl是否支持SMTP
+### 确认 curl 是否支持SMTP
 
-首先确认你的curl是否支持smtp
+首先确认你的 curl 是否支持 smtp
 
 ```bash
 $ curl-config --protocols | grep SMTP
@@ -41,7 +41,7 @@ $ apt-get install libcurl4-openssl-dev
 
 ### 安装高版本CURL
 
-使用 yum 安装的 curl 一般不支持smtp协议，接下来我们使用源码包来安装curl
+使用 yum 安装的 curl 一般不支持 smtp 协议，接下来我们使用源码包来安装 curl
 
 ```bash
 $ cd /usr/local/src
@@ -53,7 +53,7 @@ $ ./configure
 $ make && make install
 ```
 
-再次确认下是否支持curl
+再次确认下是否支持 curl
 
 ```bash
 $ /usr/local/bin/curl-config --protocols | grep SMTP
@@ -63,9 +63,9 @@ SMTPS
 
 备注：默认情况下，curl 会被安装到 /usr/local/bin 下，与老版本同时存在。
 
-### 使用curl发送邮件
+### 使用 curl 发送邮件
 
-试着给dengyun@ttlsa.com发送一份邮件
+试着给 dengyun@ttlsa.com 发送一份邮件
 
 #### 编写邮件内容
 
@@ -95,9 +95,9 @@ $ /usr/local/bin/curl -s --url "smtp://smtp.ttlsa.com" --mail-from "support@ttls
 --user：账号密码，中间用冒号分隔
 ```
 
-### curl更多协议
+### curl 更多协议
 
-curl支持众多协议，想知道当前curl支持哪些协议，使用如下命令
+curl 支持众多协议，想知道当前 curl 支持哪些协议，使用如下命令
 
 ```bash
 /usr/local/bin/curl-config --protocols
@@ -120,9 +120,9 @@ SMTPS
 TELNET
 TFTP
 ```
-### zabbix curl发邮件脚本
+### zabbix curl 发邮件脚本
 
-我们通常使用sendEmail来发送告警，下面分享一个zabbix使用curl发送告警邮件的脚本
+我们通常使用 sendEmail 来发送告警，下面分享一个 zabbix 使用 curl 发送告警邮件的脚本
 
 ```bash
 $ curl zabbix_curl_sendmail.sh
