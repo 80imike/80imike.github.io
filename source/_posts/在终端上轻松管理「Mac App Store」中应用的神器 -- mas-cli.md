@@ -1,6 +1,6 @@
 ---
 category: macOS
-title: 在终端上轻松管理「Mac App Store」中应用的神器 —— mas-cli
+title: 在终端上轻松管理「Mac App Store」中应用的神器 -- mas-cli
 date: 2018-02-12 09:00:00
 tags: [macOS, 技巧]
 abbrlink:
