@@ -221,7 +221,7 @@ $ docker container run \
 
 至此，Nginx 容器的 HTTPS 支持就做好了。有了这个容器接下来我们就可以来试验 HTTP/2 的 Server Push 功能。
 
-### 七、HTTP/2 服务器推送的原理
+### 七、HTTP/2 服务器推送的原理
 
 HTTP/2 协议的主要目的是提高网页性能。
 
