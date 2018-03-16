@@ -1,8 +1,8 @@
 ---
-category: HTTPS
-title: 重大安全事件 | Ubuntu 16.04 暴本地提权漏洞
+category: Ubuntu
+title: Ubuntu 16.04.4 暴本地提权漏洞
 date: 2018-03-17 09:00:00
-tags: [Linux, HTTPS]
+tags: [Linux, Ubuntu]
 abbrlink:
 updated:
 toc_number: false
