@@ -22,7 +22,7 @@ toc_number: false
 
 gRPC 是一种远程过程调用协议，用于客户端和服务器端之间的通信。gRPC设计的很紧凑并且多语言支持良好，同时支持请求与响应式的交互方式和流式交互方式。gRPC 因其跨语言特性和简洁的设计变得越来越流行，其中 Service Mesh 的实现就使用了 gRPC。
 
-![](https://mmbiz.qpic.cn/mmbiz_png/UicsouxJOkBdvbftRgZNSFDUJ8vJs2BTkkeToqiaI2uWg9TG2WAq0JL6JYFHtBJK2f3As9BHVgrzdiahvfNsnwZTg/640?wx_fmt=png&tp=webp&wxfrom=5&wx_lazy=1)
+![](https://www.hi-linux.com/img/linux/grpc1.png)
 
 
 gRPC 通过 HTTP/2 传输数据，可以传输明文文本数据和 TLS 加密过的数据。gRPC 调用是通过 HTTP POST 请求来实现的，每个请求里包含了一个编码过的消息体（protocol buffer 是默认的编码方式）。gRPC 的响应消息里也包含一个编码过的消息体，并在消息尾部带上状态码。
@@ -35,7 +35,7 @@ gRPC 不能通过 HTTP 进行传输，而必须使用 HTTP/2，这是因为要�
 
 首先，在客户端和服务器端之间插入 NGINX，NGINX 为服务器端的应用程序提供了一个稳定可靠的网关。
 
-![](https://mmbiz.qpic.cn/mmbiz_png/UicsouxJOkBdvbftRgZNSFDUJ8vJs2BTkYibJXicwZCmvN5lvTbXT3ZJocGKOEzqFvb8M2seIe4Kmb4icOibVNibPz0w/640?wx_fmt=png&tp=webp&wxfrom=5&wx_lazy=1)
+![](https://www.hi-linux.com/img/linux/grpc2.png)
 
 然后开始部署包含了 gRPC 更新的 NGINX。如果要从源代码开始编译 NGINX，要记得把 http_ssl 和 http_v2 两个模块包含进去：
 
@@ -79,7 +79,7 @@ $ tail logs/access.log
 
 上面的示例使用未加密的 HTTP/2（明文）进行通信。这对测试和部署来说非常简单，但生产环境为了安全需要加密，你可以使用 NGINX 来添加这个加密层。
 
-![](https://cdn-1.wp.nginx.com/wp-content/uploads/2018/03/grpc-nginx-encrypted.png)
+![](https://www.hi-linux.com/img/linux/grpc3.png)
 
 首先创建一个自签名证书对并修改您的NGINX服务器配置，如下所示：
 
@@ -129,7 +129,7 @@ grpc_pass grpcs://localhost:50051;
 
 这里将会介绍如何使用 NGINX 代理多个 gRPC 后端服务。如果同时存在多个 gRPC 服务，并且每个服务是由不同的服务器应用程序提供的，那么该怎么办？如果能够将这些服务通过单个 TLS 端点暴露出来是不是更好？
 
-![](https://mmbiz.qpic.cn/mmbiz_png/UicsouxJOkBdvbftRgZNSFDUJ8vJs2BTklpwlOPZ3b9g3posOzDOtsw9ZYGatRZt9AfCMFgbOjuNaNPWkU5tFsQ/640?wx_fmt=png&tp=webp&wxfrom=5&wx_lazy=1)
+![](https://www.hi-linux.com/img/linux/grpc4.png)
 
 在 NGINX 里，可以对服务和它的方法稍作修改，然后使用 location 指令来路由流量。gRPC 的请求 URL 是使用包名、服务名和方法名来生成的。比如这个叫作 SayHello 的 RPC 方法：
 
