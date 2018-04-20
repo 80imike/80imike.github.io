@@ -1,7 +1,7 @@
 ---
 category: MySQL
 title: MySQL 8.0 正式版 8.0.11 发布！
-date: 2018-04-20 09:00:00
+date: 2018-04-20 09:01:00
 tags: [Linux, MySQL]
 abbrlink:
 updated:
