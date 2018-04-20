@@ -1,6 +1,6 @@
 ---
 category: MySQL
-title: MySQL 8.0 正式版 8.0.11 发布！
+title: MySQL 8.0 正式版 8.0.11 发布！
 date: 2018-04-20 09:01:00
 tags: [Linux, MySQL]
 abbrlink:
@@ -8,7 +8,7 @@ updated:
 toc_number: false
 ---
 
-MySQL 8.0 正式版 8.0.11 已发布，官方表示 MySQL 8 要比 MySQL 5.7 快 2 倍，还带来了大量的改进和更快的性能。下面我们将简要介绍下 MySQL 8.0 中值得关注的新特性和改进：
+MySQL 8.0 正式版 8.0.11 已发布，官方表示 MySQL 8 要比 MySQL 5.7 快 2 倍，还带来了大量的改进和更快的性能。下面我们将简要介绍下 MySQL 8.0 中值得关注的新特性和改进：
 
 **1. 隐藏索引**
 
