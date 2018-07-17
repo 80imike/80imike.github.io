@@ -183,7 +183,55 @@ $ socat open:read.html\!\!open:write.txt,create,append tcp-listen:8000,reuseaddr
 
 > !! 符号用于合并读写流，前面的用于读，后面的用于写。由于 ! 在 Shell 中是特殊字符，所以这里在命令行中使用 \ 对其进行了转义。
 
-#### 其它功能 
+#### 其它功能
+
+- 监听一个 TCP 端口
+
+```
+$ socat tcp-listen:12345 -
+```
+
+- 向 TCP 端口发送数据
+
+```
+$ echo "test" | socat - tcp-connect:127.0.0.1:12345
+```
+
+- 监听一个 UDP 端口
+
+```
+$ socat udp-listen:23456 -
+```
+
+- 向一个 UDP 端口发送数据
+
+```
+$ echo "test" | socat - udp-connect:127.0.0.1:23456
+```
+
+- 监听一个 Unix Socket
+
+```
+$ socat unix-listen:/tmp/unix.socket -
+```
+
+- 向本地 Unix Socket 发送数据
+
+```
+$ echo "test" | socat - unix-connect:/tmp/unix.sock
+```
+
+- 监听本地 Unix Datagram Socket
+
+```
+$ socat unix-recvfrom:/tmp/unix.dg.sock -
+```
+
+- 向本地 Unix Datagram Socket 发送数据
+
+```
+$ echo "test" | socat - unix-sendto:/tmp/unix.dg.sock
+```
 
 - 通过 Openssl 来加密传输过程
 
