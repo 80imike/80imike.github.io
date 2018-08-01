@@ -1,6 +1,6 @@
 ---
 category: Docker
-title: 如何10步Docker化一个应用
+title: 如何 10 步 Docker 化一个应用
 date: 2018-08-01 09:00:00
 tags: [Linux, Docker]
 abbrlink:
