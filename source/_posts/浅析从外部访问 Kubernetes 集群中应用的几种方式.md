@@ -1,6 +1,6 @@
 ---
 category: Kubernetes
-title: 浅析从外部访问 Kubernetes 集群中应用的几种方式
+title: 浅析从外部访问 Kubernetes 集群中应用的几种方式
 date: 2018-07-20 09:00:00
 tags: [Linux, Kubernetes]
 abbrlink:
