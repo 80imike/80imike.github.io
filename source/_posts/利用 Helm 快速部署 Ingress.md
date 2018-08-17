@@ -1,6 +1,6 @@
 ---
 category: Kubernetes
-title: 利用 Helm 快速部署 Ingress
+title: 利用 Helm 快速部署 Ingress
 date: 2018-08-16 09:00:00
 tags: [Linux, Kubernetes]
 abbrlink:

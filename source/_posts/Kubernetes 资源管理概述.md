@@ -1,6 +1,6 @@
 ---
 category: Kubernetes
-title: Kubernetes 资源管理概述
+title: Kubernetes 资源管理概述
 date: 2018-08-16 09:00:00
 tags: [Linux, Kubernetes]
 abbrlink:

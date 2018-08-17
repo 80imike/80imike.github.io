@@ -1,6 +1,6 @@
 ---
 category: 工具
-title: 推荐一款比 Find 快 10 倍的搜索工具 FD
+title: 推荐一款比 Find 快 10 倍的搜索工具 FD
 date: 2018-08-13 09:00:00
 tags: [Linux, 工具]
 abbrlink:
