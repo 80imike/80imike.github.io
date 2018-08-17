@@ -223,7 +223,13 @@ mychart/
 - NOTES.txt 用于介绍 Chart 部署后的一些信息，例如：如何使用这个 Chart、列出缺省的设置等。
 - Templates 目录下是 YAML 文件的模板，该模板文件遵循 Go template 语法。
 
-Templates 目录下 YAML 文件模板的值默认都是在 values.yaml 里定义的，比如在 deployment.yaml 中定义的容器镜像 `image: "{{ .Values.image.repository }}:{{ .Values.image.tag }}"` 其中的 `.Values.image.repository` 的值就是在  values.yaml 里定义的 nginx，`.Values.image.tag` 的值就是 stable。
+Templates 目录下 YAML 文件模板的值默认都是在 values.yaml 里定义的，比如在 deployment.yaml 中定义的容器镜像。 
+
+```
+image: "{{ .Values.image.repository }}:{{ .Values.image.tag }}"
+```
+
+其中的 `.Values.image.repository` 的值就是在  values.yaml 里定义的 nginx，`.Values.image.tag` 的值就是 stable。
 
 ```
 $ cat mychart/values.yaml|grep repository
