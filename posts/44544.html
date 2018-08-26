@@ -1,0 +1,700 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<!-- Head tag -->
+<head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="google-site-verification" content="xBT4GhYoi5qRD5tr338pgPM5OWHHIDR6mNg1a3euekI" />
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="description" content="">
+    <meta name="keyword"  content="Linux,运维,Nginx,Zabbix,Centos,Ansible,MySQL,Python,Docker,ELK,Haproxy,Git,Nodejs,安全,技术">
+    <link rel="shortcut icon" href="/img/ironman-draw.png">
+    <!-- Place this tag in your head or just before your close body tag. -->
+    <script async defer src="https://buttons.github.io/buttons.js"></script>
+    <title>
+        
+          图解 Docker 常用命令工作原理 - 运维之美
+        
+    </title>
+
+    <link rel="canonical" href="https://www.hi-linux.com/posts/44544.html">
+
+    <!-- Bootstrap Core CSS -->
+    <link rel="stylesheet" href="/css/bootstrap.min.css">
+
+    <!-- Custom CSS --> 
+    <link rel="stylesheet" href="/css/beantech.min.css">
+    
+    <!-- Pygments Highlight CSS -->
+    <link rel="stylesheet" href="/css/highlight.css">
+
+    <link rel="stylesheet" href="/css/widget.css">
+
+    <link rel="stylesheet" href="/css/rocket.css">
+
+    <link rel="stylesheet" href="/css/signature.css">
+
+    <link rel="stylesheet" href="/css/toc.css">
+
+    <!-- Custom Fonts -->
+    <!-- <link href="https://maxcdn.bootstrapcdn.com/font-awesome/4.3.0/css/font-awesome.min.css" rel="stylesheet" type="text/css"> -->
+    <!-- Hux change font-awesome CDN to qiniu -->
+    <link href="https://cdn.staticfile.org/font-awesome/4.5.0/css/font-awesome.min.css" rel="stylesheet" type="text/css">
+
+
+    <!-- Hux Delete, sad but pending in China
+    <link href='http://fonts.googleapis.com/css?family=Lora:400,700,400italic,700italic' rel='stylesheet' type='text/css'>
+    <link href='http://fonts.googleapis.com/css?family=Open+Sans:300italic,400italic,600italic,700italic,800italic,400,300,600,700,800' rel='stylesheet' type='text/
+    css'>
+    -->
+
+
+    <!-- HTML5 Shim and Respond.js IE8 support of HTML5 elements and media queries -->
+    <!-- WARNING: Respond.js doesn't work if you view the page via file:// -->
+    <!--[if lt IE 9]>
+        <script src="https://oss.maxcdn.com/libs/html5shiv/3.7.0/html5shiv.js"></script>
+        <script src="https://oss.maxcdn.com/libs/respond.js/1.4.2/respond.min.js"></script>
+    <![endif]-->
+
+    <!-- ga & ba script hoook -->
+    <script></script>
+</head>
+
+
+<!-- hack iOS CSS :active style -->
+<body ontouchstart="">
+	<!-- Modified by Yu-Hsuan Yen -->
+<!-- Post Header -->
+<style type="text/css">
+    header.intro-header{
+        
+            background-image: url('/img/header_img/article.jpg')
+            /*post*/
+        
+    }
+    
+</style>
+
+<header class="intro-header" >
+    <!-- Signature -->
+    <div id="signature">
+        <div class="container">
+            <div class="row">
+                <div class="col-lg-8 col-lg-offset-2 col-md-10 col-md-offset-1">
+                
+                    <div class="post-heading">
+                        <div class="tags">
+                            
+                              <a class="tag" href="/tags/#Linux" title="Linux">Linux</a>
+                            
+                              <a class="tag" href="/tags/#Docker" title="Docker">Docker</a>
+                            
+                        </div>
+                        <h1>图解 Docker 常用命令工作原理</h1>
+                        <h2 class="subheading"></h2>
+                        <span class="meta">
+                            Posted by Mike on
+                            2018-07-08
+                        </span>
+                    </div>
+                
+
+
+                </div>
+            </div>
+        </div>
+    </div>
+</header>
+
+	
+    <!-- Navigation -->
+<nav class="navbar navbar-default navbar-custom navbar-fixed-top">
+    <div class="container-fluid">
+        <!-- Brand and toggle get grouped for better mobile display -->
+        <div class="navbar-header page-scroll">
+            <button type="button" class="navbar-toggle">
+                <span class="sr-only">Toggle navigation</span>
+                <span class="icon-bar"></span>
+                <span class="icon-bar"></span>
+                <span class="icon-bar"></span>
+            </button>
+            <a class="navbar-brand" href="/">运维之美</a>
+        </div>
+
+        <!-- Collect the nav links, forms, and other content for toggling -->
+        <!-- Known Issue, found by Hux:
+            <nav>'s height woule be hold on by its content.
+            so, when navbar scale out, the <nav> will cover tags.
+            also mask any touch event of tags, unfortunately.
+        -->
+        <div id="huxblog_navbar">
+            <div class="navbar-collapse">
+                <ul class="nav navbar-nav navbar-right">
+                    <li>
+                        <a href="/">Home</a>
+                    </li>
+
+                    
+
+                        
+                    
+
+                        
+                    
+
+                        
+                        <li>
+                            <a href="/about/">About</a>
+                        </li>
+                        
+                    
+
+                        
+                        <li>
+                            <a href="/archive/">Archives</a>
+                        </li>
+                        
+                    
+
+                        
+                        <li>
+                            <a href="/tags/">Tags</a>
+                        </li>
+                        
+                    
+                    
+                </ul>
+            </div>
+        </div>
+        <!-- /.navbar-collapse -->
+    </div>
+    <!-- /.container -->
+</nav>
+<script>
+    // Drop Bootstarp low-performance Navbar
+    // Use customize navbar with high-quality material design animation
+    // in high-perf jank-free CSS3 implementation
+    var $body   = document.body;
+    var $toggle = document.querySelector('.navbar-toggle');
+    var $navbar = document.querySelector('#huxblog_navbar');
+    var $collapse = document.querySelector('.navbar-collapse');
+
+    $toggle.addEventListener('click', handleMagic)
+    function handleMagic(e){
+        if ($navbar.className.indexOf('in') > 0) {
+        // CLOSE
+            $navbar.className = " ";
+            // wait until animation end.
+            setTimeout(function(){
+                // prevent frequently toggle
+                if($navbar.className.indexOf('in') < 0) {
+                    $collapse.style.height = "0px"
+                }
+            },400)
+        }else{
+        // OPEN
+            $collapse.style.height = "auto"
+            $navbar.className += " in";
+        }
+    }
+</script>
+
+
+    <!-- Main Content -->
+    <!-- Modify by Yu-Hsuan Yen -->
+
+<!-- Post Content -->
+<article>
+    <div class="container">
+        <div class="row">
+
+            <!-- Post Container -->
+            <div class="
+                col-lg-8 col-lg-offset-2
+                col-md-10 col-md-offset-1
+                post-container">
+
+                <h3 id="dokcer-常用命令工作原理">Dokcer 常用命令工作原理</h3>
+<ul>
+<li>Docker 常用命令工作原理图</li>
+</ul>
+<p><img src="https://www.hi-linux.com/img/linux/docker-cmd-01.png" alt=""></p>
+<ul>
+<li>Image Layer（镜像层）</li>
+</ul>
+<p>镜像可以看成是由多个镜像层叠加起来的一个文件系统，镜像层也可以简单理解为一个基本的镜像，而每个镜像层之间通过指针的形式进行叠加。</p>
+<p><img src="https://www.hi-linux.com/img/linux/docker-cmd-02.png" alt=""></p>
+<p>根据上图，镜像层的主要组成部分包括镜像层 ID、镜像层指针 「指向父层」、元数据「 Layer Metadata，包含了 Docker 构建和运行的信息和父层的层次信息」。</p>
+<p>只读层和读写层「Top Layer」的组成部分基本一致，同时读写层可以转换成只读层「 通过<code>docker commit</code> 操作实现」。</p>
+<a id="more"></a>
+<ul>
+<li>Image（镜像，只读层的集合）</li>
+</ul>
+<p>镜像是一堆只读层的统一视角，除了最底层没有指向外，每一层都指向它的父层。统一文件系统（ Union File System）技术能够将不同的层整合成一个文件系统，为这些层提供了一个统一的视角，这样就隐藏了多层的存在。在用户的角度看来，只存在一个文件系统。镜像每一层都是不可写的，都是只读层。</p>
+<p><img src="https://www.hi-linux.com/img/linux/docker-cmd-03.png" alt=""></p>
+<ul>
+<li>Container（容器，一层读写层+多层只读层）</li>
+</ul>
+<p>容器和镜像的区别在于容器的最上面一层是读写层「Top Layer」，在这里并没有区分容器是否在运行。</p>
+<p>运行状态的容器「Running Container」是由一个可读写的文件系统「静态容器」+ 隔离的进程空间和其中的进程构成的。</p>
+<p><img src="https://www.hi-linux.com/img/linux/docker-cmd-04.png" alt=""></p>
+<p>隔离的进程空间中的进程可以对该读写层进行增删改，运行状态容器的进程操作都作用在该读写层上。每个容器只能有一个进程隔离空间。</p>
+<p><img src="https://www.hi-linux.com/img/linux/docker-cmd-05.png" alt=""></p>
+<h3 id="docker-常用命令说明">Docker 常用命令说明</h3>
+<h4 id="标识说明">标识说明</h4>
+<ul>
+<li>Image（统一只读文件系统）</li>
+</ul>
+<p><img src="https://www.hi-linux.com/img/linux/docker-cmd-06.png" alt=""></p>
+<ul>
+<li>静态容器 （未运行的容器，统一可读写文件系统）</li>
+</ul>
+<p><img src="https://www.hi-linux.com/img/linux/docker-cmd-07.png" alt=""></p>
+<ul>
+<li>动态容器（运行中的容器，进程空间（包括进程）+ 统一可读写文件系统）</li>
+</ul>
+<p><img src="https://www.hi-linux.com/img/linux/docker-cmd-08.png" alt=""></p>
+<h4 id="命令说明">命令说明</h4>
+<h5 id="docker-生命周期相关命令">Docker 生命周期相关命令</h5>
+<ul>
+<li>docker create &lt; image-id &gt;</li>
+</ul>
+<p><img src="https://www.hi-linux.com/img/linux/docker-cmd-09.png" alt=""></p>
+<p>该命令即为在只读文件系统上添加一层可读写层「Top Layer」，并生成可读写文件系统。该命令状态下容器为静态容器，并没有运行。</p>
+<ul>
+<li>docker start | restart &lt; container-id &gt;</li>
+</ul>
+<p><img src="https://www.hi-linux.com/img/linux/docker-cmd-10.png" alt=""></p>
+<p>该命令即为在可读写文件系统添加一个进程空间和运行的进程，并生成一个动态容器。</p>
+<blockquote>
+<p><code>docker stop</code> 即为 <code>docker start</code> 的逆过程。</p>
+</blockquote>
+<ul>
+<li>docker run &lt; image-id &gt;</li>
+</ul>
+<p><img src="https://www.hi-linux.com/img/linux/docker-cmd-11.png" alt=""></p>
+<p><code>docker run</code> = <code>docker create</code> + <code>docker start</code></p>
+<p>docker run 流程类似如下：</p>
+<p><img src="https://www.hi-linux.com/img/linux/docker-cmd-12.png" alt=""></p>
+<ul>
+<li>docker stop &lt; container-id &gt;</li>
+</ul>
+<p><img src="https://www.hi-linux.com/img/linux/docker-cmd-13.png" alt=""></p>
+<p>该指令向运行中的容器发一个 SIGTERM 信号，然后停止所有的进程。即为 <code>docker start</code> 的逆过程。</p>
+<ul>
+<li>docker kill &lt; container-id &gt;</li>
+</ul>
+<p><img src="https://www.hi-linux.com/img/linux/docker-cmd-14.png" alt=""></p>
+<p>该指令向容器发送一个不友好的 SIGKILL 信号，相当于快速强制关闭容器。与 <code>docker stop</code> 的区别是 <code>docker stop</code> 是先发 SIGTERM 信号来清理进程，然后再发 SIGKILL 信号退出，整个进程是正常关闭的。</p>
+<ul>
+<li>docker pause &lt; container-id &gt;</li>
+</ul>
+<p><img src="https://www.hi-linux.com/img/linux/docker-cmd-15.png" alt=""></p>
+<p>该指令用作暂停容器中的所有进程，使用 cgroup 的 freezer 顺序暂停容器里的所有进程。</p>
+<blockquote>
+<p>docker unpause 为其逆过程即恢复所有进程，比较少使用。</p>
+</blockquote>
+<ul>
+<li>docker commit &lt; container-id &gt;</li>
+</ul>
+<p><img src="https://www.hi-linux.com/img/linux/docker-cmd-16.png" alt=""></p>
+<p><img src="https://www.hi-linux.com/img/linux/docker-cmd-17.png" alt=""></p>
+<p>该指令用作把容器的可读写层转化成只读层，即从容器状态「可读写文件系统」变为镜像状态「只读文件系统」，可理解为固化。</p>
+<ul>
+<li>docker build</li>
+</ul>
+<p><img src="https://www.hi-linux.com/img/linux/docker-cmd-18.png" alt=""></p>
+<p><img src="https://www.hi-linux.com/img/linux/docker-cmd-19.png" alt=""></p>
+<p><code>docker build</code> = <code>docker run</code> 「运行容器 + 进程修改数据」+ <code>docker commit</code>「固化数据」，整个过程不断循环直至生成所需镜像。</p>
+<blockquote>
+<ol>
+<li>循环一次便会形成一个新的层(新镜像 = 原镜像层 + 已固化的可读写层）</li>
+<li>docker build 过程一般通过 dockerfile 文件来实现。</li>
+</ol>
+</blockquote>
+<h5 id="docker-查询类命令">Docker 查询类命令</h5>
+<p>Docker 可查询的对象有：image、container、image/container 中的数据、系统信息（包括容器数、镜像数及其它）。</p>
+<ul>
+<li>docker images</li>
+</ul>
+<p><img src="https://www.hi-linux.com/img/linux/docker-cmd-20.png" alt=""></p>
+<p>该指令用作列出镜像的顶层镜像（以顶层镜像 ID 来表示整个完整镜像），每个顶层镜像下面隐藏多个镜像层。</p>
+<ul>
+<li>docker images -a</li>
+</ul>
+<p><img src="https://www.hi-linux.com/img/linux/docker-cmd-21.png" alt=""></p>
+<p>该指令用作列出镜像的所有镜像层。镜像层的排序以每个顶层镜像 ID 为首，依次列出每个镜像下的所有镜像层。</p>
+<ul>
+<li>docker history &lt; image-id &gt;</li>
+</ul>
+<p><img src="https://www.hi-linux.com/img/linux/docker-cmd-22.png" alt=""></p>
+<p>该指令列出该镜像 ID 下的所有历史镜像。</p>
+<ul>
+<li>docker ps</li>
+</ul>
+<p><img src="https://www.hi-linux.com/img/linux/docker-cmd-23.png" alt=""></p>
+<p>该指令用作列出所有运行中的容器。</p>
+<ul>
+<li>docker ps -a</li>
+</ul>
+<p><img src="https://www.hi-linux.com/img/linux/docker-cmd-24.png" alt=""></p>
+<p>该指令用作列出所有容器，包括静态容器和动态容器。</p>
+<ul>
+<li>docker inspect &lt; container-id &gt; or &lt; image-id &gt;</li>
+</ul>
+<p><img src="https://www.hi-linux.com/img/linux/docker-cmd-25.png" alt=""></p>
+<p>该指令用作提取出容器或镜像中最顶层的元数据。</p>
+<ul>
+<li>docker info</li>
+</ul>
+<p>该指令用作显示 Docker 系统信息，包括镜像和容器数。</p>
+<h5 id="docker-操作类命令">Docker 操作类命令</h5>
+<ul>
+<li>docker rm &lt; container-id &gt;</li>
+</ul>
+<p><img src="https://www.hi-linux.com/img/linux/docker-cmd-26.png" alt=""><br>
+<br>
+该指令用作移除容器，默认只能对静态容器（非运行状态的）进行移除。如果要移除运行中的容器，需要使用 <code>-f（force）</code> 参数，即：<code>docker rm -f &lt;container-id&gt;</code>。</p>
+<ul>
+<li>docker rmi &lt; image-id &gt;</li>
+</ul>
+<p><img src="https://www.hi-linux.com/img/linux/docker-cmd-27.png" alt=""></p>
+<p>该指令作用与 <code>docker rm</code> 类似，用作移除镜像。</p>
+<ul>
+<li>docker exec &lt; running-container-id &gt;</li>
+</ul>
+<p><img src="https://www.hi-linux.com/img/linux/docker-cmd-28.png" alt=""></p>
+<p>该指令用于在运行状态的容器中执行一个新的进程。</p>
+<ul>
+<li>docker export &lt; container-id &gt;</li>
+</ul>
+<p><img src="https://www.hi-linux.com/img/linux/docker-cmd-29.png" alt=""></p>
+<p>该指令用作持久化一个容器，会创建一个 tar 格式的文件。该文件移除了元数据和不必要的层，将多个层整合成了一个层，只保存了当前统一视角看到的内容。</p>
+<p>如果你要持久化一个镜像，可以使用 <code>docker save</code> 指令。它与 <code>docker export</code> 的区别在于其保留了所有元数据和历史层。</p>
+<p>通过 <code>docker export</code> 导出的容器再 <code>docker import</code> 到 Docker 中后，在 <code>docker images –tree</code> 命令只能看到一个镜像。而通过 <code>docker save</code> 保存后的镜像则不同，它能够看到这个镜像构建过程中的所有历史层。</p>
+<p><code>docker export</code> 和 <code>docker save</code> 两者更多的区别可参考「<a href="https://mp.weixin.qq.com/s?__biz=MzI3MTI2NzkxMA==&amp;mid=2247485543&amp;idx=1&amp;sn=93c14014ae4f01bceb5a59520903b21f&amp;chksm=eac5294eddb2a0580673642e0ed35ce638b4f8b5d37ec6991c75f4705bcfdb50b633bd0474d0&amp;mpshare=1&amp;scene=23&amp;srcid=0708ouNaEe7BDhuhCx3jY8fc%23rd" target="_blank" rel="noopener">Docker 的 save 和 export 命令的区别</a>」一文。</p>
+<blockquote>
+<p>本文在 「<a href="http://www.huweihuang.com/article/docker/docker-commands-principle/" target="_blank" rel="noopener">Docker 常用命令原理图</a>」的基础上整理和修改。</p>
+</blockquote>
+<h3 id="参考文档">参考文档</h3>
+<p><a href="http://www.google.com" target="_blank" rel="noopener">http://www.google.com</a><br>
+<a href="http://t.cn/RdC2419" target="_blank" rel="noopener">http://t.cn/RdC2419</a><br>
+<a href="http://t.cn/RUfqHh9" target="_blank" rel="noopener">http://t.cn/RUfqHh9</a></p>
+
+                
+
+                <hr>
+                <!-- Pager -->
+                <ul class="pager">
+                    
+                        <li class="previous">
+                            <a href="/posts/48037.html" data-toggle="tooltip" data-placement="top" title="图解 Kubernetes 架构">&larr; Previous Post</a>
+                        </li>
+                    
+                    
+                        <li class="next">
+                            <a href="/posts/32833.html" data-toggle="tooltip" data-placement="top" title="浏览器数据库 IndexedDB 入门教程">Next Post &rarr;</a>
+                        </li>
+                    
+                </ul>
+
+                <!-- duoshuo Share start -->
+                
+                <!-- 多说 Share end-->
+
+                <!-- 多说评论框 start -->
+                
+                <!-- 多说评论框 end -->
+
+                <!-- disqus comment start -->
+                
+                <!-- disqus comment end -->
+
+                
+                    <!-- disqus 评论框 start -->
+                    <div class="comment">
+                        <div id="lv-container" data-id="city" data-uid="MTAyMC8yNzg2My80NDQw"></div>
+                    </div>
+                    <!-- disqus 评论框 end -->
+                
+
+            </div>
+            
+            <!-- Tabe of Content -->
+            <!-- Table of Contents -->
+
+  
+    <style>
+      span.toc-nav-number{
+        display: none
+      }
+    </style>
+  
+    
+      <aside id="sidebar">
+        <div id="toc" class="toc-article">
+        <strong class="toc-title">Contents</strong>
+        
+          <ol class="toc-nav"><li class="toc-nav-item toc-nav-level-3"><a class="toc-nav-link" href="#dokcer-常用命令工作原理"><span class="toc-nav-number">1.</span> <span class="toc-nav-text">Dokcer 常用命令工作原理</span></a></li><li class="toc-nav-item toc-nav-level-3"><a class="toc-nav-link" href="#docker-常用命令说明"><span class="toc-nav-number">2.</span> <span class="toc-nav-text">Docker 常用命令说明</span></a><ol class="toc-nav-child"><li class="toc-nav-item toc-nav-level-4"><a class="toc-nav-link" href="#标识说明"><span class="toc-nav-number">2.1.</span> <span class="toc-nav-text">标识说明</span></a></li><li class="toc-nav-item toc-nav-level-4"><a class="toc-nav-link" href="#命令说明"><span class="toc-nav-number">2.2.</span> <span class="toc-nav-text">命令说明</span></a><ol class="toc-nav-child"><li class="toc-nav-item toc-nav-level-5"><a class="toc-nav-link" href="#docker-生命周期相关命令"><span class="toc-nav-number">2.2.1.</span> <span class="toc-nav-text">Docker 生命周期相关命令</span></a></li><li class="toc-nav-item toc-nav-level-5"><a class="toc-nav-link" href="#docker-查询类命令"><span class="toc-nav-number">2.2.2.</span> <span class="toc-nav-text">Docker 查询类命令</span></a></li><li class="toc-nav-item toc-nav-level-5"><a class="toc-nav-link" href="#docker-操作类命令"><span class="toc-nav-number">2.2.3.</span> <span class="toc-nav-text">Docker 操作类命令</span></a></li></ol></li></ol></li><li class="toc-nav-item toc-nav-level-3"><a class="toc-nav-link" href="#参考文档"><span class="toc-nav-number">3.</span> <span class="toc-nav-text">参考文档</span></a></li></ol>
+        
+        </div>
+      </aside>
+    
+
+                
+            <!-- Sidebar Container -->
+            <div class="
+                col-lg-8 col-lg-offset-2
+                col-md-10 col-md-offset-1
+                sidebar-container">
+
+                <!-- Featured Tags -->
+                
+                <section>
+                    <!-- no hr -->
+                    <h5><a href="/tags/">FEATURED TAGS</a></h5>
+                    <div class="tags">
+                       
+                          <a class="tag" href="/tags/#Linux" title="Linux">Linux</a>
+                        
+                          <a class="tag" href="/tags/#Docker" title="Docker">Docker</a>
+                        
+                    </div>
+                </section>
+                
+
+                <!-- Friends Blog -->
+                
+                <hr>
+                <h5>FRIENDS</h5>
+                <ul class="list-inline">
+
+                    
+                        <li><a href="http://www.mike.org.cn/" target="_blank">简单.生活</a></li>
+                    
+                        <li><a href="http://shang.qq.com/wpa/qunwpa?idkey=ea4c43493c2269428ac6ef6141de4b6d78e5ab2d41380ca4099b833b62884ee9" target="_blank">技术交流群</a></li>
+                    
+                        <li><a href="" target="_blank"></a></li>
+                    
+                        <li><a href="" target="_blank"></a></li>
+                    
+                </ul>
+                
+            </div>
+        </div>
+    </div>
+</article>
+
+
+
+
+
+
+    <!-- 来必力City版公共JS代码 start (一个网页只需插入一次) -->
+    <script type="text/javascript">
+       (function(d, s) {
+           var j, e = d.getElementsByTagName(s)[0];
+    
+           if (typeof LivereTower === 'function') { return; }
+    
+           j = d.createElement(s);
+           j.src = 'https://cdn-city.livere.com/js/embed.dist.js';
+           j.async = true;
+    
+           e.parentNode.insertBefore(j, e);
+       })(document, 'script');
+    </script>
+    <noscript>为正常使用来必力评论功能请激活JavaScript</noscript>
+    <!-- 来必力City版 公共JS代码 end -->
+
+
+
+<!-- async load function -->
+<script>
+    function async(u, c) {
+      var d = document, t = 'script',
+          o = d.createElement(t),
+          s = d.getElementsByTagName(t)[0];
+      o.src = u;
+      if (c) { o.addEventListener('load', function (e) { c(null, e); }, false); }
+      s.parentNode.insertBefore(o, s);
+    }
+</script>
+<!-- anchor-js, Doc:http://bryanbraun.github.io/anchorjs/ -->
+<script>
+    async("https://cdn.bootcss.com/anchor-js/1.1.1/anchor.min.js",function(){
+        anchors.options = {
+          visible: 'hover',
+          placement: 'left',
+          icon: 'ℬ'
+        };
+        anchors.add().remove('.intro-header h1').remove('.subheading').remove('.sidebar-container h5');
+    })
+</script>
+<style>
+    /* place left on bigger screen */
+    @media all and (min-width: 800px) {
+        .anchorjs-link{
+            position: absolute;
+            left: -0.75em;
+            font-size: 1.1em;
+            margin-top : -0.1em;
+        }
+    }
+</style>
+
+
+
+    <!-- Footer -->
+    <!-- Footer -->
+<footer>
+    <div class="container">
+        <div class="row">
+            <div class="col-lg-8 col-lg-offset-2 col-md-10 col-md-offset-1">
+                <ul class="list-inline text-center">
+                
+                    <li>
+                        <a href="/atom.xml">
+                            <span class="fa-stack fa-lg">
+                                <i class="fa fa-circle fa-stack-2x"></i>
+                                <i class="fa fa-rss fa-stack-1x fa-inverse"></i>
+                            </span>
+                        </a>
+                    </li>
+                
+                
+                
+                    <li>
+                        <a target="_blank" href="https://www.zhihu.com/people/80imike">
+                            <span class="fa-stack fa-lg">
+                                <i class="fa fa-circle fa-stack-2x"></i>
+                                <i class="fa  fa-stack-1x fa-inverse">知</i>
+                            </span>
+                        </a>
+                    </li>
+                
+
+                
+                    <li>
+                        <a target="_blank" href="http://weibo.com/2093524665">
+                            <span class="fa-stack fa-lg">
+                                <i class="fa fa-circle fa-stack-2x"></i>
+                                <i class="fa fa-weibo fa-stack-1x fa-inverse"></i>
+                            </span>
+                        </a>
+                    </li>
+                
+
+                
+
+                
+
+                
+
+                </ul>
+                <p class="copyright text-muted">
+                    Copyright &copy; Mike 2018 | Hosted by <a href="https://pages.coding.me" style="font-weight: bold">Coding Pages</a>
+                    <br>
+                    Theme by <a href="http://beantech.org">BeanTech</a> 
+                    <span style="display: inline-block; margin: 0 5px;">
+                        <i class="fa fa-heart"></i>
+                    </span> 
+                    re-Ported by <a href="http://www.huweihuang.com">胡伟煌</a> | 
+                    <iframe
+                        style="margin-left: 2px; margin-bottom:-5px;"
+                        frameborder="0" scrolling="0" width="91px" height="20px"
+                        src="https://ghbtns.com/github-btn.html?user=huweihuang&repo=hexo-theme-huweihuang&type=star&count=true" >
+                    </iframe>
+                </p>
+            </div>
+        </div>
+    </div>
+</footer>
+
+<!-- jQuery -->
+<script src="/js/jquery.min.js"></script>
+
+<!-- Bootstrap Core JavaScript -->
+<script src="/js/bootstrap.min.js"></script>
+
+<!-- Custom Theme JavaScript -->
+<script src="/js/hux-blog.min.js"></script>
+
+
+<!-- async load function -->
+<script>
+    function async(u, c) {
+      var d = document, t = 'script',
+          o = d.createElement(t),
+          s = d.getElementsByTagName(t)[0];
+      o.src = u;
+      if (c) { o.addEventListener('load', function (e) { c(null, e); }, false); }
+      s.parentNode.insertBefore(o, s);
+    }
+</script>
+
+<!-- 
+     Because of the native support for backtick-style fenced code blocks 
+     right within the Markdown is landed in Github Pages, 
+     From V1.6, There is no need for Highlight.js, 
+     so Huxblog drops it officially.
+
+     - https://github.com/blog/2100-github-pages-now-faster-and-simpler-with-jekyll-3-0  
+     - https://help.github.com/articles/creating-and-highlighting-code-blocks/    
+-->
+<!--
+    <script>
+        async("http://cdn.bootcss.com/highlight.js/8.6/highlight.min.js", function(){
+            hljs.initHighlightingOnLoad();
+        })
+    </script>
+    <link href="http://cdn.bootcss.com/highlight.js/8.6/styles/github.min.css" rel="stylesheet">
+-->
+
+
+<!-- jquery.tagcloud.js -->
+<script>
+    // only load tagcloud.js in tag.html
+    if($('#tag_cloud').length !== 0){
+        async("https://www.hi-linux.com/js/jquery.tagcloud.js",function(){
+            $.fn.tagcloud.defaults = {
+                //size: {start: 1, end: 1, unit: 'em'},
+                color: {start: '#bbbbee', end: '#0085a1'},
+            };
+            $('#tag_cloud a').tagcloud();
+        })
+    }
+</script>
+
+<!--fastClick.js -->
+<script>
+    async("https://cdn.bootcss.com/fastclick/1.0.6/fastclick.min.js", function(){
+        var $nav = document.querySelector("nav");
+        if($nav) FastClick.attach($nav);
+    })
+</script>
+
+
+<!-- Google Analytics -->
+
+
+
+
+<!-- Baidu Tongji -->
+
+
+
+
+
+
+	<a id="rocket" href="#top" class=""></a>
+	<script type="text/javascript" src="/js/totop.js?v=1.0.0" async=""></script>
+    <script type="text/javascript" src="/js/toc.js?v=1.0.0" async=""></script>
+<!-- Image to hack wechat -->
+<img src="https://www.hi-linux.com/img/icon_wechat.png" width="0" height="0" />
+<!-- Migrate from head to bottom, no longer block render and still work -->
+
+</body>
+
+</html>

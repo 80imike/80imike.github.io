@@ -1,0 +1,605 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<!-- Head tag -->
+<head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="google-site-verification" content="xBT4GhYoi5qRD5tr338pgPM5OWHHIDR6mNg1a3euekI" />
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="description" content="">
+    <meta name="keyword"  content="Linux,运维,Nginx,Zabbix,Centos,Ansible,MySQL,Python,Docker,ELK,Haproxy,Git,Nodejs,安全,技术">
+    <link rel="shortcut icon" href="/img/ironman-draw.png">
+    <!-- Place this tag in your head or just before your close body tag. -->
+    <script async defer src="https://buttons.github.io/buttons.js"></script>
+    <title>
+        
+          Linux中 /proc/[pid] 目录各文件简析 - 运维之美
+        
+    </title>
+
+    <link rel="canonical" href="https://www.hi-linux.com/posts/64295.html">
+
+    <!-- Bootstrap Core CSS -->
+    <link rel="stylesheet" href="/css/bootstrap.min.css">
+
+    <!-- Custom CSS --> 
+    <link rel="stylesheet" href="/css/beantech.min.css">
+    
+    <!-- Pygments Highlight CSS -->
+    <link rel="stylesheet" href="/css/highlight.css">
+
+    <link rel="stylesheet" href="/css/widget.css">
+
+    <link rel="stylesheet" href="/css/rocket.css">
+
+    <link rel="stylesheet" href="/css/signature.css">
+
+    <link rel="stylesheet" href="/css/toc.css">
+
+    <!-- Custom Fonts -->
+    <!-- <link href="https://maxcdn.bootstrapcdn.com/font-awesome/4.3.0/css/font-awesome.min.css" rel="stylesheet" type="text/css"> -->
+    <!-- Hux change font-awesome CDN to qiniu -->
+    <link href="https://cdn.staticfile.org/font-awesome/4.5.0/css/font-awesome.min.css" rel="stylesheet" type="text/css">
+
+
+    <!-- Hux Delete, sad but pending in China
+    <link href='http://fonts.googleapis.com/css?family=Lora:400,700,400italic,700italic' rel='stylesheet' type='text/css'>
+    <link href='http://fonts.googleapis.com/css?family=Open+Sans:300italic,400italic,600italic,700italic,800italic,400,300,600,700,800' rel='stylesheet' type='text/
+    css'>
+    -->
+
+
+    <!-- HTML5 Shim and Respond.js IE8 support of HTML5 elements and media queries -->
+    <!-- WARNING: Respond.js doesn't work if you view the page via file:// -->
+    <!--[if lt IE 9]>
+        <script src="https://oss.maxcdn.com/libs/html5shiv/3.7.0/html5shiv.js"></script>
+        <script src="https://oss.maxcdn.com/libs/respond.js/1.4.2/respond.min.js"></script>
+    <![endif]-->
+
+    <!-- ga & ba script hoook -->
+    <script></script>
+</head>
+
+
+<!-- hack iOS CSS :active style -->
+<body ontouchstart="">
+	<!-- Modified by Yu-Hsuan Yen -->
+<!-- Post Header -->
+<style type="text/css">
+    header.intro-header{
+        
+            background-image: url('/img/header_img/article.jpg')
+            /*post*/
+        
+    }
+    
+</style>
+
+<header class="intro-header" >
+    <!-- Signature -->
+    <div id="signature">
+        <div class="container">
+            <div class="row">
+                <div class="col-lg-8 col-lg-offset-2 col-md-10 col-md-offset-1">
+                
+                    <div class="post-heading">
+                        <div class="tags">
+                            
+                              <a class="tag" href="/tags/#Linux" title="Linux">Linux</a>
+                            
+                              <a class="tag" href="/tags/#技巧" title="技巧">技巧</a>
+                            
+                        </div>
+                        <h1>Linux中 /proc/[pid] 目录各文件简析</h1>
+                        <h2 class="subheading"></h2>
+                        <span class="meta">
+                            Posted by Mike on
+                            2017-12-25
+                        </span>
+                    </div>
+                
+
+
+                </div>
+            </div>
+        </div>
+    </div>
+</header>
+
+	
+    <!-- Navigation -->
+<nav class="navbar navbar-default navbar-custom navbar-fixed-top">
+    <div class="container-fluid">
+        <!-- Brand and toggle get grouped for better mobile display -->
+        <div class="navbar-header page-scroll">
+            <button type="button" class="navbar-toggle">
+                <span class="sr-only">Toggle navigation</span>
+                <span class="icon-bar"></span>
+                <span class="icon-bar"></span>
+                <span class="icon-bar"></span>
+            </button>
+            <a class="navbar-brand" href="/">运维之美</a>
+        </div>
+
+        <!-- Collect the nav links, forms, and other content for toggling -->
+        <!-- Known Issue, found by Hux:
+            <nav>'s height woule be hold on by its content.
+            so, when navbar scale out, the <nav> will cover tags.
+            also mask any touch event of tags, unfortunately.
+        -->
+        <div id="huxblog_navbar">
+            <div class="navbar-collapse">
+                <ul class="nav navbar-nav navbar-right">
+                    <li>
+                        <a href="/">Home</a>
+                    </li>
+
+                    
+
+                        
+                    
+
+                        
+                    
+
+                        
+                        <li>
+                            <a href="/about/">About</a>
+                        </li>
+                        
+                    
+
+                        
+                        <li>
+                            <a href="/archive/">Archives</a>
+                        </li>
+                        
+                    
+
+                        
+                        <li>
+                            <a href="/tags/">Tags</a>
+                        </li>
+                        
+                    
+                    
+                </ul>
+            </div>
+        </div>
+        <!-- /.navbar-collapse -->
+    </div>
+    <!-- /.container -->
+</nav>
+<script>
+    // Drop Bootstarp low-performance Navbar
+    // Use customize navbar with high-quality material design animation
+    // in high-perf jank-free CSS3 implementation
+    var $body   = document.body;
+    var $toggle = document.querySelector('.navbar-toggle');
+    var $navbar = document.querySelector('#huxblog_navbar');
+    var $collapse = document.querySelector('.navbar-collapse');
+
+    $toggle.addEventListener('click', handleMagic)
+    function handleMagic(e){
+        if ($navbar.className.indexOf('in') > 0) {
+        // CLOSE
+            $navbar.className = " ";
+            // wait until animation end.
+            setTimeout(function(){
+                // prevent frequently toggle
+                if($navbar.className.indexOf('in') < 0) {
+                    $collapse.style.height = "0px"
+                }
+            },400)
+        }else{
+        // OPEN
+            $collapse.style.height = "auto"
+            $navbar.className += " in";
+        }
+    }
+</script>
+
+
+    <!-- Main Content -->
+    <!-- Modify by Yu-Hsuan Yen -->
+
+<!-- Post Content -->
+<article>
+    <div class="container">
+        <div class="row">
+
+            <!-- Post Container -->
+            <div class="
+                col-lg-8 col-lg-offset-2
+                col-md-10 col-md-offset-1
+                post-container">
+
+                <p>Linux 内核提供了一种通过 proc 文件系统，在运行时访问内核内部数据结构、改变内核设置的机制。proc 文件系统是一个伪文件系统，它只存在内存当中，而不占用外存空间。它以文件系统的方式为访问系统内核数据的操作提供接口。</p>
+<p>用户和应用程序可以通过 proc 得到系统的信息，并可以改变内核的某些参数。由于系统的信息，如进程，是动态改变的，所以用户或应用程序读取 proc 文件时，proc 文件系统是动态从系统内核读出所需信息并提交的。</p>
+<p>下面列出的这些文件或子文件夹，并不是都是在你的系统中存在，这取决于你的内核配置和装载的模块。另外，在 proc 下还有三个很重要的目录：net，scsi 和 sys。 sys 目录是可写的，可以通过它来访问或修改内核的参数，而 net 和 scsi 则依赖于内核配置。例如，如果系统不支持 scsi，则 scsi 目录不存在。</p>
+<p>除了以上介绍的这些，还有的是一些以数字命名的目录，它们是进程目录。系统中当前运行的每一个进程都有对应的一个目录在 proc 下，以进程的 PID 号为目录名，它们是读取进程信息的接口。而 self 目录则是读取进程本身的信息接口，是一个 link。</p>
+<a id="more"></a>
+<h3 id="procpidauxv">/proc/[pid]/auxv</h3>
+<p>/proc/[pid]/auxv 包含传递给进程的 ELF 解释器信息，格式是每一项都是一个 unsigned long长度的 ID 加上一个 unsigned long 长度的值。最后一项以连续的两个 0x00 开头。举例如下：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br></pre></td><td class="code"><pre><span class="line">$ hexdump -x /proc/2406/auxv</span><br><span class="line"></span><br><span class="line">0000000    0021    0000    0000    0000    f000    f7fa    7fff    0000</span><br><span class="line">0000010    0010    0000    0000    0000    fbff    1f8b    0000    0000</span><br><span class="line">0000020    0006    0000    0000    0000    1000    0000    0000    0000</span><br><span class="line">0000030    0011    0000    0000    0000    0064    0000    0000    0000</span><br><span class="line">0000040    0003    0000    0000    0000    0040    0040    0000    0000</span><br><span class="line">0000050    0004    0000    0000    0000    0038    0000    0000    0000</span><br><span class="line">0000060    0005    0000    0000    0000    0007    0000    0000    0000</span><br><span class="line">0000070    0007    0000    0000    0000    0000    0000    0000    0000</span><br><span class="line">0000080    0008    0000    0000    0000    0000    0000    0000    0000</span><br><span class="line">0000090    0009    0000    0000    0000    55e0    0045    0000    0000</span><br><span class="line">00000a0    000b    0000    0000    0000    0000    0000    0000    0000</span><br><span class="line">00000b0    000c    0000    0000    0000    0000    0000    0000    0000</span><br><span class="line">00000c0    000d    0000    0000    0000    0000    0000    0000    0000</span><br><span class="line">00000d0    000e    0000    0000    0000    0000    0000    0000    0000</span><br><span class="line">00000e0    0017    0000    0000    0000    0000    0000    0000    0000</span><br><span class="line">00000f0    0019    0000    0000    0000    f079    f7f6    7fff    0000</span><br><span class="line">0000100    001f    0000    0000    0000    ffea    f7f6    7fff    0000</span><br><span class="line">0000110    000f    0000    0000    0000    f089    f7f6    7fff    0000</span><br><span class="line">0000120    0000    0000    0000    0000    0000    0000    0000    0000</span><br><span class="line">0000130</span><br></pre></td></tr></table></figure>
+<h3 id="procpidcmdline">/proc/[pid]/cmdline</h3>
+<p>/proc/[pid]/cmdline 是一个只读文件，包含进程的完整命令行信息。如果该进程已经被交换出内存或者这个进程是 zombie 进程，则这个文件没有任何内容。该文件以空字符 null 而不是换行符作为结束标志。举例如下：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">$ ps aux|grep frps</span><br><span class="line">root      2406  0.1  0.1  54880 10524 ?        Sl   Dec11  21:30 frps -c ./frps.ini</span><br><span class="line"></span><br><span class="line">$ cat /proc/2406/cmdline</span><br><span class="line">frps-c./frps.ini</span><br></pre></td></tr></table></figure>
+<h3 id="procpidcomm">/proc/[pid]/comm</h3>
+<p>/proc/[pid]/comm 包含进程的命令名。举例如下：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">$ cat /proc/2406/comm</span><br><span class="line">frps</span><br></pre></td></tr></table></figure>
+<h3 id="procpidcwd">/proc/[pid]/cwd</h3>
+<p>/proc/[pid]/cwd 是进程当前工作目录的符号链接。举例如下：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">$ ls -lt /proc/2406/cwd</span><br><span class="line">lrwxrwxrwx 1 root root 0 Dec 12 20:39 /proc/2406/cwd -&gt; /home/mike/frp_0.13.0_linux_amd64</span><br></pre></td></tr></table></figure>
+<h3 id="procpidenviron">/proc/[pid]/environ</h3>
+<p>/proc/[pid]/environ 显示进程的环境变量。举例如下：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br></pre></td><td class="code"><pre><span class="line">$ strings /proc/2406/environ</span><br><span class="line"></span><br><span class="line">SUPERVISOR_GROUP_NAME=ssh</span><br><span class="line">TERM=linux</span><br><span class="line">SUPERVISOR_SERVER_URL=unix:///var/run/supervisor.sock</span><br><span class="line">SUPERVISOR_PROCESS_NAME=ssh</span><br><span class="line">RUNLEVEL=2</span><br><span class="line">UPSTART_EVENTS=runlevel</span><br><span class="line">PREVLEVEL=N</span><br><span class="line">PATH=/usr/local/sbin:/usr/local/bin:/sbin:/bin:/usr/sbin:/usr/bin</span><br><span class="line">UPSTART_INSTANCE=</span><br><span class="line">UPSTART_JOB=rc</span><br><span class="line">SUPERVISOR_ENABLED=1</span><br><span class="line">runlevel=2</span><br><span class="line">PWD=/</span><br><span class="line">previous=N</span><br></pre></td></tr></table></figure>
+<h3 id="procpidexe">/proc/[pid]/exe</h3>
+<p>/proc/[pid]/exe 为实际运行程序的符号链接。举例如下：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">$ ls -lt /proc/2406/exe</span><br><span class="line">lrwxrwxrwx 1 root root 0 Dec 11 19:00 /proc/2406/exe -&gt; /usr/bin/frps</span><br></pre></td></tr></table></figure>
+<h3 id="procpidfd">/proc/[pid]/fd</h3>
+<p>/proc/[pid]/fd 是一个目录，包含进程打开文件的情况。举例如下：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line">$ ls -lt /proc/2406/fd</span><br><span class="line"></span><br><span class="line">lrwx------ 1 root root 64 Dec 24 09:39 77 -&gt; socket:[44377722]</span><br><span class="line">lrwx------ 1 root root 64 Dec 17 15:07 47 -&gt; socket:[29482617]</span><br><span class="line">lr-x------ 1 root root 64 Dec 12 20:18 0 -&gt; pipe:[13282]</span><br><span class="line">l-wx------ 1 root root 64 Dec 12 20:18 1 -&gt; pipe:[13283]</span><br><span class="line">lrwx------ 1 root root 64 Dec 12 20:18 10 -&gt; socket:[12238218]</span><br><span class="line">lrwx------ 1 root root 64 Dec 12 20:18 4 -&gt; anon_inode:[eventpoll]</span><br><span class="line">lrwx------ 1 root root 64 Dec 12 20:18 40 -&gt; socket:[19378614]</span><br></pre></td></tr></table></figure>
+<p>目录中的每一项都是一个符号链接，指向打开的文件，数字则代表文件描述符。</p>
+<h3 id="procpidlatency">/proc/[pid]/latency</h3>
+<p>/proc/[pid]/latency 显示哪些代码造成的延时比较大。如果要使用这个特性需要执行：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">$ echo 1 &gt; /proc/sys/kernel/latencytop</span><br></pre></td></tr></table></figure>
+<p>举例如下</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">$ cat /proc/2406/latency</span><br><span class="line"></span><br><span class="line">Latency Top version : v0.1</span><br><span class="line">30667 10650491 4891 poll_schedule_timeout do_sys_poll SyS_poll system_call_fastpath 0x7f636573dc1d</span><br><span class="line">8 105 44 futex_wait_queue_me futex_wait do_futex SyS_futex system_call_fastpath 0x7f6365a167bc</span><br></pre></td></tr></table></figure>
+<p>每一行前三个数字分别是后面代码执行的次数、总共执行延迟时间(单位是微秒)和最长执行延迟时间(单位是微秒)。后面则是代码完整的调用栈。</p>
+<h3 id="procpidmaps">/proc/[pid]/maps</h3>
+<p>/proc/[pid]/maps 显示进程的内存区域映射信息。举例如下：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br></pre></td><td class="code"><pre><span class="line">$ cat /proc/2406/maps</span><br><span class="line">00400000-006ea000 r-xp 00000000 fd:01 1727569                            /usr/bin/frps</span><br><span class="line">006ea000-00a6c000 r--p 002ea000 fd:01 1727569                            /usr/bin/frps</span><br><span class="line">00a6c000-00ab1000 rw-p 0066c000 fd:01 1727569                            /usr/bin/frps</span><br><span class="line">00ab1000-00ad4000 rw-p 00000000 00:00 0</span><br><span class="line">c000000000-c00000b000 rw-p 00000000 00:00 0</span><br><span class="line">c41feac000-c420000000 rw-p 00000000 00:00 0</span><br><span class="line">c420000000-c420400000 rw-p 00000000 00:00 0</span><br><span class="line">c420400000-c420700000 rw-p 00000000 00:00 0</span><br><span class="line">c420700000-c420800000 rw-p 00000000 00:00 0</span><br><span class="line">c420800000-c420900000 rw-p 00000000 00:00 0</span><br><span class="line">c420900000-c420a00000 rw-p 00000000 00:00 0</span><br><span class="line">c420a00000-c421ea0000 rw-p 00000000 00:00 0</span><br><span class="line">c421ea0000-c422a00000 rw-p 00000000 00:00 0</span><br><span class="line">c422a00000-c422a60000 rw-p 00000000 00:00 0</span><br><span class="line">7f0418c01000-7f0418ee1000 rw-p 00000000 00:00 0</span><br><span class="line">7ffff7f4f000-7ffff7f70000 rw-p 00000000 00:00 0                          [stack:5121]</span><br><span class="line">7ffff7fad000-7ffff7faf000 r--p 00000000 00:00 0                          [vvar]</span><br><span class="line">7ffff7faf000-7ffff7fb1000 r-xp 00000000 00:00 0                          [vdso]</span><br><span class="line">ffffffffff600000-ffffffffff601000 r-xp 00000000 00:00 0                  [vsyscall]</span><br></pre></td></tr></table></figure>
+<p>其中注意的一点是 [stack:<tid>] 是线程的堆栈信息，对应于 /proc/[pid]/task/[tid]/ 路径。</tid></p>
+<h3 id="procpidroot">/proc/[pid]/root</h3>
+<p>/proc/[pid]/root 是进程根目录的符号链接。举例如下：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">$  ls -lt /proc/2406/root</span><br><span class="line">lrwxrwxrwx 1 root root 0 Dec 12 20:39 /proc/2406/root -&gt; /</span><br></pre></td></tr></table></figure>
+<h3 id="procpidstack">/proc/[pid]/stack</h3>
+<p>/proc/[pid]/stack 示当前进程的内核调用栈信息，只有内核编译时打开了 CONFIG_STACKTRACE 编译选项，才会生成这个文件。举例如下：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line">$ cat /proc/2406/stack</span><br><span class="line">[&lt;ffffffff810fa996&gt;] futex_wait_queue_me+0xc6/0x130</span><br><span class="line">[&lt;ffffffff810fb05d&gt;] futex_wait+0x17d/0x270</span><br><span class="line">[&lt;ffffffff810fd2d5&gt;] do_futex+0xd5/0x520</span><br><span class="line">[&lt;ffffffff810fd791&gt;] SyS_futex+0x71/0x150</span><br><span class="line">[&lt;ffffffff8180cc76&gt;] entry_SYSCALL_64_fastpath+0x16/0x75</span><br><span class="line">[&lt;ffffffffffffffff&gt;] 0xffffffffffffffff</span><br></pre></td></tr></table></figure>
+<h3 id="procpidstatm">/proc/[pid]/statm</h3>
+<p>/proc/[pid]/statm 显示进程所占用内存大小的统计信息。包含七个值，度量单位是 page(page大小可通过 getconf PAGESIZE 得到)。举例如下：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">$  cat /proc/2406/statm  </span><br><span class="line">13720 2617 493 746 0 12007 0</span><br></pre></td></tr></table></figure>
+<p>各个值含义：</p>
+<blockquote>
+<p>a）进程占用的总的内存<br>
+b）进程当前时刻占用的物理内存<br>
+c）同其它进程共享的内存<br>
+d）进程的代码段<br>
+e）共享库(从2.6版本起，这个值为0)<br>
+f）进程的堆栈<br>
+g）dirty pages(从2.6版本起，这个值为0)</p>
+</blockquote>
+<h3 id="procpidstatus">/proc/[pid]/status</h3>
+<p>/proc/[pid]/status 包含进程的状态信息。其很多内容与 /proc/[pid]/stat 和 /proc/[pid]/statm 相同，但是却是以一种更清晰地方式展现出来。举例如下：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br></pre></td><td class="code"><pre><span class="line">$ cat /proc/2406/status</span><br><span class="line">Name:	frps</span><br><span class="line">State:	S (sleeping)</span><br><span class="line">Tgid:	2406</span><br><span class="line">Ngid:	0</span><br><span class="line">Pid:	2406</span><br><span class="line">PPid:	2130</span><br><span class="line">TracerPid:	0</span><br><span class="line">Uid:	0	0	0	0</span><br><span class="line">Gid:	0	0	0	0</span><br><span class="line">FDSize:	128</span><br><span class="line">Groups:	0</span><br><span class="line">NStgid:	2406</span><br><span class="line">NSpid:	2406</span><br><span class="line">NSpgid:	2406</span><br><span class="line">NSsid:	2130</span><br><span class="line">VmPeak:	   54880 kB</span><br><span class="line">VmSize:	   54880 kB</span><br><span class="line">VmLck:	       0 kB</span><br><span class="line">VmPin:	       0 kB</span><br><span class="line">VmHWM:	   34872 kB</span><br><span class="line">VmRSS:	   10468 kB</span><br><span class="line">VmData:	   47896 kB</span><br><span class="line">VmStk:	     132 kB</span><br><span class="line">VmExe:	    2984 kB</span><br><span class="line">VmLib:	       0 kB</span><br><span class="line">VmPTE:	      68 kB</span><br><span class="line">VmPMD:	      20 kB</span><br><span class="line">VmSwap:	       0 kB</span><br><span class="line">HugetlbPages:	       0 kB</span><br><span class="line">Threads:	11</span><br><span class="line">SigQ:	0/31834</span><br><span class="line">SigPnd:	0000000000000000</span><br><span class="line">ShdPnd:	0000000000000000</span><br><span class="line">SigBlk:	0000000000000000</span><br><span class="line">SigIgn:	0000000000000000</span><br><span class="line">SigCgt:	fffffffe7fc1feff</span><br><span class="line">CapInh:	0000000000000000</span><br><span class="line">CapPrm:	0000003fffffffff</span><br><span class="line">CapEff:	0000003fffffffff</span><br><span class="line">CapBnd:	0000003fffffffff</span><br><span class="line">CapAmb:	0000000000000000</span><br><span class="line">Seccomp:	0</span><br><span class="line">Cpus_allowed:	f</span><br><span class="line">Cpus_allowed_list:	0-3</span><br><span class="line">Mems_allowed:	00000000,00000001</span><br><span class="line">Mems_allowed_list:	0</span><br><span class="line">voluntary_ctxt_switches:	2251028</span><br><span class="line">nonvoluntary_ctxt_switches:	18031</span><br></pre></td></tr></table></figure>
+<p>关于信号（signal）的信息：SigQ 分为两部分（例如 0/31834），前面表示当前处在队列中的信号（0），后面则表示队列一共可以存储多少信号（31834）；SigPnd 表示当前线程 pending 的信号，而ShdPnd 则表示整个进程 pending 的信号；SigBlk、SigIgn 和 SigCgt 分别表示对信号的处理是阻塞，忽略，还是捕获。（关于Unix信号的相关知识，可以参考 <a href="https://www.networkworld.com/article/3211296/linux/unix-dealing-with-signals.html" target="_blank" rel="noopener">Unix: Dealing with signals</a>）。</p>
+<h3 id="procpidsyscall">/proc/[pid]/syscall</h3>
+<p>/proc/[pid]/syscall 显示当前进程正在执行的系统调用。举例如下：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">$ cat /proc/2406/syscall</span><br><span class="line">202 0xab3730 0x0 0x0 0x0 0x0 0x0 0x7ffff7f6ec68 0x455bb3</span><br></pre></td></tr></table></figure>
+<p>第一个值是系统调用号（202代表poll），后面跟着 6 个系统调用的参数值（位于寄存器中），最后两个值依次是堆栈指针和指令计数器的值。如果当前进程虽然阻塞，但阻塞函数并不是系统调用，则系统调用号的值为 -1，后面只有堆栈指针和指令计数器的值。如果进程没有阻塞，则这个文件只有一个 running  的字符串。</p>
+<p>内核编译时打开了 CONFIG_HAVE_ARCH_TRACEHOOK 编译选项，才会生成这个文件。</p>
+<h3 id="procpidwchan">/proc/[pid]/wchan</h3>
+<p>/proc/[pid]/wchan 显示当进程 sleep 时，kernel 当前运行的函数。举例如下：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">$ cat /proc/2406/wchan</span><br><span class="line">futex_wait_queue_meadmin</span><br></pre></td></tr></table></figure>
+<h3 id="参考文档">参考文档</h3>
+<p><a href="http://www.google.com" target="_blank" rel="noopener">http://www.google.com</a><br>
+<a href="https://github.com/NanXiao/gnu-linux-proc-pid-intro" target="_blank" rel="noopener">https://github.com/NanXiao/gnu-linux-proc-pid-intro</a></p>
+
+                
+
+                <hr>
+                <!-- Pager -->
+                <ul class="pager">
+                    
+                        <li class="previous">
+                            <a href="/posts/10247.html" data-toggle="tooltip" data-placement="top" title="用 Python 快速实现 HTTP 和 FTP 服务器">&larr; Previous Post</a>
+                        </li>
+                    
+                    
+                        <li class="next">
+                            <a href="/posts/45536.html" data-toggle="tooltip" data-placement="top" title="Ubuntu 16.04 下部署 Graylog 2.x 日志服务器">Next Post &rarr;</a>
+                        </li>
+                    
+                </ul>
+
+                <!-- duoshuo Share start -->
+                
+                <!-- 多说 Share end-->
+
+                <!-- 多说评论框 start -->
+                
+                <!-- 多说评论框 end -->
+
+                <!-- disqus comment start -->
+                
+                <!-- disqus comment end -->
+
+                
+                    <!-- disqus 评论框 start -->
+                    <div class="comment">
+                        <div id="lv-container" data-id="city" data-uid="MTAyMC8yNzg2My80NDQw"></div>
+                    </div>
+                    <!-- disqus 评论框 end -->
+                
+
+            </div>
+            
+            <!-- Tabe of Content -->
+            <!-- Table of Contents -->
+
+  
+    <style>
+      span.toc-nav-number{
+        display: none
+      }
+    </style>
+  
+    
+      <aside id="sidebar">
+        <div id="toc" class="toc-article">
+        <strong class="toc-title">Contents</strong>
+        
+          <ol class="toc-nav"><li class="toc-nav-item toc-nav-level-3"><a class="toc-nav-link" href="#procpidauxv"><span class="toc-nav-number">1.</span> <span class="toc-nav-text">/proc/[pid]/auxv</span></a></li><li class="toc-nav-item toc-nav-level-3"><a class="toc-nav-link" href="#procpidcmdline"><span class="toc-nav-number">2.</span> <span class="toc-nav-text">/proc/[pid]/cmdline</span></a></li><li class="toc-nav-item toc-nav-level-3"><a class="toc-nav-link" href="#procpidcomm"><span class="toc-nav-number">3.</span> <span class="toc-nav-text">/proc/[pid]/comm</span></a></li><li class="toc-nav-item toc-nav-level-3"><a class="toc-nav-link" href="#procpidcwd"><span class="toc-nav-number">4.</span> <span class="toc-nav-text">/proc/[pid]/cwd</span></a></li><li class="toc-nav-item toc-nav-level-3"><a class="toc-nav-link" href="#procpidenviron"><span class="toc-nav-number">5.</span> <span class="toc-nav-text">/proc/[pid]/environ</span></a></li><li class="toc-nav-item toc-nav-level-3"><a class="toc-nav-link" href="#procpidexe"><span class="toc-nav-number">6.</span> <span class="toc-nav-text">/proc/[pid]/exe</span></a></li><li class="toc-nav-item toc-nav-level-3"><a class="toc-nav-link" href="#procpidfd"><span class="toc-nav-number">7.</span> <span class="toc-nav-text">/proc/[pid]/fd</span></a></li><li class="toc-nav-item toc-nav-level-3"><a class="toc-nav-link" href="#procpidlatency"><span class="toc-nav-number">8.</span> <span class="toc-nav-text">/proc/[pid]/latency</span></a></li><li class="toc-nav-item toc-nav-level-3"><a class="toc-nav-link" href="#procpidmaps"><span class="toc-nav-number">9.</span> <span class="toc-nav-text">/proc/[pid]/maps</span></a></li><li class="toc-nav-item toc-nav-level-3"><a class="toc-nav-link" href="#procpidroot"><span class="toc-nav-number">10.</span> <span class="toc-nav-text">/proc/[pid]/root</span></a></li><li class="toc-nav-item toc-nav-level-3"><a class="toc-nav-link" href="#procpidstack"><span class="toc-nav-number">11.</span> <span class="toc-nav-text">/proc/[pid]/stack</span></a></li><li class="toc-nav-item toc-nav-level-3"><a class="toc-nav-link" href="#procpidstatm"><span class="toc-nav-number">12.</span> <span class="toc-nav-text">/proc/[pid]/statm</span></a></li><li class="toc-nav-item toc-nav-level-3"><a class="toc-nav-link" href="#procpidstatus"><span class="toc-nav-number">13.</span> <span class="toc-nav-text">/proc/[pid]/status</span></a></li><li class="toc-nav-item toc-nav-level-3"><a class="toc-nav-link" href="#procpidsyscall"><span class="toc-nav-number">14.</span> <span class="toc-nav-text">/proc/[pid]/syscall</span></a></li><li class="toc-nav-item toc-nav-level-3"><a class="toc-nav-link" href="#procpidwchan"><span class="toc-nav-number">15.</span> <span class="toc-nav-text">/proc/[pid]/wchan</span></a></li><li class="toc-nav-item toc-nav-level-3"><a class="toc-nav-link" href="#参考文档"><span class="toc-nav-number">16.</span> <span class="toc-nav-text">参考文档</span></a></li></ol>
+        
+        </div>
+      </aside>
+    
+
+                
+            <!-- Sidebar Container -->
+            <div class="
+                col-lg-8 col-lg-offset-2
+                col-md-10 col-md-offset-1
+                sidebar-container">
+
+                <!-- Featured Tags -->
+                
+                <section>
+                    <!-- no hr -->
+                    <h5><a href="/tags/">FEATURED TAGS</a></h5>
+                    <div class="tags">
+                       
+                          <a class="tag" href="/tags/#Linux" title="Linux">Linux</a>
+                        
+                          <a class="tag" href="/tags/#技巧" title="技巧">技巧</a>
+                        
+                    </div>
+                </section>
+                
+
+                <!-- Friends Blog -->
+                
+                <hr>
+                <h5>FRIENDS</h5>
+                <ul class="list-inline">
+
+                    
+                        <li><a href="http://www.mike.org.cn/" target="_blank">简单.生活</a></li>
+                    
+                        <li><a href="http://shang.qq.com/wpa/qunwpa?idkey=ea4c43493c2269428ac6ef6141de4b6d78e5ab2d41380ca4099b833b62884ee9" target="_blank">技术交流群</a></li>
+                    
+                        <li><a href="" target="_blank"></a></li>
+                    
+                        <li><a href="" target="_blank"></a></li>
+                    
+                </ul>
+                
+            </div>
+        </div>
+    </div>
+</article>
+
+
+
+
+
+
+    <!-- 来必力City版公共JS代码 start (一个网页只需插入一次) -->
+    <script type="text/javascript">
+       (function(d, s) {
+           var j, e = d.getElementsByTagName(s)[0];
+    
+           if (typeof LivereTower === 'function') { return; }
+    
+           j = d.createElement(s);
+           j.src = 'https://cdn-city.livere.com/js/embed.dist.js';
+           j.async = true;
+    
+           e.parentNode.insertBefore(j, e);
+       })(document, 'script');
+    </script>
+    <noscript>为正常使用来必力评论功能请激活JavaScript</noscript>
+    <!-- 来必力City版 公共JS代码 end -->
+
+
+
+<!-- async load function -->
+<script>
+    function async(u, c) {
+      var d = document, t = 'script',
+          o = d.createElement(t),
+          s = d.getElementsByTagName(t)[0];
+      o.src = u;
+      if (c) { o.addEventListener('load', function (e) { c(null, e); }, false); }
+      s.parentNode.insertBefore(o, s);
+    }
+</script>
+<!-- anchor-js, Doc:http://bryanbraun.github.io/anchorjs/ -->
+<script>
+    async("https://cdn.bootcss.com/anchor-js/1.1.1/anchor.min.js",function(){
+        anchors.options = {
+          visible: 'hover',
+          placement: 'left',
+          icon: 'ℬ'
+        };
+        anchors.add().remove('.intro-header h1').remove('.subheading').remove('.sidebar-container h5');
+    })
+</script>
+<style>
+    /* place left on bigger screen */
+    @media all and (min-width: 800px) {
+        .anchorjs-link{
+            position: absolute;
+            left: -0.75em;
+            font-size: 1.1em;
+            margin-top : -0.1em;
+        }
+    }
+</style>
+
+
+
+    <!-- Footer -->
+    <!-- Footer -->
+<footer>
+    <div class="container">
+        <div class="row">
+            <div class="col-lg-8 col-lg-offset-2 col-md-10 col-md-offset-1">
+                <ul class="list-inline text-center">
+                
+                    <li>
+                        <a href="/atom.xml">
+                            <span class="fa-stack fa-lg">
+                                <i class="fa fa-circle fa-stack-2x"></i>
+                                <i class="fa fa-rss fa-stack-1x fa-inverse"></i>
+                            </span>
+                        </a>
+                    </li>
+                
+                
+                
+                    <li>
+                        <a target="_blank" href="https://www.zhihu.com/people/80imike">
+                            <span class="fa-stack fa-lg">
+                                <i class="fa fa-circle fa-stack-2x"></i>
+                                <i class="fa  fa-stack-1x fa-inverse">知</i>
+                            </span>
+                        </a>
+                    </li>
+                
+
+                
+                    <li>
+                        <a target="_blank" href="http://weibo.com/2093524665">
+                            <span class="fa-stack fa-lg">
+                                <i class="fa fa-circle fa-stack-2x"></i>
+                                <i class="fa fa-weibo fa-stack-1x fa-inverse"></i>
+                            </span>
+                        </a>
+                    </li>
+                
+
+                
+
+                
+
+                
+
+                </ul>
+                <p class="copyright text-muted">
+                    Copyright &copy; Mike 2018 | Hosted by <a href="https://pages.coding.me" style="font-weight: bold">Coding Pages</a>
+                    <br>
+                    Theme by <a href="http://beantech.org">BeanTech</a> 
+                    <span style="display: inline-block; margin: 0 5px;">
+                        <i class="fa fa-heart"></i>
+                    </span> 
+                    re-Ported by <a href="http://www.huweihuang.com">胡伟煌</a> | 
+                    <iframe
+                        style="margin-left: 2px; margin-bottom:-5px;"
+                        frameborder="0" scrolling="0" width="91px" height="20px"
+                        src="https://ghbtns.com/github-btn.html?user=huweihuang&repo=hexo-theme-huweihuang&type=star&count=true" >
+                    </iframe>
+                </p>
+            </div>
+        </div>
+    </div>
+</footer>
+
+<!-- jQuery -->
+<script src="/js/jquery.min.js"></script>
+
+<!-- Bootstrap Core JavaScript -->
+<script src="/js/bootstrap.min.js"></script>
+
+<!-- Custom Theme JavaScript -->
+<script src="/js/hux-blog.min.js"></script>
+
+
+<!-- async load function -->
+<script>
+    function async(u, c) {
+      var d = document, t = 'script',
+          o = d.createElement(t),
+          s = d.getElementsByTagName(t)[0];
+      o.src = u;
+      if (c) { o.addEventListener('load', function (e) { c(null, e); }, false); }
+      s.parentNode.insertBefore(o, s);
+    }
+</script>
+
+<!-- 
+     Because of the native support for backtick-style fenced code blocks 
+     right within the Markdown is landed in Github Pages, 
+     From V1.6, There is no need for Highlight.js, 
+     so Huxblog drops it officially.
+
+     - https://github.com/blog/2100-github-pages-now-faster-and-simpler-with-jekyll-3-0  
+     - https://help.github.com/articles/creating-and-highlighting-code-blocks/    
+-->
+<!--
+    <script>
+        async("http://cdn.bootcss.com/highlight.js/8.6/highlight.min.js", function(){
+            hljs.initHighlightingOnLoad();
+        })
+    </script>
+    <link href="http://cdn.bootcss.com/highlight.js/8.6/styles/github.min.css" rel="stylesheet">
+-->
+
+
+<!-- jquery.tagcloud.js -->
+<script>
+    // only load tagcloud.js in tag.html
+    if($('#tag_cloud').length !== 0){
+        async("https://www.hi-linux.com/js/jquery.tagcloud.js",function(){
+            $.fn.tagcloud.defaults = {
+                //size: {start: 1, end: 1, unit: 'em'},
+                color: {start: '#bbbbee', end: '#0085a1'},
+            };
+            $('#tag_cloud a').tagcloud();
+        })
+    }
+</script>
+
+<!--fastClick.js -->
+<script>
+    async("https://cdn.bootcss.com/fastclick/1.0.6/fastclick.min.js", function(){
+        var $nav = document.querySelector("nav");
+        if($nav) FastClick.attach($nav);
+    })
+</script>
+
+
+<!-- Google Analytics -->
+
+
+
+
+<!-- Baidu Tongji -->
+
+
+
+
+
+
+	<a id="rocket" href="#top" class=""></a>
+	<script type="text/javascript" src="/js/totop.js?v=1.0.0" async=""></script>
+    <script type="text/javascript" src="/js/toc.js?v=1.0.0" async=""></script>
+<!-- Image to hack wechat -->
+<img src="https://www.hi-linux.com/img/icon_wechat.png" width="0" height="0" />
+<!-- Migrate from head to bottom, no longer block render and still work -->
+
+</body>
+
+</html>

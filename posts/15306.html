@@ -1,0 +1,729 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<!-- Head tag -->
+<head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="google-site-verification" content="xBT4GhYoi5qRD5tr338pgPM5OWHHIDR6mNg1a3euekI" />
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="description" content="">
+    <meta name="keyword"  content="Linux,运维,Nginx,Zabbix,Centos,Ansible,MySQL,Python,Docker,ELK,Haproxy,Git,Nodejs,安全,技术">
+    <link rel="shortcut icon" href="/img/ironman-draw.png">
+    <!-- Place this tag in your head or just before your close body tag. -->
+    <script async defer src="https://buttons.github.io/buttons.js"></script>
+    <title>
+        
+          蓝绿发布、滚动发布、灰度发布等部署方案对比与总结 - 运维之美
+        
+    </title>
+
+    <link rel="canonical" href="https://www.hi-linux.com/posts/15306.html">
+
+    <!-- Bootstrap Core CSS -->
+    <link rel="stylesheet" href="/css/bootstrap.min.css">
+
+    <!-- Custom CSS --> 
+    <link rel="stylesheet" href="/css/beantech.min.css">
+    
+    <!-- Pygments Highlight CSS -->
+    <link rel="stylesheet" href="/css/highlight.css">
+
+    <link rel="stylesheet" href="/css/widget.css">
+
+    <link rel="stylesheet" href="/css/rocket.css">
+
+    <link rel="stylesheet" href="/css/signature.css">
+
+    <link rel="stylesheet" href="/css/toc.css">
+
+    <!-- Custom Fonts -->
+    <!-- <link href="https://maxcdn.bootstrapcdn.com/font-awesome/4.3.0/css/font-awesome.min.css" rel="stylesheet" type="text/css"> -->
+    <!-- Hux change font-awesome CDN to qiniu -->
+    <link href="https://cdn.staticfile.org/font-awesome/4.5.0/css/font-awesome.min.css" rel="stylesheet" type="text/css">
+
+
+    <!-- Hux Delete, sad but pending in China
+    <link href='http://fonts.googleapis.com/css?family=Lora:400,700,400italic,700italic' rel='stylesheet' type='text/css'>
+    <link href='http://fonts.googleapis.com/css?family=Open+Sans:300italic,400italic,600italic,700italic,800italic,400,300,600,700,800' rel='stylesheet' type='text/
+    css'>
+    -->
+
+
+    <!-- HTML5 Shim and Respond.js IE8 support of HTML5 elements and media queries -->
+    <!-- WARNING: Respond.js doesn't work if you view the page via file:// -->
+    <!--[if lt IE 9]>
+        <script src="https://oss.maxcdn.com/libs/html5shiv/3.7.0/html5shiv.js"></script>
+        <script src="https://oss.maxcdn.com/libs/respond.js/1.4.2/respond.min.js"></script>
+    <![endif]-->
+
+    <!-- ga & ba script hoook -->
+    <script></script>
+</head>
+
+
+<!-- hack iOS CSS :active style -->
+<body ontouchstart="">
+	<!-- Modified by Yu-Hsuan Yen -->
+<!-- Post Header -->
+<style type="text/css">
+    header.intro-header{
+        
+            background-image: url('/img/header_img/article.jpg')
+            /*post*/
+        
+    }
+    
+</style>
+
+<header class="intro-header" >
+    <!-- Signature -->
+    <div id="signature">
+        <div class="container">
+            <div class="row">
+                <div class="col-lg-8 col-lg-offset-2 col-md-10 col-md-offset-1">
+                
+                    <div class="post-heading">
+                        <div class="tags">
+                            
+                              <a class="tag" href="/tags/#Linux" title="Linux">Linux</a>
+                            
+                              <a class="tag" href="/tags/#DevOps" title="DevOps">DevOps</a>
+                            
+                        </div>
+                        <h1>蓝绿发布、滚动发布、灰度发布等部署方案对比与总结</h1>
+                        <h2 class="subheading"></h2>
+                        <span class="meta">
+                            Posted by Mike on
+                            2018-04-03
+                        </span>
+                    </div>
+                
+
+
+                </div>
+            </div>
+        </div>
+    </div>
+</header>
+
+	
+    <!-- Navigation -->
+<nav class="navbar navbar-default navbar-custom navbar-fixed-top">
+    <div class="container-fluid">
+        <!-- Brand and toggle get grouped for better mobile display -->
+        <div class="navbar-header page-scroll">
+            <button type="button" class="navbar-toggle">
+                <span class="sr-only">Toggle navigation</span>
+                <span class="icon-bar"></span>
+                <span class="icon-bar"></span>
+                <span class="icon-bar"></span>
+            </button>
+            <a class="navbar-brand" href="/">运维之美</a>
+        </div>
+
+        <!-- Collect the nav links, forms, and other content for toggling -->
+        <!-- Known Issue, found by Hux:
+            <nav>'s height woule be hold on by its content.
+            so, when navbar scale out, the <nav> will cover tags.
+            also mask any touch event of tags, unfortunately.
+        -->
+        <div id="huxblog_navbar">
+            <div class="navbar-collapse">
+                <ul class="nav navbar-nav navbar-right">
+                    <li>
+                        <a href="/">Home</a>
+                    </li>
+
+                    
+
+                        
+                    
+
+                        
+                    
+
+                        
+                        <li>
+                            <a href="/about/">About</a>
+                        </li>
+                        
+                    
+
+                        
+                        <li>
+                            <a href="/archive/">Archives</a>
+                        </li>
+                        
+                    
+
+                        
+                        <li>
+                            <a href="/tags/">Tags</a>
+                        </li>
+                        
+                    
+                    
+                </ul>
+            </div>
+        </div>
+        <!-- /.navbar-collapse -->
+    </div>
+    <!-- /.container -->
+</nav>
+<script>
+    // Drop Bootstarp low-performance Navbar
+    // Use customize navbar with high-quality material design animation
+    // in high-perf jank-free CSS3 implementation
+    var $body   = document.body;
+    var $toggle = document.querySelector('.navbar-toggle');
+    var $navbar = document.querySelector('#huxblog_navbar');
+    var $collapse = document.querySelector('.navbar-collapse');
+
+    $toggle.addEventListener('click', handleMagic)
+    function handleMagic(e){
+        if ($navbar.className.indexOf('in') > 0) {
+        // CLOSE
+            $navbar.className = " ";
+            // wait until animation end.
+            setTimeout(function(){
+                // prevent frequently toggle
+                if($navbar.className.indexOf('in') < 0) {
+                    $collapse.style.height = "0px"
+                }
+            },400)
+        }else{
+        // OPEN
+            $collapse.style.height = "auto"
+            $navbar.className += " in";
+        }
+    }
+</script>
+
+
+    <!-- Main Content -->
+    <!-- Modify by Yu-Hsuan Yen -->
+
+<!-- Post Content -->
+<article>
+    <div class="container">
+        <div class="row">
+
+            <!-- Post Container -->
+            <div class="
+                col-lg-8 col-lg-offset-2
+                col-md-10 col-md-offset-1
+                post-container">
+
+                <p>在项目迭代的过程中，不可避免需要进行项目上线。上线对应着部署或者重新部署，部署对应着修改，修改则意味着风险。目前有很多用于部署的技术，有的简单，有的复杂，有的得停机，有的不需要停机即可完成部署。本文将对目前常用的部署方案做一个简单的总结。</p>
+<h3 id="蓝绿发布bluegreen-deployment">蓝绿发布（Blue/Green Deployment）</h3>
+<ol>
+<li>定义</li>
+</ol>
+<p>蓝绿部署是不停老版本，部署新版本然后进行测试。确认OK后将流量切到新版本，然后老版本同时也升级到新版本。</p>
+<ol start="2">
+<li>特点</li>
+</ol>
+<p>蓝绿部署无需停机，并且风险较小。</p>
+<a id="more"></a>
+<ol start="3">
+<li>部署过程</li>
+</ol>
+<ul>
+<li>部署版本 1 的应用（初始的状态）</li>
+</ul>
+<p>所有外部请求的流量都打到这个版本上。</p>
+<p><img src="https://www.hi-linux.com/img/linux/softdeploy1.png" alt=""></p>
+<ul>
+<li>部署版本 2 的应用</li>
+</ul>
+<p>版本 2 的代码与版本 1 不同(新功能、Bug修复等)。</p>
+<ul>
+<li>将流量从版本 1 切换到版本 2。</li>
+</ul>
+<p><img src="https://www.hi-linux.com/img/linux/softdeploy2.png" alt=""></p>
+<ul>
+<li>如版本 2 测试正常，就删除版本 1 正在使用的资源（例如实例），从此正式用版本 2。</li>
+</ul>
+<ol start="4">
+<li>小结</li>
+</ol>
+<p>从过程不难发现，在部署的过程中，我们的应用始终在线。并且新版本上线的过程中，并没有修改老版本的任何内容，在部署期间，老版本的状态不受影响，这样风险很小。并且只要老版本的资源不被删除，理论上，我们可以在任何时间回滚到老版本。</p>
+<ol start="5">
+<li>蓝绿发布的注意事项</li>
+</ol>
+<p>当你切换到蓝色环境时，需要妥当处理未完成的业务和新的业务。如果你的数据库后端无法处理，会是一个比较麻烦的问题。</p>
+<ul>
+<li>可能会出现需要同时处理微服务架构应用和传统架构应用的情况，如果在蓝绿部署中协调不好这两者，还是有可能会导致服务停止。</li>
+<li>需要提前考虑数据库与应用部署同步迁移/回滚的问题。</li>
+<li>蓝绿部署需要有基础设施支持。</li>
+<li>在非隔离基础架构（ VM 、 Docker 等）上执行蓝绿部署，蓝色环境和绿色环境有被摧毁的风险。</li>
+</ul>
+<ol start="6">
+<li>优势和不足</li>
+</ol>
+<ul>
+<li>优势</li>
+</ul>
+<p>升级切换和回退速度非常快。</p>
+<ul>
+<li>不足</li>
+</ul>
+<p>切换是全量的，如果 V2 版本有问题，则对用户体验有直接影响。<br>
+需要两倍机器资源。</p>
+<ol start="7">
+<li>适用场合</li>
+</ol>
+<ul>
+<li>对用户体验有一定容忍度的场景。</li>
+<li>机器资源有富余或者可以按需分配（AWS 云，或自建容器云）。</li>
+</ul>
+<h3 id="灰度发布">灰度发布</h3>
+<ol>
+<li>定义</li>
+</ol>
+<p>灰度发布是指在黑与白之间，能够平滑过渡的一种发布方式。AB Test 就是一种灰度发布方式，让一部分用户继续用 A，一部分用户开始用 B，如果用户对 B 没有什么反对意见，那么逐步扩大范围，把所有用户都迁移到 B 上面来。灰度发布可以保证整体系统的稳定，在初始灰度的时候就可以发现、调整问题，以保证其影响度。</p>
+<ul>
+<li>灰度发布结构图</li>
+</ul>
+<p><img src="https://www.hi-linux.com/img/linux/softdeploy3.png" alt=""></p>
+<ol start="2">
+<li>A/B Testing</li>
+</ol>
+<p>A/B 测试是用来测试应用功能表现的方法，例如可用性、受欢迎程度、可见性等等。 A/B 测试通常用在应用的前端上，不过当然需要后端来支持。</p>
+<p><img src="https://www.hi-linux.com/img/linux/softdeploy4.png" alt=""></p>
+<p>A/B 测试与蓝绿部署的区别在于， A/B 测试目的在于通过科学的实验设计、采样样本代表性、流量分割与小流量测试等方式来获得具有代表性的实验结论，并确信该结论在推广到全部流量可信；蓝绿部署的目的是安全稳定地发布新版本应用，并在必要时回滚。</p>
+<ol start="3">
+<li>金丝雀发布</li>
+</ol>
+<p>我们平常所说的金丝雀部署也是灰度发布的一种方式，在原有版本可用的情况下，同时部署一个新版本应用作为「金丝雀」服务器来测试新版本的性能和表现，以保障整体系统稳定的情况下，尽早发现、调整问题。</p>
+<blockquote>
+<p>矿井中的金丝雀：17 世纪，英国矿井工人发现，金丝雀对瓦斯这种气体十分敏感。空气中哪怕有极其微量的瓦斯，金丝雀也会停止歌唱；当瓦斯含量超过一定限度时，虽然鲁钝的人类毫无察觉，金丝雀却早已毒发身亡。当时在采矿设备相对简陋的条件下，工人们每次下井都会带上一只金丝雀作为瓦斯检测指标，以便在危险状况下紧急撤离。</p>
+</blockquote>
+<p>灰度发布／金丝雀发布由以下几个步骤组成：</p>
+<ul>
+<li>准备好部署各个阶段的工件，包括：构建工件，测试脚本，配置文件和部署清单文件。</li>
+<li>从负载均衡列表中移除掉「金丝雀」服务器。</li>
+<li>升级「金丝雀」应用（排掉原有流量并进行部署）。</li>
+<li>对应用进行自动化测试。</li>
+<li>将「金丝雀」服务器重新添加到负载均衡列表中（连通性和健康检查）。</li>
+<li>如果「金丝雀」在线使用测试成功，升级剩余的其他服务器（否则就回滚）。</li>
+</ul>
+<p>除此之外灰度发布还可以设置路由权重，动态调整不同的权重来进行新老版本的验证。</p>
+<ol start="4">
+<li>优势和不足</li>
+</ol>
+<ul>
+<li>优势</li>
+</ul>
+<p>用户体验影响小，灰度发布过程出现问题只影响少量用户。</p>
+<ul>
+<li>不足</li>
+</ul>
+<p>发布自动化程度不够，发布期间可引发服务中断。</p>
+<h3 id="滚动发布rolling-update-deployment">滚动发布（Rolling Update Deployment）</h3>
+<p>在金丝雀发布基础上的进一步优化改进，是一种自动化程度较高的发布方式，用户体验比较平滑，是目前成熟型技术组织所采用的主流发布方式。</p>
+<ol>
+<li>定义</li>
+</ol>
+<p>滚动发布：一般是取出一个或者多个服务器停止服务，执行更新，并重新将其投入使用。周而复始，直到集群中所有的实例都更新成新版本。</p>
+<ol start="2">
+<li>特点</li>
+</ol>
+<p>这种部署方式相对于蓝绿部署，更加节约资源——它不需要运行两个集群、两倍的实例数。我们可以部分部署，例如每次只取出集群的 20% 进行升级。</p>
+<ol start="3">
+<li>部署过程</li>
+</ol>
+<ul>
+<li>滚动式发布一般先发 1 台，或者一个小比例，如 2% 服务器，主要做流量验证用，类似金丝雀 (Canary) 测试。</li>
+<li>滚动式发布需要比较复杂的发布工具和智能 LB，支持平滑的版本替换和流量拉入拉出。</li>
+<li>每次发布时，先将老版本 V1 流量从 LB 上摘除，然后清除老版本，发新版本 V2，再将 LB 流量接入新版本。这样可以尽量保证用户体验不受影响。</li>
+<li>一次滚动式发布一般由若干个发布批次组成，每批的数量一般是可以配置的（可以通过发布模板定义）。例如第一批 1 台（金丝雀），第二批 10%，第三批 50%，第四批 100%。每个批次之间留观察间隔，通过手工验证或监控反馈确保没有问题再发下一批次，所以总体上滚动式发布过程是比较缓慢的 (其中金丝雀的时间一般会比后续批次更长，比如金丝雀 10 分钟，后续间隔 2 分钟)。</li>
+<li>回退是发布的逆过程，将新版本流量从 LB 上摘除，清除新版本，发老版本，再将 LB 流量接入老版本。和发布过程一样，回退过程一般也比较慢的。</li>
+</ul>
+<ol start="4">
+<li>优势和不足</li>
+</ol>
+<ul>
+<li>优势</li>
+</ul>
+<p>用户体验影响小，体验较平滑。</p>
+<ul>
+<li>不足</li>
+</ul>
+<p>发布和回退时间比较缓慢。<br>
+发布工具比较复杂，LB 需要平滑的流量摘除和拉入能力。</p>
+<h3 id="其它发布方式">其它发布方式</h3>
+<p>上述都是偏传统的发布方式，能覆盖大部分应用发布场景。针对一些关键新功能的上线发布，或者一些特定的场景，还有一些特殊的发布方式。</p>
+<h4 id="功能开关发布">功能开关发布</h4>
+<p>利用代码中的功能开关（Feature Flag/Toggle/Switch）来控制发布逻辑，一般不需要复杂的发布工具和智能 LB 配合，是一种相对比较低成本和简单的发布方式。这种方式也是支持现代 DevOps 理念，研发人员可以灵活定制和自助完成的发布方式。功能开关的原理如下图所示：</p>
+<p><img src="https://www.hi-linux.com/img/linux/softdeploy5.png" alt=""></p>
+<ol>
+<li>部署过程</li>
+</ol>
+<ul>
+<li>功能开关发布需要一个配置中心或者开关中心这样的服务支持，例如携程的 Apollo 配置中心或者开源的 FF4J，这些都支持开关发布。业界还有专门的功能开关 SaaS 服务，例如 LaunchDarkly。通过配置中心，运维或研发人员可以在运行期动态配置功能开关的值。当然，功能开关发布只是配置中心的一种使用场景，配置中心还能支持其它很多动态配置场景。</li>
+<li>功能开关服务一般提供客户端 SDK，方便开发人员集成。在运行期，客户端 SDK 会同步最新的开关值，技术实现有推方式 (push)，也有拉方式 (pull)，或者推拉结合方式。</li>
+<li>新功能（V2 new feature）和老功能（V1 old feature）住在同一套代码中，新功能隐藏在开关后面，如果开关没有打开，则走老代码逻辑，如果开关打开，则走新代码逻辑。技术实现上可以理解为一个简单的 if/else 逻辑。</li>
+<li>应用上线后，开关先不打开，然后运维或研发人员通过开关中心打开新功能，经过流量验证新功能没有问题，则发布完成；如果有问题，则随时可以通过开关中心切回老功能逻辑。</li>
+</ul>
+<ol start="2">
+<li>优势和不足</li>
+</ol>
+<ul>
+<li>优势</li>
+</ul>
+<p>升级切换和回退速度非常快。<br>
+相对于复杂的发布工具，实施比较简单，成本相对低廉。<br>
+研发能够灵活定制发布逻辑，支持 DevOps 自助发布。</p>
+<ul>
+<li>不足</li>
+</ul>
+<p>切换是全量的，如果 V2 版本有问题，则对用户体验有直接影响。<br>
+对代码有侵入，代码逻辑会变复杂，需要定期清理老版本逻辑，维护成本变高。</p>
+<h4 id="影子测试">影子测试</h4>
+<p>对于一些涉及核心业务的遗留系统的升级改造，为了确保万无一失，有一种称为影子测试的大招，采用比较复杂的流量复制、回放和比对技术实现。下面是影子测试的一个样例架构图：</p>
+<p><img src="https://www.hi-linux.com/img/linux/softdeploy6.png" alt=""></p>
+<ol>
+<li>部署过程</li>
+</ol>
+<p>影子测试一般适用于遗留系统的等价重构迁移，例如 .net 转 Java，或者 SQLServer 数据库升级为 MySQL 数据库，且外部依赖不能太多，否则需要开发很多 mock，测试部署成本会很高，且比对测试更加复杂和不稳定。</p>
+<ul>
+<li>目标实现老的 legacy 服务迁移升级到新的 experimental 服务。</li>
+<li>测试开始前，需要在测试环境部署一份 legacy 服务和 experimental 服务，同时将生产数据库复制两份到测试环境。同时需要将生产请求日志收集起来，一般可以通过 kafka 队列收集，然后通过类似 goreplay 这样的工具，消费 kafka 里头的请求日志，复制回放，将请求分发到 legacy 服务和 experimental 服务，收到响应后进行比对，如果所有响应比对成功，则可以认为 legacy 服务和 experimental 服务在功能逻辑上是等价的；如果有响应比对失败，则认为两者在功能逻辑上不等价，需要修复 experimental 并重新进行影子测试，直到全部比对成功。根据系统复杂度和关键性不同，比对测试时间短的可能需要几周，长的可达半年之久。</li>
+<li>影子测试因为旁路在独立测试环境中进行，可以对生产流量完全无影响。</li>
+</ul>
+<ol start="2">
+<li>优势和不足</li>
+</ol>
+<ul>
+<li>优势</li>
+</ul>
+<p>对生产用户体验完全无影响。<br>
+可以使用生产真实流量进行测试（复制比对）。</p>
+<ul>
+<li>不足</li>
+</ul>
+<p>搭建复杂度很高，技术门槛高，数据库的导出复制是难点。<br>
+外部依赖不能太多，否则测试部署成本很高，且比对测试更加复杂和不稳定。</p>
+<h3 id="参考文章">参考文章</h3>
+<p><a href="https://www.google.com" target="_blank" rel="noopener">https://www.google.com</a><br>
+<a href="http://t.cn/RHV3riW" target="_blank" rel="noopener">http://t.cn/RHV3riW</a><br>
+<a href="http://t.cn/RnD147P" target="_blank" rel="noopener">http://t.cn/RnD147P</a></p>
+
+                
+
+                <hr>
+                <!-- Pager -->
+                <ul class="pager">
+                    
+                        <li class="previous">
+                            <a href="/posts/32089.html" data-toggle="tooltip" data-placement="top" title="Cloudflare 推出更快、更隐秘的 DNS 服务「1.1.1.1」">&larr; Previous Post</a>
+                        </li>
+                    
+                    
+                        <li class="next">
+                            <a href="/posts/6591.html" data-toggle="tooltip" data-placement="top" title="Nginx 宣布从 1.13.10 开始正式支持 gRPC">Next Post &rarr;</a>
+                        </li>
+                    
+                </ul>
+
+                <!-- duoshuo Share start -->
+                
+                <!-- 多说 Share end-->
+
+                <!-- 多说评论框 start -->
+                
+                <!-- 多说评论框 end -->
+
+                <!-- disqus comment start -->
+                
+                <!-- disqus comment end -->
+
+                
+                    <!-- disqus 评论框 start -->
+                    <div class="comment">
+                        <div id="lv-container" data-id="city" data-uid="MTAyMC8yNzg2My80NDQw"></div>
+                    </div>
+                    <!-- disqus 评论框 end -->
+                
+
+            </div>
+            
+            <!-- Tabe of Content -->
+            <!-- Table of Contents -->
+
+  
+    <style>
+      span.toc-nav-number{
+        display: none
+      }
+    </style>
+  
+    
+      <aside id="sidebar">
+        <div id="toc" class="toc-article">
+        <strong class="toc-title">Contents</strong>
+        
+          <ol class="toc-nav"><li class="toc-nav-item toc-nav-level-3"><a class="toc-nav-link" href="#蓝绿发布bluegreen-deployment"><span class="toc-nav-number">1.</span> <span class="toc-nav-text">蓝绿发布（Blue/Green Deployment）</span></a></li><li class="toc-nav-item toc-nav-level-3"><a class="toc-nav-link" href="#灰度发布"><span class="toc-nav-number">2.</span> <span class="toc-nav-text">灰度发布</span></a></li><li class="toc-nav-item toc-nav-level-3"><a class="toc-nav-link" href="#滚动发布rolling-update-deployment"><span class="toc-nav-number">3.</span> <span class="toc-nav-text">滚动发布（Rolling Update Deployment）</span></a></li><li class="toc-nav-item toc-nav-level-3"><a class="toc-nav-link" href="#其它发布方式"><span class="toc-nav-number">4.</span> <span class="toc-nav-text">其它发布方式</span></a><ol class="toc-nav-child"><li class="toc-nav-item toc-nav-level-4"><a class="toc-nav-link" href="#功能开关发布"><span class="toc-nav-number">4.1.</span> <span class="toc-nav-text">功能开关发布</span></a></li><li class="toc-nav-item toc-nav-level-4"><a class="toc-nav-link" href="#影子测试"><span class="toc-nav-number">4.2.</span> <span class="toc-nav-text">影子测试</span></a></li></ol></li><li class="toc-nav-item toc-nav-level-3"><a class="toc-nav-link" href="#参考文章"><span class="toc-nav-number">5.</span> <span class="toc-nav-text">参考文章</span></a></li></ol>
+        
+        </div>
+      </aside>
+    
+
+                
+            <!-- Sidebar Container -->
+            <div class="
+                col-lg-8 col-lg-offset-2
+                col-md-10 col-md-offset-1
+                sidebar-container">
+
+                <!-- Featured Tags -->
+                
+                <section>
+                    <!-- no hr -->
+                    <h5><a href="/tags/">FEATURED TAGS</a></h5>
+                    <div class="tags">
+                       
+                          <a class="tag" href="/tags/#Linux" title="Linux">Linux</a>
+                        
+                          <a class="tag" href="/tags/#DevOps" title="DevOps">DevOps</a>
+                        
+                    </div>
+                </section>
+                
+
+                <!-- Friends Blog -->
+                
+                <hr>
+                <h5>FRIENDS</h5>
+                <ul class="list-inline">
+
+                    
+                        <li><a href="http://www.mike.org.cn/" target="_blank">简单.生活</a></li>
+                    
+                        <li><a href="http://shang.qq.com/wpa/qunwpa?idkey=ea4c43493c2269428ac6ef6141de4b6d78e5ab2d41380ca4099b833b62884ee9" target="_blank">技术交流群</a></li>
+                    
+                        <li><a href="" target="_blank"></a></li>
+                    
+                        <li><a href="" target="_blank"></a></li>
+                    
+                </ul>
+                
+            </div>
+        </div>
+    </div>
+</article>
+
+
+
+
+
+
+    <!-- 来必力City版公共JS代码 start (一个网页只需插入一次) -->
+    <script type="text/javascript">
+       (function(d, s) {
+           var j, e = d.getElementsByTagName(s)[0];
+    
+           if (typeof LivereTower === 'function') { return; }
+    
+           j = d.createElement(s);
+           j.src = 'https://cdn-city.livere.com/js/embed.dist.js';
+           j.async = true;
+    
+           e.parentNode.insertBefore(j, e);
+       })(document, 'script');
+    </script>
+    <noscript>为正常使用来必力评论功能请激活JavaScript</noscript>
+    <!-- 来必力City版 公共JS代码 end -->
+
+
+
+<!-- async load function -->
+<script>
+    function async(u, c) {
+      var d = document, t = 'script',
+          o = d.createElement(t),
+          s = d.getElementsByTagName(t)[0];
+      o.src = u;
+      if (c) { o.addEventListener('load', function (e) { c(null, e); }, false); }
+      s.parentNode.insertBefore(o, s);
+    }
+</script>
+<!-- anchor-js, Doc:http://bryanbraun.github.io/anchorjs/ -->
+<script>
+    async("https://cdn.bootcss.com/anchor-js/1.1.1/anchor.min.js",function(){
+        anchors.options = {
+          visible: 'hover',
+          placement: 'left',
+          icon: 'ℬ'
+        };
+        anchors.add().remove('.intro-header h1').remove('.subheading').remove('.sidebar-container h5');
+    })
+</script>
+<style>
+    /* place left on bigger screen */
+    @media all and (min-width: 800px) {
+        .anchorjs-link{
+            position: absolute;
+            left: -0.75em;
+            font-size: 1.1em;
+            margin-top : -0.1em;
+        }
+    }
+</style>
+
+
+
+    <!-- Footer -->
+    <!-- Footer -->
+<footer>
+    <div class="container">
+        <div class="row">
+            <div class="col-lg-8 col-lg-offset-2 col-md-10 col-md-offset-1">
+                <ul class="list-inline text-center">
+                
+                    <li>
+                        <a href="/atom.xml">
+                            <span class="fa-stack fa-lg">
+                                <i class="fa fa-circle fa-stack-2x"></i>
+                                <i class="fa fa-rss fa-stack-1x fa-inverse"></i>
+                            </span>
+                        </a>
+                    </li>
+                
+                
+                
+                    <li>
+                        <a target="_blank" href="https://www.zhihu.com/people/80imike">
+                            <span class="fa-stack fa-lg">
+                                <i class="fa fa-circle fa-stack-2x"></i>
+                                <i class="fa  fa-stack-1x fa-inverse">知</i>
+                            </span>
+                        </a>
+                    </li>
+                
+
+                
+                    <li>
+                        <a target="_blank" href="http://weibo.com/2093524665">
+                            <span class="fa-stack fa-lg">
+                                <i class="fa fa-circle fa-stack-2x"></i>
+                                <i class="fa fa-weibo fa-stack-1x fa-inverse"></i>
+                            </span>
+                        </a>
+                    </li>
+                
+
+                
+
+                
+
+                
+
+                </ul>
+                <p class="copyright text-muted">
+                    Copyright &copy; Mike 2018 | Hosted by <a href="https://pages.coding.me" style="font-weight: bold">Coding Pages</a>
+                    <br>
+                    Theme by <a href="http://beantech.org">BeanTech</a> 
+                    <span style="display: inline-block; margin: 0 5px;">
+                        <i class="fa fa-heart"></i>
+                    </span> 
+                    re-Ported by <a href="http://www.huweihuang.com">胡伟煌</a> | 
+                    <iframe
+                        style="margin-left: 2px; margin-bottom:-5px;"
+                        frameborder="0" scrolling="0" width="91px" height="20px"
+                        src="https://ghbtns.com/github-btn.html?user=huweihuang&repo=hexo-theme-huweihuang&type=star&count=true" >
+                    </iframe>
+                </p>
+            </div>
+        </div>
+    </div>
+</footer>
+
+<!-- jQuery -->
+<script src="/js/jquery.min.js"></script>
+
+<!-- Bootstrap Core JavaScript -->
+<script src="/js/bootstrap.min.js"></script>
+
+<!-- Custom Theme JavaScript -->
+<script src="/js/hux-blog.min.js"></script>
+
+
+<!-- async load function -->
+<script>
+    function async(u, c) {
+      var d = document, t = 'script',
+          o = d.createElement(t),
+          s = d.getElementsByTagName(t)[0];
+      o.src = u;
+      if (c) { o.addEventListener('load', function (e) { c(null, e); }, false); }
+      s.parentNode.insertBefore(o, s);
+    }
+</script>
+
+<!-- 
+     Because of the native support for backtick-style fenced code blocks 
+     right within the Markdown is landed in Github Pages, 
+     From V1.6, There is no need for Highlight.js, 
+     so Huxblog drops it officially.
+
+     - https://github.com/blog/2100-github-pages-now-faster-and-simpler-with-jekyll-3-0  
+     - https://help.github.com/articles/creating-and-highlighting-code-blocks/    
+-->
+<!--
+    <script>
+        async("http://cdn.bootcss.com/highlight.js/8.6/highlight.min.js", function(){
+            hljs.initHighlightingOnLoad();
+        })
+    </script>
+    <link href="http://cdn.bootcss.com/highlight.js/8.6/styles/github.min.css" rel="stylesheet">
+-->
+
+
+<!-- jquery.tagcloud.js -->
+<script>
+    // only load tagcloud.js in tag.html
+    if($('#tag_cloud').length !== 0){
+        async("https://www.hi-linux.com/js/jquery.tagcloud.js",function(){
+            $.fn.tagcloud.defaults = {
+                //size: {start: 1, end: 1, unit: 'em'},
+                color: {start: '#bbbbee', end: '#0085a1'},
+            };
+            $('#tag_cloud a').tagcloud();
+        })
+    }
+</script>
+
+<!--fastClick.js -->
+<script>
+    async("https://cdn.bootcss.com/fastclick/1.0.6/fastclick.min.js", function(){
+        var $nav = document.querySelector("nav");
+        if($nav) FastClick.attach($nav);
+    })
+</script>
+
+
+<!-- Google Analytics -->
+
+
+
+
+<!-- Baidu Tongji -->
+
+
+
+
+
+
+	<a id="rocket" href="#top" class=""></a>
+	<script type="text/javascript" src="/js/totop.js?v=1.0.0" async=""></script>
+    <script type="text/javascript" src="/js/toc.js?v=1.0.0" async=""></script>
+<!-- Image to hack wechat -->
+<img src="https://www.hi-linux.com/img/icon_wechat.png" width="0" height="0" />
+<!-- Migrate from head to bottom, no longer block render and still work -->
+
+</body>
+
+</html>

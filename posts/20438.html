@@ -1,0 +1,678 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<!-- Head tag -->
+<head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="google-site-verification" content="xBT4GhYoi5qRD5tr338pgPM5OWHHIDR6mNg1a3euekI" />
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="description" content="">
+    <meta name="keyword"  content="Linux,运维,Nginx,Zabbix,Centos,Ansible,MySQL,Python,Docker,ELK,Haproxy,Git,Nodejs,安全,技术">
+    <link rel="shortcut icon" href="/img/ironman-draw.png">
+    <!-- Place this tag in your head or just before your close body tag. -->
+    <script async defer src="https://buttons.github.io/buttons.js"></script>
+    <title>
+        
+          Rancher 使用入门 - 运维之美
+        
+    </title>
+
+    <link rel="canonical" href="https://www.hi-linux.com/posts/20438.html">
+
+    <!-- Bootstrap Core CSS -->
+    <link rel="stylesheet" href="/css/bootstrap.min.css">
+
+    <!-- Custom CSS --> 
+    <link rel="stylesheet" href="/css/beantech.min.css">
+    
+    <!-- Pygments Highlight CSS -->
+    <link rel="stylesheet" href="/css/highlight.css">
+
+    <link rel="stylesheet" href="/css/widget.css">
+
+    <link rel="stylesheet" href="/css/rocket.css">
+
+    <link rel="stylesheet" href="/css/signature.css">
+
+    <link rel="stylesheet" href="/css/toc.css">
+
+    <!-- Custom Fonts -->
+    <!-- <link href="https://maxcdn.bootstrapcdn.com/font-awesome/4.3.0/css/font-awesome.min.css" rel="stylesheet" type="text/css"> -->
+    <!-- Hux change font-awesome CDN to qiniu -->
+    <link href="https://cdn.staticfile.org/font-awesome/4.5.0/css/font-awesome.min.css" rel="stylesheet" type="text/css">
+
+
+    <!-- Hux Delete, sad but pending in China
+    <link href='http://fonts.googleapis.com/css?family=Lora:400,700,400italic,700italic' rel='stylesheet' type='text/css'>
+    <link href='http://fonts.googleapis.com/css?family=Open+Sans:300italic,400italic,600italic,700italic,800italic,400,300,600,700,800' rel='stylesheet' type='text/
+    css'>
+    -->
+
+
+    <!-- HTML5 Shim and Respond.js IE8 support of HTML5 elements and media queries -->
+    <!-- WARNING: Respond.js doesn't work if you view the page via file:// -->
+    <!--[if lt IE 9]>
+        <script src="https://oss.maxcdn.com/libs/html5shiv/3.7.0/html5shiv.js"></script>
+        <script src="https://oss.maxcdn.com/libs/respond.js/1.4.2/respond.min.js"></script>
+    <![endif]-->
+
+    <!-- ga & ba script hoook -->
+    <script></script>
+</head>
+
+
+<!-- hack iOS CSS :active style -->
+<body ontouchstart="">
+	<!-- Modified by Yu-Hsuan Yen -->
+<!-- Post Header -->
+<style type="text/css">
+    header.intro-header{
+        
+            background-image: url('/img/header_img/article.jpg')
+            /*post*/
+        
+    }
+    
+</style>
+
+<header class="intro-header" >
+    <!-- Signature -->
+    <div id="signature">
+        <div class="container">
+            <div class="row">
+                <div class="col-lg-8 col-lg-offset-2 col-md-10 col-md-offset-1">
+                
+                    <div class="post-heading">
+                        <div class="tags">
+                            
+                              <a class="tag" href="/tags/#Linux" title="Linux">Linux</a>
+                            
+                              <a class="tag" href="/tags/#Docker" title="Docker">Docker</a>
+                            
+                        </div>
+                        <h1>Rancher 使用入门</h1>
+                        <h2 class="subheading"></h2>
+                        <span class="meta">
+                            Posted by Mike on
+                            2017-03-09
+                        </span>
+                    </div>
+                
+
+
+                </div>
+            </div>
+        </div>
+    </div>
+</header>
+
+	
+    <!-- Navigation -->
+<nav class="navbar navbar-default navbar-custom navbar-fixed-top">
+    <div class="container-fluid">
+        <!-- Brand and toggle get grouped for better mobile display -->
+        <div class="navbar-header page-scroll">
+            <button type="button" class="navbar-toggle">
+                <span class="sr-only">Toggle navigation</span>
+                <span class="icon-bar"></span>
+                <span class="icon-bar"></span>
+                <span class="icon-bar"></span>
+            </button>
+            <a class="navbar-brand" href="/">运维之美</a>
+        </div>
+
+        <!-- Collect the nav links, forms, and other content for toggling -->
+        <!-- Known Issue, found by Hux:
+            <nav>'s height woule be hold on by its content.
+            so, when navbar scale out, the <nav> will cover tags.
+            also mask any touch event of tags, unfortunately.
+        -->
+        <div id="huxblog_navbar">
+            <div class="navbar-collapse">
+                <ul class="nav navbar-nav navbar-right">
+                    <li>
+                        <a href="/">Home</a>
+                    </li>
+
+                    
+
+                        
+                    
+
+                        
+                    
+
+                        
+                        <li>
+                            <a href="/about/">About</a>
+                        </li>
+                        
+                    
+
+                        
+                        <li>
+                            <a href="/archive/">Archives</a>
+                        </li>
+                        
+                    
+
+                        
+                        <li>
+                            <a href="/tags/">Tags</a>
+                        </li>
+                        
+                    
+                    
+                </ul>
+            </div>
+        </div>
+        <!-- /.navbar-collapse -->
+    </div>
+    <!-- /.container -->
+</nav>
+<script>
+    // Drop Bootstarp low-performance Navbar
+    // Use customize navbar with high-quality material design animation
+    // in high-perf jank-free CSS3 implementation
+    var $body   = document.body;
+    var $toggle = document.querySelector('.navbar-toggle');
+    var $navbar = document.querySelector('#huxblog_navbar');
+    var $collapse = document.querySelector('.navbar-collapse');
+
+    $toggle.addEventListener('click', handleMagic)
+    function handleMagic(e){
+        if ($navbar.className.indexOf('in') > 0) {
+        // CLOSE
+            $navbar.className = " ";
+            // wait until animation end.
+            setTimeout(function(){
+                // prevent frequently toggle
+                if($navbar.className.indexOf('in') < 0) {
+                    $collapse.style.height = "0px"
+                }
+            },400)
+        }else{
+        // OPEN
+            $collapse.style.height = "auto"
+            $navbar.className += " in";
+        }
+    }
+</script>
+
+
+    <!-- Main Content -->
+    <!-- Modify by Yu-Hsuan Yen -->
+
+<!-- Post Content -->
+<article>
+    <div class="container">
+        <div class="row">
+
+            <!-- Post Container -->
+            <div class="
+                col-lg-8 col-lg-offset-2
+                col-md-10 col-md-offset-1
+                post-container">
+
+                <p>Rancher是继Apache Mesos、 Google Kubernetes以及Docker Swarm 之后，又一个可用于生产环境中的容器管理和服务编排工具。</p>
+<p>Rancher致力于为 DevOps team打造一个最好的容器管理平台，让容器的部署和管理变得更加Easy。它把自己定位在持续交付流水线上的后半段上，如下图所示:</p>
+<p><img src="https://www.hi-linux.com/img/linux/rancher-feature.png" alt=""></p>
+<p>本文将带大家与Rancher来个亲密接触，直观的体会一下Rancher的入门级使用方法。</p>
+<a id="more"></a>
+<h3 id="实验环境说明">实验环境说明</h3>
+<p>一共需要三台主机(kernel版本 &gt;= 3.16.7、Docker 1.13+)。Rancher具体支持的Docker版本可在这里查看：<a href="http://docs.rancher.com/rancher/v1.5/en/hosts/#supported-docker-versions" target="_blank" rel="noopener">http://docs.rancher.com/rancher/v1.5/en/hosts/#supported-docker-versions</a></p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line">rancher server:</span><br><span class="line">    10.211.55.5</span><br><span class="line"></span><br><span class="line">rancher agent1:</span><br><span class="line">    10.211.55.4</span><br><span class="line"></span><br><span class="line">rancher agent2:</span><br><span class="line">    10.211.55.8</span><br></pre></td></tr></table></figure>
+<h3 id="rancher-server安装">Rancher Server安装</h3>
+<p>Rancher的各种容器管理理念均架构在由Rancher Server和Rancher Agent构建的Infrastructure之上。Rancher Server是Rancher的核心，其地位就类似于K8S、Docker Swarm或Mesos中的Master，提供核心容器管理服务以及API服务。</p>
+<p>Rancher支持HA(High Available)多节点Rancher Server集群，安装比较复杂。由于是入门，这里就搭建一个单节点的Rancher Server。</p>
+<p>Rancher的一个设计理念是所有组件都是容器化的，Rancher Labs的另外一个产品RancherOS(类似于CoreOS，一款专门为运行容器而设计的Linux发行版)中所有系统服务都是Dockerized的，这里的Rancher Server也是用容器部署，极大的方便了安装。</p>
+<p>下面我们就在10.211.55.5上安装一个Rancher server。启动Rancher服务器相当简单，一条命令而已。</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">$ docker run -d \</span><br><span class="line">    --name=rs \</span><br><span class="line">    --restart=always \</span><br><span class="line">    -p 8000:8080 \</span><br><span class="line">    rancher/server:v1.5.1</span><br></pre></td></tr></table></figure>
+<p>启动成功后，可看到如下结果。</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">$ docker ps</span><br><span class="line"></span><br><span class="line">CONTAINER ID        IMAGE                   COMMAND                  CREATED             STATUS              PORTS                              NAMES</span><br><span class="line">ffa2d14aca65        rancher/server:v1.5.1   &quot;/usr/bin/entry /u...&quot;   19 minutes ago      Up 15 minutes       3306/tcp, 0.0.0.0:8000-&gt;8080/tcp   rs</span><br></pre></td></tr></table></figure>
+<p>映射的8000端口既服务于Rancher UI，也是Rancher API的服务端口。用浏览器打开http://10.211.55.5:8000/，如果你看到如下页面，则说明你的Rancher Server搭建成功了。</p>
+<p><img src="https://www.hi-linux.com/img/linux/rancher1.png" alt=""></p>
+<h3 id="设置account">设置Account</h3>
+<p>第一次启动Rancher后，Rancher的UI是没有访问控制的，所有人都可以访问这个地址并控制一切。</p>
+<p>首先我们来给Rancher添加一个Account，相信这也是所有要在生产环境使用Rancher的朋友必须要做的事情。</p>
+<p>在Rancher UI中，也许你已经注意到了，在第一行菜单栏中，“ADMIN”菜单项右侧有一个红色的“!”，这也是在提醒你Rancher当前未设防。我们点击 “ADMIN”，选择出现的二级菜单中的”ACCOUNTS”菜单项，我们将看到如下页面。</p>
+<p><img src="https://www.hi-linux.com/img/linux/rancher2.png" alt=""></p>
+<p><img src="https://www.hi-linux.com/img/linux/rancher3.png" alt=""></p>
+<p>添加权限控制，需要在[“ADMIN” -&gt; “ACCESS CONTROL”]中。Rancher支持多种权限控制方案，分别是：Active Directory、Azure AD、GitHub、Local Auth、OpenLDAP和SHIBBOLETH。</p>
+<p>我们使用最简单的Local Auth，即设置一个用户名和密码，然后点击“Enable Local Auth”按钮即可。</p>
+<p><img src="https://www.hi-linux.com/img/linux/rancher4.png" alt=""></p>
+<p>然后我们再回到&quot;ACCOUNTS&quot;页面。</p>
+<p><img src="https://www.hi-linux.com/img/linux/rancher5.png" alt=""></p>
+<p>可以看到我们已经建立了一个新的Admin权限的账号：mike。当前的登录账号也换成了mike。</p>
+<h3 id="rancher-agent部署">Rancher Agent部署</h3>
+<p>访问http://10.211.55.5:8000/,点击[“INFRASTRUCTURE”-&gt;“Host”-&gt;“Add host”]。执行下图中Sever管理端生成的Add Host命令，即可将Host添加到Server端管理。</p>
+<p><img src="https://www.hi-linux.com/img/linux/rancher6.png" alt=""></p>
+<p><img src="https://www.hi-linux.com/img/linux/rancher7.png" alt=""></p>
+<ul>
+<li>在Agent 1上运行</li>
+</ul>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">$ sudo docker run -e CATTLE_AGENT_IP=&quot;10.211.55.4&quot;  -d --privileged -v /var/run/docker.sock:/var/run/docker.sock -v /var/lib/rancher:/var/lib/rancher rancher/agent:v1.2.1 http://10.211.55.5:8000/v1/scripts/48C709DD0096A44823DA:1483142400000:892Xa8prCmRfddPbHs7CmIph174</span><br></pre></td></tr></table></figure>
+<p>稍待片刻，就能看到Agent1已经被加入到Hosts里了。</p>
+<ul>
+<li>在Agent 2上运行</li>
+</ul>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">$ sudo docker run -e CATTLE_AGENT_IP=&quot;10.211.55.8&quot;  -d --privileged -v /var/run/docker.sock:/var/run/docker.sock -v /var/lib/rancher:/var/lib/rancher rancher/agent:v1.2.1 http://10.211.55.5:8000/v1/scripts/48C709DD0096A44823DA:1483142400000:892Xa8prCmRfddPbHs7CmIph174</span><br></pre></td></tr></table></figure>
+<p>在Agent 2上也执行一遍类似命令，把Agent2也加入到Hosts里了。</p>
+<p><img src="https://www.hi-linux.com/img/linux/rancher8.png" alt=""></p>
+<h3 id="运行容器">运行容器</h3>
+<p>在主机上运行一个tomcat容器。点击Agent 1上的Add Container按钮，如下填入参数：</p>
+<blockquote>
+<p>Name：tomcat<br>
+Select Image：tomcat:8.0.30-jre8<br>
+Public Host Port：8080<br>
+Private Container Port：8080</p>
+</blockquote>
+<p>然后点击最下方的Create按钮。</p>
+<p><img src="https://www.hi-linux.com/img/linux/rancher9.png" alt=""></p>
+<p>过一段时间，便能看到如下的容器已经启动完成了。</p>
+<p><img src="https://www.hi-linux.com/img/linux/rancher12.png" alt=""></p>
+<p>之所以需要等一段时间，是因为需要给容器配一个网络代理Network Agent，不过功能要复杂得多，拥有跨网络通信、健康检查等功能。</p>
+<p>在Agent 1上运行<code>docker ps</code>便能看到这些容器。</p>
+<p><img src="https://www.hi-linux.com/img/linux/rancher13.png" alt=""></p>
+<p>在页面上点击某个容器比如tomcat，可以看到容器的基本信息和一些基本监控数据。</p>
+<p><img src="https://www.hi-linux.com/img/linux/rancher10.png" alt=""></p>
+<p><img src="https://www.hi-linux.com/img/linux/rancher11.png" alt=""></p>
+<p>通过http://10.211.55.4:8080/来访问已部署tomcat服务。</p>
+<p><img src="https://www.hi-linux.com/img/linux/rancher14.png" alt=""></p>
+<p>自行启动的容器也能被Rancher监控到。我们来启动一个小容器：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">$  docker run -d --name=busybox  busybox:1.24.1 sleep 3600</span><br><span class="line">615ff4510d85f22ca389fb63620d29345dd9f75dfd5d051a4a2be0818138de3d</span><br></pre></td></tr></table></figure>
+<p>在界面上便能看到这个busybox容器已经启动完成了。</p>
+<p><img src="https://www.hi-linux.com/img/linux/rancher15.png" alt=""></p>
+<p>通过Rancher启动的容器IP是在<code>10.42.*.*</code>区间的，自行启动的busybox容器的IP是在它之外的。如果想用相同IP段，可以使用以下命令：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">$ docker run -d --name=busybox2 --label io.rancher.container.network=true busybox:1.24.1 sleep 3600</span><br></pre></td></tr></table></figure>
+<p>在界面上可以看到busybox2容器的IP已经落入区间了。</p>
+<p><img src="https://www.hi-linux.com/img/linux/rancher16.png" alt=""></p>
+<h3 id="运行应用">运行应用</h3>
+<p>前面演示了在指定的主机上创建单一容器的方法。不过对于一个真实的网络应用，我们并不关心它运行在哪里，只关心服务地址罢了。</p>
+<p>Rancher通过Stack功能创建应用，这里的Stack概念和Docker Swarm 1.13里的Stack作用差不多的。</p>
+<p>下面这幅图直观描述了stacks的用途：</p>
+<p><img src="https://www.hi-linux.com/img/linux/rancher-env-user-stack.png" alt=""></p>
+<p>我们来创建一个这样的WordPress应用。它包含一个MySQL数据库，两个WordPress实例和一套负载均衡。点击[“STACKS”-&gt;“Add Stack”]来创建一个新的STACKS。</p>
+<p><img src="https://www.hi-linux.com/img/linux/rancher17.png" alt=""></p>
+<p>然后点击Create来创建这个Stack。</p>
+<p>接下来在新建这个STACKS中创建两个服务。</p>
+<ul>
+<li>创建MySQL服务</li>
+</ul>
+<blockquote>
+<p>Scale: 1<br>
+Name：mysql<br>
+Select Image：mysql:5.7.10<br>
+Environment Vars：MYSQL_ROOT_PASSWORD=000000</p>
+</blockquote>
+<p>填入以上信息，并点击Create来创建MySQL服务。</p>
+<p><img src="https://www.hi-linux.com/img/linux/rancher18.png" alt=""></p>
+<ul>
+<li>创建WordPress服务</li>
+</ul>
+<blockquote>
+<p>Scale：2<br>
+Name：wordpress<br>
+Select Image：wordpress:4.4.2<br>
+Service Links：mysql &gt; mysql</p>
+</blockquote>
+<p>填入以上信息，并点击Create来创建WordPress服务。</p>
+<p><img src="https://www.hi-linux.com/img/linux/rancher19.png" alt=""></p>
+<ul>
+<li>创建负载均衡</li>
+</ul>
+<p>点击Add Service旁边的向下箭头，选择Add Load Balancer。填入：</p>
+<blockquote>
+<p>Scale：Always run one instance of this container on every host<br>
+Name：mywordpress<br>
+Source IP/Port：80<br>
+Target Service：wordpress<br>
+Target Port：80</p>
+</blockquote>
+<p>填入以上信息，并点击Create来创建这个负载均衡。</p>
+<p><img src="https://www.hi-linux.com/img/linux/rancher20.png" alt=""></p>
+<p><img src="https://www.hi-linux.com/img/linux/rancher22.png" alt=""></p>
+<p>稍待片刻，就可以访问http://10.211.55.8/或http://10.211.55.4/来使用WordPress服务了。</p>
+<p><img src="https://www.hi-linux.com/img/linux/rancher21.png" alt=""></p>
+<h3 id="预置模板">预置模板</h3>
+<p>Rancher为我们预置了一系列的应用模板，方便我们快速部署应用。</p>
+<p><img src="https://www.hi-linux.com/img/linux/rancher23.png" alt=""></p>
+<p>这里用gogs试试看，点击CATALOG找到gogs的模板。</p>
+<blockquote>
+<p>Name：gogs<br>
+Public Port: 3306<br>
+Http Port:10080<br>
+SSH Port:222<br>
+Mysql Password:000000<br>
+Start services after creating:true</p>
+</blockquote>
+<p>填入以上信息，并点击Lanuch来快速运行这个应用。</p>
+<p><img src="https://www.hi-linux.com/img/linux/rancher24.png" alt=""></p>
+<p>还可以点击Preview来查看docker-compose.yml和rancher-compose.yml文件，里面也有比较详细的注释。</p>
+<p><img src="https://www.hi-linux.com/img/linux/rancher26.png" alt=""></p>
+<p>docker-compose.yml不必多说，rancher-compose.yml类似于它但更小一些。可以在任何Rancher页面的右下方点击Download CLI来下载rancher compose命令行工具，这样就可以通过命令行而非在网页上点来点去来管理容器和服务了。</p>
+<p>最后附上部署好的两个Stack的大图一张</p>
+<p><img src="https://www.hi-linux.com/img/linux/rancher25.png" alt=""></p>
+<h3 id="参考文档">参考文档</h3>
+<p><a href="http://www.google.com" target="_blank" rel="noopener">http://www.google.com</a><br>
+<a href="http://qinghua.github.io/rancher/" target="_blank" rel="noopener">http://qinghua.github.io/rancher/</a><br>
+<a href="http://docs.rancher.com/rancher/v1.5/en" target="_blank" rel="noopener">http://docs.rancher.com/rancher/v1.5/en</a><br>
+<a href="http://tonybai.com/2016/04/14/an-introduction-about-rancher/" target="_blank" rel="noopener">http://tonybai.com/2016/04/14/an-introduction-about-rancher/</a></p>
+
+                
+
+                <hr>
+                <!-- Pager -->
+                <ul class="pager">
+                    
+                        <li class="previous">
+                            <a href="/posts/53006.html" data-toggle="tooltip" data-placement="top" title="使用 Nginx 自带 Realip 模块获取用户真实 IP 地址">&larr; Previous Post</a>
+                        </li>
+                    
+                    
+                        <li class="next">
+                            <a href="/posts/52766.html" data-toggle="tooltip" data-placement="top" title="Percona 监控工具初探">Next Post &rarr;</a>
+                        </li>
+                    
+                </ul>
+
+                <!-- duoshuo Share start -->
+                
+                <!-- 多说 Share end-->
+
+                <!-- 多说评论框 start -->
+                
+                <!-- 多说评论框 end -->
+
+                <!-- disqus comment start -->
+                
+                <!-- disqus comment end -->
+
+                
+                    <!-- disqus 评论框 start -->
+                    <div class="comment">
+                        <div id="lv-container" data-id="city" data-uid="MTAyMC8yNzg2My80NDQw"></div>
+                    </div>
+                    <!-- disqus 评论框 end -->
+                
+
+            </div>
+            
+            <!-- Tabe of Content -->
+            <!-- Table of Contents -->
+
+  
+    <style>
+      span.toc-nav-number{
+        display: none
+      }
+    </style>
+  
+    
+      <aside id="sidebar">
+        <div id="toc" class="toc-article">
+        <strong class="toc-title">Contents</strong>
+        
+          <ol class="toc-nav"><li class="toc-nav-item toc-nav-level-3"><a class="toc-nav-link" href="#实验环境说明"><span class="toc-nav-number">1.</span> <span class="toc-nav-text">实验环境说明</span></a></li><li class="toc-nav-item toc-nav-level-3"><a class="toc-nav-link" href="#rancher-server安装"><span class="toc-nav-number">2.</span> <span class="toc-nav-text">Rancher Server安装</span></a></li><li class="toc-nav-item toc-nav-level-3"><a class="toc-nav-link" href="#设置account"><span class="toc-nav-number">3.</span> <span class="toc-nav-text">设置Account</span></a></li><li class="toc-nav-item toc-nav-level-3"><a class="toc-nav-link" href="#rancher-agent部署"><span class="toc-nav-number">4.</span> <span class="toc-nav-text">Rancher Agent部署</span></a></li><li class="toc-nav-item toc-nav-level-3"><a class="toc-nav-link" href="#运行容器"><span class="toc-nav-number">5.</span> <span class="toc-nav-text">运行容器</span></a></li><li class="toc-nav-item toc-nav-level-3"><a class="toc-nav-link" href="#运行应用"><span class="toc-nav-number">6.</span> <span class="toc-nav-text">运行应用</span></a></li><li class="toc-nav-item toc-nav-level-3"><a class="toc-nav-link" href="#预置模板"><span class="toc-nav-number">7.</span> <span class="toc-nav-text">预置模板</span></a></li><li class="toc-nav-item toc-nav-level-3"><a class="toc-nav-link" href="#参考文档"><span class="toc-nav-number">8.</span> <span class="toc-nav-text">参考文档</span></a></li></ol>
+        
+        </div>
+      </aside>
+    
+
+                
+            <!-- Sidebar Container -->
+            <div class="
+                col-lg-8 col-lg-offset-2
+                col-md-10 col-md-offset-1
+                sidebar-container">
+
+                <!-- Featured Tags -->
+                
+                <section>
+                    <!-- no hr -->
+                    <h5><a href="/tags/">FEATURED TAGS</a></h5>
+                    <div class="tags">
+                       
+                          <a class="tag" href="/tags/#Linux" title="Linux">Linux</a>
+                        
+                          <a class="tag" href="/tags/#Docker" title="Docker">Docker</a>
+                        
+                    </div>
+                </section>
+                
+
+                <!-- Friends Blog -->
+                
+                <hr>
+                <h5>FRIENDS</h5>
+                <ul class="list-inline">
+
+                    
+                        <li><a href="http://www.mike.org.cn/" target="_blank">简单.生活</a></li>
+                    
+                        <li><a href="http://shang.qq.com/wpa/qunwpa?idkey=ea4c43493c2269428ac6ef6141de4b6d78e5ab2d41380ca4099b833b62884ee9" target="_blank">技术交流群</a></li>
+                    
+                        <li><a href="" target="_blank"></a></li>
+                    
+                        <li><a href="" target="_blank"></a></li>
+                    
+                </ul>
+                
+            </div>
+        </div>
+    </div>
+</article>
+
+
+
+
+
+
+    <!-- 来必力City版公共JS代码 start (一个网页只需插入一次) -->
+    <script type="text/javascript">
+       (function(d, s) {
+           var j, e = d.getElementsByTagName(s)[0];
+    
+           if (typeof LivereTower === 'function') { return; }
+    
+           j = d.createElement(s);
+           j.src = 'https://cdn-city.livere.com/js/embed.dist.js';
+           j.async = true;
+    
+           e.parentNode.insertBefore(j, e);
+       })(document, 'script');
+    </script>
+    <noscript>为正常使用来必力评论功能请激活JavaScript</noscript>
+    <!-- 来必力City版 公共JS代码 end -->
+
+
+
+<!-- async load function -->
+<script>
+    function async(u, c) {
+      var d = document, t = 'script',
+          o = d.createElement(t),
+          s = d.getElementsByTagName(t)[0];
+      o.src = u;
+      if (c) { o.addEventListener('load', function (e) { c(null, e); }, false); }
+      s.parentNode.insertBefore(o, s);
+    }
+</script>
+<!-- anchor-js, Doc:http://bryanbraun.github.io/anchorjs/ -->
+<script>
+    async("https://cdn.bootcss.com/anchor-js/1.1.1/anchor.min.js",function(){
+        anchors.options = {
+          visible: 'hover',
+          placement: 'left',
+          icon: 'ℬ'
+        };
+        anchors.add().remove('.intro-header h1').remove('.subheading').remove('.sidebar-container h5');
+    })
+</script>
+<style>
+    /* place left on bigger screen */
+    @media all and (min-width: 800px) {
+        .anchorjs-link{
+            position: absolute;
+            left: -0.75em;
+            font-size: 1.1em;
+            margin-top : -0.1em;
+        }
+    }
+</style>
+
+
+
+    <!-- Footer -->
+    <!-- Footer -->
+<footer>
+    <div class="container">
+        <div class="row">
+            <div class="col-lg-8 col-lg-offset-2 col-md-10 col-md-offset-1">
+                <ul class="list-inline text-center">
+                
+                    <li>
+                        <a href="/atom.xml">
+                            <span class="fa-stack fa-lg">
+                                <i class="fa fa-circle fa-stack-2x"></i>
+                                <i class="fa fa-rss fa-stack-1x fa-inverse"></i>
+                            </span>
+                        </a>
+                    </li>
+                
+                
+                
+                    <li>
+                        <a target="_blank" href="https://www.zhihu.com/people/80imike">
+                            <span class="fa-stack fa-lg">
+                                <i class="fa fa-circle fa-stack-2x"></i>
+                                <i class="fa  fa-stack-1x fa-inverse">知</i>
+                            </span>
+                        </a>
+                    </li>
+                
+
+                
+                    <li>
+                        <a target="_blank" href="http://weibo.com/2093524665">
+                            <span class="fa-stack fa-lg">
+                                <i class="fa fa-circle fa-stack-2x"></i>
+                                <i class="fa fa-weibo fa-stack-1x fa-inverse"></i>
+                            </span>
+                        </a>
+                    </li>
+                
+
+                
+
+                
+
+                
+
+                </ul>
+                <p class="copyright text-muted">
+                    Copyright &copy; Mike 2018 | Hosted by <a href="https://pages.coding.me" style="font-weight: bold">Coding Pages</a>
+                    <br>
+                    Theme by <a href="http://beantech.org">BeanTech</a> 
+                    <span style="display: inline-block; margin: 0 5px;">
+                        <i class="fa fa-heart"></i>
+                    </span> 
+                    re-Ported by <a href="http://www.huweihuang.com">胡伟煌</a> | 
+                    <iframe
+                        style="margin-left: 2px; margin-bottom:-5px;"
+                        frameborder="0" scrolling="0" width="91px" height="20px"
+                        src="https://ghbtns.com/github-btn.html?user=huweihuang&repo=hexo-theme-huweihuang&type=star&count=true" >
+                    </iframe>
+                </p>
+            </div>
+        </div>
+    </div>
+</footer>
+
+<!-- jQuery -->
+<script src="/js/jquery.min.js"></script>
+
+<!-- Bootstrap Core JavaScript -->
+<script src="/js/bootstrap.min.js"></script>
+
+<!-- Custom Theme JavaScript -->
+<script src="/js/hux-blog.min.js"></script>
+
+
+<!-- async load function -->
+<script>
+    function async(u, c) {
+      var d = document, t = 'script',
+          o = d.createElement(t),
+          s = d.getElementsByTagName(t)[0];
+      o.src = u;
+      if (c) { o.addEventListener('load', function (e) { c(null, e); }, false); }
+      s.parentNode.insertBefore(o, s);
+    }
+</script>
+
+<!-- 
+     Because of the native support for backtick-style fenced code blocks 
+     right within the Markdown is landed in Github Pages, 
+     From V1.6, There is no need for Highlight.js, 
+     so Huxblog drops it officially.
+
+     - https://github.com/blog/2100-github-pages-now-faster-and-simpler-with-jekyll-3-0  
+     - https://help.github.com/articles/creating-and-highlighting-code-blocks/    
+-->
+<!--
+    <script>
+        async("http://cdn.bootcss.com/highlight.js/8.6/highlight.min.js", function(){
+            hljs.initHighlightingOnLoad();
+        })
+    </script>
+    <link href="http://cdn.bootcss.com/highlight.js/8.6/styles/github.min.css" rel="stylesheet">
+-->
+
+
+<!-- jquery.tagcloud.js -->
+<script>
+    // only load tagcloud.js in tag.html
+    if($('#tag_cloud').length !== 0){
+        async("https://www.hi-linux.com/js/jquery.tagcloud.js",function(){
+            $.fn.tagcloud.defaults = {
+                //size: {start: 1, end: 1, unit: 'em'},
+                color: {start: '#bbbbee', end: '#0085a1'},
+            };
+            $('#tag_cloud a').tagcloud();
+        })
+    }
+</script>
+
+<!--fastClick.js -->
+<script>
+    async("https://cdn.bootcss.com/fastclick/1.0.6/fastclick.min.js", function(){
+        var $nav = document.querySelector("nav");
+        if($nav) FastClick.attach($nav);
+    })
+</script>
+
+
+<!-- Google Analytics -->
+
+
+
+
+<!-- Baidu Tongji -->
+
+
+
+
+
+
+	<a id="rocket" href="#top" class=""></a>
+	<script type="text/javascript" src="/js/totop.js?v=1.0.0" async=""></script>
+    <script type="text/javascript" src="/js/toc.js?v=1.0.0" async=""></script>
+<!-- Image to hack wechat -->
+<img src="https://www.hi-linux.com/img/icon_wechat.png" width="0" height="0" />
+<!-- Migrate from head to bottom, no longer block render and still work -->
+
+</body>
+
+</html>

@@ -1,0 +1,709 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<!-- Head tag -->
+<head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="google-site-verification" content="xBT4GhYoi5qRD5tr338pgPM5OWHHIDR6mNg1a3euekI" />
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="description" content="">
+    <meta name="keyword"  content="Linux,运维,Nginx,Zabbix,Centos,Ansible,MySQL,Python,Docker,ELK,Haproxy,Git,Nodejs,安全,技术">
+    <link rel="shortcut icon" href="/img/ironman-draw.png">
+    <!-- Place this tag in your head or just before your close body tag. -->
+    <script async defer src="https://buttons.github.io/buttons.js"></script>
+    <title>
+        
+          Nginx 与 Lua 的执行顺序和步骤说明 - 运维之美
+        
+    </title>
+
+    <link rel="canonical" href="https://www.hi-linux.com/posts/4336.html">
+
+    <!-- Bootstrap Core CSS -->
+    <link rel="stylesheet" href="/css/bootstrap.min.css">
+
+    <!-- Custom CSS --> 
+    <link rel="stylesheet" href="/css/beantech.min.css">
+    
+    <!-- Pygments Highlight CSS -->
+    <link rel="stylesheet" href="/css/highlight.css">
+
+    <link rel="stylesheet" href="/css/widget.css">
+
+    <link rel="stylesheet" href="/css/rocket.css">
+
+    <link rel="stylesheet" href="/css/signature.css">
+
+    <link rel="stylesheet" href="/css/toc.css">
+
+    <!-- Custom Fonts -->
+    <!-- <link href="https://maxcdn.bootstrapcdn.com/font-awesome/4.3.0/css/font-awesome.min.css" rel="stylesheet" type="text/css"> -->
+    <!-- Hux change font-awesome CDN to qiniu -->
+    <link href="https://cdn.staticfile.org/font-awesome/4.5.0/css/font-awesome.min.css" rel="stylesheet" type="text/css">
+
+
+    <!-- Hux Delete, sad but pending in China
+    <link href='http://fonts.googleapis.com/css?family=Lora:400,700,400italic,700italic' rel='stylesheet' type='text/css'>
+    <link href='http://fonts.googleapis.com/css?family=Open+Sans:300italic,400italic,600italic,700italic,800italic,400,300,600,700,800' rel='stylesheet' type='text/
+    css'>
+    -->
+
+
+    <!-- HTML5 Shim and Respond.js IE8 support of HTML5 elements and media queries -->
+    <!-- WARNING: Respond.js doesn't work if you view the page via file:// -->
+    <!--[if lt IE 9]>
+        <script src="https://oss.maxcdn.com/libs/html5shiv/3.7.0/html5shiv.js"></script>
+        <script src="https://oss.maxcdn.com/libs/respond.js/1.4.2/respond.min.js"></script>
+    <![endif]-->
+
+    <!-- ga & ba script hoook -->
+    <script></script>
+</head>
+
+
+<!-- hack iOS CSS :active style -->
+<body ontouchstart="">
+	<!-- Modified by Yu-Hsuan Yen -->
+<!-- Post Header -->
+<style type="text/css">
+    header.intro-header{
+        
+            background-image: url('/img/header_img/article.jpg')
+            /*post*/
+        
+    }
+    
+</style>
+
+<header class="intro-header" >
+    <!-- Signature -->
+    <div id="signature">
+        <div class="container">
+            <div class="row">
+                <div class="col-lg-8 col-lg-offset-2 col-md-10 col-md-offset-1">
+                
+                    <div class="post-heading">
+                        <div class="tags">
+                            
+                              <a class="tag" href="/tags/#Nginx" title="Nginx">Nginx</a>
+                            
+                              <a class="tag" href="/tags/#Lua" title="Lua">Lua</a>
+                            
+                        </div>
+                        <h1>Nginx 与 Lua 的执行顺序和步骤说明</h1>
+                        <h2 class="subheading"></h2>
+                        <span class="meta">
+                            Posted by Mike on
+                            2016-03-21
+                        </span>
+                    </div>
+                
+
+
+                </div>
+            </div>
+        </div>
+    </div>
+</header>
+
+	
+    <!-- Navigation -->
+<nav class="navbar navbar-default navbar-custom navbar-fixed-top">
+    <div class="container-fluid">
+        <!-- Brand and toggle get grouped for better mobile display -->
+        <div class="navbar-header page-scroll">
+            <button type="button" class="navbar-toggle">
+                <span class="sr-only">Toggle navigation</span>
+                <span class="icon-bar"></span>
+                <span class="icon-bar"></span>
+                <span class="icon-bar"></span>
+            </button>
+            <a class="navbar-brand" href="/">运维之美</a>
+        </div>
+
+        <!-- Collect the nav links, forms, and other content for toggling -->
+        <!-- Known Issue, found by Hux:
+            <nav>'s height woule be hold on by its content.
+            so, when navbar scale out, the <nav> will cover tags.
+            also mask any touch event of tags, unfortunately.
+        -->
+        <div id="huxblog_navbar">
+            <div class="navbar-collapse">
+                <ul class="nav navbar-nav navbar-right">
+                    <li>
+                        <a href="/">Home</a>
+                    </li>
+
+                    
+
+                        
+                    
+
+                        
+                    
+
+                        
+                        <li>
+                            <a href="/about/">About</a>
+                        </li>
+                        
+                    
+
+                        
+                        <li>
+                            <a href="/archive/">Archives</a>
+                        </li>
+                        
+                    
+
+                        
+                        <li>
+                            <a href="/tags/">Tags</a>
+                        </li>
+                        
+                    
+                    
+                </ul>
+            </div>
+        </div>
+        <!-- /.navbar-collapse -->
+    </div>
+    <!-- /.container -->
+</nav>
+<script>
+    // Drop Bootstarp low-performance Navbar
+    // Use customize navbar with high-quality material design animation
+    // in high-perf jank-free CSS3 implementation
+    var $body   = document.body;
+    var $toggle = document.querySelector('.navbar-toggle');
+    var $navbar = document.querySelector('#huxblog_navbar');
+    var $collapse = document.querySelector('.navbar-collapse');
+
+    $toggle.addEventListener('click', handleMagic)
+    function handleMagic(e){
+        if ($navbar.className.indexOf('in') > 0) {
+        // CLOSE
+            $navbar.className = " ";
+            // wait until animation end.
+            setTimeout(function(){
+                // prevent frequently toggle
+                if($navbar.className.indexOf('in') < 0) {
+                    $collapse.style.height = "0px"
+                }
+            },400)
+        }else{
+        // OPEN
+            $collapse.style.height = "auto"
+            $navbar.className += " in";
+        }
+    }
+</script>
+
+
+    <!-- Main Content -->
+    <!-- Modify by Yu-Hsuan Yen -->
+
+<!-- Post Content -->
+<article>
+    <div class="container">
+        <div class="row">
+
+            <!-- Post Container -->
+            <div class="
+                col-lg-8 col-lg-offset-2
+                col-md-10 col-md-offset-1
+                post-container">
+
+                <h3 id="一-nginx执行步骤">一、Nginx执行步骤</h3>
+<p>Nginx处理每一个用户请求时，都是按照若干个不同阶段(phase)依次处理的，而不是根据配置文件上的顺序。</p>
+<p>Nginx处理请求的过程一共划分为11个阶段，按照执行顺序依次是post-read、server-rewrite、find-config、rewrite、post-rewrite、 preaccess、access、post-access、try-files、content、log.</p>
+<blockquote>
+<p>1、post-read<br>
+读取请求内容阶段，nginx读取并解析完请求头之后就立即开始运行；例如模块 ngx_realip 就在 post-read 阶段注册了处理程序，它的功能是迫使 Nginx 认为当前请求的来源地址是指定的某一个请求头的值。</p>
+<p>2、server-rewrite<br>
+server请求地址重写阶段；当ngx_rewrite模块的set配置指令直接书写在server配置块中时，基本上都是运行在server-rewrite 阶段</p>
+<p>3、find-config<br>
+配置查找阶段，这个阶段并不支持Nginx模块注册处理程序，而是由Nginx核心来完成当前请求与location配置块之间的配对工作。</p>
+</blockquote>
+<a id="more"></a>
+<blockquote>
+<p>4、rewrite<br>
+location请求地址重写阶段，当ngx_rewrite指令用于location中，就是再这个阶段运行的；另外ngx_set_misc(设置md5、encode_base64等)模块的指令，还有ngx_lua模块的set_by_lua指令和rewrite_by_lua指令也在此阶段。</p>
+</blockquote>
+<blockquote>
+<p>5、post-rewrite<br>
+请求地址重写提交阶段，当nginx完成rewrite阶段所要求的内部跳转动作，如果rewrite阶段有这个要求的话；</p>
+<p>6、preaccess<br>
+访问权限检查准备阶段，ngx_limit_req和ngx_limit_zone在这个阶段运行，ngx_limit_req可以控制请求的访问频率，ngx_limit_zone可以控制访问的并发度；</p>
+<p>7、access<br>
+访问权限检查阶段，标准模块ngx_access、第三方模块ngx_auth_request以及第三方模块ngx_lua的access_by_lua指令就运行在这个阶段。配置指令多是执行访问控制相关的任务，如检查用户的访问权限，检查用户的来源IP是否合法；</p>
+<p>8、post-access<br>
+访问权限检查提交阶段；主要用于配合access阶段实现标准ngx_http_core模块提供的配置指令satisfy的功能。satisfy all(与关系),satisfy any(或关系)</p>
+<p>9、try-files<br>
+配置项try_files处理阶段；专门用于实现标准配置指令try_files的功能,如果前 N-1 个参数所对应的文件系统对象都不存在，try-files 阶段就会立即发起“内部跳转”到最后一个参数(即第 N 个参数)所指定的URI.</p>
+<p>10、content<br>
+内容产生阶段，是所有请求处理阶段中最为重要的阶段，因为这个阶段的指令通常是用来生成HTTP响应内容并输出 HTTP 响应的使命；</p>
+<p>11、log<br>
+日志模块处理阶段；记录日志</p>
+</blockquote>
+<h3 id="二-nginx下lua处理阶段与使用范围">二、Nginx下Lua处理阶段与使用范围：</h3>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line">init_by_lua            http</span><br><span class="line">set_by_lua             server, server <span class="keyword">if</span>, location, location <span class="keyword">if</span></span><br><span class="line">rewrite_by_lua         http, server, location, location <span class="keyword">if</span></span><br><span class="line">access_by_lua          http, server, location, location <span class="keyword">if</span></span><br><span class="line">content_by_lua         location, location <span class="keyword">if</span></span><br><span class="line">header_filter_by_lua   http, server, location, location <span class="keyword">if</span></span><br><span class="line">body_filter_by_lua     http, server, location, location <span class="keyword">if</span></span><br><span class="line">log_by_lua             http, server, location, location <span class="keyword">if</span></span><br><span class="line">timer</span><br></pre></td></tr></table></figure>
+<blockquote>
+<p>init_by_lua:<br>
+在nginx重新加载配置文件时，运行里面lua脚本，常用于全局变量的申请。<br>
+例如lua_shared_dict共享内存的申请，只有当nginx重起后，共享内存数据才清空，这常用于统计。</p>
+<p>set_by_lua:<br>
+设置一个变量，常用与计算一个逻辑，然后返回结果<br>
+该阶段不能运行Output API、Control API、Subrequest API、Cosocket API</p>
+<p>rewrite_by_lua:<br>
+在access阶段前运行，主要用于rewrite</p>
+<p>access_by_lua:<br>
+主要用于访问控制，能收集到大部分变量，类似status需要在log阶段才有。<br>
+这条指令运行于nginx access阶段的末尾，因此总是在 allow 和 deny 这样的指令之后运行，虽然它们同属 access 阶段。</p>
+<p>content_by_lua:<br>
+阶段是所有请求处理阶段中最为重要的一个，运行在这个阶段的配置指令一般都肩负着生成内容(content)并输出HTTP响应。</p>
+<p>header_filter_by_lua:<br>
+一般只用于设置Cookie和Headers等<br>
+该阶段不能运行Output API、Control API、Subrequest API、Cosocket API</p>
+<p>body_filter_by_lua:<br>
+一般会在一次请求中被调用多次, 因为这是实现基于 HTTP 1.1 chunked 编码的所谓“流式输出”的。<br>
+该阶段不能运行Output API、Control API、Subrequest API、Cosocket API</p>
+<p>log_by_lua:<br>
+该阶段总是运行在请求结束的时候，用于请求的后续操作，如在共享内存中进行统计数据,如果要高精确的数据统计，应该使用body_filter_by_lua。<br>
+该阶段不能运行Output API、Control API、Subrequest API、Cosocket API</p>
+<p>timer:</p>
+</blockquote>
+<h3 id="三-ngx_lua运行指令">三、ngx_lua运行指令</h3>
+<p>ngx_lua属于nginx的一部分，它的执行指令都包含在nginx的11个步骤之中了，不过ngx_lua并不是所有阶段都会运行的；</p>
+<p>1、init_by_lua、init_by_lua_file<br>
+语法：init_by_lua <lua-script-str><br>
+语境：http<br>
+阶段：loading-config<br>
+当nginx master进程在加载nginx配置文件时运行指定的lua脚本，通常用来注册lua的全局变量或在服务器启动时预加载lua模块：<br>
+init_by_lua ‘cjson = require “cjson”’;</lua-script-str></p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line">server &#123;</span><br><span class="line">    location = /api &#123;</span><br><span class="line">        content_by_lua <span class="string">'</span></span><br><span class="line"><span class="string">            ngx.say(cjson.encode(&#123;dog = 5, cat = 6&#125;))</span></span><br><span class="line"><span class="string">        '</span></span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>或者初始化lua_shared_dict共享数据：</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line">lua_shared_dict dogs 1m;</span><br><span class="line">init_by_lua <span class="string">'</span></span><br><span class="line"><span class="string">    local dogs = ngx.shared.dogs;</span></span><br><span class="line"><span class="string">    dogs:set("Tom", 50)</span></span><br><span class="line"><span class="string">'</span></span><br><span class="line">server &#123;</span><br><span class="line">    location = /api &#123;</span><br><span class="line">        content_by_lua <span class="string">'</span></span><br><span class="line"><span class="string">            local dogs = ngx.shared.dogs;</span></span><br><span class="line"><span class="string">            ngx.say(dogs:get("Tom"))</span></span><br><span class="line"><span class="string">        '</span></span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>但是，lua_shared_dict的内容不会在nginx reload时被清除。所以如果你不想在你的init_by_lua中重新初始化共享数据，那么你需要在你的共享内存中设置一个标志位并在init_by_lua中进行检查。<br>
+因为这个阶段的lua代码是在nginx forks出任何worker进程之前运行，数据和代码的加载将享受由操作系统提供的copy-on-write的特性，从而节约了大量的内存。<br>
+不要在这个阶段初始化你的私有lua全局变量，因为使用lua全局变量会照成性能损失，并且可能导致全局命名空间被污染。<br>
+这个阶段只支持一些小的LUA Nginx API设置：ngx.log和print、ngx.shared.DICT；</p>
+<p>2、init_worker_by_lua、init_worker_by_lua_file<br>
+语法：init_worker_by_lua <lua-script-str><br>
+语境：http<br>
+阶段：starting-worker<br>
+在每个nginx worker进程启动时调用指定的lua代码。如果master 进程不允许，则只会在init_by_lua之后调用。</lua-script-str></p>
+<p>这个hook通常用来创建每个工作进程的计时器(通过lua的ngx.timer API)，进行后端健康检查或者其它日常工作：</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br></pre></td><td class="code"><pre><span class="line">init_worker_by_lua:</span><br><span class="line">    <span class="built_in">local</span> delay = 3  -- <span class="keyword">in</span> seconds</span><br><span class="line">    <span class="built_in">local</span> new_timer = ngx.timer.at</span><br><span class="line">    <span class="built_in">local</span> <span class="built_in">log</span> = ngx.log</span><br><span class="line">    <span class="built_in">local</span> ERR = ngx.ERR</span><br><span class="line">    <span class="built_in">local</span> check</span><br><span class="line">    check = <span class="keyword">function</span>(premature)</span><br><span class="line">        <span class="keyword">if</span> not premature <span class="keyword">then</span></span><br><span class="line">            -- <span class="keyword">do</span> the health check other routine work</span><br><span class="line">            <span class="built_in">local</span> ok, err = new_timer(delay, check)</span><br><span class="line">            <span class="keyword">if</span> not ok <span class="keyword">then</span></span><br><span class="line">                <span class="built_in">log</span>(ERR, <span class="string">"failed to create timer: "</span>, err)</span><br><span class="line">                <span class="built_in">return</span></span><br><span class="line">            end</span><br><span class="line">        end</span><br><span class="line">    end</span><br><span class="line">    <span class="built_in">local</span> ok, err = new_timer(delay, check)</span><br><span class="line">    <span class="keyword">if</span> not ok <span class="keyword">then</span></span><br><span class="line">        <span class="built_in">log</span>(ERR, <span class="string">"failed to create timer: "</span>, err)</span><br><span class="line">    end</span><br></pre></td></tr></table></figure>
+<p>3、set_by_lua、set_by_lua_file<br>
+语法：set_by_lua $res <lua-script-str> [$arg1 $arg2 …]<br>
+语境：server、server if、location、location if<br>
+阶段：rewrite<br>
+传入参数到指定的lua脚本代码中执行，并得到返回值到res中。<lua-script-str>中的代码可以使从ngx.arg表中取得输入参数(顺序索引从1开始)。</lua-script-str></lua-script-str></p>
+<p>这个指令是为了执行短期、快速运行的代码因为运行过程中nginx的事件处理循环是处于阻塞状态的。耗费时间的代码应该被避免。<br>
+禁止在这个阶段使用下面的API：1、output api(ngx.say和ngx.send_headers)；2、control api(ngx.exit)；3、subrequest api(ngx.location.capture和ngx.location.capture_multi)；4、cosocket api(ngx.socket.tcp和ngx.req.socket)；5、sleep api(ngx.sleep)</p>
+<p>此外注意，这个指令只能一次写出一个nginx变量，但是使用ngx.var接口可以解决这个问题：</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line">location /foo &#123;</span><br><span class="line">    <span class="built_in">set</span> <span class="variable">$diff</span> <span class="string">''</span>;</span><br><span class="line">    set_by_lua <span class="variable">$num</span> <span class="string">'</span></span><br><span class="line"><span class="string">        local a = 32</span></span><br><span class="line"><span class="string">        local b = 56</span></span><br><span class="line"><span class="string">        ngx.var.diff = a - b; --写入$diff中</span></span><br><span class="line"><span class="string">        return a + b;  --返回到$sum中</span></span><br><span class="line"><span class="string">    '</span></span><br><span class="line">    <span class="built_in">echo</span> <span class="string">"sum = <span class="variable">$sum</span>, diff = <span class="variable">$diff</span>"</span>;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>这个指令可以自由的使用HttpRewriteModule、HttpSetMiscModule和HttpArrayVarModule所有的方法。所有的这些指令都将按他们出现在配置文件中的顺序进行执行。</p>
+<p>4、rewrite_by_lua、rewrite_by_lua_file<br>
+语法：rewrite_by_lua <lua-script-str><br>
+语境：http、server、location、location if<br>
+阶段：rewrite tail<br>
+作为rewrite阶段的处理，为每个请求执行指定的lua代码。注意这个处理是在标准HtpRewriteModule之后进行的：</lua-script-str></p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">location /foo &#123;</span><br><span class="line">    <span class="built_in">set</span> <span class="variable">$a</span> 12;</span><br><span class="line">    <span class="built_in">set</span> <span class="variable">$b</span> <span class="string">""</span>;</span><br><span class="line">    rewrite_by_lua <span class="string">'ngx.var.b = tonumber(ngx.var.a) + 1'</span>;</span><br><span class="line">    <span class="built_in">echo</span> <span class="string">"res = <span class="variable">$b</span>"</span>;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>如果这样的话将不会按预期进行工作：</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line">location /foo &#123;</span><br><span class="line">    <span class="built_in">set</span> <span class="variable">$a</span> 12;</span><br><span class="line">    <span class="built_in">set</span> <span class="variable">$b</span> <span class="string">''</span>;</span><br><span class="line">    rewrite_by_lua <span class="string">'ngx.var.b = tonumber(ngx.var.a) + 1'</span>;</span><br><span class="line">    <span class="keyword">if</span>(<span class="variable">$b</span> = <span class="string">'13'</span>) &#123;</span><br><span class="line">        rewrite ^ /bar redirect;</span><br><span class="line">        <span class="built_in">break</span>;</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="built_in">echo</span> <span class="string">"res = <span class="variable">$b</span>"</span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>因为if会在rewrite_by_lua之前运行，所以判断将不成立。正确的写法应该是这样：</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line">location /foo &#123;</span><br><span class="line">    <span class="built_in">set</span> <span class="variable">$a</span> 12;</span><br><span class="line">    <span class="built_in">set</span> <span class="variable">$b</span> <span class="string">''</span>;</span><br><span class="line">    rewrite_by_lua <span class="string">'</span></span><br><span class="line"><span class="string">        ngx.var.b = tonumber(ngx.var.a) + 1</span></span><br><span class="line"><span class="string">        if tonumber(ngx.var.b) == 13 then</span></span><br><span class="line"><span class="string">            return ngx.redirect("/bar");</span></span><br><span class="line"><span class="string">        end</span></span><br><span class="line"><span class="string">    '</span></span><br><span class="line">    <span class="built_in">echo</span> <span class="string">"res = <span class="variable">$b</span>"</span>;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>注意ngx_eval模块可以近似于使用rewite_by_lua，例如：</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line">location / &#123;</span><br><span class="line">    <span class="built_in">eval</span> <span class="variable">$res</span> &#123;</span><br><span class="line">        proxy_pass http://foo,com/check-spam;</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="keyword">if</span>(<span class="variable">$res</span> = <span class="string">'spam'</span>) &#123;</span><br><span class="line">        rewrite ^ /terms-of-use.html redirect;</span><br><span class="line">    &#125;</span><br><span class="line">    fastcgi_pass .......</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>可以被ngx_lua这样实现：</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line">location = /check-spam &#123;</span><br><span class="line">    internal;</span><br><span class="line">    proxy_pass http://foo.com/check-spam;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line">location / &#123;</span><br><span class="line">    rewrite_by_lua <span class="string">'</span></span><br><span class="line"><span class="string">        local res = ngx.location.capture("/check-spam")</span></span><br><span class="line"><span class="string">        if res.body == "spam" then</span></span><br><span class="line"><span class="string">            return ngx.redirect("terms-of-use.html")</span></span><br><span class="line"><span class="string">    '</span></span><br><span class="line">    fastcgi_pass .......</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>和其它的rewrite阶段的处理程序一样，rewrite_by_lua在subrequests中一样可以运行。</p>
+<p>请注意在rewrite_by_lua内调用ngx.exit(ngx.OK)，nginx的请求处理流程将继续进行content阶段的处理。从rewrite_by_lua终止当前的请求，要调用ngx.exit返回status大于200并小于300的成功状态或ngx.exit(ngx.HTTP_INTERNAL_SERVER_ERROR)的失败状态。<br>
+如果HttpRewriteModule的重写指令被用来改写URI和重定向，那么任何rewrite_by_lua和rewrite_by_lua_file的代码将不会执行，例如：</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line">location /foo &#123;</span><br><span class="line">    rewrite ^ /bar;</span><br><span class="line">    rewrite_by_lua <span class="string">'ngx.exit(503)'</span></span><br><span class="line">&#125;</span><br><span class="line">location /bar &#123;</span><br><span class="line">    .......</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>在这个例子中ngx.exit(503)将永远不会被执行，因为rewrite修改了location，请求已经跳入其它location中了。</p>
+<p>5、access_by_lua，access_by_lua_file<br>
+语法：access_by_lua <lua-script-str><br>
+语境：http,server,location,location if<br>
+阶段：access tail<br>
+为每个请求在访问阶段的调用lua脚本进行处理。主要用于访问控制，能收集到大部分的变量。</lua-script-str></p>
+<p>注意access_by_lua和rewrite_by_lua类似是在标准HttpAccessModule之后才会运行，看一个例子：</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line">location / &#123;</span><br><span class="line">    deny 192.168.1.1;</span><br><span class="line">    allow 192.168.1.0/24;</span><br><span class="line">    allow 10.1.1.0/16;</span><br><span class="line">    deny all;</span><br><span class="line">    access_by_lua <span class="string">'</span></span><br><span class="line"><span class="string">        local res = ngx.location.capture("/mysql", &#123;...&#125;)</span></span><br><span class="line"><span class="string">        ....</span></span><br><span class="line"><span class="string">    '</span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>如果client ip在黑名单之内，那么这次连接会在进入access_by_lua调用的mysql之前被丢弃掉。</p>
+<p>ngx_auth_request模块和access_by_lua的用法类似：</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">location / &#123;</span><br><span class="line">    auth_request /auth;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>可以用ngx_lua这么实现：</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line">location / &#123;</span><br><span class="line">    access_by_lua <span class="string">'</span></span><br><span class="line"><span class="string">        local res = ngx.location.capture("/auth")</span></span><br><span class="line"><span class="string">        if res.status == ngx.HTTP_OK then</span></span><br><span class="line"><span class="string">            return</span></span><br><span class="line"><span class="string">        end</span></span><br><span class="line"><span class="string">        if res.status == ngx.HTTP_FORBIDDEN then</span></span><br><span class="line"><span class="string">            ngx.exit(res.status)</span></span><br><span class="line"><span class="string">        end</span></span><br><span class="line"><span class="string">        ngx.exit(ngx.HTTP_INTERNAL_SERVER_ERROR)</span></span><br><span class="line"><span class="string">    '</span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>和其它access阶段的模块一样，access_by_lua不会在subrequest中运行。<br>
+请注意在access_by_lua内调用ngx.exit(ngx.OK)，nginx的请求处理流程将继续进行后面阶段的处理。从rewrite_by_lua终止当前的请求，要调用ngx.exit返回status大于200并小于300的成功状态或ngx.exit(ngx.HTTP_INTERNAL_SERVER_ERROR)的失败状态。</p>
+<p>6、content_by_lua，content_by_lua_file<br>
+语法：content_by_lua <lua-script-str><br>
+语境：location，location if<br>
+阶段：content<br>
+作为&quot;content handler&quot;为每个请求执行lua代码，为请求者输出响应内容。</lua-script-str></p>
+<p>不要将它和其它的内容处理指令在同一个location内使用如proxy_pass。</p>
+<p>7、header_filter_by_lua，header_filter_by_lua_file<br>
+语法：header_filter_by_lua <lua-script-str><br>
+语境：http，server，location，location if<br>
+阶段：output-header-filter</lua-script-str></p>
+<p>一般用来设置cookie和headers，在该阶段不能使用如下几个API：<br>
+1、output API(ngx.say和ngx.send_headers)<br>
+2、control API(ngx.exit和ngx.exec)<br>
+3、subrequest API(ngx.location.capture和ngx.location.capture_multi)<br>
+4、cosocket API(ngx.socket.tcp和ngx.req.socket)</p>
+<p>有一个例子是 在你的lua header filter里添加一个响应头标头：</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">location / &#123;</span><br><span class="line">    proxy_pass http://mybackend;</span><br><span class="line">    header_filter_by_lua <span class="string">'ngx.header.Foo = "blah"'</span>;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>8、body_filter_by_lua，body_filter_by_lua_file<br>
+语法：body_filter_by_lua <lua-script-str><br>
+语境：http，server，location，location if<br>
+阶段：output-body-filter<br>
+输入的数据时通过ngx.arg<a href="%E4%BD%9C%E4%B8%BAlua%E7%9A%84string%E5%80%BC">1</a>，通过ngx.arg[2]这个bool类型表示响应数据流的结尾。</lua-script-str></p>
+<p>基于这个原因，'eof’只是nginx的链接缓冲区的last_buf(对主requests)或last_in_chain(对subrequests)的标记。<br>
+运行以下命令可以立即终止运行接下来的lua代码：<br>
+return ngx.ERROR<br>
+这会将响应体截断导致无效的响应。lua代码可以通过修改ngx.arg[1]的内容将数据传输到下游的nginx output body filter阶段的其它模块中去。例如，将response body中的小写字母进行反转，我们可以这么写：</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">location / &#123;</span><br><span class="line">    proxy_pass http://mybackend;</span><br><span class="line">    body_filter_by_lua <span class="string">'ngx.arg[1] = string.upper(ngx.arg[1])'</span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>当将ngx.arg[1]设置为nil或者一个空的lua string时，下游的模块将不会收到数据了。</p>
+<p>同样可以通过修改ngx.arg[2]来设置新的”eof“标记，例如：</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line">location /t &#123;</span><br><span class="line">    <span class="built_in">echo</span> hello world;</span><br><span class="line">    <span class="built_in">echo</span> hiya globe;</span><br><span class="line">    body_filter_by_lua <span class="string">'</span></span><br><span class="line"><span class="string">        local chunk = ngx.arg[1]</span></span><br><span class="line"><span class="string">        if string.match(chunk, "hello") then</span></span><br><span class="line"><span class="string">            ngx.arg[2] = true --new eof</span></span><br><span class="line"><span class="string">            return</span></span><br><span class="line"><span class="string">        end</span></span><br><span class="line"><span class="string">        --just throw away any remaining chunk data</span></span><br><span class="line"><span class="string">        ngx.arg[1] = nil</span></span><br><span class="line"><span class="string">    '</span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>那么GET /t的请求只会回复：hello world</p>
+<p>这是因为，当body filter看到了一块包含”hello“的字符块后立即将”eof“标记设置为了true，从而导致响应被截断了但仍然是有效的回复。<br>
+当lua代码中改变了响应体的长度时，应该要清除content-length响应头部的值，例如：</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">location /foo &#123;</span><br><span class="line">    header_filter_by_lua <span class="string">'ngx.header.content_length = nil'</span></span><br><span class="line">    body_filter_by_lua <span class="string">'ngx.arg[1] = string.len(ngx.arg[1]) .. "\\n"'</span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>在该阶段不能使用如下几个API：<br>
+1、output API(ngx.say和ngx.send_headers)<br>
+2、control API(ngx.exit和ngx.exec)<br>
+3、subrequest API(ngx.location.capture和ngx.location.capture_multi)<br>
+4、cosocket API(ngx.socket.tcp和ngx.req.socket)<br>
+nginx output filters可能会在一次请求中被多次调用，因为响应体可能是以chunks方式传输的。因此这个指令一般会在一次请求中被调用多次。</p>
+<p>9、log_by_lua，log_by_lua_file<br>
+语法：log_by_lua <lua-script-str><br>
+语境：http，server，location，location if<br>
+阶段：log<br>
+在log阶段调用指定的lua脚本，并不会替换access log，而是在那之后进行调用。</lua-script-str></p>
+<p>在该阶段不能使用如下几个API：<br>
+1、output API(ngx.say和ngx.send_headers)<br>
+2、control API(ngx.exit和ngx.exec)<br>
+3、subrequest API(ngx.location.capture和ngx.location.capture_multi)<br>
+4、cosocket API(ngx.socket.tcp和ngx.req.socket)</p>
+<p>一个收集upstream_response_time的平均数据的例子：</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br></pre></td><td class="code"><pre><span class="line">lua_shared_dict log_dict 5M</span><br><span class="line"></span><br><span class="line">server&#123;</span><br><span class="line">    location / &#123;</span><br><span class="line">        proxy_pass http;//mybackend</span><br><span class="line">        log_by_lua <span class="string">'</span></span><br><span class="line"><span class="string">            local log_dict = ngx.shared.log_dict</span></span><br><span class="line"><span class="string">            local upstream_time = tonumber(ngx.var.upstream_response_time)</span></span><br><span class="line"><span class="string">            local sum = log_dict:get("upstream_time-sum") or 0</span></span><br><span class="line"><span class="string">            sum = sum + upstream_time</span></span><br><span class="line"><span class="string">            log_dict:set("upsteam_time-sum", sum)</span></span><br><span class="line"><span class="string">            local newval, err = log_dict:incr("upstream_time-nb", 1)</span></span><br><span class="line"><span class="string">            if not newval and err == "not found" then</span></span><br><span class="line"><span class="string">                log_dict:add("upstream_time-nb", 0)</span></span><br><span class="line"><span class="string">                log_dict:incr("upstream_time-nb", 1)</span></span><br><span class="line"><span class="string">            end</span></span><br><span class="line"><span class="string">        '</span></span><br><span class="line">    &#125;</span><br><span class="line">    location = /status &#123;</span><br><span class="line">        content_by_lua <span class="string">'</span></span><br><span class="line"><span class="string">            local log_dict = ngx.shared.log_dict</span></span><br><span class="line"><span class="string">            local sum = log_dict:get("upstream_time-sum")</span></span><br><span class="line"><span class="string">            local nb = log_dict:get("upstream_time-nb")</span></span><br><span class="line"><span class="string"></span></span><br><span class="line"><span class="string">            if nb and sum then</span></span><br><span class="line"><span class="string">                ngx.say("average upstream response time:  ", sum/nb, " (", nb, " reqs)")</span></span><br><span class="line"><span class="string">            else</span></span><br><span class="line"><span class="string">                ngx.say("no data yet")</span></span><br><span class="line"><span class="string">            end</span></span><br><span class="line"><span class="string">        '</span></span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+                
+
+                <hr>
+                <!-- Pager -->
+                <ul class="pager">
+                    
+                        <li class="previous">
+                            <a href="/posts/18793.html" data-toggle="tooltip" data-placement="top" title="MySQL Processlist 中需引起关注的状态">&larr; Previous Post</a>
+                        </li>
+                    
+                    
+                        <li class="next">
+                            <a href="/posts/7215.html" data-toggle="tooltip" data-placement="top" title="Linux 安装 CLI 的字典 sdcv">Next Post &rarr;</a>
+                        </li>
+                    
+                </ul>
+
+                <!-- duoshuo Share start -->
+                
+                <!-- 多说 Share end-->
+
+                <!-- 多说评论框 start -->
+                
+                <!-- 多说评论框 end -->
+
+                <!-- disqus comment start -->
+                
+                <!-- disqus comment end -->
+
+                
+                    <!-- disqus 评论框 start -->
+                    <div class="comment">
+                        <div id="lv-container" data-id="city" data-uid="MTAyMC8yNzg2My80NDQw"></div>
+                    </div>
+                    <!-- disqus 评论框 end -->
+                
+
+            </div>
+            
+            <!-- Tabe of Content -->
+            <!-- Table of Contents -->
+
+  
+    <style>
+      span.toc-nav-number{
+        display: none
+      }
+    </style>
+  
+    
+      <aside id="sidebar">
+        <div id="toc" class="toc-article">
+        <strong class="toc-title">Contents</strong>
+        
+          <ol class="toc-nav"><li class="toc-nav-item toc-nav-level-3"><a class="toc-nav-link" href="#一-nginx执行步骤"><span class="toc-nav-number">1.</span> <span class="toc-nav-text">一、Nginx执行步骤</span></a></li><li class="toc-nav-item toc-nav-level-3"><a class="toc-nav-link" href="#二-nginx下lua处理阶段与使用范围"><span class="toc-nav-number">2.</span> <span class="toc-nav-text">二、Nginx下Lua处理阶段与使用范围：</span></a></li><li class="toc-nav-item toc-nav-level-3"><a class="toc-nav-link" href="#三-ngx_lua运行指令"><span class="toc-nav-number">3.</span> <span class="toc-nav-text">三、ngx_lua运行指令</span></a></li></ol>
+        
+        </div>
+      </aside>
+    
+
+                
+            <!-- Sidebar Container -->
+            <div class="
+                col-lg-8 col-lg-offset-2
+                col-md-10 col-md-offset-1
+                sidebar-container">
+
+                <!-- Featured Tags -->
+                
+                <section>
+                    <!-- no hr -->
+                    <h5><a href="/tags/">FEATURED TAGS</a></h5>
+                    <div class="tags">
+                       
+                          <a class="tag" href="/tags/#Nginx" title="Nginx">Nginx</a>
+                        
+                          <a class="tag" href="/tags/#Lua" title="Lua">Lua</a>
+                        
+                    </div>
+                </section>
+                
+
+                <!-- Friends Blog -->
+                
+                <hr>
+                <h5>FRIENDS</h5>
+                <ul class="list-inline">
+
+                    
+                        <li><a href="http://www.mike.org.cn/" target="_blank">简单.生活</a></li>
+                    
+                        <li><a href="http://shang.qq.com/wpa/qunwpa?idkey=ea4c43493c2269428ac6ef6141de4b6d78e5ab2d41380ca4099b833b62884ee9" target="_blank">技术交流群</a></li>
+                    
+                        <li><a href="" target="_blank"></a></li>
+                    
+                        <li><a href="" target="_blank"></a></li>
+                    
+                </ul>
+                
+            </div>
+        </div>
+    </div>
+</article>
+
+
+
+
+
+
+    <!-- 来必力City版公共JS代码 start (一个网页只需插入一次) -->
+    <script type="text/javascript">
+       (function(d, s) {
+           var j, e = d.getElementsByTagName(s)[0];
+    
+           if (typeof LivereTower === 'function') { return; }
+    
+           j = d.createElement(s);
+           j.src = 'https://cdn-city.livere.com/js/embed.dist.js';
+           j.async = true;
+    
+           e.parentNode.insertBefore(j, e);
+       })(document, 'script');
+    </script>
+    <noscript>为正常使用来必力评论功能请激活JavaScript</noscript>
+    <!-- 来必力City版 公共JS代码 end -->
+
+
+
+<!-- async load function -->
+<script>
+    function async(u, c) {
+      var d = document, t = 'script',
+          o = d.createElement(t),
+          s = d.getElementsByTagName(t)[0];
+      o.src = u;
+      if (c) { o.addEventListener('load', function (e) { c(null, e); }, false); }
+      s.parentNode.insertBefore(o, s);
+    }
+</script>
+<!-- anchor-js, Doc:http://bryanbraun.github.io/anchorjs/ -->
+<script>
+    async("https://cdn.bootcss.com/anchor-js/1.1.1/anchor.min.js",function(){
+        anchors.options = {
+          visible: 'hover',
+          placement: 'left',
+          icon: 'ℬ'
+        };
+        anchors.add().remove('.intro-header h1').remove('.subheading').remove('.sidebar-container h5');
+    })
+</script>
+<style>
+    /* place left on bigger screen */
+    @media all and (min-width: 800px) {
+        .anchorjs-link{
+            position: absolute;
+            left: -0.75em;
+            font-size: 1.1em;
+            margin-top : -0.1em;
+        }
+    }
+</style>
+
+
+
+    <!-- Footer -->
+    <!-- Footer -->
+<footer>
+    <div class="container">
+        <div class="row">
+            <div class="col-lg-8 col-lg-offset-2 col-md-10 col-md-offset-1">
+                <ul class="list-inline text-center">
+                
+                    <li>
+                        <a href="/atom.xml">
+                            <span class="fa-stack fa-lg">
+                                <i class="fa fa-circle fa-stack-2x"></i>
+                                <i class="fa fa-rss fa-stack-1x fa-inverse"></i>
+                            </span>
+                        </a>
+                    </li>
+                
+                
+                
+                    <li>
+                        <a target="_blank" href="https://www.zhihu.com/people/80imike">
+                            <span class="fa-stack fa-lg">
+                                <i class="fa fa-circle fa-stack-2x"></i>
+                                <i class="fa  fa-stack-1x fa-inverse">知</i>
+                            </span>
+                        </a>
+                    </li>
+                
+
+                
+                    <li>
+                        <a target="_blank" href="http://weibo.com/2093524665">
+                            <span class="fa-stack fa-lg">
+                                <i class="fa fa-circle fa-stack-2x"></i>
+                                <i class="fa fa-weibo fa-stack-1x fa-inverse"></i>
+                            </span>
+                        </a>
+                    </li>
+                
+
+                
+
+                
+
+                
+
+                </ul>
+                <p class="copyright text-muted">
+                    Copyright &copy; Mike 2018 | Hosted by <a href="https://pages.coding.me" style="font-weight: bold">Coding Pages</a>
+                    <br>
+                    Theme by <a href="http://beantech.org">BeanTech</a> 
+                    <span style="display: inline-block; margin: 0 5px;">
+                        <i class="fa fa-heart"></i>
+                    </span> 
+                    re-Ported by <a href="http://www.huweihuang.com">胡伟煌</a> | 
+                    <iframe
+                        style="margin-left: 2px; margin-bottom:-5px;"
+                        frameborder="0" scrolling="0" width="91px" height="20px"
+                        src="https://ghbtns.com/github-btn.html?user=huweihuang&repo=hexo-theme-huweihuang&type=star&count=true" >
+                    </iframe>
+                </p>
+            </div>
+        </div>
+    </div>
+</footer>
+
+<!-- jQuery -->
+<script src="/js/jquery.min.js"></script>
+
+<!-- Bootstrap Core JavaScript -->
+<script src="/js/bootstrap.min.js"></script>
+
+<!-- Custom Theme JavaScript -->
+<script src="/js/hux-blog.min.js"></script>
+
+
+<!-- async load function -->
+<script>
+    function async(u, c) {
+      var d = document, t = 'script',
+          o = d.createElement(t),
+          s = d.getElementsByTagName(t)[0];
+      o.src = u;
+      if (c) { o.addEventListener('load', function (e) { c(null, e); }, false); }
+      s.parentNode.insertBefore(o, s);
+    }
+</script>
+
+<!-- 
+     Because of the native support for backtick-style fenced code blocks 
+     right within the Markdown is landed in Github Pages, 
+     From V1.6, There is no need for Highlight.js, 
+     so Huxblog drops it officially.
+
+     - https://github.com/blog/2100-github-pages-now-faster-and-simpler-with-jekyll-3-0  
+     - https://help.github.com/articles/creating-and-highlighting-code-blocks/    
+-->
+<!--
+    <script>
+        async("http://cdn.bootcss.com/highlight.js/8.6/highlight.min.js", function(){
+            hljs.initHighlightingOnLoad();
+        })
+    </script>
+    <link href="http://cdn.bootcss.com/highlight.js/8.6/styles/github.min.css" rel="stylesheet">
+-->
+
+
+<!-- jquery.tagcloud.js -->
+<script>
+    // only load tagcloud.js in tag.html
+    if($('#tag_cloud').length !== 0){
+        async("https://www.hi-linux.com/js/jquery.tagcloud.js",function(){
+            $.fn.tagcloud.defaults = {
+                //size: {start: 1, end: 1, unit: 'em'},
+                color: {start: '#bbbbee', end: '#0085a1'},
+            };
+            $('#tag_cloud a').tagcloud();
+        })
+    }
+</script>
+
+<!--fastClick.js -->
+<script>
+    async("https://cdn.bootcss.com/fastclick/1.0.6/fastclick.min.js", function(){
+        var $nav = document.querySelector("nav");
+        if($nav) FastClick.attach($nav);
+    })
+</script>
+
+
+<!-- Google Analytics -->
+
+
+
+
+<!-- Baidu Tongji -->
+
+
+
+
+
+
+	<a id="rocket" href="#top" class=""></a>
+	<script type="text/javascript" src="/js/totop.js?v=1.0.0" async=""></script>
+    <script type="text/javascript" src="/js/toc.js?v=1.0.0" async=""></script>
+<!-- Image to hack wechat -->
+<img src="https://www.hi-linux.com/img/icon_wechat.png" width="0" height="0" />
+<!-- Migrate from head to bottom, no longer block render and still work -->
+
+</body>
+
+</html>

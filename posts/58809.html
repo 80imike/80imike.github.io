@@ -1,0 +1,826 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<!-- Head tag -->
+<head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="google-site-verification" content="xBT4GhYoi5qRD5tr338pgPM5OWHHIDR6mNg1a3euekI" />
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="description" content="">
+    <meta name="keyword"  content="Linux,运维,Nginx,Zabbix,Centos,Ansible,MySQL,Python,Docker,ELK,Haproxy,Git,Nodejs,安全,技术">
+    <link rel="shortcut icon" href="/img/ironman-draw.png">
+    <!-- Place this tag in your head or just before your close body tag. -->
+    <script async defer src="https://buttons.github.io/buttons.js"></script>
+    <title>
+        
+          CentOS 7 下使用 FirewallD 构建动态防火墙 - 运维之美
+        
+    </title>
+
+    <link rel="canonical" href="https://www.hi-linux.com/posts/58809.html">
+
+    <!-- Bootstrap Core CSS -->
+    <link rel="stylesheet" href="/css/bootstrap.min.css">
+
+    <!-- Custom CSS --> 
+    <link rel="stylesheet" href="/css/beantech.min.css">
+    
+    <!-- Pygments Highlight CSS -->
+    <link rel="stylesheet" href="/css/highlight.css">
+
+    <link rel="stylesheet" href="/css/widget.css">
+
+    <link rel="stylesheet" href="/css/rocket.css">
+
+    <link rel="stylesheet" href="/css/signature.css">
+
+    <link rel="stylesheet" href="/css/toc.css">
+
+    <!-- Custom Fonts -->
+    <!-- <link href="https://maxcdn.bootstrapcdn.com/font-awesome/4.3.0/css/font-awesome.min.css" rel="stylesheet" type="text/css"> -->
+    <!-- Hux change font-awesome CDN to qiniu -->
+    <link href="https://cdn.staticfile.org/font-awesome/4.5.0/css/font-awesome.min.css" rel="stylesheet" type="text/css">
+
+
+    <!-- Hux Delete, sad but pending in China
+    <link href='http://fonts.googleapis.com/css?family=Lora:400,700,400italic,700italic' rel='stylesheet' type='text/css'>
+    <link href='http://fonts.googleapis.com/css?family=Open+Sans:300italic,400italic,600italic,700italic,800italic,400,300,600,700,800' rel='stylesheet' type='text/
+    css'>
+    -->
+
+
+    <!-- HTML5 Shim and Respond.js IE8 support of HTML5 elements and media queries -->
+    <!-- WARNING: Respond.js doesn't work if you view the page via file:// -->
+    <!--[if lt IE 9]>
+        <script src="https://oss.maxcdn.com/libs/html5shiv/3.7.0/html5shiv.js"></script>
+        <script src="https://oss.maxcdn.com/libs/respond.js/1.4.2/respond.min.js"></script>
+    <![endif]-->
+
+    <!-- ga & ba script hoook -->
+    <script></script>
+</head>
+
+
+<!-- hack iOS CSS :active style -->
+<body ontouchstart="">
+	<!-- Modified by Yu-Hsuan Yen -->
+<!-- Post Header -->
+<style type="text/css">
+    header.intro-header{
+        
+            background-image: url('/img/header_img/article.jpg')
+            /*post*/
+        
+    }
+    
+</style>
+
+<header class="intro-header" >
+    <!-- Signature -->
+    <div id="signature">
+        <div class="container">
+            <div class="row">
+                <div class="col-lg-8 col-lg-offset-2 col-md-10 col-md-offset-1">
+                
+                    <div class="post-heading">
+                        <div class="tags">
+                            
+                              <a class="tag" href="/tags/#Linux" title="Linux">Linux</a>
+                            
+                              <a class="tag" href="/tags/#FirewallD" title="FirewallD">FirewallD</a>
+                            
+                        </div>
+                        <h1>CentOS 7 下使用 FirewallD 构建动态防火墙</h1>
+                        <h2 class="subheading"></h2>
+                        <span class="meta">
+                            Posted by Mike on
+                            2016-05-26
+                        </span>
+                    </div>
+                
+
+
+                </div>
+            </div>
+        </div>
+    </div>
+</header>
+
+	
+    <!-- Navigation -->
+<nav class="navbar navbar-default navbar-custom navbar-fixed-top">
+    <div class="container-fluid">
+        <!-- Brand and toggle get grouped for better mobile display -->
+        <div class="navbar-header page-scroll">
+            <button type="button" class="navbar-toggle">
+                <span class="sr-only">Toggle navigation</span>
+                <span class="icon-bar"></span>
+                <span class="icon-bar"></span>
+                <span class="icon-bar"></span>
+            </button>
+            <a class="navbar-brand" href="/">运维之美</a>
+        </div>
+
+        <!-- Collect the nav links, forms, and other content for toggling -->
+        <!-- Known Issue, found by Hux:
+            <nav>'s height woule be hold on by its content.
+            so, when navbar scale out, the <nav> will cover tags.
+            also mask any touch event of tags, unfortunately.
+        -->
+        <div id="huxblog_navbar">
+            <div class="navbar-collapse">
+                <ul class="nav navbar-nav navbar-right">
+                    <li>
+                        <a href="/">Home</a>
+                    </li>
+
+                    
+
+                        
+                    
+
+                        
+                    
+
+                        
+                        <li>
+                            <a href="/about/">About</a>
+                        </li>
+                        
+                    
+
+                        
+                        <li>
+                            <a href="/archive/">Archives</a>
+                        </li>
+                        
+                    
+
+                        
+                        <li>
+                            <a href="/tags/">Tags</a>
+                        </li>
+                        
+                    
+                    
+                </ul>
+            </div>
+        </div>
+        <!-- /.navbar-collapse -->
+    </div>
+    <!-- /.container -->
+</nav>
+<script>
+    // Drop Bootstarp low-performance Navbar
+    // Use customize navbar with high-quality material design animation
+    // in high-perf jank-free CSS3 implementation
+    var $body   = document.body;
+    var $toggle = document.querySelector('.navbar-toggle');
+    var $navbar = document.querySelector('#huxblog_navbar');
+    var $collapse = document.querySelector('.navbar-collapse');
+
+    $toggle.addEventListener('click', handleMagic)
+    function handleMagic(e){
+        if ($navbar.className.indexOf('in') > 0) {
+        // CLOSE
+            $navbar.className = " ";
+            // wait until animation end.
+            setTimeout(function(){
+                // prevent frequently toggle
+                if($navbar.className.indexOf('in') < 0) {
+                    $collapse.style.height = "0px"
+                }
+            },400)
+        }else{
+        // OPEN
+            $collapse.style.height = "auto"
+            $navbar.className += " in";
+        }
+    }
+</script>
+
+
+    <!-- Main Content -->
+    <!-- Modify by Yu-Hsuan Yen -->
+
+<!-- Post Content -->
+<article>
+    <div class="container">
+        <div class="row">
+
+            <!-- Post Container -->
+            <div class="
+                col-lg-8 col-lg-offset-2
+                col-md-10 col-md-offset-1
+                post-container">
+
+                <h3 id="firewalld介绍">FirewallD介绍</h3>
+<p>FirewallD提供了支持网络/防火墙区域(zone)定义网络链接以及接口安全等级的动态防火墙管理工具。它支持IPv4, IPv6 防火墙设置以及以太网桥接，也支持允许服务或者应用程序直接添加防火墙规则的接口。FirewallD拥有运行时配置和永久配置选项。</p>
+<p>采用<code>firewall-cmd</code>(command)或<code>firewall-config</code>(gui)来动态的管理kernel netfilter的临时或永久的接口规则，并实时生效而无需重启服务。</p>
+<a id="more"></a>
+<p><strong>FirewallD特性</strong></p>
+<ul>
+<li>Zone</li>
+</ul>
+<p>FirewallD使用区域(zone)的概念来管理，网络区域定义了网络连接的可信等级。这是一个一对多的关系，这意味着一次连接可以仅仅是一个区域的一部分，而一个区域可以用于很多连接。每个网卡对应一个zone，这些zone的配置文件可在<code>/usr/lib/firewalld/zones/</code>下看到，默认的是public。</p>
+<p>Zone提供了以下几个区域</p>
+<blockquote>
+<p>drop</p>
+<p>任何流入网络的包都被丢弃，不作出任何响应，只允许流出的网络连接。即使开放了某些服务(比如http)，这些服务的数据也是不允许通过的。</p>
+<p>block<br>
+任何进入的网络连接都被拒绝，并返回IPv4的icmp-host-prohibited报文或者IPv6的icmp6-adm-prohibited报文。只允许由该系统初始化的网络连接。</p>
+<p>public(默认)<br>
+用以可以公开的部分。你认为网络中其他的计算机不可信并且可能伤害你的计算机，只允许选中的服务通过。</p>
+<p>external<br>
+用在路由器等启用伪装的外部网络。你认为网络中其他的计算机不可信并且可能伤害你的计算机，只允许选中的服务通过。</p>
+<p>dmz<br>
+用以允许隔离区(dmz)中的电脑有限地被外界网络访问，只允许选中的服务通过。</p>
+<p>work<br>
+用在工作网络。你信任网络中的大多数计算机不会影响你的计算机，只允许选中的服务通过。</p>
+<p>home<br>
+用在家庭网络。你信任网络中的大多数计算机不会影响你的计算机，只允许选中的服务通过。</p>
+<p>internal<br>
+用在内部网络。你信任网络中的大多数计算机不会影响你的计算机，只允许选中的服务通过。</p>
+<p>trusted<br>
+允许所有网络连接，即使没有开放任何服务，那么使用此zone的流量照样通过(一路绿灯)。</p>
+</blockquote>
+<ul>
+<li>预定义的服务</li>
+</ul>
+<p>服务是端口和/或协议入口的组合。备选内容包括netfilter助手模块以及 IPv4、IPv6地址。</p>
+<ul>
+<li>端口和协议</li>
+</ul>
+<p>定义了tcp或udp端口，端口可以是一个端口或者端口范围。</p>
+<ul>
+<li>ICMP阻塞</li>
+</ul>
+<p>可以选择Internet控制报文协议的报文。这些报文可以是信息请求亦可是对信息请求或错误条件创建的响应。</p>
+<ul>
+<li>伪装</li>
+</ul>
+<p>私有网络地址可以被映射到公开的IP地址。这是一次正规的地址转换。</p>
+<ul>
+<li>端口转发</li>
+</ul>
+<p>端口可以映射到另一个端口以及/或者其他主机。</p>
+<h3 id="firewalld安装">FirewallD安装</h3>
+<p>安装FirewallD和管理工具</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">$ yum install firewalld firewall-config</span><br></pre></td></tr></table></figure>
+<p>运行、停止、禁用FirewallD</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">$ systemctl start firewalld         # 启动</span><br><span class="line">$ systemctl enable firewalld        # 开机启动</span><br><span class="line">$ systemctl stop firewalld          # 关闭</span><br><span class="line">$ systemctl disable firewalld       # 取消开机启动</span><br><span class="line">$ systemctl status firewalld        # 查看状态</span><br></pre></td></tr></table></figure>
+<h3 id="使用firewalld">使用FirewallD</h3>
+<p>FirewallD规则管理可以直接修改配置文件(<code>/etc/firewalld/firewalld.conf</code>)进行配置,也可以通过图形界面工具<code>firewall-config</code>或者命令行客户端<code>firewall-cmd</code>来启用或者关闭防火墙特性。手动编辑配置文件相对还是比较麻烦，推荐使用工具进行配置。</p>
+<h4 id="一般应用">一般应用</h4>
+<p>查看规则</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">$ firewall-cmd --help</span><br></pre></td></tr></table></figure>
+<p>查看运行状态</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">$ firewall-cmd --state</span><br></pre></td></tr></table></figure>
+<p>查看已被激活的Zone信息</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">$ firewall-cmd --get-active-zones</span><br><span class="line">public</span><br><span class="line">  interfaces: eth0 eth1</span><br></pre></td></tr></table></figure>
+<p>获取活动的区域</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">$ firewall-cmd --get-active-zones</span><br></pre></td></tr></table></figure>
+<p>查看指定接口的Zone信息</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">$ firewall-cmd --get-zone-of-interface=eth0</span><br></pre></td></tr></table></figure>
+<p>这条命令将输出接口所属的区域名称。</p>
+<p>查看指定级别的接口</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">$ firewall-cmd --zone=public --list-interfaces</span><br><span class="line">eth0</span><br></pre></td></tr></table></figure>
+<p>获取支持的区域列表</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">$ firewall-cmd --get-zones</span><br></pre></td></tr></table></figure>
+<p>查看指定级别的所有信息，譬如public</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line">$ firewall-cmd --zone=public --list-all</span><br><span class="line">public (default, active)</span><br><span class="line">  interfaces: eth0</span><br><span class="line">  sources:</span><br><span class="line">  services: dhcpv6-client http ssh</span><br><span class="line">  ports:</span><br><span class="line">  masquerade: no</span><br><span class="line">  forward-ports:</span><br><span class="line">  icmp-blocks:</span><br><span class="line">  rich rules:</span><br></pre></td></tr></table></figure>
+<p>查看所有级别被允许的服务</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">$ firewall-cmd --get-service</span><br></pre></td></tr></table></figure>
+<p>查看重启后所有Zones级别中被允许的服务，即永久放行的服务</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">$ firewall-cmd --get-service --permanent</span><br></pre></td></tr></table></figure>
+<p>更新规则，不重启服务</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">$ firewall-cmd --reload</span><br></pre></td></tr></table></figure>
+<p>更新规则，重启服务。状态信息将会丢失。</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">$ firewall-cmd --complete-reload</span><br></pre></td></tr></table></figure>
+<p>这个选项应当仅用于处理防火墙问题时，例如，状态信息和防火墙规则都正常，但是不能建立任何连接的情况。</p>
+<p>添加某接口至某信任等级，譬如添加eth0至public，再永久生效</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">$ firewall-cmd --zone=public --add-interface=eth0 --permanent</span><br></pre></td></tr></table></figure>
+<p>修改接口所属区域</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">$ firewall-cmd [--zone=&lt;zone&gt;] --change-interface=&lt;interface&gt;</span><br></pre></td></tr></table></figure>
+<p>这个选项与<code>--add-interface</code> 选项相似，但是当接口已经存在于另一个区域的时候，该接口将被添加到新的区域。</p>
+<p>将接口增加到区域</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">$ firewall-cmd [--zone=&lt;zone&gt;] --add-interface=&lt;interface&gt;</span><br></pre></td></tr></table></figure>
+<p>如果接口不属于区域，接口将被增加到区域。如果区域被省略了，将使用默认区域。接口在重新加载后将重新应用。</p>
+<p>设置public为默认的信任级别</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">$ firewall-cmd --set-default-zone=public</span><br></pre></td></tr></table></figure>
+<p>设置默认区域</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">$ firewall-cmd --set-default-zone=&lt;zone&gt;</span><br></pre></td></tr></table></figure>
+<p>获取所有支持的服务</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">$ firewall-cmd --get-services</span><br></pre></td></tr></table></figure>
+<p>获取所有支持的ICMP类型</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">$ firewall-cmd --get-icmptypes</span><br></pre></td></tr></table></figure>
+<p>列出全部启用的区域的特性</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">$ firewall-cmd --list-all-zones</span><br></pre></td></tr></table></figure>
+<p>输出格式是</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">&lt;zone&gt;</span><br><span class="line">  interfaces: &lt;interface1&gt; ..</span><br><span class="line">  services: &lt;service1&gt; ..</span><br><span class="line">  ports: &lt;port1&gt; ..</span><br><span class="line">  forward-ports: &lt;forward port1&gt; ..</span><br><span class="line">  icmp-blocks: &lt;icmp type1&gt; ..</span><br></pre></td></tr></table></figure>
+<p>输出区域<zone>全部启用的特性。如果省略区域，将显示默认区域的信息。</zone></p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">$ firewall-cmd [--zone=&lt;zone&gt;] --list-all</span><br></pre></td></tr></table></figure>
+<p>获取默认区域的网络设置</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">$ firewall-cmd --get-default-zone</span><br></pre></td></tr></table></figure>
+<p>流入默认区域中配置的接口的新访问请求将被置入新的默认区域。当前活动的连接将不受影响。</p>
+<p>从区域中删除一个接口</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">$ firewall-cmd [--zone=&lt;zone&gt;] --remove-interface=&lt;interface&gt;</span><br></pre></td></tr></table></figure>
+<p>查询区域中是否包含某接口</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">$ firewall-cmd [--zone=&lt;zone&gt;] --query-interface=&lt;interface&gt;</span><br></pre></td></tr></table></figure>
+<p>列举区域中启用的服务</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">$ firewall-cmd [ --zone=&lt;zone&gt; ] --list-services</span><br></pre></td></tr></table></figure>
+<p>启用应急模式阻断所有网络连接，以防出现紧急状况</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">$ firewall-cmd --panic-on</span><br></pre></td></tr></table></figure>
+<p>禁用应急模式</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">$ firewall-cmd --panic-off</span><br></pre></td></tr></table></figure>
+<p>在0.3.0之前的FirewallD版本中, panic选项是<code>--enable-panic</code>与<code>--disable-panic</code>。</p>
+<p>查询应急模式</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">$ firewall-cmd --query-panic</span><br></pre></td></tr></table></figure>
+<h4 id="处理运行时区域">处理运行时区域</h4>
+<p>运行时模式下对区域进行的修改不是永久有效的。重新加载或者重启后修改将失效。</p>
+<p>管理端口</p>
+<p>列出dmz级别的被允许的进入端口</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">$ firewall-cmd --zone=dmz --list-ports</span><br></pre></td></tr></table></figure>
+<p>允许tcp端口8080至dmz级别</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">$ firewall-cmd --zone=dmz --add-port=8080/tcp</span><br></pre></td></tr></table></figure>
+<p>管理服务</p>
+<p>启用区域中的一种服务</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">$ firewall-cmd [--zone=&lt;zone&gt;] --add-service=&lt;service&gt; [--timeout=&lt;seconds&gt;]</span><br></pre></td></tr></table></figure>
+<p>此举启用区域中的一种服务。如果未指定区域，将使用默认区域。如果设定了超时时间，服务将只启用特定秒数。如果服务已经活跃，将不会有任何警告信息。</p>
+<p>添加smtp服务至work zone</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">$ firewall-cmd --zone=work --add-service=smtp</span><br></pre></td></tr></table></figure>
+<p>使区域中的ipp-client服务生效60秒</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">$ firewall-cmd --zone=home --add-service=ipp-client --timeout=60</span><br></pre></td></tr></table></figure>
+<p>启用默认区域中的http服务</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">$ firewall-cmd --add-service=http</span><br></pre></td></tr></table></figure>
+<p>禁用区域中的某种服务</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">$ firewall-cmd [--zone=&lt;zone&gt;] --remove-service=&lt;service&gt;</span><br></pre></td></tr></table></figure>
+<p>此举禁用区域中的某种服务。如果未指定区域，将使用默认区域。</p>
+<p>移除work zone中的smtp服务</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">$ firewall-cmd --zone=work --remove-service=smtp</span><br></pre></td></tr></table></figure>
+<p>禁止home区域中的http服务</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">$ firewall-cmd --zone=home --remove-service=http</span><br></pre></td></tr></table></figure>
+<p>区域种的服务将被禁用。如果服务没有启用，将不会有任何警告信息。</p>
+<p>查询区域中是否启用了特定服务</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">$ firewall-cmd [--zone=&lt;zone&gt;] --query-service=&lt;service&gt;</span><br></pre></td></tr></table></figure>
+<p>如果服务启用，将返回1,否则返回0。没有输出信息。</p>
+<p>启用区域端口和协议组合</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">$ firewall-cmd [--zone=&lt;zone&gt;] --add-port=&lt;port&gt;[-&lt;port&gt;]/&lt;protocol&gt; [--timeout=&lt;seconds&gt;]</span><br></pre></td></tr></table></figure>
+<p>此举将启用端口和协议的组合。端口可以是一个单独的端口<code>&lt;port&gt;</code>或者是一个端口范围<code>&lt;port&gt;-&lt;port&gt;</code> 。协议可以是tcp或udp。</p>
+<p>禁用端口和协议组合</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">$ firewall-cmd [--zone=&lt;zone&gt;] --remove-port=&lt;port&gt;[-&lt;port&gt;]/&lt;protocol&gt;</span><br></pre></td></tr></table></figure>
+<p>查询区域中是否启用了端口和协议组合</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">$ firewall-cmd [--zone=&lt;zone&gt;] --query-port=&lt;port&gt;[-&lt;port&gt;]/&lt;protocol&gt;</span><br></pre></td></tr></table></figure>
+<p>如果启用，此命令将有返回值。没有输出信息。</p>
+<p>启用区域中的IP伪装功能</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">$ firewall-cmd [--zone=&lt;zone&gt;] --add-masquerade</span><br></pre></td></tr></table></figure>
+<p>此举启用区域的伪装功能。私有网络的地址将被隐藏并映射到一个公有IP。这是地址转换的一种形式，常用于路由。由于内核的限制，伪装功能仅可用于IPv4。</p>
+<p>禁用区域中的IP伪装</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">$ firewall-cmd [--zone=&lt;zone&gt;] --remove-masquerade</span><br></pre></td></tr></table></figure>
+<p>查询区域的伪装状态</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">$ firewall-cmd [--zone=&lt;zone&gt;] --query-masquerade</span><br></pre></td></tr></table></figure>
+<p>如果启用，此命令将有返回值。没有输出信息。</p>
+<p>启用区域的ICMP阻塞功能</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">$ firewall-cmd [--zone=&lt;zone&gt;] --add-icmp-block=&lt;icmptype&gt;</span><br></pre></td></tr></table></figure>
+<p>此举将启用选中的Internet控制报文协议(ICMP)报文进行阻塞。 ICMP 报文可以是请求信息或者创建的应答报文，以及错误应答。</p>
+<p>禁止区域的ICMP阻塞功能</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">$ firewall-cmd [--zone=&lt;zone&gt;] --remove-icmp-block=&lt;icmptype&gt;</span><br></pre></td></tr></table></figure>
+<p>查询区域的ICMP阻塞功能</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">$ firewall-cmd [--zone=&lt;zone&gt;] --query-icmp-block=&lt;icmptype&gt;</span><br></pre></td></tr></table></figure>
+<p>如果启用，此命令将有返回值。没有输出信息。</p>
+<p>阻塞区域的响应应答报文</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">$ firewall-cmd --zone=public --add-icmp-block=echo-reply</span><br></pre></td></tr></table></figure>
+<p>在区域中启用端口转发或映射</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">$ firewall-cmd [--zone=&lt;zone&gt;] --add-forward-port=port=&lt;port&gt;[-&lt;port&gt;]:proto=&lt;protocol&gt; &#123; :toport=&lt;port&gt;[-&lt;port&gt;] | :toaddr=&lt;address&gt; | :toport=&lt;port&gt;[-&lt;port&gt;]:toaddr=&lt;address&gt; &#125;</span><br></pre></td></tr></table></figure>
+<p>端口可以映射到另一台主机的同一端口，也可以是同一主机或另一主机的不同端口。端口号可以是一个单独的端口<code>&lt;port&gt;</code>或者是端口范围<code>&lt;port&gt;-&lt;port&gt;</code> 。协议可以为tcp或udp 。目标端口可以是端口号<code>&lt;port&gt;</code>或者是端口范围<code>&lt;port&gt;-&lt;port&gt;</code> 。目标地址可以是IPv4地址。受内核限制，端口转发功能仅可用于IPv4。</p>
+<p>禁止区域的端口转发或者端口映射</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">$ firewall-cmd [--zone=&lt;zone&gt;] --remove-forward-port=port=&lt;port&gt;[-&lt;port&gt;]:proto=&lt;protocol&gt; &#123; :toport=&lt;port&gt;[-&lt;port&gt;] | :toaddr=&lt;address&gt; | :toport=&lt;port&gt;[-&lt;port&gt;]:toaddr=&lt;address&gt; &#125;</span><br></pre></td></tr></table></figure>
+<p>查询区域的端口转发或者端口映射</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">$ firewall-cmd [--zone=&lt;zone&gt;] --query-forward-port=port=&lt;port&gt;[-&lt;port&gt;]:proto=&lt;protocol&gt; &#123; :toport=&lt;port&gt;[-&lt;port&gt;] | :toaddr=&lt;address&gt; | :toport=&lt;port&gt;[-&lt;port&gt;]:toaddr=&lt;address&gt; &#125;</span><br></pre></td></tr></table></figure>
+<p>如果启用，此命令将有返回值。没有输出信息。</p>
+<p>端口转发实例</p>
+<p>要打开端口转发，则需要先</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">$ firewall-cmd --zone=external --add-masquerade</span><br></pre></td></tr></table></figure>
+<p>然后转发tcp 22端口至3753</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">$ firewall-cmd --zone=external --add-forward-port=port=22:proto=tcp:toport=3753</span><br></pre></td></tr></table></figure>
+<p>转发22端口数据至另一个ip的相同端口上</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">$ firewall-cmd --zone=external --add-forward-port=port=22:proto=tcp:toaddr=192.168.1.100</span><br></pre></td></tr></table></figure>
+<p>转发22端口数据至另一ip的2055端口上</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">$ firewall-cmd --zone=external --add-forward-port=port=22:proto=tcp:toport=2055:toaddr=192.168.1.100</span><br></pre></td></tr></table></figure>
+<p>将区域home的ssh转发到127.0.0.2</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">$ firewall-cmd --zone=home --add-forward-port=port=22:proto=tcp:toaddr=127.0.0.2</span><br></pre></td></tr></table></figure>
+<h4 id="处理永久区域">处理永久区域</h4>
+<p>永久选项不直接影响运行时的状态。这些选项仅在重载或者重启服务时可用。为了使用运行时和永久设置，需要分别设置两者。 选项<code>--permanent</code>需要是永久设置的第一个参数。</p>
+<p>获取永久选项所支持的服务</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">$ firewall-cmd --permanent --get-services</span><br></pre></td></tr></table></figure>
+<p>获取永久选项所支持的ICMP类型列表</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">$ firewall-cmd --permanent --get-icmptypes</span><br></pre></td></tr></table></figure>
+<p>获取支持的永久区域</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">$ firewall-cmd --permanent --get-zones</span><br></pre></td></tr></table></figure>
+<p>启用区域中的服务</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">$ firewall-cmd --permanent [--zone=&lt;zone&gt;] --add-service=&lt;service&gt;</span><br></pre></td></tr></table></figure>
+<p>此举将永久启用区域中的服务。如果未指定区域，将使用默认区域。</p>
+<p>例: 永久启用home区域中的ipp-client服务</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">$ firewall-cmd --permanent --zone=home --add-service=ipp-client</span><br></pre></td></tr></table></figure>
+<p>禁用区域中的一种服务</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">$ firewall-cmd --permanent [--zone=&lt;zone&gt;] --remove-service=&lt;service&gt;</span><br></pre></td></tr></table></figure>
+<p>查询区域中的服务是否启用</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">$ firewall-cmd --permanent [--zone=&lt;zone&gt;] --query-service=&lt;service&gt;</span><br></pre></td></tr></table></figure>
+<p>如果服务启用，此命令将有返回值。此命令没有输出信息。</p>
+<p>永久启用区域中的一个端口-协议组合</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">$ firewall-cmd --permanent [--zone=&lt;zone&gt;] --add-port=&lt;port&gt;[-&lt;port&gt;]/&lt;protocol&gt;</span><br></pre></td></tr></table></figure>
+<p>例如</p>
+<p>允许某范围的udp端口至public级别，并永久生效</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">$ firewall-cmd --zone=public --add-port=5060-5059/udp --permanent</span><br></pre></td></tr></table></figure>
+<p>永久启用home区域中的https(tcp 443)端口</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">$ firewall-cmd --permanent --zone=home --add-port=443/tcp</span><br></pre></td></tr></table></figure>
+<p>永久禁用区域中的一个端口-协议组合</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">$ firewall-cmd --permanent [--zone=&lt;zone&gt;] --remove-port=&lt;port&gt;[-&lt;port&gt;]/&lt;protocol&gt;</span><br></pre></td></tr></table></figure>
+<p>查询区域中的端口-协议组合是否永久启用</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">$ firewall-cmd --permanent [--zone=&lt;zone&gt;] --query-port=&lt;port&gt;[-&lt;port&gt;]/&lt;protocol&gt;</span><br></pre></td></tr></table></figure>
+<p>如果服务启用，此命令将有返回值。此命令没有输出信息。</p>
+<p>永久启用区域中的伪装</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">$ firewall-cmd --permanent [--zone=&lt;zone&gt;] --add-masquerade</span><br></pre></td></tr></table></figure>
+<p>此举启用区域的伪装功能。私有网络的地址将被隐藏并映射到一个公有IP。这是地址转换的一种形式，常用于路由。由于内核的限制，伪装功能仅可用于IPv4。</p>
+<p>永久禁用区域中的伪装</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">$ firewall-cmd --permanent [--zone=&lt;zone&gt;] --remove-masquerade</span><br></pre></td></tr></table></figure>
+<p>查询区域中的伪装的永久状态</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">$ firewall-cmd --permanent [--zone=&lt;zone&gt;] --query-masquerade</span><br></pre></td></tr></table></figure>
+<p>如果服务启用，此命令将有返回值。此命令没有输出信息。</p>
+<p>永久启用区域中的ICMP阻塞</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">$ firewall-cmd --permanent [--zone=&lt;zone&gt;] --add-icmp-block=&lt;icmptype&gt;</span><br></pre></td></tr></table></figure>
+<p>此举将启用选中的 Internet 控制报文协议(ICMP)报文进行阻塞。 ICMP 报文可以是请求信息或者创建的应答报文或错误应答报文。</p>
+<p>永久禁用区域中的ICMP阻塞</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">$ firewall-cmd --permanent [--zone=&lt;zone&gt;] --remove-icmp-block=&lt;icmptype&gt;</span><br></pre></td></tr></table></figure>
+<p>例: 阻塞公共区域中的响应应答报文</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">$ firewall-cmd --permanent --zone=public --add-icmp-block=echo-reply</span><br></pre></td></tr></table></figure>
+<p>查询区域中的ICMP永久状态</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">$ firewall-cmd --permanent [--zone=&lt;zone&gt;] --query-icmp-block=&lt;icmptype&gt;</span><br></pre></td></tr></table></figure>
+<p>如果服务启用，此命令将有返回值。此命令没有输出信息。</p>
+<p>在区域中永久启用端口转发或映射</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">$ firewall-cmd --permanent [--zone=&lt;zone&gt;] --add-forward-port=port=&lt;port&gt;[-&lt;port&gt;]:proto=&lt;protocol&gt; &#123; :toport=&lt;port&gt;[-&lt;port&gt;] | :toaddr=&lt;address&gt; | :toport=&lt;port&gt;[-&lt;port&gt;]:toaddr=&lt;address&gt; &#125;</span><br></pre></td></tr></table></figure>
+<p>端口可以映射到另一台主机的同一端口，也可以是同一主机或另一主机的不同端口。端口号可以是一个单独的端口<code>&lt;port&gt;</code>或者是端口范围<code>&lt;port&gt;-&lt;port&gt;</code> 。协议可以为tcp或udp 。目标端口可以是端口号<code>&lt;port&gt;</code>或者是端口范围<code>&lt;port&gt;-&lt;port&gt;</code>。目标地址可以是IPv4 地址。受内核限制，端口转发功能仅可用于IPv4。</p>
+<p>例: 将home区域的ssh服务转发到127.0.0.2</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">$ firewall-cmd --permanent --zone=home --add-forward-port=port=22:proto=tcp:toaddr=127.0.0.2</span><br></pre></td></tr></table></figure>
+<p>永久禁止区域的端口转发或者端口映射</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">$ firewall-cmd --permanent [--zone=&lt;zone&gt;] --remove-forward-port=port=&lt;port&gt;[-&lt;port&gt;]:proto=&lt;protocol&gt; &#123; :toport=&lt;port&gt;[-&lt;port&gt;] | :toaddr=&lt;address&gt; | :toport=&lt;port&gt;[-&lt;port&gt;]:toaddr=&lt;address&gt; &#125;</span><br></pre></td></tr></table></figure>
+<p>查询区域的端口转发或者端口映射状态</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">$ firewall-cmd --permanent [--zone=&lt;zone&gt;] --query-forward-port=port=&lt;port&gt;[-&lt;port&gt;]:proto=&lt;protocol&gt; &#123; :toport=&lt;port&gt;[-&lt;port&gt;] | :toaddr=&lt;address&gt; | :toport=&lt;port&gt;[-&lt;port&gt;]:toaddr=&lt;address&gt; &#125;</span><br></pre></td></tr></table></figure>
+<p>如果服务启用，此命令将有返回值。此命令没有输出信息。</p>
+<p>IP封禁</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">$ firewall-cmd --permanent --add-rich-rule=&quot;rule family=&apos;ipv4&apos; source address=&apos;222.222.222.222&apos; reject&quot;</span><br></pre></td></tr></table></figure>
+<h4 id="直接选项">直接选项</h4>
+<p>直接选项主要用于使服务和应用程序能够增加规则。 规则不会被保存，在重新加载或者重启之后必须再次提交。传递的参数<code>&lt;args&gt;</code>与iptables, ip6tables以及ebtables一致。</p>
+<p>选项<code>--direct</code>需要是直接选项的第一个参数。</p>
+<p>将命令传递给防火墙。参数<code>&lt;args&gt;</code>可以是iptables, ip6tables以及ebtables命令行参数。</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">$ firewall-cmd --direct --passthrough &#123; ipv4 | ipv6 | eb &#125; &lt;args&gt;</span><br></pre></td></tr></table></figure>
+<p>为表<code>&lt;table&gt;</code>增加一个新链<code>&lt;chain&gt;</code></p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">$ firewall-cmd --direct --add-chain &#123; ipv4 | ipv6 | eb &#125; &lt;table&gt; &lt;chain&gt;</span><br></pre></td></tr></table></figure>
+<p>从表<code>&lt;table&gt;</code>中删除链<code>&lt;chain&gt;</code></p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">$ firewall-cmd --direct --remove-chain &#123; ipv4 | ipv6 | eb &#125; &lt;table&gt; &lt;chain&gt;</span><br></pre></td></tr></table></figure>
+<p>查询<code>&lt;chain&gt;</code>链是否存在与表<code>&lt;table&gt;</code>. 如果是，返回0,否则返回1.</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">$ firewall-cmd --direct --query-chain &#123; ipv4 | ipv6 | eb &#125; &lt;table&gt; &lt;chain&gt;</span><br></pre></td></tr></table></figure>
+<p>如果启用，此命令将有返回值。此命令没有输出信息。</p>
+<p>获取用空格分隔的表<code>&lt;table&gt;</code>中链的列表。</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">$ firewall-cmd --direct --get-chains &#123; ipv4 | ipv6 | eb &#125; &lt;table&gt;</span><br></pre></td></tr></table></figure>
+<p>为表<code>&lt;table&gt;</code>增加一条参数为<code>&lt;args&gt;</code>的链<code>&lt;chain&gt;</code> ，优先级设定为<code>&lt;priority&gt;</code>。</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">$ firewall-cmd --direct --add-rule &#123; ipv4 | ipv6 | eb &#125; &lt;table&gt; &lt;chain&gt; &lt;priority&gt; &lt;args&gt;</span><br></pre></td></tr></table></figure>
+<p>从表<code>&lt;table&gt;</code>中删除带参数<code>&lt;args&gt;</code>的链<code>&lt;chain&gt;</code>。</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">$ firewall-cmd --direct --remove-rule &#123; ipv4 | ipv6 | eb &#125; &lt;table&gt; &lt;chain&gt; &lt;args&gt;</span><br></pre></td></tr></table></figure>
+<p>查询带参数<code>&lt;args&gt;</code>的链<code>&lt;chain&gt;</code>是否存在表<code>&lt;table&gt;</code>中. 如果是返回0,否则返回1.</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">$ firewall-cmd --direct --query-rule &#123; ipv4 | ipv6 | eb &#125; &lt;table&gt; &lt;chain&gt; &lt;args&gt;</span><br></pre></td></tr></table></figure>
+<p>如果启用，此命令将有返回值。此命令没有输出信息。</p>
+<p>获取表<code>&lt;table&gt;</code>中所有增加到链<code>&lt;chain&gt;</code>的规则，并用换行分隔。</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">$ firewall-cmd --direct --get-rules &#123; ipv4 | ipv6 | eb &#125; &lt;table&gt; &lt;chain&gt;</span><br></pre></td></tr></table></figure>
+<h3 id="使用iptables静态防火墙">使用iptables静态防火墙</h3>
+<p>对于用惯了iptables的用户，FirewallD的使用起来需要熟悉一段时间。如果你想使用熟悉的iptables和ip6tables静态防火墙规则, 方法如下</p>
+<p>安装iptables-services</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">$ yum install iptables-services</span><br></pre></td></tr></table></figure>
+<p>禁用firewalld</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">$ systemctl mask firewalld.service</span><br><span class="line">$ systemctl stop firewalld.service</span><br></pre></td></tr></table></figure>
+<p>启用iptables和ip6tables</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">$ systemctl enable iptables.service</span><br><span class="line">$ systemctl enable ip6tables.service</span><br></pre></td></tr></table></figure>
+<p>静态防火墙规则配置文件是<code>/etc/sysconfig/iptables</code>以及<code>/etc/sysconfig/ip6tables</code>。</p>
+<p>注：iptables与iptables-services软件包不提供与服务配套使用的防火墙规则. 这些服务是用来保障兼容性以及供想使用自己防火墙规则的人使用的. 你可以安装并使用<code>system-config-firewall</code>来创建服务所需要的规则. 为了能使用<code>system-config-firewall</code>, 你必须停止firewalld。</p>
+<h3 id="参考文档">参考文档</h3>
+<p><a href="http://www.google.com" target="_blank" rel="noopener">http://www.google.com</a><br>
+<a href="http://havee.me/linux/2015-01/using-firewalls-on-centos-7.html" target="_blank" rel="noopener">http://havee.me/linux/2015-01/using-firewalls-on-centos-7.html</a><br>
+<a href="https://fedoraproject.org/wiki/FirewallD/zh-cn" target="_blank" rel="noopener">https://fedoraproject.org/wiki/FirewallD/zh-cn</a></p>
+
+                
+
+                <hr>
+                <!-- Pager -->
+                <ul class="pager">
+                    
+                        <li class="previous">
+                            <a href="/posts/3761.html" data-toggle="tooltip" data-placement="top" title="Systemd 入门教程">&larr; Previous Post</a>
+                        </li>
+                    
+                    
+                        <li class="next">
+                            <a href="/posts/46493.html" data-toggle="tooltip" data-placement="top" title="Linux 命令行下抓取 HTTP 流量的工具 httpry">Next Post &rarr;</a>
+                        </li>
+                    
+                </ul>
+
+                <!-- duoshuo Share start -->
+                
+                <!-- 多说 Share end-->
+
+                <!-- 多说评论框 start -->
+                
+                <!-- 多说评论框 end -->
+
+                <!-- disqus comment start -->
+                
+                <!-- disqus comment end -->
+
+                
+                    <!-- disqus 评论框 start -->
+                    <div class="comment">
+                        <div id="lv-container" data-id="city" data-uid="MTAyMC8yNzg2My80NDQw"></div>
+                    </div>
+                    <!-- disqus 评论框 end -->
+                
+
+            </div>
+            
+            <!-- Tabe of Content -->
+            <!-- Table of Contents -->
+
+  
+    <style>
+      span.toc-nav-number{
+        display: none
+      }
+    </style>
+  
+    
+      <aside id="sidebar">
+        <div id="toc" class="toc-article">
+        <strong class="toc-title">Contents</strong>
+        
+          <ol class="toc-nav"><li class="toc-nav-item toc-nav-level-3"><a class="toc-nav-link" href="#firewalld介绍"><span class="toc-nav-number">1.</span> <span class="toc-nav-text">FirewallD介绍</span></a></li><li class="toc-nav-item toc-nav-level-3"><a class="toc-nav-link" href="#firewalld安装"><span class="toc-nav-number">2.</span> <span class="toc-nav-text">FirewallD安装</span></a></li><li class="toc-nav-item toc-nav-level-3"><a class="toc-nav-link" href="#使用firewalld"><span class="toc-nav-number">3.</span> <span class="toc-nav-text">使用FirewallD</span></a><ol class="toc-nav-child"><li class="toc-nav-item toc-nav-level-4"><a class="toc-nav-link" href="#一般应用"><span class="toc-nav-number">3.1.</span> <span class="toc-nav-text">一般应用</span></a></li><li class="toc-nav-item toc-nav-level-4"><a class="toc-nav-link" href="#处理运行时区域"><span class="toc-nav-number">3.2.</span> <span class="toc-nav-text">处理运行时区域</span></a></li><li class="toc-nav-item toc-nav-level-4"><a class="toc-nav-link" href="#处理永久区域"><span class="toc-nav-number">3.3.</span> <span class="toc-nav-text">处理永久区域</span></a></li><li class="toc-nav-item toc-nav-level-4"><a class="toc-nav-link" href="#直接选项"><span class="toc-nav-number">3.4.</span> <span class="toc-nav-text">直接选项</span></a></li></ol></li><li class="toc-nav-item toc-nav-level-3"><a class="toc-nav-link" href="#使用iptables静态防火墙"><span class="toc-nav-number">4.</span> <span class="toc-nav-text">使用iptables静态防火墙</span></a></li><li class="toc-nav-item toc-nav-level-3"><a class="toc-nav-link" href="#参考文档"><span class="toc-nav-number">5.</span> <span class="toc-nav-text">参考文档</span></a></li></ol>
+        
+        </div>
+      </aside>
+    
+
+                
+            <!-- Sidebar Container -->
+            <div class="
+                col-lg-8 col-lg-offset-2
+                col-md-10 col-md-offset-1
+                sidebar-container">
+
+                <!-- Featured Tags -->
+                
+                <section>
+                    <!-- no hr -->
+                    <h5><a href="/tags/">FEATURED TAGS</a></h5>
+                    <div class="tags">
+                       
+                          <a class="tag" href="/tags/#Linux" title="Linux">Linux</a>
+                        
+                          <a class="tag" href="/tags/#FirewallD" title="FirewallD">FirewallD</a>
+                        
+                    </div>
+                </section>
+                
+
+                <!-- Friends Blog -->
+                
+                <hr>
+                <h5>FRIENDS</h5>
+                <ul class="list-inline">
+
+                    
+                        <li><a href="http://www.mike.org.cn/" target="_blank">简单.生活</a></li>
+                    
+                        <li><a href="http://shang.qq.com/wpa/qunwpa?idkey=ea4c43493c2269428ac6ef6141de4b6d78e5ab2d41380ca4099b833b62884ee9" target="_blank">技术交流群</a></li>
+                    
+                        <li><a href="" target="_blank"></a></li>
+                    
+                        <li><a href="" target="_blank"></a></li>
+                    
+                </ul>
+                
+            </div>
+        </div>
+    </div>
+</article>
+
+
+
+
+
+
+    <!-- 来必力City版公共JS代码 start (一个网页只需插入一次) -->
+    <script type="text/javascript">
+       (function(d, s) {
+           var j, e = d.getElementsByTagName(s)[0];
+    
+           if (typeof LivereTower === 'function') { return; }
+    
+           j = d.createElement(s);
+           j.src = 'https://cdn-city.livere.com/js/embed.dist.js';
+           j.async = true;
+    
+           e.parentNode.insertBefore(j, e);
+       })(document, 'script');
+    </script>
+    <noscript>为正常使用来必力评论功能请激活JavaScript</noscript>
+    <!-- 来必力City版 公共JS代码 end -->
+
+
+
+<!-- async load function -->
+<script>
+    function async(u, c) {
+      var d = document, t = 'script',
+          o = d.createElement(t),
+          s = d.getElementsByTagName(t)[0];
+      o.src = u;
+      if (c) { o.addEventListener('load', function (e) { c(null, e); }, false); }
+      s.parentNode.insertBefore(o, s);
+    }
+</script>
+<!-- anchor-js, Doc:http://bryanbraun.github.io/anchorjs/ -->
+<script>
+    async("https://cdn.bootcss.com/anchor-js/1.1.1/anchor.min.js",function(){
+        anchors.options = {
+          visible: 'hover',
+          placement: 'left',
+          icon: 'ℬ'
+        };
+        anchors.add().remove('.intro-header h1').remove('.subheading').remove('.sidebar-container h5');
+    })
+</script>
+<style>
+    /* place left on bigger screen */
+    @media all and (min-width: 800px) {
+        .anchorjs-link{
+            position: absolute;
+            left: -0.75em;
+            font-size: 1.1em;
+            margin-top : -0.1em;
+        }
+    }
+</style>
+
+
+
+    <!-- Footer -->
+    <!-- Footer -->
+<footer>
+    <div class="container">
+        <div class="row">
+            <div class="col-lg-8 col-lg-offset-2 col-md-10 col-md-offset-1">
+                <ul class="list-inline text-center">
+                
+                    <li>
+                        <a href="/atom.xml">
+                            <span class="fa-stack fa-lg">
+                                <i class="fa fa-circle fa-stack-2x"></i>
+                                <i class="fa fa-rss fa-stack-1x fa-inverse"></i>
+                            </span>
+                        </a>
+                    </li>
+                
+                
+                
+                    <li>
+                        <a target="_blank" href="https://www.zhihu.com/people/80imike">
+                            <span class="fa-stack fa-lg">
+                                <i class="fa fa-circle fa-stack-2x"></i>
+                                <i class="fa  fa-stack-1x fa-inverse">知</i>
+                            </span>
+                        </a>
+                    </li>
+                
+
+                
+                    <li>
+                        <a target="_blank" href="http://weibo.com/2093524665">
+                            <span class="fa-stack fa-lg">
+                                <i class="fa fa-circle fa-stack-2x"></i>
+                                <i class="fa fa-weibo fa-stack-1x fa-inverse"></i>
+                            </span>
+                        </a>
+                    </li>
+                
+
+                
+
+                
+
+                
+
+                </ul>
+                <p class="copyright text-muted">
+                    Copyright &copy; Mike 2018 | Hosted by <a href="https://pages.coding.me" style="font-weight: bold">Coding Pages</a>
+                    <br>
+                    Theme by <a href="http://beantech.org">BeanTech</a> 
+                    <span style="display: inline-block; margin: 0 5px;">
+                        <i class="fa fa-heart"></i>
+                    </span> 
+                    re-Ported by <a href="http://www.huweihuang.com">胡伟煌</a> | 
+                    <iframe
+                        style="margin-left: 2px; margin-bottom:-5px;"
+                        frameborder="0" scrolling="0" width="91px" height="20px"
+                        src="https://ghbtns.com/github-btn.html?user=huweihuang&repo=hexo-theme-huweihuang&type=star&count=true" >
+                    </iframe>
+                </p>
+            </div>
+        </div>
+    </div>
+</footer>
+
+<!-- jQuery -->
+<script src="/js/jquery.min.js"></script>
+
+<!-- Bootstrap Core JavaScript -->
+<script src="/js/bootstrap.min.js"></script>
+
+<!-- Custom Theme JavaScript -->
+<script src="/js/hux-blog.min.js"></script>
+
+
+<!-- async load function -->
+<script>
+    function async(u, c) {
+      var d = document, t = 'script',
+          o = d.createElement(t),
+          s = d.getElementsByTagName(t)[0];
+      o.src = u;
+      if (c) { o.addEventListener('load', function (e) { c(null, e); }, false); }
+      s.parentNode.insertBefore(o, s);
+    }
+</script>
+
+<!-- 
+     Because of the native support for backtick-style fenced code blocks 
+     right within the Markdown is landed in Github Pages, 
+     From V1.6, There is no need for Highlight.js, 
+     so Huxblog drops it officially.
+
+     - https://github.com/blog/2100-github-pages-now-faster-and-simpler-with-jekyll-3-0  
+     - https://help.github.com/articles/creating-and-highlighting-code-blocks/    
+-->
+<!--
+    <script>
+        async("http://cdn.bootcss.com/highlight.js/8.6/highlight.min.js", function(){
+            hljs.initHighlightingOnLoad();
+        })
+    </script>
+    <link href="http://cdn.bootcss.com/highlight.js/8.6/styles/github.min.css" rel="stylesheet">
+-->
+
+
+<!-- jquery.tagcloud.js -->
+<script>
+    // only load tagcloud.js in tag.html
+    if($('#tag_cloud').length !== 0){
+        async("https://www.hi-linux.com/js/jquery.tagcloud.js",function(){
+            $.fn.tagcloud.defaults = {
+                //size: {start: 1, end: 1, unit: 'em'},
+                color: {start: '#bbbbee', end: '#0085a1'},
+            };
+            $('#tag_cloud a').tagcloud();
+        })
+    }
+</script>
+
+<!--fastClick.js -->
+<script>
+    async("https://cdn.bootcss.com/fastclick/1.0.6/fastclick.min.js", function(){
+        var $nav = document.querySelector("nav");
+        if($nav) FastClick.attach($nav);
+    })
+</script>
+
+
+<!-- Google Analytics -->
+
+
+
+
+<!-- Baidu Tongji -->
+
+
+
+
+
+
+	<a id="rocket" href="#top" class=""></a>
+	<script type="text/javascript" src="/js/totop.js?v=1.0.0" async=""></script>
+    <script type="text/javascript" src="/js/toc.js?v=1.0.0" async=""></script>
+<!-- Image to hack wechat -->
+<img src="https://www.hi-linux.com/img/icon_wechat.png" width="0" height="0" />
+<!-- Migrate from head to bottom, no longer block render and still work -->
+
+</body>
+
+</html>

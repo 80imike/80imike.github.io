@@ -1,0 +1,603 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<!-- Head tag -->
+<head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="google-site-verification" content="xBT4GhYoi5qRD5tr338pgPM5OWHHIDR6mNg1a3euekI" />
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="description" content="">
+    <meta name="keyword"  content="Linux,运维,Nginx,Zabbix,Centos,Ansible,MySQL,Python,Docker,ELK,Haproxy,Git,Nodejs,安全,技术">
+    <link rel="shortcut icon" href="/img/ironman-draw.png">
+    <!-- Place this tag in your head or just before your close body tag. -->
+    <script async defer src="https://buttons.github.io/buttons.js"></script>
+    <title>
+        
+          如何在 CentOS 上启用软件集 Software Collections - 运维之美
+        
+    </title>
+
+    <link rel="canonical" href="https://www.hi-linux.com/posts/62916.html">
+
+    <!-- Bootstrap Core CSS -->
+    <link rel="stylesheet" href="/css/bootstrap.min.css">
+
+    <!-- Custom CSS --> 
+    <link rel="stylesheet" href="/css/beantech.min.css">
+    
+    <!-- Pygments Highlight CSS -->
+    <link rel="stylesheet" href="/css/highlight.css">
+
+    <link rel="stylesheet" href="/css/widget.css">
+
+    <link rel="stylesheet" href="/css/rocket.css">
+
+    <link rel="stylesheet" href="/css/signature.css">
+
+    <link rel="stylesheet" href="/css/toc.css">
+
+    <!-- Custom Fonts -->
+    <!-- <link href="https://maxcdn.bootstrapcdn.com/font-awesome/4.3.0/css/font-awesome.min.css" rel="stylesheet" type="text/css"> -->
+    <!-- Hux change font-awesome CDN to qiniu -->
+    <link href="https://cdn.staticfile.org/font-awesome/4.5.0/css/font-awesome.min.css" rel="stylesheet" type="text/css">
+
+
+    <!-- Hux Delete, sad but pending in China
+    <link href='http://fonts.googleapis.com/css?family=Lora:400,700,400italic,700italic' rel='stylesheet' type='text/css'>
+    <link href='http://fonts.googleapis.com/css?family=Open+Sans:300italic,400italic,600italic,700italic,800italic,400,300,600,700,800' rel='stylesheet' type='text/
+    css'>
+    -->
+
+
+    <!-- HTML5 Shim and Respond.js IE8 support of HTML5 elements and media queries -->
+    <!-- WARNING: Respond.js doesn't work if you view the page via file:// -->
+    <!--[if lt IE 9]>
+        <script src="https://oss.maxcdn.com/libs/html5shiv/3.7.0/html5shiv.js"></script>
+        <script src="https://oss.maxcdn.com/libs/respond.js/1.4.2/respond.min.js"></script>
+    <![endif]-->
+
+    <!-- ga & ba script hoook -->
+    <script></script>
+</head>
+
+
+<!-- hack iOS CSS :active style -->
+<body ontouchstart="">
+	<!-- Modified by Yu-Hsuan Yen -->
+<!-- Post Header -->
+<style type="text/css">
+    header.intro-header{
+        
+            background-image: url('/img/header_img/article.jpg')
+            /*post*/
+        
+    }
+    
+</style>
+
+<header class="intro-header" >
+    <!-- Signature -->
+    <div id="signature">
+        <div class="container">
+            <div class="row">
+                <div class="col-lg-8 col-lg-offset-2 col-md-10 col-md-offset-1">
+                
+                    <div class="post-heading">
+                        <div class="tags">
+                            
+                              <a class="tag" href="/tags/#Linux" title="Linux">Linux</a>
+                            
+                              <a class="tag" href="/tags/#Centos" title="Centos">Centos</a>
+                            
+                        </div>
+                        <h1>如何在 CentOS 上启用软件集 Software Collections</h1>
+                        <h2 class="subheading"></h2>
+                        <span class="meta">
+                            Posted by Mike on
+                            2016-05-09
+                        </span>
+                    </div>
+                
+
+
+                </div>
+            </div>
+        </div>
+    </div>
+</header>
+
+	
+    <!-- Navigation -->
+<nav class="navbar navbar-default navbar-custom navbar-fixed-top">
+    <div class="container-fluid">
+        <!-- Brand and toggle get grouped for better mobile display -->
+        <div class="navbar-header page-scroll">
+            <button type="button" class="navbar-toggle">
+                <span class="sr-only">Toggle navigation</span>
+                <span class="icon-bar"></span>
+                <span class="icon-bar"></span>
+                <span class="icon-bar"></span>
+            </button>
+            <a class="navbar-brand" href="/">运维之美</a>
+        </div>
+
+        <!-- Collect the nav links, forms, and other content for toggling -->
+        <!-- Known Issue, found by Hux:
+            <nav>'s height woule be hold on by its content.
+            so, when navbar scale out, the <nav> will cover tags.
+            also mask any touch event of tags, unfortunately.
+        -->
+        <div id="huxblog_navbar">
+            <div class="navbar-collapse">
+                <ul class="nav navbar-nav navbar-right">
+                    <li>
+                        <a href="/">Home</a>
+                    </li>
+
+                    
+
+                        
+                    
+
+                        
+                    
+
+                        
+                        <li>
+                            <a href="/about/">About</a>
+                        </li>
+                        
+                    
+
+                        
+                        <li>
+                            <a href="/archive/">Archives</a>
+                        </li>
+                        
+                    
+
+                        
+                        <li>
+                            <a href="/tags/">Tags</a>
+                        </li>
+                        
+                    
+                    
+                </ul>
+            </div>
+        </div>
+        <!-- /.navbar-collapse -->
+    </div>
+    <!-- /.container -->
+</nav>
+<script>
+    // Drop Bootstarp low-performance Navbar
+    // Use customize navbar with high-quality material design animation
+    // in high-perf jank-free CSS3 implementation
+    var $body   = document.body;
+    var $toggle = document.querySelector('.navbar-toggle');
+    var $navbar = document.querySelector('#huxblog_navbar');
+    var $collapse = document.querySelector('.navbar-collapse');
+
+    $toggle.addEventListener('click', handleMagic)
+    function handleMagic(e){
+        if ($navbar.className.indexOf('in') > 0) {
+        // CLOSE
+            $navbar.className = " ";
+            // wait until animation end.
+            setTimeout(function(){
+                // prevent frequently toggle
+                if($navbar.className.indexOf('in') < 0) {
+                    $collapse.style.height = "0px"
+                }
+            },400)
+        }else{
+        // OPEN
+            $collapse.style.height = "auto"
+            $navbar.className += " in";
+        }
+    }
+</script>
+
+
+    <!-- Main Content -->
+    <!-- Modify by Yu-Hsuan Yen -->
+
+<!-- Post Content -->
+<article>
+    <div class="container">
+        <div class="row">
+
+            <!-- Post Container -->
+            <div class="
+                col-lg-8 col-lg-offset-2
+                col-md-10 col-md-offset-1
+                post-container">
+
+                <h3 id="什么是scl">什么是SCL</h3>
+<p>SCL项目主页：<a href="https://www.softwarecollections.org/" target="_blank" rel="noopener">https://www.softwarecollections.org/</a></p>
+<p>SCL(Software Collections)可以让你在同一个操作系统上安装和使用多个版本的软件，而不会影响整个系统的安装包。SCL为社区的以下需求而设计：创建和使用软件集合生产系统、概念验证系统、开发测试平台。SCL目前已经支持Fedora和RHEL(衍生版本如CentOS也包含在内)。</p>
+<p>SCL的创建就是为了给RHEL/CentOS用户提供一种以方便、安全地安装和使用应用程序和运行时环境的多个(而且可能是更新的)版本的方式，同时避免把系统搞乱。与之相对的是第三方源，它们可能会在已安装的包之间引起冲突。</p>
+<a id="more"></a>
+<p>现有软件选集</p>
+<p>现在有以下软件选集可供CentOS 6.5或以上版本应用</p>
+<p>Ruby 1.9.3 (ruby193)<br>
+Python 2.7 (python27)<br>
+Python 3.3 (python33)<br>
+PHP 5.4 (php54)<br>
+Perl 5.16.3 (perl516)<br>
+Node.js 0.10 (nodejs010)<br>
+MariaDB 5.5 (mariadb55)<br>
+MySQL 5.5 (mysql55)<br>
+PostgreSQL 9.2 (postgresql92)</p>
+<p>更多的软件集可参看这里：<a href="https://www.softwarecollections.org/en/scls/" target="_blank" rel="noopener">https://www.softwarecollections.org/en/scls/</a></p>
+<h3 id="安装scl">安装SCL</h3>
+<p>在CentOS下访问SCL，需要安装CentOS Software Collections。它是CentOS Extras软件库的一部份，并可通过以下指命进行安装</p>
+<p>Centos 7</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">$ yum install centos-release-scl</span><br></pre></td></tr></table></figure>
+<p>Centos 6</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">$ yum install centos-release-SCL</span><br></pre></td></tr></table></figure>
+<p>注意：Centos6和Centos7的包名是区分大小写的！</p>
+<p>要启用和运行SCL中的应用，你还需要安装下列包</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">$ sudo yum install scl-utils scl-utils-build</span><br></pre></td></tr></table></figure>
+<h3 id="scl的设置及启用">SCL的设置及启用</h3>
+<p>SCL设置步骤非常简单</p>
+<h4 id="scl语法">SCL语法</h4>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br></pre></td><td class="code"><pre><span class="line">$ scl --help</span><br><span class="line">usage: scl &lt;action&gt; [&lt;collection&gt;...] &lt;command&gt;</span><br><span class="line">   or: scl -l|--list [&lt;collection&gt;...]</span><br><span class="line">   or: scl register &lt;path&gt;</span><br><span class="line">   or: scl deregister &lt;collection&gt; [--force]</span><br><span class="line"></span><br><span class="line">Options:</span><br><span class="line">    -l, --list            list installed Software Collections or packages</span><br><span class="line">                          that belong to them</span><br><span class="line">    -h, --help            display this help and exit</span><br><span class="line"></span><br><span class="line">Actions:</span><br><span class="line">    enable                calls enable script from Software Collection</span><br><span class="line">                          (enables a Software Collection)</span><br><span class="line">    &lt;SCL script name&gt;     calls arbitrary script from a Software Collection</span><br></pre></td></tr></table></figure>
+<h4 id="浏览可用的版本">浏览可用的版本</h4>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">$ yum list available | grep scl</span><br><span class="line">$ yum --disablerepo=&quot;*&quot; --enablerepo=&quot;*scl*&quot; list available</span><br></pre></td></tr></table></figure>
+<h4 id="搜索scl中的包">搜索SCL中的包</h4>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">$ yum --disablerepo=&quot;*&quot; --enablerepo=&quot;*scl*&quot; search &lt;keyword&gt;</span><br></pre></td></tr></table></figure>
+<h4 id="启用一个已经安装的scl包">启用一个已经安装的SCL包</h4>
+<p>需要在每个命令中使用scl命令显式启用它(即想在哪条命令中使用SCL中的包，就得通过scl命令执行该命令)</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">$ scl enable &lt;scl-package-name&gt; &lt;command&gt;</span><br></pre></td></tr></table></figure>
+<p>如果想在启用的包时执行多条命令，你可以像下面那样创建一个启用SCL的bash会话</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">$ scl enable &lt;scl-package-name&gt; bash</span><br></pre></td></tr></table></figure>
+<h3 id="scl使用实例">SCL使用实例</h3>
+<ul>
+<li>以要安装Python 3.3为例</li>
+</ul>
+<h4 id="安装python集合">安装Python集合</h4>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">$ yum install python33-*</span><br></pre></td></tr></table></figure>
+<h4 id="查看从scl中安装的包的列表">查看从SCL中安装的包的列表</h4>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">$ scl --list</span><br><span class="line">python33</span><br></pre></td></tr></table></figure>
+<p>在安装python33包后检查默认的python版本，你会发现默认的版本并没有改变</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">$ python --version</span><br><span class="line">Python 2.6.6</span><br></pre></td></tr></table></figure>
+<p>SCL的优点之一就是安装其中的包不会覆盖任何系统文件，并且保证不会引起与系统中其它库和应用的冲突。</p>
+<h4 id="开始使用scl">开始使用SCL</h4>
+<p>你可以使用以下三种方法来启用SCL</p>
+<h5 id="运行一个命令">运行一个命令</h5>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">$ scl enable python33 ./hello.py</span><br></pre></td></tr></table></figure>
+<h5 id="启动一个会话">启动一个会话</h5>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">$ scl enable python33 bash</span><br></pre></td></tr></table></figure>
+<ul>
+<li>以要安装Apache 2.4为例</li>
+</ul>
+<h4 id="安装apache集合">安装Apache集合</h4>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">yum install httpd24*</span><br></pre></td></tr></table></figure>
+<h4 id="启动一个服务器">启动一个服务器</h4>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">$ chkconfig httpd24-httpd on</span><br><span class="line">$ /etc/init.d/httpd24-httpd start</span><br></pre></td></tr></table></figure>
+<p>更详细的SCL指南，参考官方的<a href="https://www.softwarecollections.org/en/docs/" target="_blank" rel="noopener">快速入门指南</a></p>
+<h3 id="参考文档">参考文档</h3>
+<p><a href="http://www.google.com" target="_blank" rel="noopener">http://www.google.com</a><br>
+<a href="http://xmodulo.com/enable-software-collections-centos.html" target="_blank" rel="noopener">http://xmodulo.com/enable-software-collections-centos.html</a><br>
+<a href="https://linux.cn/article-6776-1.html" target="_blank" rel="noopener">https://linux.cn/article-6776-1.html</a><br>
+<a href="https://wiki.centos.org/zh/AdditionalResources/Repositories/SCL" target="_blank" rel="noopener">https://wiki.centos.org/zh/AdditionalResources/Repositories/SCL</a></p>
+
+                
+
+                <hr>
+                <!-- Pager -->
+                <ul class="pager">
+                    
+                        <li class="previous">
+                            <a href="/posts/25767.html" data-toggle="tooltip" data-placement="top" title="CentOS 下安装高版本 GCC">&larr; Previous Post</a>
+                        </li>
+                    
+                    
+                        <li class="next">
+                            <a href="/posts/57246.html" data-toggle="tooltip" data-placement="top" title="让 Windows 用上 OMZ 的神器 Babun">Next Post &rarr;</a>
+                        </li>
+                    
+                </ul>
+
+                <!-- duoshuo Share start -->
+                
+                <!-- 多说 Share end-->
+
+                <!-- 多说评论框 start -->
+                
+                <!-- 多说评论框 end -->
+
+                <!-- disqus comment start -->
+                
+                <!-- disqus comment end -->
+
+                
+                    <!-- disqus 评论框 start -->
+                    <div class="comment">
+                        <div id="lv-container" data-id="city" data-uid="MTAyMC8yNzg2My80NDQw"></div>
+                    </div>
+                    <!-- disqus 评论框 end -->
+                
+
+            </div>
+            
+            <!-- Tabe of Content -->
+            <!-- Table of Contents -->
+
+  
+    <style>
+      span.toc-nav-number{
+        display: none
+      }
+    </style>
+  
+    
+      <aside id="sidebar">
+        <div id="toc" class="toc-article">
+        <strong class="toc-title">Contents</strong>
+        
+          <ol class="toc-nav"><li class="toc-nav-item toc-nav-level-3"><a class="toc-nav-link" href="#什么是scl"><span class="toc-nav-number">1.</span> <span class="toc-nav-text">什么是SCL</span></a></li><li class="toc-nav-item toc-nav-level-3"><a class="toc-nav-link" href="#安装scl"><span class="toc-nav-number">2.</span> <span class="toc-nav-text">安装SCL</span></a></li><li class="toc-nav-item toc-nav-level-3"><a class="toc-nav-link" href="#scl的设置及启用"><span class="toc-nav-number">3.</span> <span class="toc-nav-text">SCL的设置及启用</span></a><ol class="toc-nav-child"><li class="toc-nav-item toc-nav-level-4"><a class="toc-nav-link" href="#scl语法"><span class="toc-nav-number">3.1.</span> <span class="toc-nav-text">SCL语法</span></a></li><li class="toc-nav-item toc-nav-level-4"><a class="toc-nav-link" href="#浏览可用的版本"><span class="toc-nav-number">3.2.</span> <span class="toc-nav-text">浏览可用的版本</span></a></li><li class="toc-nav-item toc-nav-level-4"><a class="toc-nav-link" href="#搜索scl中的包"><span class="toc-nav-number">3.3.</span> <span class="toc-nav-text">搜索SCL中的包</span></a></li><li class="toc-nav-item toc-nav-level-4"><a class="toc-nav-link" href="#启用一个已经安装的scl包"><span class="toc-nav-number">3.4.</span> <span class="toc-nav-text">启用一个已经安装的SCL包</span></a></li></ol></li><li class="toc-nav-item toc-nav-level-3"><a class="toc-nav-link" href="#scl使用实例"><span class="toc-nav-number">4.</span> <span class="toc-nav-text">SCL使用实例</span></a><ol class="toc-nav-child"><li class="toc-nav-item toc-nav-level-4"><a class="toc-nav-link" href="#安装python集合"><span class="toc-nav-number">4.1.</span> <span class="toc-nav-text">安装Python集合</span></a></li><li class="toc-nav-item toc-nav-level-4"><a class="toc-nav-link" href="#查看从scl中安装的包的列表"><span class="toc-nav-number">4.2.</span> <span class="toc-nav-text">查看从SCL中安装的包的列表</span></a></li><li class="toc-nav-item toc-nav-level-4"><a class="toc-nav-link" href="#开始使用scl"><span class="toc-nav-number">4.3.</span> <span class="toc-nav-text">开始使用SCL</span></a><ol class="toc-nav-child"><li class="toc-nav-item toc-nav-level-5"><a class="toc-nav-link" href="#运行一个命令"><span class="toc-nav-number">4.3.1.</span> <span class="toc-nav-text">运行一个命令</span></a></li><li class="toc-nav-item toc-nav-level-5"><a class="toc-nav-link" href="#启动一个会话"><span class="toc-nav-number">4.3.2.</span> <span class="toc-nav-text">启动一个会话</span></a></li></ol></li><li class="toc-nav-item toc-nav-level-4"><a class="toc-nav-link" href="#安装apache集合"><span class="toc-nav-number">4.4.</span> <span class="toc-nav-text">安装Apache集合</span></a></li><li class="toc-nav-item toc-nav-level-4"><a class="toc-nav-link" href="#启动一个服务器"><span class="toc-nav-number">4.5.</span> <span class="toc-nav-text">启动一个服务器</span></a></li></ol></li><li class="toc-nav-item toc-nav-level-3"><a class="toc-nav-link" href="#参考文档"><span class="toc-nav-number">5.</span> <span class="toc-nav-text">参考文档</span></a></li></ol>
+        
+        </div>
+      </aside>
+    
+
+                
+            <!-- Sidebar Container -->
+            <div class="
+                col-lg-8 col-lg-offset-2
+                col-md-10 col-md-offset-1
+                sidebar-container">
+
+                <!-- Featured Tags -->
+                
+                <section>
+                    <!-- no hr -->
+                    <h5><a href="/tags/">FEATURED TAGS</a></h5>
+                    <div class="tags">
+                       
+                          <a class="tag" href="/tags/#Linux" title="Linux">Linux</a>
+                        
+                          <a class="tag" href="/tags/#Centos" title="Centos">Centos</a>
+                        
+                    </div>
+                </section>
+                
+
+                <!-- Friends Blog -->
+                
+                <hr>
+                <h5>FRIENDS</h5>
+                <ul class="list-inline">
+
+                    
+                        <li><a href="http://www.mike.org.cn/" target="_blank">简单.生活</a></li>
+                    
+                        <li><a href="http://shang.qq.com/wpa/qunwpa?idkey=ea4c43493c2269428ac6ef6141de4b6d78e5ab2d41380ca4099b833b62884ee9" target="_blank">技术交流群</a></li>
+                    
+                        <li><a href="" target="_blank"></a></li>
+                    
+                        <li><a href="" target="_blank"></a></li>
+                    
+                </ul>
+                
+            </div>
+        </div>
+    </div>
+</article>
+
+
+
+
+
+
+    <!-- 来必力City版公共JS代码 start (一个网页只需插入一次) -->
+    <script type="text/javascript">
+       (function(d, s) {
+           var j, e = d.getElementsByTagName(s)[0];
+    
+           if (typeof LivereTower === 'function') { return; }
+    
+           j = d.createElement(s);
+           j.src = 'https://cdn-city.livere.com/js/embed.dist.js';
+           j.async = true;
+    
+           e.parentNode.insertBefore(j, e);
+       })(document, 'script');
+    </script>
+    <noscript>为正常使用来必力评论功能请激活JavaScript</noscript>
+    <!-- 来必力City版 公共JS代码 end -->
+
+
+
+<!-- async load function -->
+<script>
+    function async(u, c) {
+      var d = document, t = 'script',
+          o = d.createElement(t),
+          s = d.getElementsByTagName(t)[0];
+      o.src = u;
+      if (c) { o.addEventListener('load', function (e) { c(null, e); }, false); }
+      s.parentNode.insertBefore(o, s);
+    }
+</script>
+<!-- anchor-js, Doc:http://bryanbraun.github.io/anchorjs/ -->
+<script>
+    async("https://cdn.bootcss.com/anchor-js/1.1.1/anchor.min.js",function(){
+        anchors.options = {
+          visible: 'hover',
+          placement: 'left',
+          icon: 'ℬ'
+        };
+        anchors.add().remove('.intro-header h1').remove('.subheading').remove('.sidebar-container h5');
+    })
+</script>
+<style>
+    /* place left on bigger screen */
+    @media all and (min-width: 800px) {
+        .anchorjs-link{
+            position: absolute;
+            left: -0.75em;
+            font-size: 1.1em;
+            margin-top : -0.1em;
+        }
+    }
+</style>
+
+
+
+    <!-- Footer -->
+    <!-- Footer -->
+<footer>
+    <div class="container">
+        <div class="row">
+            <div class="col-lg-8 col-lg-offset-2 col-md-10 col-md-offset-1">
+                <ul class="list-inline text-center">
+                
+                    <li>
+                        <a href="/atom.xml">
+                            <span class="fa-stack fa-lg">
+                                <i class="fa fa-circle fa-stack-2x"></i>
+                                <i class="fa fa-rss fa-stack-1x fa-inverse"></i>
+                            </span>
+                        </a>
+                    </li>
+                
+                
+                
+                    <li>
+                        <a target="_blank" href="https://www.zhihu.com/people/80imike">
+                            <span class="fa-stack fa-lg">
+                                <i class="fa fa-circle fa-stack-2x"></i>
+                                <i class="fa  fa-stack-1x fa-inverse">知</i>
+                            </span>
+                        </a>
+                    </li>
+                
+
+                
+                    <li>
+                        <a target="_blank" href="http://weibo.com/2093524665">
+                            <span class="fa-stack fa-lg">
+                                <i class="fa fa-circle fa-stack-2x"></i>
+                                <i class="fa fa-weibo fa-stack-1x fa-inverse"></i>
+                            </span>
+                        </a>
+                    </li>
+                
+
+                
+
+                
+
+                
+
+                </ul>
+                <p class="copyright text-muted">
+                    Copyright &copy; Mike 2018 | Hosted by <a href="https://pages.coding.me" style="font-weight: bold">Coding Pages</a>
+                    <br>
+                    Theme by <a href="http://beantech.org">BeanTech</a> 
+                    <span style="display: inline-block; margin: 0 5px;">
+                        <i class="fa fa-heart"></i>
+                    </span> 
+                    re-Ported by <a href="http://www.huweihuang.com">胡伟煌</a> | 
+                    <iframe
+                        style="margin-left: 2px; margin-bottom:-5px;"
+                        frameborder="0" scrolling="0" width="91px" height="20px"
+                        src="https://ghbtns.com/github-btn.html?user=huweihuang&repo=hexo-theme-huweihuang&type=star&count=true" >
+                    </iframe>
+                </p>
+            </div>
+        </div>
+    </div>
+</footer>
+
+<!-- jQuery -->
+<script src="/js/jquery.min.js"></script>
+
+<!-- Bootstrap Core JavaScript -->
+<script src="/js/bootstrap.min.js"></script>
+
+<!-- Custom Theme JavaScript -->
+<script src="/js/hux-blog.min.js"></script>
+
+
+<!-- async load function -->
+<script>
+    function async(u, c) {
+      var d = document, t = 'script',
+          o = d.createElement(t),
+          s = d.getElementsByTagName(t)[0];
+      o.src = u;
+      if (c) { o.addEventListener('load', function (e) { c(null, e); }, false); }
+      s.parentNode.insertBefore(o, s);
+    }
+</script>
+
+<!-- 
+     Because of the native support for backtick-style fenced code blocks 
+     right within the Markdown is landed in Github Pages, 
+     From V1.6, There is no need for Highlight.js, 
+     so Huxblog drops it officially.
+
+     - https://github.com/blog/2100-github-pages-now-faster-and-simpler-with-jekyll-3-0  
+     - https://help.github.com/articles/creating-and-highlighting-code-blocks/    
+-->
+<!--
+    <script>
+        async("http://cdn.bootcss.com/highlight.js/8.6/highlight.min.js", function(){
+            hljs.initHighlightingOnLoad();
+        })
+    </script>
+    <link href="http://cdn.bootcss.com/highlight.js/8.6/styles/github.min.css" rel="stylesheet">
+-->
+
+
+<!-- jquery.tagcloud.js -->
+<script>
+    // only load tagcloud.js in tag.html
+    if($('#tag_cloud').length !== 0){
+        async("https://www.hi-linux.com/js/jquery.tagcloud.js",function(){
+            $.fn.tagcloud.defaults = {
+                //size: {start: 1, end: 1, unit: 'em'},
+                color: {start: '#bbbbee', end: '#0085a1'},
+            };
+            $('#tag_cloud a').tagcloud();
+        })
+    }
+</script>
+
+<!--fastClick.js -->
+<script>
+    async("https://cdn.bootcss.com/fastclick/1.0.6/fastclick.min.js", function(){
+        var $nav = document.querySelector("nav");
+        if($nav) FastClick.attach($nav);
+    })
+</script>
+
+
+<!-- Google Analytics -->
+
+
+
+
+<!-- Baidu Tongji -->
+
+
+
+
+
+
+	<a id="rocket" href="#top" class=""></a>
+	<script type="text/javascript" src="/js/totop.js?v=1.0.0" async=""></script>
+    <script type="text/javascript" src="/js/toc.js?v=1.0.0" async=""></script>
+<!-- Image to hack wechat -->
+<img src="https://www.hi-linux.com/img/icon_wechat.png" width="0" height="0" />
+<!-- Migrate from head to bottom, no longer block render and still work -->
+
+</body>
+
+</html>

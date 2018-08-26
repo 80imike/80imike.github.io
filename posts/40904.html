@@ -1,0 +1,780 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<!-- Head tag -->
+<head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="google-site-verification" content="xBT4GhYoi5qRD5tr338pgPM5OWHHIDR6mNg1a3euekI" />
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="description" content="">
+    <meta name="keyword"  content="Linux,运维,Nginx,Zabbix,Centos,Ansible,MySQL,Python,Docker,ELK,Haproxy,Git,Nodejs,安全,技术">
+    <link rel="shortcut icon" href="/img/ironman-draw.png">
+    <!-- Place this tag in your head or just before your close body tag. -->
+    <script async defer src="https://buttons.github.io/buttons.js"></script>
+    <title>
+        
+          通过 MacVLAN 实现 Docker 跨宿主机互联 - 运维之美
+        
+    </title>
+
+    <link rel="canonical" href="https://www.hi-linux.com/posts/40904.html">
+
+    <!-- Bootstrap Core CSS -->
+    <link rel="stylesheet" href="/css/bootstrap.min.css">
+
+    <!-- Custom CSS --> 
+    <link rel="stylesheet" href="/css/beantech.min.css">
+    
+    <!-- Pygments Highlight CSS -->
+    <link rel="stylesheet" href="/css/highlight.css">
+
+    <link rel="stylesheet" href="/css/widget.css">
+
+    <link rel="stylesheet" href="/css/rocket.css">
+
+    <link rel="stylesheet" href="/css/signature.css">
+
+    <link rel="stylesheet" href="/css/toc.css">
+
+    <!-- Custom Fonts -->
+    <!-- <link href="https://maxcdn.bootstrapcdn.com/font-awesome/4.3.0/css/font-awesome.min.css" rel="stylesheet" type="text/css"> -->
+    <!-- Hux change font-awesome CDN to qiniu -->
+    <link href="https://cdn.staticfile.org/font-awesome/4.5.0/css/font-awesome.min.css" rel="stylesheet" type="text/css">
+
+
+    <!-- Hux Delete, sad but pending in China
+    <link href='http://fonts.googleapis.com/css?family=Lora:400,700,400italic,700italic' rel='stylesheet' type='text/css'>
+    <link href='http://fonts.googleapis.com/css?family=Open+Sans:300italic,400italic,600italic,700italic,800italic,400,300,600,700,800' rel='stylesheet' type='text/
+    css'>
+    -->
+
+
+    <!-- HTML5 Shim and Respond.js IE8 support of HTML5 elements and media queries -->
+    <!-- WARNING: Respond.js doesn't work if you view the page via file:// -->
+    <!--[if lt IE 9]>
+        <script src="https://oss.maxcdn.com/libs/html5shiv/3.7.0/html5shiv.js"></script>
+        <script src="https://oss.maxcdn.com/libs/respond.js/1.4.2/respond.min.js"></script>
+    <![endif]-->
+
+    <!-- ga & ba script hoook -->
+    <script></script>
+</head>
+
+
+<!-- hack iOS CSS :active style -->
+<body ontouchstart="">
+	<!-- Modified by Yu-Hsuan Yen -->
+<!-- Post Header -->
+<style type="text/css">
+    header.intro-header{
+        
+            background-image: url('/img/header_img/article.jpg')
+            /*post*/
+        
+    }
+    
+</style>
+
+<header class="intro-header" >
+    <!-- Signature -->
+    <div id="signature">
+        <div class="container">
+            <div class="row">
+                <div class="col-lg-8 col-lg-offset-2 col-md-10 col-md-offset-1">
+                
+                    <div class="post-heading">
+                        <div class="tags">
+                            
+                              <a class="tag" href="/tags/#Docker" title="Docker">Docker</a>
+                            
+                              <a class="tag" href="/tags/#Kubernetes" title="Kubernetes">Kubernetes</a>
+                            
+                        </div>
+                        <h1>通过 MacVLAN 实现 Docker 跨宿主机互联</h1>
+                        <h2 class="subheading"></h2>
+                        <span class="meta">
+                            Posted by Mike on
+                            2017-04-26
+                        </span>
+                    </div>
+                
+
+
+                </div>
+            </div>
+        </div>
+    </div>
+</header>
+
+	
+    <!-- Navigation -->
+<nav class="navbar navbar-default navbar-custom navbar-fixed-top">
+    <div class="container-fluid">
+        <!-- Brand and toggle get grouped for better mobile display -->
+        <div class="navbar-header page-scroll">
+            <button type="button" class="navbar-toggle">
+                <span class="sr-only">Toggle navigation</span>
+                <span class="icon-bar"></span>
+                <span class="icon-bar"></span>
+                <span class="icon-bar"></span>
+            </button>
+            <a class="navbar-brand" href="/">运维之美</a>
+        </div>
+
+        <!-- Collect the nav links, forms, and other content for toggling -->
+        <!-- Known Issue, found by Hux:
+            <nav>'s height woule be hold on by its content.
+            so, when navbar scale out, the <nav> will cover tags.
+            also mask any touch event of tags, unfortunately.
+        -->
+        <div id="huxblog_navbar">
+            <div class="navbar-collapse">
+                <ul class="nav navbar-nav navbar-right">
+                    <li>
+                        <a href="/">Home</a>
+                    </li>
+
+                    
+
+                        
+                    
+
+                        
+                    
+
+                        
+                        <li>
+                            <a href="/about/">About</a>
+                        </li>
+                        
+                    
+
+                        
+                        <li>
+                            <a href="/archive/">Archives</a>
+                        </li>
+                        
+                    
+
+                        
+                        <li>
+                            <a href="/tags/">Tags</a>
+                        </li>
+                        
+                    
+                    
+                </ul>
+            </div>
+        </div>
+        <!-- /.navbar-collapse -->
+    </div>
+    <!-- /.container -->
+</nav>
+<script>
+    // Drop Bootstarp low-performance Navbar
+    // Use customize navbar with high-quality material design animation
+    // in high-perf jank-free CSS3 implementation
+    var $body   = document.body;
+    var $toggle = document.querySelector('.navbar-toggle');
+    var $navbar = document.querySelector('#huxblog_navbar');
+    var $collapse = document.querySelector('.navbar-collapse');
+
+    $toggle.addEventListener('click', handleMagic)
+    function handleMagic(e){
+        if ($navbar.className.indexOf('in') > 0) {
+        // CLOSE
+            $navbar.className = " ";
+            // wait until animation end.
+            setTimeout(function(){
+                // prevent frequently toggle
+                if($navbar.className.indexOf('in') < 0) {
+                    $collapse.style.height = "0px"
+                }
+            },400)
+        }else{
+        // OPEN
+            $collapse.style.height = "auto"
+            $navbar.className += " in";
+        }
+    }
+</script>
+
+
+    <!-- Main Content -->
+    <!-- Modify by Yu-Hsuan Yen -->
+
+<!-- Post Content -->
+<article>
+    <div class="container">
+        <div class="row">
+
+            <!-- Post Container -->
+            <div class="
+                col-lg-8 col-lg-offset-2
+                col-md-10 col-md-offset-1
+                post-container">
+
+                <p>Docker以前的版本不支持直接配置宿主机所在网段ip并跟其直接互通的功能，当然也可以借助一些第三方工具，如pipework把这些琐碎的过程封装起来。Docker从1.12开始支持了overlay和macvlan网络，macvlan已经可以直接支持了使用宿主机所在网段资源。</p>
+<p><strong>Macvlan工作原理</strong></p>
+<ul>
+<li>Macvlan是Linux内核支持的网络接口。要求的Linux内部版本是v3.9–3.19和4.0+。</li>
+<li>通过为物理网卡创建Macvlan子接口，允许一块物理网卡拥有多个独立的MAC地址和IP地址。虚拟出来的子接口将直接暴露在底层物理网络中。从外界看来，就像是把网线分成多股，分别接到了不同的主机上一样。</li>
+<li>Macvlan有四种工作模式：Private、VEPA、Bridge和Passthru。最常用和默认的模式是Bridge模式。</li>
+<li>物理网卡收到包后，会根据收到包的目的MAC地址判断这个包需要交给哪个虚拟网卡。</li>
+</ul>
+<a id="more"></a>
+<p><img src="https://www.hi-linux.com/img/linux/macvlan-workmode-1.png" alt=""></p>
+<ul>
+<li>如果配合Network Namespace 使用，可以构建这样的网络：</li>
+</ul>
+<p><img src="https://www.hi-linux.com/img/linux/macvlan-workmode-namespace.png" alt=""></p>
+<p>MacVLAN可以工作在四种模式下：</p>
+<ul>
+<li>VEPA(Virtual Ethernet Port Aggregator)mode：default模式</li>
+<li>Brideg mode</li>
+<li>Private mode</li>
+<li>Passthru mode</li>
+</ul>
+<p>VEPA需要接入交换机支持<code>hairpin mode</code>。相对而言<code>Bridge mode</code>更加常用。</p>
+<p>macvlan和overlay网络不同，overlay是global scope类型的网络，而macvlan是local scope。scope指的是网络作用的范围。global类型的网络其作用于一组docker daemon集群，local类型的网络只作用于单一主机。</p>
+<p>每台主机创建的macvlan网络是独立的，A机器上创建的macvlan网络并不影响B机器上的网络，但两台主机在网卡配置混杂模式、两台主机上macvlan存在overlap、两个macvlan网络没有分配过同样IP，这三个条件满足时，同样可以实现跨主机通信。</p>
+<h3 id="环境准备">环境准备</h3>
+<p>一共两台机器：两台机器都安装Docker且内核版本&gt;3.9。</p>
+<table>
+<thead>
+<tr>
+<th>主机名</th>
+<th>IP地址</th>
+<th>软件环境</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>dev-master-01</td>
+<td>192.168.2.210</td>
+<td>kernel&gt;3.9,Docker</td>
+</tr>
+<tr>
+<td>dev-node-01</td>
+<td>192.168.2.211</td>
+<td>kernel&gt;3.9,Docker</td>
+</tr>
+</tbody>
+</table>
+<p><strong>启用网卡混杂模式</strong></p>
+<p>两台机器设置使用桥接模式,网卡混杂模式开启全部允许。</p>
+<p>主机上配置的enp0s5网口或者创建的vlan网口,均需要开启混杂模式。如果不开启混杂模式会导致macvlan网络无法访问外界,具体在不使用vlan时,表现为无法ping通路由,无法ping通同一网络内其他主机。</p>
+<p>设置混杂模式可以通过ip或ifconfig指令实现。</p>
+<ul>
+<li>通过ip指令</li>
+</ul>
+<p>设置enp0s5为混杂模式</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">$ ip link set enp0s5  promisc on</span><br></pre></td></tr></table></figure>
+<p>取消enp0s5的混杂模式</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">$ ip link set enp0s5  promisc off</span><br></pre></td></tr></table></figure>
+<ul>
+<li>通过ifconfig指令</li>
+</ul>
+<p>设置enp0s5为混杂模式</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">$ ifconfig enp0s5 promisc</span><br></pre></td></tr></table></figure>
+<p>取消enp0s5的混杂模式</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">$ ifconfig enp0s5 -promisc</span><br></pre></td></tr></table></figure>
+<p>验证网卡混杂模式是否设置成功</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line">$ ifconfig enp0s5</span><br><span class="line">enp0s5    Link encap:Ethernet  HWaddr 00:1c:42:97:53:2a</span><br><span class="line">          inet addr:192.168.2.210  Bcast:192.168.2.255  Mask:255.255.255.0</span><br><span class="line">          inet6 addr: fe80::21c:42ff:fe97:532a/64 Scope:Link</span><br><span class="line">          UP BROADCAST RUNNING PROMISC MULTICAST  MTU:1500  Metric:1</span><br><span class="line">          RX packets:1059321 errors:0 dropped:145 overruns:0 frame:0</span><br><span class="line">          TX packets:15030 errors:0 dropped:0 overruns:0 carrier:0</span><br><span class="line">          collisions:0 txqueuelen:1000</span><br><span class="line">          RX bytes:785317867 (785.3 MB)  TX bytes:1039141 (1.0 MB)</span><br></pre></td></tr></table></figure>
+<p>其中<code>UP BROADCAST RUNNING PROMISC MULTICAST的PROMISC</code>说明网卡enp0s5已经设置成混杂模式。</p>
+<h3 id="使用macvlan构建docker网络">使用Macvlan构建Docker网络</h3>
+<p>两台主机上均使用enp0s5网卡创建一个192.168.2.0网段的macvlan网络。macvlan驱动实际上是利用的Linux macvlan内核驱动，这意味着这样子运行的容器，网络通讯将会直接送到下层vlan。这是目前最高网络效率的驱动。这里没有NAT，没有端口映射，通讯直接通过VLan送出。</p>
+<ul>
+<li>master主机</li>
+</ul>
+<p><strong>创建macvlan网络</strong></p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">$ docker network create -d macvlan --subnet 192.168.2.0/24 --gateway 192.168.2.1 -o parent=enp0s5 -o macvlan_mode=bridge macnet</span><br><span class="line">0ab39da89dd66238a1e9c75edbb70afa9b09d13dc5f1a041f5dd46c369856225</span><br></pre></td></tr></table></figure>
+<blockquote>
+<p>macvlan是kernel的模块名。<br>
+192.168.2.0/24是宿主机所在网络的网段。<br>
+192.168.2.1是网关。<br>
+enp0s5是宿主机接入192.168.2.0/24的网络设备。</p>
+</blockquote>
+<p><strong>查看macvlan是否创建成功</strong></p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line">$ docker network ls</span><br><span class="line">NETWORK ID          NAME                DRIVER              SCOPE</span><br><span class="line">e13c13e22f73        bridge              bridge              local</span><br><span class="line">a56cfbac20ed        docker_gwbridge     bridge              local</span><br><span class="line">0b703c3d9cb8        host                host                local</span><br><span class="line">abdb4b9f751c        none                null                local</span><br><span class="line">0ab39da89dd6        macnet              macvlan             local</span><br><span class="line">856b6dbf7e83        weave               weavemesh           local</span><br></pre></td></tr></table></figure>
+<p><strong>创建两个使用macvlan容器</strong></p>
+<p>创建容器c1</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br></pre></td><td class="code"><pre><span class="line">$ docker run -id --net macnet --ip 192.168.2.220 --name c1 busybox sh</span><br><span class="line">6120c05c90ae75658f6703a269da453a4c516686144cc53dad027af7410cc93c</span><br><span class="line"></span><br><span class="line"># 查看容器IP</span><br><span class="line">$ docker exec c1 ip a</span><br><span class="line"></span><br><span class="line">1: lo: &lt;LOOPBACK,UP,LOWER_UP&gt; mtu 65536 qdisc noqueue qlen 1</span><br><span class="line">    link/loopback 00:00:00:00:00:00 brd 00:00:00:00:00:00</span><br><span class="line">    inet 127.0.0.1/8 scope host lo</span><br><span class="line">       valid_lft forever preferred_lft forever</span><br><span class="line">    inet6 ::1/128 scope host</span><br><span class="line">       valid_lft forever preferred_lft forever</span><br><span class="line">30: eth0@if2: &lt;BROADCAST,MULTICAST,UP,LOWER_UP,M-DOWN&gt; mtu 1500 qdisc noqueue</span><br><span class="line">    link/ether 02:42:c0:a8:02:dc brd ff:ff:ff:ff:ff:ff</span><br><span class="line">    inet 192.168.2.220/24 scope global eth0</span><br><span class="line">       valid_lft forever preferred_lft forever</span><br><span class="line">    inet6 fe80::42:c0ff:fea8:2dc/64 scope link</span><br><span class="line">       valid_lft forever preferred_lft forever</span><br><span class="line"></span><br><span class="line"># 查看容器route</span><br><span class="line">$ docker exec c1  route -n</span><br><span class="line"></span><br><span class="line">Kernel IP routing table</span><br><span class="line">Destination     Gateway         Genmask         Flags Metric Ref    Use Iface</span><br><span class="line">0.0.0.0         192.168.2.1     0.0.0.0         UG    0      0        0 eth0</span><br><span class="line">192.168.2.0     0.0.0.0         255.255.255.0   U     0      0        0 eth0</span><br></pre></td></tr></table></figure>
+<p>创建容器c2</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br></pre></td><td class="code"><pre><span class="line">$ docker run -id --net macnet --ip 192.168.2.221 --name c2 busybox sh</span><br><span class="line">f8bcf7a103ac483fd46ee27ac675b23255bf64ad49c7e70be8785737add1ce06</span><br><span class="line"></span><br><span class="line"># 查看容器IP</span><br><span class="line">$ docker exec c2 ip a</span><br><span class="line"></span><br><span class="line">1: lo: &lt;LOOPBACK,UP,LOWER_UP&gt; mtu 65536 qdisc noqueue qlen 1</span><br><span class="line">    link/loopback 00:00:00:00:00:00 brd 00:00:00:00:00:00</span><br><span class="line">    inet 127.0.0.1/8 scope host lo</span><br><span class="line">       valid_lft forever preferred_lft forever</span><br><span class="line">    inet6 ::1/128 scope host</span><br><span class="line">       valid_lft forever preferred_lft forever</span><br><span class="line">31: eth0@if2: &lt;BROADCAST,MULTICAST,UP,LOWER_UP,M-DOWN&gt; mtu 1500 qdisc noqueue</span><br><span class="line">    link/ether 02:42:c0:a8:02:dd brd ff:ff:ff:ff:ff:ff</span><br><span class="line">    inet 192.168.2.221/24 scope global eth0</span><br><span class="line">       valid_lft forever preferred_lft forever</span><br><span class="line">    inet6 fe80::42:c0ff:fea8:2dd/64 scope link</span><br><span class="line">       valid_lft forever preferred_lft forever</span><br><span class="line"></span><br><span class="line"></span><br><span class="line"># 查看容器route</span><br><span class="line">$ docker exec c2  route -n</span><br><span class="line"></span><br><span class="line">Kernel IP routing table</span><br><span class="line">Destination     Gateway         Genmask         Flags Metric Ref    Use Iface</span><br><span class="line">0.0.0.0         192.168.2.1     0.0.0.0         UG    0      0        0 eth0</span><br><span class="line">192.168.2.0     0.0.0.0         255.255.255.0   U     0      0        0 eth0</span><br></pre></td></tr></table></figure>
+<ul>
+<li>node主机</li>
+</ul>
+<p><strong>创建macvlan网络</strong></p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">$ docker network create -d macvlan --subnet 192.168.2.0/24 --gateway 192.168.2.1 -o parent=enp0s5 -o macvlan_mode=bridge macnet</span><br><span class="line">ad869482ddc115acf6ee004a500ce7c28386e976c4bb5eccdffaaa1afbcd07e1</span><br></pre></td></tr></table></figure>
+<blockquote>
+<p>macvlan是kernel的模块名。<br>
+192.168.2.0/24是宿主机所在网络的网段。<br>
+192.168.2.1是网关。<br>
+enp0s5是宿主机接入192.168.2.0/24的网络设备。</p>
+</blockquote>
+<p><strong>查看macvlan是否创建成功</strong></p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line">$ docker network ls</span><br><span class="line">NETWORK ID          NAME                DRIVER              SCOPE</span><br><span class="line">e13c13e22f73        bridge              bridge              local</span><br><span class="line">a56cfbac20ed        docker_gwbridge     bridge              local</span><br><span class="line">0b703c3d9cb8        host                host                local</span><br><span class="line">2b2067e669d4        macnet              macvlan             local</span><br><span class="line">abdb4b9f751c        none                null                local</span><br><span class="line">856b6dbf7e83        weave               weavemesh           local</span><br></pre></td></tr></table></figure>
+<p><strong>创建两个使用macvlan容器</strong></p>
+<p>创建容器c3</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br></pre></td><td class="code"><pre><span class="line">$ docker run -id --net macnet --ip 192.168.2.222 --name c3 busybox sh</span><br><span class="line">8b6a83f73af9dd54ef24be80bf946f0e10959e48ead12a09514d3c59a287927c</span><br><span class="line"></span><br><span class="line"></span><br><span class="line"># 查看容器IP</span><br><span class="line">$ docker exec c3 ip a</span><br><span class="line"></span><br><span class="line">1: lo: &lt;LOOPBACK,UP,LOWER_UP&gt; mtu 65536 qdisc noqueue qlen 1</span><br><span class="line">    link/loopback 00:00:00:00:00:00 brd 00:00:00:00:00:00</span><br><span class="line">    inet 127.0.0.1/8 scope host lo</span><br><span class="line">       valid_lft forever preferred_lft forever</span><br><span class="line">    inet6 ::1/128 scope host</span><br><span class="line">       valid_lft forever preferred_lft forever</span><br><span class="line">18: eth0@if2: &lt;BROADCAST,MULTICAST,UP,LOWER_UP,M-DOWN&gt; mtu 1500 qdisc noqueue</span><br><span class="line">    link/ether 02:42:c0:a8:02:ca brd ff:ff:ff:ff:ff:ff</span><br><span class="line">    inet 192.168.2.222/24 scope global eth0</span><br><span class="line">       valid_lft forever preferred_lft forever</span><br><span class="line">    inet6 fe80::42:c0ff:fea8:2ca/64 scope link</span><br><span class="line">       valid_lft forever preferred_lft forever</span><br><span class="line"></span><br><span class="line"># 查看容器route</span><br><span class="line">$ docker exec c3  route -n</span><br><span class="line"></span><br><span class="line">Kernel IP routing table</span><br><span class="line">Destination     Gateway         Genmask         Flags Metric Ref    Use Iface</span><br><span class="line">0.0.0.0         192.168.2.1     0.0.0.0         UG    0      0        0 eth0</span><br><span class="line">192.168.2.0     0.0.0.0         255.255.255.0   U     0      0        0 eth0</span><br></pre></td></tr></table></figure>
+<p>创建容器c4</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br></pre></td><td class="code"><pre><span class="line">$ docker run -id --net macnet --ip 192.168.2.223 --name c4 busybox sh</span><br><span class="line">c7be679190467564023aec1fd908bb7418a55f41ab548d59d77cabf187dc665c</span><br><span class="line"></span><br><span class="line"></span><br><span class="line"># 查看容器IP</span><br><span class="line">$ docker exec c4 ip a</span><br><span class="line"></span><br><span class="line">1: lo: &lt;LOOPBACK,UP,LOWER_UP&gt; mtu 65536 qdisc noqueue qlen 1</span><br><span class="line">    link/loopback 00:00:00:00:00:00 brd 00:00:00:00:00:00</span><br><span class="line">    inet 127.0.0.1/8 scope host lo</span><br><span class="line">       valid_lft forever preferred_lft forever</span><br><span class="line">    inet6 ::1/128 scope host</span><br><span class="line">       valid_lft forever preferred_lft forever</span><br><span class="line">20: eth0@if2: &lt;BROADCAST,MULTICAST,UP,LOWER_UP,M-DOWN&gt; mtu 1500 qdisc noqueue</span><br><span class="line">    link/ether 02:42:c0:a8:02:df brd ff:ff:ff:ff:ff:ff</span><br><span class="line">    inet 192.168.2.223/24 scope global eth0</span><br><span class="line">       valid_lft forever preferred_lft forever</span><br><span class="line">    inet6 fe80::42:c0ff:fea8:2df/64 scope link</span><br><span class="line">       valid_lft forever preferred_lft forever</span><br><span class="line"></span><br><span class="line"># 查看容器route</span><br><span class="line">$ docker exec c4  route -n</span><br><span class="line">Kernel IP routing table</span><br><span class="line">Destination     Gateway         Genmask         Flags Metric Ref    Use Iface</span><br><span class="line">0.0.0.0         192.168.2.1     0.0.0.0         UG    0      0        0 eth0</span><br><span class="line">192.168.2.0     0.0.0.0         255.255.255.0   U     0      0        0 eth0</span><br></pre></td></tr></table></figure>
+<p><strong>测试网络连通情况</strong></p>
+<p>所有测试在master主机上进行。</p>
+<ul>
+<li>ping网关</li>
+</ul>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line">$ docker exec c1 ping -c 3 192.168.2.1</span><br><span class="line">PING 192.168.2.1 (192.168.2.1): 56 data bytes</span><br><span class="line">64 bytes from 192.168.2.1: seq=0 ttl=255 time=1.594 ms</span><br><span class="line">64 bytes from 192.168.2.1: seq=1 ttl=255 time=0.659 ms</span><br><span class="line">64 bytes from 192.168.2.1: seq=2 ttl=255 time=0.753 ms</span><br><span class="line"></span><br><span class="line">--- 192.168.2.1 ping statistics ---</span><br><span class="line">3 packets transmitted, 3 packets received, 0% packet loss</span><br><span class="line">round-trip min/avg/max = 0.659/1.002/1.594 ms</span><br></pre></td></tr></table></figure>
+<p>测试结果:通</p>
+<ul>
+<li>使用容器名ping本主机容器</li>
+</ul>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line">$ docker exec c1 ping -c3 c1</span><br><span class="line">PING c1 (192.168.2.220): 56 data bytes</span><br><span class="line">64 bytes from 192.168.2.220: seq=0 ttl=64 time=0.053 ms</span><br><span class="line">64 bytes from 192.168.2.220: seq=1 ttl=64 time=0.073 ms</span><br><span class="line">64 bytes from 192.168.2.220: seq=2 ttl=64 time=0.048 ms</span><br><span class="line"></span><br><span class="line">--- c1 ping statistics ---</span><br><span class="line">3 packets transmitted, 3 packets received, 0% packet loss</span><br><span class="line">round-trip min/avg/max = 0.048/0.058/0.073 ms</span><br></pre></td></tr></table></figure>
+<p>测试结果:通</p>
+<ul>
+<li>ping本主机容器</li>
+</ul>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line">$ docker exec c1 ping -c3 192.168.2.220</span><br><span class="line">PING 192.168.2.220 (192.168.2.220): 56 data bytes</span><br><span class="line">64 bytes from 192.168.2.220: seq=0 ttl=64 time=0.069 ms</span><br><span class="line">64 bytes from 192.168.2.220: seq=1 ttl=64 time=0.172 ms</span><br><span class="line">64 bytes from 192.168.2.220: seq=2 ttl=64 time=0.079 ms</span><br><span class="line"></span><br><span class="line">--- 192.168.2.220 ping statistics ---</span><br><span class="line">3 packets transmitted, 3 packets received, 0% packet loss</span><br><span class="line">round-trip min/avg/max = 0.069/0.106/0.172 ms</span><br></pre></td></tr></table></figure>
+<p>测试结果:通</p>
+<ul>
+<li>ping另一主机容器</li>
+</ul>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line">$ docker exec c1 ping -c2  192.168.2.222</span><br><span class="line">PING 192.168.2.222 (192.168.2.222): 56 data bytes</span><br><span class="line">64 bytes from 192.168.2.222: seq=0 ttl=255 time=0.788 ms</span><br><span class="line">64 bytes from 192.168.2.222: seq=1 ttl=255 time=0.383 ms</span><br><span class="line"></span><br><span class="line">--- 192.168.2.222 ping statistics ---</span><br><span class="line">2 packets transmitted, 2 packets received, 0% packet loss</span><br><span class="line">round-trip min/avg/max = 0.383/0.585/0.788 ms</span><br></pre></td></tr></table></figure>
+<p>测试结果:通</p>
+<ul>
+<li>使用容器名ping另一主机容器:</li>
+</ul>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">$ docker exec c1 ping -c2 c3</span><br><span class="line">ping: bad address &apos;c3&apos;</span><br></pre></td></tr></table></figure>
+<p>测试结果:不通</p>
+<ul>
+<li>本主机ping本主机容器: 不通</li>
+</ul>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line">$ ping -c 2 192.168.2.220</span><br><span class="line">PING 192.168.2.220 (192.168.2.220) 56(84) bytes of data.</span><br><span class="line">From 192.168.2.210 icmp_seq=1 Destination Host Unreachable</span><br><span class="line">From 192.168.2.210 icmp_seq=2 Destination Host Unreachable</span><br><span class="line"></span><br><span class="line">--- 192.168.2.220 ping statistics ---</span><br><span class="line">2 packets transmitted, 0 received, +2 errors, 100% packet loss, time 1000ms</span><br></pre></td></tr></table></figure>
+<p>测试结果:不通</p>
+<ul>
+<li>本主机ping另一主机容器</li>
+</ul>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line">$ ping -c 2 192.168.2.222</span><br><span class="line">PING 192.168.2.222 (192.168.2.222) 56(84) bytes of data.</span><br><span class="line">64 bytes from 192.168.2.222: icmp_seq=1 ttl=255 time=0.308 ms</span><br><span class="line">64 bytes from 192.168.2.222: icmp_seq=2 ttl=255 time=0.343 ms</span><br><span class="line"></span><br><span class="line">--- 192.168.2.222 ping statistics ---</span><br><span class="line">2 packets transmitted, 2 received, 0% packet loss, time 1000ms</span><br><span class="line">rtt min/avg/max/mdev = 0.308/0.325/0.343/0.025 ms</span><br></pre></td></tr></table></figure>
+<p>测试结果:通</p>
+<ul>
+<li>本主机上容器到另一台宿主IP</li>
+</ul>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line">$ docker exec c2 ping -c 2 192.168.2.211</span><br><span class="line">PING 192.168.2.211 (192.168.2.211): 56 data bytes</span><br><span class="line">64 bytes from 192.168.2.211: seq=0 ttl=64 time=0.494 ms</span><br><span class="line">64 bytes from 192.168.2.211: seq=1 ttl=64 time=0.495 ms</span><br><span class="line"></span><br><span class="line">--- 192.168.2.211 ping statistics ---</span><br><span class="line">2 packets transmitted, 2 packets received, 0% packet loss</span><br><span class="line">round-trip min/avg/max = 0.494/0.494/0.495 ms</span><br></pre></td></tr></table></figure>
+<h3 id="使用macvlanvlan构建docker网络">使用Macvlan+VLAN构建Docker网络</h3>
+<p><strong>VLAN简介</strong></p>
+<p>VLAN(Virtual Local Area Network)又称虚拟局域网，是指在局域网的基础上，采用网络管理软件构建的可跨越不同网段、不同网络的端到端的逻辑网络。</p>
+<p>一个VLAN组成一个逻辑子网，即一个逻辑广播域，它可以覆盖多个网络设备，允许处于不同地理位置的网络用户加入到一个逻辑子网中。使用VLAN功能后，能够将网络分割成多个广播域。</p>
+<p>Linux支持在物理网卡上创建vlan子接口。每个vlan子接口属于不同的二层域，所有的vlan子接口拥有相同的MAC地址。这点是和Macvlan子接口不同的地方。</p>
+<ul>
+<li>master主机</li>
+</ul>
+<p><strong>创建VLAN</strong></p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br></pre></td><td class="code"><pre><span class="line"># 为物理网卡enp0s5创建Macvlan子接口</span><br><span class="line">$ ip link add link enp0s5 name enp0s5.200 type vlan id 200</span><br><span class="line"></span><br><span class="line"># 将MACVLAN设备加入到容器的network space</span><br><span class="line">$ ip link list enp0s5.200</span><br><span class="line">33: ip enp0s5.200@enp0s5: &lt;BROADCAST,MULTICAST&gt; mtu 1500 qdisc noop state DOWN mode DEFAULT group default qlen 1000</span><br><span class="line">    link/ether 00:1c:42:97:53:2a brd ff:ff:ff:ff:ff:ff</span><br><span class="line"></span><br><span class="line"># 启用enp0s5.200</span><br><span class="line">$ ip link set enp0s5.200 up</span><br><span class="line"></span><br><span class="line">$ ip link list enp0s5.200</span><br><span class="line">33: enp0s5.200@enp0s5: &lt;BROADCAST,MULTICAST,UP,LOWER_UP&gt; mtu 1500 qdisc noqueue state UP mode DEFAULT group default qlen 1000</span><br><span class="line">    link/ether 00:1c:42:97:53:2a brd ff:ff:ff:ff:ff:ff</span><br><span class="line"></span><br><span class="line"># 设置enp0s5.200为混杂模式</span><br><span class="line">$ ip link set enp0s5.200  promisc on</span><br><span class="line">$ ifconfig enp0s5.200</span><br><span class="line">enp0s5.200 Link encap:Ethernet  HWaddr 00:1c:42:97:53:2a</span><br><span class="line">          inet6 addr: fe80::21c:42ff:fe97:532a/64 Scope:Link</span><br><span class="line">          UP BROADCAST RUNNING PROMISC MULTICAST  MTU:1500  Metric:1</span><br><span class="line">          RX packets:0 errors:0 dropped:0 overruns:0 frame:0</span><br><span class="line">          TX packets:8 errors:0 dropped:0 overruns:0 carrier:0</span><br><span class="line">          collisions:0 txqueuelen:1000</span><br><span class="line">          RX bytes:0 (0.0 B)  TX bytes:648 (648.0 B)</span><br></pre></td></tr></table></figure>
+<p><strong>设置macvlan的ip和网关</strong></p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">$ ip addr add 192.168.200.10/24 dev enp0s5.200</span><br><span class="line"># 删除原默认路由，否则下面加默认路由时会报错。</span><br><span class="line">$ ip route del default</span><br><span class="line">$ ip route add default via 192.168.200.1 dev enp0s5.200</span><br></pre></td></tr></table></figure>
+<p><strong>创建Docker macvlan网络</strong></p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br></pre></td><td class="code"><pre><span class="line">$ docker network create -d macvlan --subnet=192.168.200.0/24 --gateway=192.168.200.1 -o parent=enp0s5.200 -o macvlan_mode=bridge macvlan200</span><br><span class="line">b2fb555bbcdc1f0b724cc9e76b154630e632184566b9e8bb314cde825ad9ff9d</span><br><span class="line"></span><br><span class="line"></span><br><span class="line"># 查看macvlan是否创建成功</span><br><span class="line"></span><br><span class="line">$ docker network ls</span><br><span class="line">NETWORK ID          NAME                DRIVER              SCOPE</span><br><span class="line">6dc2160d4026        bridge              bridge              local</span><br><span class="line">a56cfbac20ed        docker_gwbridge     bridge              local</span><br><span class="line">0b703c3d9cb8        host                host                local</span><br><span class="line">9282605b5107        macnet              macvlan             local</span><br><span class="line">d129db56fcc1        macvlan200          macvlan             local</span><br><span class="line">abdb4b9f751c        none                null                local</span><br><span class="line">856b6dbf7e83        weave               weavemesh           local</span><br></pre></td></tr></table></figure>
+<p><strong>创建两个使用macvlan容器</strong></p>
+<p>创建容器c5</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">$ docker run --net=macvlan200 --ip=192.168.200.100 -id --name c5 busybox sh</span><br><span class="line">28ee719d4784696eff10805f1f9d992b245b7b886b031c1781dbaf4037bbb231</span><br></pre></td></tr></table></figure>
+<p>创建容器c6</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">$ docker run --net=macvlan200 --ip=192.168.200.101 -id --name c6 busybox sh</span><br><span class="line">7bd2a36e24846b383ab3aca6b9b48227600aed7352956c2c974db1ceb97efb54</span><br></pre></td></tr></table></figure>
+<ul>
+<li>node主机</li>
+</ul>
+<p><strong>创建Vlan</strong></p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br></pre></td><td class="code"><pre><span class="line"># 为物理网卡enp0s5创建Macvlan子接口</span><br><span class="line">$ ip link add link enp0s5 name enp0s5.200 type vlan id 200</span><br><span class="line"></span><br><span class="line"># 将MACVLAN设备加入到容器的network space</span><br><span class="line">$ ip link list enp0s5.200</span><br><span class="line">24: enp0s5.200@enp0s5: &lt;BROADCAST,MULTICAST&gt; mtu 1500 qdisc noop state DOWN mode DEFAULT group default qlen 1000</span><br><span class="line">    link/ether 00:1c:42:67:23:07 brd ff:ff:ff:ff:ff:ff</span><br><span class="line"></span><br><span class="line"># 启用enp0s5.200</span><br><span class="line">$ ip link set enp0s5.200 up</span><br><span class="line"></span><br><span class="line">$ ip link list enp0s5.200</span><br><span class="line">24: enp0s5.200@enp0s5: &lt;BROADCAST,MULTICAST,UP,LOWER_UP&gt; mtu 1500 qdisc noqueue state UP mode DEFAULT group default qlen 1000</span><br><span class="line">    link/ether 00:1c:42:67:23:07 brd ff:ff:ff:ff:ff:ff</span><br><span class="line"></span><br><span class="line"># 设置enp0s5.200为混杂模式</span><br><span class="line">$ ip link set enp0s5.200  promisc on</span><br><span class="line">$ ifconfig enp0s5.200</span><br><span class="line">enp0s5.200 Link encap:Ethernet  HWaddr 00:1c:42:67:23:07</span><br><span class="line">          inet6 addr: fe80::21c:42ff:fe67:2307/64 Scope:Link</span><br><span class="line">          UP BROADCAST RUNNING PROMISC MULTICAST  MTU:1500  Metric:1</span><br><span class="line">          RX packets:0 errors:0 dropped:0 overruns:0 frame:0</span><br><span class="line">          TX packets:8 errors:0 dropped:0 overruns:0 carrier:0</span><br><span class="line">          collisions:0 txqueuelen:1000</span><br><span class="line">          RX bytes:0 (0.0 B)  TX bytes:648 (648.0 B)</span><br></pre></td></tr></table></figure>
+<p><strong>设置macvlan的ip和网关</strong></p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">$ ip addr add 192.168.200.11/24 dev enp0s5.200</span><br><span class="line"># 删除原默认路由，否则下面加默认路由时会报错。</span><br><span class="line">$ ip route del default</span><br><span class="line">$ ip route add default via 192.168.200.1 dev enp0s5.200</span><br></pre></td></tr></table></figure>
+<p><strong>创建Docker macvlan网络</strong></p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line">$ docker network create -d macvlan --subnet=192.168.200.0/24 --gateway=192.168.200.1 -o parent=enp0s5.200 -o macvlan_mode=bridge macvlan200</span><br><span class="line">b2fb555bbcdc1f0b724cc9e76b154630e632184566b9e8bb314cde825ad9ff9d</span><br><span class="line"></span><br><span class="line"></span><br><span class="line"># 查看macvlan是否创建成功</span><br><span class="line">$ docker network ls</span><br><span class="line">NETWORK ID          NAME                DRIVER              SCOPE</span><br><span class="line">4886f72179a8        bridge              bridge              local</span><br><span class="line">0b703c3d9cb8        host                host                local</span><br><span class="line">149f5dcc20b3        macnet              macvlan             local</span><br><span class="line">8ee3174430ab        macvlan200          macvlan             local</span><br><span class="line">abdb4b9f751c        none                null                local</span><br><span class="line">bce1daa0a925        weave               weavemesh           local</span><br></pre></td></tr></table></figure>
+<p><strong>创建两个使用macvlan容器</strong></p>
+<p>创建容器c7</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">$ docker run --net=macvlan200 --ip=192.168.200.102 -id --name c7 busybox sh</span><br><span class="line">28ee719d4784696eff10805f1f9d992b245b7b886b031c1781dbaf4037bbb231</span><br></pre></td></tr></table></figure>
+<p>创建容器c8</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">$ docker run --net=macvlan200 --ip=192.168.200.103 -id --name c8 busybox sh</span><br><span class="line">7bd2a36e24846b383ab3aca6b9b48227600aed7352956c2c974db1ceb97efb54</span><br></pre></td></tr></table></figure>
+<p><strong>测试网络连通情况</strong></p>
+<p>所有测试在master主机上进行。</p>
+<ul>
+<li>ping网关</li>
+</ul>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">$ docker exec c5 ping -c2 192.168.200.1</span><br></pre></td></tr></table></figure>
+<p>测试结果:不通</p>
+<ul>
+<li>ping本地macvlannet地址</li>
+</ul>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">$ docker exec c5 ping -c2 192.168.200.10</span><br><span class="line">PING 192.168.200.10 (192.168.200.10): 56 data bytes</span><br><span class="line"></span><br><span class="line">--- 192.168.200.10 ping statistics ---</span><br><span class="line">2 packets transmitted, 0 packets received, 100% packet loss</span><br></pre></td></tr></table></figure>
+<p>测试结果:不通</p>
+<ul>
+<li>ping另一个主机的macvlannet地址</li>
+</ul>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line">$ docker exec c5 ping -c2 192.168.200.11</span><br><span class="line"></span><br><span class="line">PING 192.168.200.11 (192.168.200.11): 56 data bytes</span><br><span class="line">64 bytes from 192.168.200.11: seq=0 ttl=64 time=0.535 ms</span><br><span class="line">64 bytes from 192.168.200.11: seq=1 ttl=64 time=0.368 ms</span><br><span class="line"></span><br><span class="line">--- 192.168.200.11 ping statistics ---</span><br><span class="line">2 packets transmitted, 2 packets received, 0% packet loss</span><br><span class="line">round-trip min/avg/max = 0.368/0.451/0.535 ms</span><br></pre></td></tr></table></figure>
+<p>测试结果:通</p>
+<ul>
+<li>ping本主机容器</li>
+</ul>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line">$ docker exec c5 ping -c2 192.168.200.100</span><br><span class="line"></span><br><span class="line">PING 192.168.200.100 (192.168.200.100): 56 data bytes</span><br><span class="line">64 bytes from 192.168.200.100: seq=0 ttl=64 time=0.091 ms</span><br><span class="line">64 bytes from 192.168.200.100: seq=1 ttl=64 time=0.046 ms</span><br><span class="line"></span><br><span class="line">--- 192.168.200.100 ping statistics ---</span><br><span class="line">2 packets transmitted, 2 packets received, 0% packet loss</span><br><span class="line">round-trip min/avg/max = 0.046/0.068/0.091 ms</span><br></pre></td></tr></table></figure>
+<p>测试结果:通</p>
+<ul>
+<li>ping另一主机容器</li>
+</ul>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line">$ docker exec c5 ping -c2 192.168.200.102</span><br><span class="line">PING 192.168.200.102 (192.168.200.102): 56 data bytes</span><br><span class="line">64 bytes from 192.168.200.102: seq=0 ttl=64 time=0.815 ms</span><br><span class="line">64 bytes from 192.168.200.102: seq=1 ttl=64 time=1.051 ms</span><br><span class="line"></span><br><span class="line">--- 192.168.200.102 ping statistics ---</span><br><span class="line">2 packets transmitted, 2 packets received, 0% packet loss</span><br><span class="line">round-trip min/avg/max = 0.815/0.933/1.051 ms</span><br></pre></td></tr></table></figure>
+<p>测试结果:通</p>
+<ul>
+<li>使用容器名ping本主机容器</li>
+</ul>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line">$ docker exec c5 ping -c2 c6</span><br><span class="line">PING c6 (192.168.200.101): 56 data bytes</span><br><span class="line">64 bytes from 192.168.200.101: seq=0 ttl=64 time=0.152 ms</span><br><span class="line">64 bytes from 192.168.200.101: seq=1 ttl=64 time=0.108 ms</span><br><span class="line"></span><br><span class="line">--- c6 ping statistics ---</span><br><span class="line">2 packets transmitted, 2 packets received, 0% packet loss</span><br><span class="line">round-trip min/avg/max = 0.108/0.130/0.152 ms</span><br></pre></td></tr></table></figure>
+<p>测试结果:通</p>
+<ul>
+<li>使用容器名ping另一主机容器</li>
+</ul>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">$ docker exec c5 ping -c2 c7</span><br><span class="line">ping: bad address &apos;c7&apos;</span><br></pre></td></tr></table></figure>
+<p>测试结果:不通</p>
+<ul>
+<li>ping跨网络主机</li>
+</ul>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line">$ docker exec c5 ping -c2 192.168.200.102</span><br><span class="line">PING 192.168.200.102 (192.168.200.102): 56 data bytes</span><br><span class="line">64 bytes from 192.168.200.102: seq=0 ttl=64 time=0.518 ms</span><br><span class="line">64 bytes from 192.168.200.102: seq=1 ttl=64 time=0.458 ms</span><br><span class="line"></span><br><span class="line">--- 192.168.200.102 ping statistics ---</span><br><span class="line">2 packets transmitted, 2 packets received, 0% packet loss</span><br><span class="line">round-trip min/avg/max = 0.458/0.488/0.518 ms</span><br></pre></td></tr></table></figure>
+<p>测试结果:通</p>
+<ul>
+<li>本主机ping本主机容器</li>
+</ul>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line">$ ping 192.168.200.100 -c2</span><br><span class="line">PING 192.168.200.100 (192.168.200.100) 56(84) bytes of data.</span><br><span class="line">From 192.168.200.10 icmp_seq=1 Destination Host Unreachable</span><br><span class="line">From 192.168.200.10 icmp_seq=2 Destination Host Unreachable</span><br><span class="line"></span><br><span class="line">--- 192.168.200.100 ping statistics ---</span><br><span class="line">2 packets transmitted, 0 received, +2 errors, 100% packet loss, time 1006ms</span><br><span class="line">pipe 2</span><br></pre></td></tr></table></figure>
+<p>测试结果:不通</p>
+<ul>
+<li>本主机ping另一主机容器</li>
+</ul>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line">$ ping 192.168.200.102 -c2</span><br><span class="line">PING 192.168.200.102 (192.168.200.102) 56(84) bytes of data.</span><br><span class="line">64 bytes from 192.168.200.102: icmp_seq=1 ttl=64 time=0.625 ms</span><br><span class="line">64 bytes from 192.168.200.102: icmp_seq=2 ttl=64 time=0.319 ms</span><br><span class="line"></span><br><span class="line">--- 192.168.200.102 ping statistics ---</span><br><span class="line">2 packets transmitted, 2 received, 0% packet loss, time 1001ms</span><br><span class="line">rtt min/avg/max/mdev = 0.319/0.472/0.625/0.153 ms</span><br></pre></td></tr></table></figure>
+<p>测试结果:通</p>
+<h3 id="一些问题">一些问题</h3>
+<ul>
+<li>
+<p>macvlan网络在创建时要指定parent.其中parent仅能使用一次,即eth0在创建一个macvlan网络时使用了,则在创建另一个的时候就无法再使用了。</p>
+</li>
+<li>
+<p>两种模式下都有测试网络不通的情况，不知道是不是虚拟机网络环境问题。理论上应该是通的。待在真实环境验证后才得知。</p>
+</li>
+</ul>
+<h3 id="参考文档">参考文档</h3>
+<p><a href="http://www.google.com" target="_blank" rel="noopener">http://www.google.com</a><br>
+<a href="http://t.cn/RXYNXqK" target="_blank" rel="noopener">http://t.cn/RXYNXqK</a><br>
+<a href="http://t.cn/RXQU43D" target="_blank" rel="noopener">http://t.cn/RXQU43D</a><br>
+<a href="http://hustcat.github.io/docker-macvlan/" target="_blank" rel="noopener">http://hustcat.github.io/docker-macvlan/</a></p>
+
+                
+
+                <hr>
+                <!-- Pager -->
+                <ul class="pager">
+                    
+                        <li class="previous">
+                            <a href="/posts/54145.html" data-toggle="tooltip" data-placement="top" title="Apache Mesos 入门">&larr; Previous Post</a>
+                        </li>
+                    
+                    
+                        <li class="next">
+                            <a href="/posts/54191.html" data-toggle="tooltip" data-placement="top" title="使用 Weave 实现 Docker 多宿主机互联">Next Post &rarr;</a>
+                        </li>
+                    
+                </ul>
+
+                <!-- duoshuo Share start -->
+                
+                <!-- 多说 Share end-->
+
+                <!-- 多说评论框 start -->
+                
+                <!-- 多说评论框 end -->
+
+                <!-- disqus comment start -->
+                
+                <!-- disqus comment end -->
+
+                
+                    <!-- disqus 评论框 start -->
+                    <div class="comment">
+                        <div id="lv-container" data-id="city" data-uid="MTAyMC8yNzg2My80NDQw"></div>
+                    </div>
+                    <!-- disqus 评论框 end -->
+                
+
+            </div>
+            
+            <!-- Tabe of Content -->
+            <!-- Table of Contents -->
+
+  
+    <style>
+      span.toc-nav-number{
+        display: none
+      }
+    </style>
+  
+    
+      <aside id="sidebar">
+        <div id="toc" class="toc-article">
+        <strong class="toc-title">Contents</strong>
+        
+          <ol class="toc-nav"><li class="toc-nav-item toc-nav-level-3"><a class="toc-nav-link" href="#环境准备"><span class="toc-nav-number">1.</span> <span class="toc-nav-text">环境准备</span></a></li><li class="toc-nav-item toc-nav-level-3"><a class="toc-nav-link" href="#使用macvlan构建docker网络"><span class="toc-nav-number">2.</span> <span class="toc-nav-text">使用Macvlan构建Docker网络</span></a></li><li class="toc-nav-item toc-nav-level-3"><a class="toc-nav-link" href="#使用macvlanvlan构建docker网络"><span class="toc-nav-number">3.</span> <span class="toc-nav-text">使用Macvlan+VLAN构建Docker网络</span></a></li><li class="toc-nav-item toc-nav-level-3"><a class="toc-nav-link" href="#一些问题"><span class="toc-nav-number">4.</span> <span class="toc-nav-text">一些问题</span></a></li><li class="toc-nav-item toc-nav-level-3"><a class="toc-nav-link" href="#参考文档"><span class="toc-nav-number">5.</span> <span class="toc-nav-text">参考文档</span></a></li></ol>
+        
+        </div>
+      </aside>
+    
+
+                
+            <!-- Sidebar Container -->
+            <div class="
+                col-lg-8 col-lg-offset-2
+                col-md-10 col-md-offset-1
+                sidebar-container">
+
+                <!-- Featured Tags -->
+                
+                <section>
+                    <!-- no hr -->
+                    <h5><a href="/tags/">FEATURED TAGS</a></h5>
+                    <div class="tags">
+                       
+                          <a class="tag" href="/tags/#Docker" title="Docker">Docker</a>
+                        
+                          <a class="tag" href="/tags/#Kubernetes" title="Kubernetes">Kubernetes</a>
+                        
+                    </div>
+                </section>
+                
+
+                <!-- Friends Blog -->
+                
+                <hr>
+                <h5>FRIENDS</h5>
+                <ul class="list-inline">
+
+                    
+                        <li><a href="http://www.mike.org.cn/" target="_blank">简单.生活</a></li>
+                    
+                        <li><a href="http://shang.qq.com/wpa/qunwpa?idkey=ea4c43493c2269428ac6ef6141de4b6d78e5ab2d41380ca4099b833b62884ee9" target="_blank">技术交流群</a></li>
+                    
+                        <li><a href="" target="_blank"></a></li>
+                    
+                        <li><a href="" target="_blank"></a></li>
+                    
+                </ul>
+                
+            </div>
+        </div>
+    </div>
+</article>
+
+
+
+
+
+
+    <!-- 来必力City版公共JS代码 start (一个网页只需插入一次) -->
+    <script type="text/javascript">
+       (function(d, s) {
+           var j, e = d.getElementsByTagName(s)[0];
+    
+           if (typeof LivereTower === 'function') { return; }
+    
+           j = d.createElement(s);
+           j.src = 'https://cdn-city.livere.com/js/embed.dist.js';
+           j.async = true;
+    
+           e.parentNode.insertBefore(j, e);
+       })(document, 'script');
+    </script>
+    <noscript>为正常使用来必力评论功能请激活JavaScript</noscript>
+    <!-- 来必力City版 公共JS代码 end -->
+
+
+
+<!-- async load function -->
+<script>
+    function async(u, c) {
+      var d = document, t = 'script',
+          o = d.createElement(t),
+          s = d.getElementsByTagName(t)[0];
+      o.src = u;
+      if (c) { o.addEventListener('load', function (e) { c(null, e); }, false); }
+      s.parentNode.insertBefore(o, s);
+    }
+</script>
+<!-- anchor-js, Doc:http://bryanbraun.github.io/anchorjs/ -->
+<script>
+    async("https://cdn.bootcss.com/anchor-js/1.1.1/anchor.min.js",function(){
+        anchors.options = {
+          visible: 'hover',
+          placement: 'left',
+          icon: 'ℬ'
+        };
+        anchors.add().remove('.intro-header h1').remove('.subheading').remove('.sidebar-container h5');
+    })
+</script>
+<style>
+    /* place left on bigger screen */
+    @media all and (min-width: 800px) {
+        .anchorjs-link{
+            position: absolute;
+            left: -0.75em;
+            font-size: 1.1em;
+            margin-top : -0.1em;
+        }
+    }
+</style>
+
+
+
+    <!-- Footer -->
+    <!-- Footer -->
+<footer>
+    <div class="container">
+        <div class="row">
+            <div class="col-lg-8 col-lg-offset-2 col-md-10 col-md-offset-1">
+                <ul class="list-inline text-center">
+                
+                    <li>
+                        <a href="/atom.xml">
+                            <span class="fa-stack fa-lg">
+                                <i class="fa fa-circle fa-stack-2x"></i>
+                                <i class="fa fa-rss fa-stack-1x fa-inverse"></i>
+                            </span>
+                        </a>
+                    </li>
+                
+                
+                
+                    <li>
+                        <a target="_blank" href="https://www.zhihu.com/people/80imike">
+                            <span class="fa-stack fa-lg">
+                                <i class="fa fa-circle fa-stack-2x"></i>
+                                <i class="fa  fa-stack-1x fa-inverse">知</i>
+                            </span>
+                        </a>
+                    </li>
+                
+
+                
+                    <li>
+                        <a target="_blank" href="http://weibo.com/2093524665">
+                            <span class="fa-stack fa-lg">
+                                <i class="fa fa-circle fa-stack-2x"></i>
+                                <i class="fa fa-weibo fa-stack-1x fa-inverse"></i>
+                            </span>
+                        </a>
+                    </li>
+                
+
+                
+
+                
+
+                
+
+                </ul>
+                <p class="copyright text-muted">
+                    Copyright &copy; Mike 2018 | Hosted by <a href="https://pages.coding.me" style="font-weight: bold">Coding Pages</a>
+                    <br>
+                    Theme by <a href="http://beantech.org">BeanTech</a> 
+                    <span style="display: inline-block; margin: 0 5px;">
+                        <i class="fa fa-heart"></i>
+                    </span> 
+                    re-Ported by <a href="http://www.huweihuang.com">胡伟煌</a> | 
+                    <iframe
+                        style="margin-left: 2px; margin-bottom:-5px;"
+                        frameborder="0" scrolling="0" width="91px" height="20px"
+                        src="https://ghbtns.com/github-btn.html?user=huweihuang&repo=hexo-theme-huweihuang&type=star&count=true" >
+                    </iframe>
+                </p>
+            </div>
+        </div>
+    </div>
+</footer>
+
+<!-- jQuery -->
+<script src="/js/jquery.min.js"></script>
+
+<!-- Bootstrap Core JavaScript -->
+<script src="/js/bootstrap.min.js"></script>
+
+<!-- Custom Theme JavaScript -->
+<script src="/js/hux-blog.min.js"></script>
+
+
+<!-- async load function -->
+<script>
+    function async(u, c) {
+      var d = document, t = 'script',
+          o = d.createElement(t),
+          s = d.getElementsByTagName(t)[0];
+      o.src = u;
+      if (c) { o.addEventListener('load', function (e) { c(null, e); }, false); }
+      s.parentNode.insertBefore(o, s);
+    }
+</script>
+
+<!-- 
+     Because of the native support for backtick-style fenced code blocks 
+     right within the Markdown is landed in Github Pages, 
+     From V1.6, There is no need for Highlight.js, 
+     so Huxblog drops it officially.
+
+     - https://github.com/blog/2100-github-pages-now-faster-and-simpler-with-jekyll-3-0  
+     - https://help.github.com/articles/creating-and-highlighting-code-blocks/    
+-->
+<!--
+    <script>
+        async("http://cdn.bootcss.com/highlight.js/8.6/highlight.min.js", function(){
+            hljs.initHighlightingOnLoad();
+        })
+    </script>
+    <link href="http://cdn.bootcss.com/highlight.js/8.6/styles/github.min.css" rel="stylesheet">
+-->
+
+
+<!-- jquery.tagcloud.js -->
+<script>
+    // only load tagcloud.js in tag.html
+    if($('#tag_cloud').length !== 0){
+        async("https://www.hi-linux.com/js/jquery.tagcloud.js",function(){
+            $.fn.tagcloud.defaults = {
+                //size: {start: 1, end: 1, unit: 'em'},
+                color: {start: '#bbbbee', end: '#0085a1'},
+            };
+            $('#tag_cloud a').tagcloud();
+        })
+    }
+</script>
+
+<!--fastClick.js -->
+<script>
+    async("https://cdn.bootcss.com/fastclick/1.0.6/fastclick.min.js", function(){
+        var $nav = document.querySelector("nav");
+        if($nav) FastClick.attach($nav);
+    })
+</script>
+
+
+<!-- Google Analytics -->
+
+
+
+
+<!-- Baidu Tongji -->
+
+
+
+
+
+
+	<a id="rocket" href="#top" class=""></a>
+	<script type="text/javascript" src="/js/totop.js?v=1.0.0" async=""></script>
+    <script type="text/javascript" src="/js/toc.js?v=1.0.0" async=""></script>
+<!-- Image to hack wechat -->
+<img src="https://www.hi-linux.com/img/icon_wechat.png" width="0" height="0" />
+<!-- Migrate from head to bottom, no longer block render and still work -->
+
+</body>
+
+</html>

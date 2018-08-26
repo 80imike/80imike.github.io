@@ -1,0 +1,603 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<!-- Head tag -->
+<head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="google-site-verification" content="xBT4GhYoi5qRD5tr338pgPM5OWHHIDR6mNg1a3euekI" />
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="description" content="">
+    <meta name="keyword"  content="Linux,运维,Nginx,Zabbix,Centos,Ansible,MySQL,Python,Docker,ELK,Haproxy,Git,Nodejs,安全,技术">
+    <link rel="shortcut icon" href="/img/ironman-draw.png">
+    <!-- Place this tag in your head or just before your close body tag. -->
+    <script async defer src="https://buttons.github.io/buttons.js"></script>
+    <title>
+        
+          Linux 下开启缓存服务 NSCD - 运维之美
+        
+    </title>
+
+    <link rel="canonical" href="https://www.hi-linux.com/posts/9461.html">
+
+    <!-- Bootstrap Core CSS -->
+    <link rel="stylesheet" href="/css/bootstrap.min.css">
+
+    <!-- Custom CSS --> 
+    <link rel="stylesheet" href="/css/beantech.min.css">
+    
+    <!-- Pygments Highlight CSS -->
+    <link rel="stylesheet" href="/css/highlight.css">
+
+    <link rel="stylesheet" href="/css/widget.css">
+
+    <link rel="stylesheet" href="/css/rocket.css">
+
+    <link rel="stylesheet" href="/css/signature.css">
+
+    <link rel="stylesheet" href="/css/toc.css">
+
+    <!-- Custom Fonts -->
+    <!-- <link href="https://maxcdn.bootstrapcdn.com/font-awesome/4.3.0/css/font-awesome.min.css" rel="stylesheet" type="text/css"> -->
+    <!-- Hux change font-awesome CDN to qiniu -->
+    <link href="https://cdn.staticfile.org/font-awesome/4.5.0/css/font-awesome.min.css" rel="stylesheet" type="text/css">
+
+
+    <!-- Hux Delete, sad but pending in China
+    <link href='http://fonts.googleapis.com/css?family=Lora:400,700,400italic,700italic' rel='stylesheet' type='text/css'>
+    <link href='http://fonts.googleapis.com/css?family=Open+Sans:300italic,400italic,600italic,700italic,800italic,400,300,600,700,800' rel='stylesheet' type='text/
+    css'>
+    -->
+
+
+    <!-- HTML5 Shim and Respond.js IE8 support of HTML5 elements and media queries -->
+    <!-- WARNING: Respond.js doesn't work if you view the page via file:// -->
+    <!--[if lt IE 9]>
+        <script src="https://oss.maxcdn.com/libs/html5shiv/3.7.0/html5shiv.js"></script>
+        <script src="https://oss.maxcdn.com/libs/respond.js/1.4.2/respond.min.js"></script>
+    <![endif]-->
+
+    <!-- ga & ba script hoook -->
+    <script></script>
+</head>
+
+
+<!-- hack iOS CSS :active style -->
+<body ontouchstart="">
+	<!-- Modified by Yu-Hsuan Yen -->
+<!-- Post Header -->
+<style type="text/css">
+    header.intro-header{
+        
+            background-image: url('/img/header_img/article.jpg')
+            /*post*/
+        
+    }
+    
+</style>
+
+<header class="intro-header" >
+    <!-- Signature -->
+    <div id="signature">
+        <div class="container">
+            <div class="row">
+                <div class="col-lg-8 col-lg-offset-2 col-md-10 col-md-offset-1">
+                
+                    <div class="post-heading">
+                        <div class="tags">
+                            
+                              <a class="tag" href="/tags/#Linux" title="Linux">Linux</a>
+                            
+                              <a class="tag" href="/tags/#NSCD" title="NSCD">NSCD</a>
+                            
+                        </div>
+                        <h1>Linux 下开启缓存服务 NSCD</h1>
+                        <h2 class="subheading"></h2>
+                        <span class="meta">
+                            Posted by Mike on
+                            2016-06-29
+                        </span>
+                    </div>
+                
+
+
+                </div>
+            </div>
+        </div>
+    </div>
+</header>
+
+	
+    <!-- Navigation -->
+<nav class="navbar navbar-default navbar-custom navbar-fixed-top">
+    <div class="container-fluid">
+        <!-- Brand and toggle get grouped for better mobile display -->
+        <div class="navbar-header page-scroll">
+            <button type="button" class="navbar-toggle">
+                <span class="sr-only">Toggle navigation</span>
+                <span class="icon-bar"></span>
+                <span class="icon-bar"></span>
+                <span class="icon-bar"></span>
+            </button>
+            <a class="navbar-brand" href="/">运维之美</a>
+        </div>
+
+        <!-- Collect the nav links, forms, and other content for toggling -->
+        <!-- Known Issue, found by Hux:
+            <nav>'s height woule be hold on by its content.
+            so, when navbar scale out, the <nav> will cover tags.
+            also mask any touch event of tags, unfortunately.
+        -->
+        <div id="huxblog_navbar">
+            <div class="navbar-collapse">
+                <ul class="nav navbar-nav navbar-right">
+                    <li>
+                        <a href="/">Home</a>
+                    </li>
+
+                    
+
+                        
+                    
+
+                        
+                    
+
+                        
+                        <li>
+                            <a href="/about/">About</a>
+                        </li>
+                        
+                    
+
+                        
+                        <li>
+                            <a href="/archive/">Archives</a>
+                        </li>
+                        
+                    
+
+                        
+                        <li>
+                            <a href="/tags/">Tags</a>
+                        </li>
+                        
+                    
+                    
+                </ul>
+            </div>
+        </div>
+        <!-- /.navbar-collapse -->
+    </div>
+    <!-- /.container -->
+</nav>
+<script>
+    // Drop Bootstarp low-performance Navbar
+    // Use customize navbar with high-quality material design animation
+    // in high-perf jank-free CSS3 implementation
+    var $body   = document.body;
+    var $toggle = document.querySelector('.navbar-toggle');
+    var $navbar = document.querySelector('#huxblog_navbar');
+    var $collapse = document.querySelector('.navbar-collapse');
+
+    $toggle.addEventListener('click', handleMagic)
+    function handleMagic(e){
+        if ($navbar.className.indexOf('in') > 0) {
+        // CLOSE
+            $navbar.className = " ";
+            // wait until animation end.
+            setTimeout(function(){
+                // prevent frequently toggle
+                if($navbar.className.indexOf('in') < 0) {
+                    $collapse.style.height = "0px"
+                }
+            },400)
+        }else{
+        // OPEN
+            $collapse.style.height = "auto"
+            $navbar.className += " in";
+        }
+    }
+</script>
+
+
+    <!-- Main Content -->
+    <!-- Modify by Yu-Hsuan Yen -->
+
+<!-- Post Content -->
+<article>
+    <div class="container">
+        <div class="row">
+
+            <!-- Post Container -->
+            <div class="
+                col-lg-8 col-lg-offset-2
+                col-md-10 col-md-offset-1
+                post-container">
+
+                <p>NSCD(Name Service Cache Daemon)是服务缓存守护进程，它为NIS和LDAP等服务提供更快的验证。不管是什么系统，缓存是一项非常重要的技术[或机制]，缓存的主旨就是提高客户端访问速度。</p>
+<h3 id="nscd安装">NSCD安装</h3>
+<ul>
+<li>RHEL/CentOS</li>
+</ul>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">$ yum -y install nscd</span><br></pre></td></tr></table></figure>
+<ul>
+<li>Debian/Ubuntu</li>
+</ul>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">$ apt-get install nscd</span><br></pre></td></tr></table></figure>
+<a id="more"></a>
+<h3 id="nscd命令选项">NSCD命令选项</h3>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br></pre></td><td class="code"><pre><span class="line">$ nscd  --help</span><br><span class="line">用法： nscd [选项...]</span><br><span class="line">Name Service Cache Daemon.</span><br><span class="line"></span><br><span class="line">  -d, --debug                Do not fork and display messages on the current</span><br><span class="line">                             tty</span><br><span class="line">  -f, --config-file=名称     从NAME中读取配置数据</span><br><span class="line">  -g, --statistics           Print current configuration statistics</span><br><span class="line">  -i, --invalidate=TABLE     Invalidate the specified cache</span><br><span class="line">  -K, --shutdown             关闭服务器</span><br><span class="line">  -t, --nthreads=NUMBER      启动 NUMBER 个线程</span><br><span class="line">  -?, --help                 给出该系统求助列表</span><br><span class="line">      --usage                给出简要的用法信息</span><br><span class="line">  -V, --version              打印程序版本号</span><br><span class="line"></span><br><span class="line">长选项的强制或可选参数对对应的短选项也是强制或可选的。</span><br><span class="line"></span><br><span class="line">For bug reporting instructions, please see:</span><br><span class="line">&lt;http://www.gnu.org/software/libc/bugs.html&gt;.</span><br></pre></td></tr></table></figure>
+<h3 id="nscd配置文件">NSCD配置文件</h3>
+<p>NSCD配置文件为<code>/etc/nscd.conf</code>，NSCD程序在启动的时候会读取<code>/etc/nscd.conf</code>文件，每一行指定一个属性和对应的值，或者指定一个服务和对应的值，#表示注释。有效的服务设定是：passwd, group, hosts, services, or netgroup五个。</p>
+<p>NSCD配置文件相关参数解释</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br></pre></td><td class="code"><pre><span class="line">#设置日志文件</span><br><span class="line">logfile debug-file-name</span><br><span class="line"></span><br><span class="line">#设置debug记录的级别，默认是0</span><br><span class="line">debug-level value</span><br><span class="line"></span><br><span class="line">#程序启动时，等待进去请求的处理线程数，至少5个</span><br><span class="line">threads number</span><br><span class="line"></span><br><span class="line">#最大线程数，默认32</span><br><span class="line">max-threads number</span><br><span class="line"></span><br><span class="line">#nscd程序以哪个用户运行,如果设置了该选项，nscd将作为该用户运行，而不是作为root。如果每个用户都使用一个单独的缓存(-S参数)，将忽略该选项。</span><br><span class="line">server-user user</span><br><span class="line"></span><br><span class="line">#哪个用户可以请求统计用户</span><br><span class="line">stat-user user</span><br><span class="line"></span><br><span class="line">#在一个缓存项被删除之前允许使用的次数，默认是5</span><br><span class="line">reload-count unlimited | number</span><br><span class="line"></span><br><span class="line">#是否启用偏执模式，启用会导致nscd周期性重启，默认是no</span><br><span class="line">paranoia &lt;yes|no&gt;</span><br><span class="line"></span><br><span class="line">#如果启用偏执模式，设置的定期重启nscd的时间间隔，默认是3600秒</span><br><span class="line">restart-interval time</span><br><span class="line"></span><br><span class="line">#开启或者关闭服务缓存，默认是no</span><br><span class="line">enable-cache service &lt;yes|no&gt;</span><br><span class="line"></span><br><span class="line">#为成功请求的元素设置缓存TTL，单位是秒，值越大缓存命中率越高，降低平均响应时间，但会增加缓存的一致性问题</span><br><span class="line">positive-time-to-live service value</span><br><span class="line"></span><br><span class="line">#为失败查询元素设置缓存TTL，单位是秒，应保持小值，减小缓存一致性问题</span><br><span class="line">negative-time-to-live service value</span><br><span class="line"></span><br><span class="line">#内部的散列表大小，value应该保持一个素数以达到优化效果。默认值是211</span><br><span class="line">suggested-size service value</span><br><span class="line"></span><br><span class="line">#启用或者禁用检查文件是否属于指定的服务，这些文件是/etc/passwd、/etc/group、/etc/hosts、/etc/services、/etc/netgroup等</span><br><span class="line">check-files service &lt;yes|no&gt;</span><br><span class="line"></span><br><span class="line">#设置缓存在服务器重启后，仍旧能提供缓存服务，在使用偏执模式时有用，默认是no</span><br><span class="line">persistent service &lt;yes|no&gt;</span><br><span class="line"></span><br><span class="line">#为客户端共享nscd数据库在内存中做的映射，使客户端可以直接搜索，而不用每次都查询守护进行，默认是no</span><br><span class="line">shared service &lt;yes|no&gt;</span><br><span class="line"></span><br><span class="line">#该数据库的最大大小，单位是bytes，默认是33554432</span><br><span class="line">max-db-size service bytes</span><br><span class="line"></span><br><span class="line">#此选项仅使用于passwd和group服务</span><br><span class="line">auto-propagate service &lt;yes|no&gt;</span><br></pre></td></tr></table></figure>
+<h3 id="nscd使用实例">NSCD使用实例</h3>
+<h4 id="使用nscd对dns进行缓存">使用NSCD对DNS进行缓存</h4>
+<p><strong>DNS缓存在服务器上的作用</strong></p>
+<p>在需要通过域名与外界进行数据交互的时候,dns缓存就派上用场了,它可以减少域名解析的时间,提高效率。例如以下情况</p>
+<ul>
+<li>使用爬虫采集网络上的页面数据,</li>
+<li>使用auth2.0协议从其他平台(如微博或QQ)获取用户数据,</li>
+<li>使用第三方支付接口,</li>
+<li>使用短信通道下发短信等.</li>
+</ul>
+<p><strong>开启NSCD DNS缓存服务的优点和缺点</strong></p>
+<ul>
+<li>优点</li>
+</ul>
+<ol>
+<li>本地缓存DNS解析信息，提供解析速度。</li>
+<li>DNS服务挂了也没有问题，在缓存服务时间范围内，解析依旧正常。</li>
+</ol>
+<ul>
+<li>缺点</li>
+</ul>
+<ol>
+<li>DNS解析信息会滞后，如域名解析更改需要手动刷新缓存，NSCD不适合做实时的切换的应用，目前对于依赖DNS切换的服务，建议不要开启DNS缓存。DNS Cache作为普通的DNS解析Cache那是没问题的，如果你使用RDS云服务器，也不建议使用DNS缓存服务。</li>
+</ol>
+<p><strong>配置DNS缓存</strong></p>
+<p>通过编辑<code>/etc/nscd.conf</code>文件，在其中增加如下一行可以开启本地DNS Cache</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">enable-cache hosts yes #这个服务除了dns缓存之外还可以缓存passwd,group,servers</span><br></pre></td></tr></table></figure>
+<p>完整配置如下</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br></pre></td><td class="code"><pre><span class="line">$ cat /etc/nscd.conf</span><br><span class="line"></span><br><span class="line">logfile                 /var/log/nscd.log</span><br><span class="line">threads                 5</span><br><span class="line">max-threads             32</span><br><span class="line">server-user             nscd</span><br><span class="line">debug-level             0</span><br><span class="line">paranoia                no</span><br><span class="line">enable-cache            hosts           yes</span><br><span class="line">enable-cache            passwd          no</span><br><span class="line">enable-cache            group           no</span><br><span class="line">positive-time-to-live   hosts           60</span><br><span class="line">negative-time-to-live   hosts           20</span><br><span class="line">suggested-size          hosts           211</span><br><span class="line">check-files             hosts           yes</span><br><span class="line">persistent              hosts           yes</span><br><span class="line">shared                  hosts           yes</span><br><span class="line">max-db-size             hosts           33554432</span><br></pre></td></tr></table></figure>
+<ul>
+<li>启动NSCD进程</li>
+</ul>
+<p>默认该服务在Redhat或Centos下是关闭的，可以通过以下指令开启</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">$ service nscd start</span><br></pre></td></tr></table></figure>
+<p>加入自启动</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">$ chkconfig nscd on</span><br></pre></td></tr></table></figure>
+<p>查看进程，如下所示</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">$ ps aux | grep nscd</span><br><span class="line">nscd       1284  0.1  0.3 708056  1580 ?        Ssl  23:37   0:00 /usr/sbin/nscd</span><br></pre></td></tr></table></figure>
+<p>说明已经正常运行了。</p>
+<ul>
+<li>NSCD服务查看和清除</li>
+</ul>
+<p>NSCD缓存DB文件在<code>/var/db/nscd</code>下。可以通过<code>nscd -g</code>查看统计的信息，这里列出部分：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br></pre></td><td class="code"><pre><span class="line">$ nscd -g</span><br><span class="line"></span><br><span class="line">nscd 配置：</span><br><span class="line"></span><br><span class="line">              0  服务器调试级别</span><br><span class="line">             4s  server runtime</span><br><span class="line">              5  current number of threads</span><br><span class="line">             32  maximum number of threads</span><br><span class="line">              0  number of times clients had to wait</span><br><span class="line">             no  paranoia mode enabled</span><br><span class="line">           3600  restart internal</span><br><span class="line">              5  reload count</span><br><span class="line"></span><br><span class="line">... 省略输出信息若干 ...</span><br><span class="line"></span><br><span class="line">hosts cache:</span><br><span class="line"></span><br><span class="line">            yes  cache is enabled</span><br><span class="line">            yes  cache is persistent</span><br><span class="line">            yes  cache is shared</span><br><span class="line">            211  suggested size</span><br><span class="line">         216064  total data pool size</span><br><span class="line">              0  used data pool size</span><br><span class="line">             60  seconds time to live for positive entries</span><br><span class="line">             20  seconds time to live for negative entries</span><br><span class="line">              0  cache hits on positive entries</span><br><span class="line">              0  cache hits on negative entries</span><br><span class="line">              0  cache misses on positive entries</span><br><span class="line">              0  cache misses on negative entries</span><br><span class="line">              0% cache hit rate</span><br><span class="line">              0  current number of cached values</span><br><span class="line">              0  maximum number of cached values</span><br><span class="line">              0  maximum chain length searched</span><br><span class="line">              0  number of delays on rdlock</span><br><span class="line">              0  number of delays on wrlock</span><br><span class="line">              0  memory allocations failed</span><br><span class="line">            yes  check /etc/hosts for changes</span><br><span class="line"></span><br><span class="line">... 省略输出信息若干 ...</span><br></pre></td></tr></table></figure>
+<ul>
+<li>清除指定类型缓存</li>
+</ul>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">$ nscd -i passwd</span><br><span class="line">$ nscd -i group</span><br><span class="line">$ nscd -i hosts</span><br></pre></td></tr></table></figure>
+<p>除了上面的方法，重启NSCD服务同样可以达到清理Cache的目的。</p>
+<h3 id="参考文档">参考文档</h3>
+<p><a href="http://www.google.com" target="_blank" rel="noopener">http://www.google.com</a><br>
+<a href="http://my.oschina.net/guol/blog/700569" target="_blank" rel="noopener">http://my.oschina.net/guol/blog/700569</a></p>
+
+                
+
+                <hr>
+                <!-- Pager -->
+                <ul class="pager">
+                    
+                        <li class="previous">
+                            <a href="/posts/49609.html" data-toggle="tooltip" data-placement="top" title="MySQL 5.6 密码强度审计插件使用说明">&larr; Previous Post</a>
+                        </li>
+                    
+                    
+                        <li class="next">
+                            <a href="/posts/24.html" data-toggle="tooltip" data-placement="top" title="在 Nginx 使用 Lua 扩展功能">Next Post &rarr;</a>
+                        </li>
+                    
+                </ul>
+
+                <!-- duoshuo Share start -->
+                
+                <!-- 多说 Share end-->
+
+                <!-- 多说评论框 start -->
+                
+                <!-- 多说评论框 end -->
+
+                <!-- disqus comment start -->
+                
+                <!-- disqus comment end -->
+
+                
+                    <!-- disqus 评论框 start -->
+                    <div class="comment">
+                        <div id="lv-container" data-id="city" data-uid="MTAyMC8yNzg2My80NDQw"></div>
+                    </div>
+                    <!-- disqus 评论框 end -->
+                
+
+            </div>
+            
+            <!-- Tabe of Content -->
+            <!-- Table of Contents -->
+
+  
+    <style>
+      span.toc-nav-number{
+        display: none
+      }
+    </style>
+  
+    
+      <aside id="sidebar">
+        <div id="toc" class="toc-article">
+        <strong class="toc-title">Contents</strong>
+        
+          <ol class="toc-nav"><li class="toc-nav-item toc-nav-level-3"><a class="toc-nav-link" href="#nscd安装"><span class="toc-nav-number">1.</span> <span class="toc-nav-text">NSCD安装</span></a></li><li class="toc-nav-item toc-nav-level-3"><a class="toc-nav-link" href="#nscd命令选项"><span class="toc-nav-number">2.</span> <span class="toc-nav-text">NSCD命令选项</span></a></li><li class="toc-nav-item toc-nav-level-3"><a class="toc-nav-link" href="#nscd配置文件"><span class="toc-nav-number">3.</span> <span class="toc-nav-text">NSCD配置文件</span></a></li><li class="toc-nav-item toc-nav-level-3"><a class="toc-nav-link" href="#nscd使用实例"><span class="toc-nav-number">4.</span> <span class="toc-nav-text">NSCD使用实例</span></a><ol class="toc-nav-child"><li class="toc-nav-item toc-nav-level-4"><a class="toc-nav-link" href="#使用nscd对dns进行缓存"><span class="toc-nav-number">4.1.</span> <span class="toc-nav-text">使用NSCD对DNS进行缓存</span></a></li></ol></li><li class="toc-nav-item toc-nav-level-3"><a class="toc-nav-link" href="#参考文档"><span class="toc-nav-number">5.</span> <span class="toc-nav-text">参考文档</span></a></li></ol>
+        
+        </div>
+      </aside>
+    
+
+                
+            <!-- Sidebar Container -->
+            <div class="
+                col-lg-8 col-lg-offset-2
+                col-md-10 col-md-offset-1
+                sidebar-container">
+
+                <!-- Featured Tags -->
+                
+                <section>
+                    <!-- no hr -->
+                    <h5><a href="/tags/">FEATURED TAGS</a></h5>
+                    <div class="tags">
+                       
+                          <a class="tag" href="/tags/#Linux" title="Linux">Linux</a>
+                        
+                          <a class="tag" href="/tags/#NSCD" title="NSCD">NSCD</a>
+                        
+                    </div>
+                </section>
+                
+
+                <!-- Friends Blog -->
+                
+                <hr>
+                <h5>FRIENDS</h5>
+                <ul class="list-inline">
+
+                    
+                        <li><a href="http://www.mike.org.cn/" target="_blank">简单.生活</a></li>
+                    
+                        <li><a href="http://shang.qq.com/wpa/qunwpa?idkey=ea4c43493c2269428ac6ef6141de4b6d78e5ab2d41380ca4099b833b62884ee9" target="_blank">技术交流群</a></li>
+                    
+                        <li><a href="" target="_blank"></a></li>
+                    
+                        <li><a href="" target="_blank"></a></li>
+                    
+                </ul>
+                
+            </div>
+        </div>
+    </div>
+</article>
+
+
+
+
+
+
+    <!-- 来必力City版公共JS代码 start (一个网页只需插入一次) -->
+    <script type="text/javascript">
+       (function(d, s) {
+           var j, e = d.getElementsByTagName(s)[0];
+    
+           if (typeof LivereTower === 'function') { return; }
+    
+           j = d.createElement(s);
+           j.src = 'https://cdn-city.livere.com/js/embed.dist.js';
+           j.async = true;
+    
+           e.parentNode.insertBefore(j, e);
+       })(document, 'script');
+    </script>
+    <noscript>为正常使用来必力评论功能请激活JavaScript</noscript>
+    <!-- 来必力City版 公共JS代码 end -->
+
+
+
+<!-- async load function -->
+<script>
+    function async(u, c) {
+      var d = document, t = 'script',
+          o = d.createElement(t),
+          s = d.getElementsByTagName(t)[0];
+      o.src = u;
+      if (c) { o.addEventListener('load', function (e) { c(null, e); }, false); }
+      s.parentNode.insertBefore(o, s);
+    }
+</script>
+<!-- anchor-js, Doc:http://bryanbraun.github.io/anchorjs/ -->
+<script>
+    async("https://cdn.bootcss.com/anchor-js/1.1.1/anchor.min.js",function(){
+        anchors.options = {
+          visible: 'hover',
+          placement: 'left',
+          icon: 'ℬ'
+        };
+        anchors.add().remove('.intro-header h1').remove('.subheading').remove('.sidebar-container h5');
+    })
+</script>
+<style>
+    /* place left on bigger screen */
+    @media all and (min-width: 800px) {
+        .anchorjs-link{
+            position: absolute;
+            left: -0.75em;
+            font-size: 1.1em;
+            margin-top : -0.1em;
+        }
+    }
+</style>
+
+
+
+    <!-- Footer -->
+    <!-- Footer -->
+<footer>
+    <div class="container">
+        <div class="row">
+            <div class="col-lg-8 col-lg-offset-2 col-md-10 col-md-offset-1">
+                <ul class="list-inline text-center">
+                
+                    <li>
+                        <a href="/atom.xml">
+                            <span class="fa-stack fa-lg">
+                                <i class="fa fa-circle fa-stack-2x"></i>
+                                <i class="fa fa-rss fa-stack-1x fa-inverse"></i>
+                            </span>
+                        </a>
+                    </li>
+                
+                
+                
+                    <li>
+                        <a target="_blank" href="https://www.zhihu.com/people/80imike">
+                            <span class="fa-stack fa-lg">
+                                <i class="fa fa-circle fa-stack-2x"></i>
+                                <i class="fa  fa-stack-1x fa-inverse">知</i>
+                            </span>
+                        </a>
+                    </li>
+                
+
+                
+                    <li>
+                        <a target="_blank" href="http://weibo.com/2093524665">
+                            <span class="fa-stack fa-lg">
+                                <i class="fa fa-circle fa-stack-2x"></i>
+                                <i class="fa fa-weibo fa-stack-1x fa-inverse"></i>
+                            </span>
+                        </a>
+                    </li>
+                
+
+                
+
+                
+
+                
+
+                </ul>
+                <p class="copyright text-muted">
+                    Copyright &copy; Mike 2018 | Hosted by <a href="https://pages.coding.me" style="font-weight: bold">Coding Pages</a>
+                    <br>
+                    Theme by <a href="http://beantech.org">BeanTech</a> 
+                    <span style="display: inline-block; margin: 0 5px;">
+                        <i class="fa fa-heart"></i>
+                    </span> 
+                    re-Ported by <a href="http://www.huweihuang.com">胡伟煌</a> | 
+                    <iframe
+                        style="margin-left: 2px; margin-bottom:-5px;"
+                        frameborder="0" scrolling="0" width="91px" height="20px"
+                        src="https://ghbtns.com/github-btn.html?user=huweihuang&repo=hexo-theme-huweihuang&type=star&count=true" >
+                    </iframe>
+                </p>
+            </div>
+        </div>
+    </div>
+</footer>
+
+<!-- jQuery -->
+<script src="/js/jquery.min.js"></script>
+
+<!-- Bootstrap Core JavaScript -->
+<script src="/js/bootstrap.min.js"></script>
+
+<!-- Custom Theme JavaScript -->
+<script src="/js/hux-blog.min.js"></script>
+
+
+<!-- async load function -->
+<script>
+    function async(u, c) {
+      var d = document, t = 'script',
+          o = d.createElement(t),
+          s = d.getElementsByTagName(t)[0];
+      o.src = u;
+      if (c) { o.addEventListener('load', function (e) { c(null, e); }, false); }
+      s.parentNode.insertBefore(o, s);
+    }
+</script>
+
+<!-- 
+     Because of the native support for backtick-style fenced code blocks 
+     right within the Markdown is landed in Github Pages, 
+     From V1.6, There is no need for Highlight.js, 
+     so Huxblog drops it officially.
+
+     - https://github.com/blog/2100-github-pages-now-faster-and-simpler-with-jekyll-3-0  
+     - https://help.github.com/articles/creating-and-highlighting-code-blocks/    
+-->
+<!--
+    <script>
+        async("http://cdn.bootcss.com/highlight.js/8.6/highlight.min.js", function(){
+            hljs.initHighlightingOnLoad();
+        })
+    </script>
+    <link href="http://cdn.bootcss.com/highlight.js/8.6/styles/github.min.css" rel="stylesheet">
+-->
+
+
+<!-- jquery.tagcloud.js -->
+<script>
+    // only load tagcloud.js in tag.html
+    if($('#tag_cloud').length !== 0){
+        async("https://www.hi-linux.com/js/jquery.tagcloud.js",function(){
+            $.fn.tagcloud.defaults = {
+                //size: {start: 1, end: 1, unit: 'em'},
+                color: {start: '#bbbbee', end: '#0085a1'},
+            };
+            $('#tag_cloud a').tagcloud();
+        })
+    }
+</script>
+
+<!--fastClick.js -->
+<script>
+    async("https://cdn.bootcss.com/fastclick/1.0.6/fastclick.min.js", function(){
+        var $nav = document.querySelector("nav");
+        if($nav) FastClick.attach($nav);
+    })
+</script>
+
+
+<!-- Google Analytics -->
+
+
+
+
+<!-- Baidu Tongji -->
+
+
+
+
+
+
+	<a id="rocket" href="#top" class=""></a>
+	<script type="text/javascript" src="/js/totop.js?v=1.0.0" async=""></script>
+    <script type="text/javascript" src="/js/toc.js?v=1.0.0" async=""></script>
+<!-- Image to hack wechat -->
+<img src="https://www.hi-linux.com/img/icon_wechat.png" width="0" height="0" />
+<!-- Migrate from head to bottom, no longer block render and still work -->
+
+</body>
+
+</html>

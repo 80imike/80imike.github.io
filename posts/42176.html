@@ -1,0 +1,628 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<!-- Head tag -->
+<head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="google-site-verification" content="xBT4GhYoi5qRD5tr338pgPM5OWHHIDR6mNg1a3euekI" />
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="description" content="">
+    <meta name="keyword"  content="Linux,运维,Nginx,Zabbix,Centos,Ansible,MySQL,Python,Docker,ELK,Haproxy,Git,Nodejs,安全,技术">
+    <link rel="shortcut icon" href="/img/ironman-draw.png">
+    <!-- Place this tag in your head or just before your close body tag. -->
+    <script async defer src="https://buttons.github.io/buttons.js"></script>
+    <title>
+        
+          配置 Nginx 反向代理 WebSocket - 运维之美
+        
+    </title>
+
+    <link rel="canonical" href="https://www.hi-linux.com/posts/42176.html">
+
+    <!-- Bootstrap Core CSS -->
+    <link rel="stylesheet" href="/css/bootstrap.min.css">
+
+    <!-- Custom CSS --> 
+    <link rel="stylesheet" href="/css/beantech.min.css">
+    
+    <!-- Pygments Highlight CSS -->
+    <link rel="stylesheet" href="/css/highlight.css">
+
+    <link rel="stylesheet" href="/css/widget.css">
+
+    <link rel="stylesheet" href="/css/rocket.css">
+
+    <link rel="stylesheet" href="/css/signature.css">
+
+    <link rel="stylesheet" href="/css/toc.css">
+
+    <!-- Custom Fonts -->
+    <!-- <link href="https://maxcdn.bootstrapcdn.com/font-awesome/4.3.0/css/font-awesome.min.css" rel="stylesheet" type="text/css"> -->
+    <!-- Hux change font-awesome CDN to qiniu -->
+    <link href="https://cdn.staticfile.org/font-awesome/4.5.0/css/font-awesome.min.css" rel="stylesheet" type="text/css">
+
+
+    <!-- Hux Delete, sad but pending in China
+    <link href='http://fonts.googleapis.com/css?family=Lora:400,700,400italic,700italic' rel='stylesheet' type='text/css'>
+    <link href='http://fonts.googleapis.com/css?family=Open+Sans:300italic,400italic,600italic,700italic,800italic,400,300,600,700,800' rel='stylesheet' type='text/
+    css'>
+    -->
+
+
+    <!-- HTML5 Shim and Respond.js IE8 support of HTML5 elements and media queries -->
+    <!-- WARNING: Respond.js doesn't work if you view the page via file:// -->
+    <!--[if lt IE 9]>
+        <script src="https://oss.maxcdn.com/libs/html5shiv/3.7.0/html5shiv.js"></script>
+        <script src="https://oss.maxcdn.com/libs/respond.js/1.4.2/respond.min.js"></script>
+    <![endif]-->
+
+    <!-- ga & ba script hoook -->
+    <script></script>
+</head>
+
+
+<!-- hack iOS CSS :active style -->
+<body ontouchstart="">
+	<!-- Modified by Yu-Hsuan Yen -->
+<!-- Post Header -->
+<style type="text/css">
+    header.intro-header{
+        
+            background-image: url('/img/header_img/article.jpg')
+            /*post*/
+        
+    }
+    
+</style>
+
+<header class="intro-header" >
+    <!-- Signature -->
+    <div id="signature">
+        <div class="container">
+            <div class="row">
+                <div class="col-lg-8 col-lg-offset-2 col-md-10 col-md-offset-1">
+                
+                    <div class="post-heading">
+                        <div class="tags">
+                            
+                              <a class="tag" href="/tags/#技巧" title="技巧">技巧</a>
+                            
+                              <a class="tag" href="/tags/#Nginx" title="Nginx">Nginx</a>
+                            
+                        </div>
+                        <h1>配置 Nginx 反向代理 WebSocket</h1>
+                        <h2 class="subheading"></h2>
+                        <span class="meta">
+                            Posted by Mike on
+                            2017-05-18
+                        </span>
+                    </div>
+                
+
+
+                </div>
+            </div>
+        </div>
+    </div>
+</header>
+
+	
+    <!-- Navigation -->
+<nav class="navbar navbar-default navbar-custom navbar-fixed-top">
+    <div class="container-fluid">
+        <!-- Brand and toggle get grouped for better mobile display -->
+        <div class="navbar-header page-scroll">
+            <button type="button" class="navbar-toggle">
+                <span class="sr-only">Toggle navigation</span>
+                <span class="icon-bar"></span>
+                <span class="icon-bar"></span>
+                <span class="icon-bar"></span>
+            </button>
+            <a class="navbar-brand" href="/">运维之美</a>
+        </div>
+
+        <!-- Collect the nav links, forms, and other content for toggling -->
+        <!-- Known Issue, found by Hux:
+            <nav>'s height woule be hold on by its content.
+            so, when navbar scale out, the <nav> will cover tags.
+            also mask any touch event of tags, unfortunately.
+        -->
+        <div id="huxblog_navbar">
+            <div class="navbar-collapse">
+                <ul class="nav navbar-nav navbar-right">
+                    <li>
+                        <a href="/">Home</a>
+                    </li>
+
+                    
+
+                        
+                    
+
+                        
+                    
+
+                        
+                        <li>
+                            <a href="/about/">About</a>
+                        </li>
+                        
+                    
+
+                        
+                        <li>
+                            <a href="/archive/">Archives</a>
+                        </li>
+                        
+                    
+
+                        
+                        <li>
+                            <a href="/tags/">Tags</a>
+                        </li>
+                        
+                    
+                    
+                </ul>
+            </div>
+        </div>
+        <!-- /.navbar-collapse -->
+    </div>
+    <!-- /.container -->
+</nav>
+<script>
+    // Drop Bootstarp low-performance Navbar
+    // Use customize navbar with high-quality material design animation
+    // in high-perf jank-free CSS3 implementation
+    var $body   = document.body;
+    var $toggle = document.querySelector('.navbar-toggle');
+    var $navbar = document.querySelector('#huxblog_navbar');
+    var $collapse = document.querySelector('.navbar-collapse');
+
+    $toggle.addEventListener('click', handleMagic)
+    function handleMagic(e){
+        if ($navbar.className.indexOf('in') > 0) {
+        // CLOSE
+            $navbar.className = " ";
+            // wait until animation end.
+            setTimeout(function(){
+                // prevent frequently toggle
+                if($navbar.className.indexOf('in') < 0) {
+                    $collapse.style.height = "0px"
+                }
+            },400)
+        }else{
+        // OPEN
+            $collapse.style.height = "auto"
+            $navbar.className += " in";
+        }
+    }
+</script>
+
+
+    <!-- Main Content -->
+    <!-- Modify by Yu-Hsuan Yen -->
+
+<!-- Post Content -->
+<article>
+    <div class="container">
+        <div class="row">
+
+            <!-- Post Container -->
+            <div class="
+                col-lg-8 col-lg-offset-2
+                col-md-10 col-md-offset-1
+                post-container">
+
+                <p>用Nginx给网站做反向代理和负载均衡是广泛使用的一种Web服务器部署技术。不仅能够保证后端服务器的隐蔽性，还可以提高网站部署灵活性。</p>
+<p>今天我们来讲一下，如何用Nginx给WebSocket服务器实现反向代理和负载均衡。</p>
+<h3 id="什么是反向代理和负载均衡">什么是反向代理和负载均衡</h3>
+<ul>
+<li>
+<p>反向代理(Reverse Proxy)方式是指以代理服务器来接受Internet上的连接请求，然后将请求转发给内部网络上的服务器。并将内部服务器上得到的结果返回给Internet上请求连接的客户端，此时代理服务器对外就表现为一个服务器。</p>
+</li>
+<li>
+<p>负载均衡(Load Balancing)建立在现有网络结构之上，它提供了一种廉价有效透明的方法扩展网络设备和服务器的带宽、增加吞吐量、加强网络数据处理能力、提高网络的灵活性和可用性。</p>
+</li>
+</ul>
+<a id="more"></a>
+<h3 id="什么是websocket">什么是WebSocket</h3>
+<p>WebSocket协议相比较于HTTP协议成功握手后可以多次进行通讯，直到连接被关闭。但是WebSocket中的握手和HTTP中的握手兼容，它使用HTTP中的Upgrade协议头将连接从HTTP升级到WebSocket。这使得WebSocket程序可以更容易的使用现已存在的基础设施。</p>
+<p>WebSocket工作在HTTP的80和443端口并使用前缀<code>ws://</code>或者<code>wss://</code>进行协议标注，在建立连接时使用HTTP/1.1的101状态码进行协议切换，当前标准不支持两个客户端之间不借助HTTP直接建立Websocket连接。</p>
+<p>更多Websocket的介绍可参考「<a href="http://t.cn/RaT8tNb" target="_blank" rel="noopener">WebSocket教程</a>」一文。</p>
+<h3 id="创建基于node的websocket服务">创建基于Node的WebSocket服务</h3>
+<p>Nginx在官方博客上给出了一个实践样例「<a href="https://www.nginx.com/blog/websocket-nginx/" target="_blank" rel="noopener">Using Nginx as a Websocket Proxy</a>」，我们以这个例子来演示WebSocket的交互过程。</p>
+<p>这个例子中将会使用到nodejs的一个WebSocket的ws模块。</p>
+<h4 id="安装nodejs和npm">安装node.js和npm</h4>
+<ul>
+<li>Debian/Ubuntu</li>
+</ul>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">$ apt-get install nodejs npm</span><br></pre></td></tr></table></figure>
+<ul>
+<li>RHEL/CentOS</li>
+</ul>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">$ yum install nodejs npm</span><br></pre></td></tr></table></figure>
+<h4 id="创建nodejs软链">创建nodejs软链</h4>
+<p>在Ubuntu上创建一个名叫node软链。Centos默认为node，不用在单独创建了。</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"># 如果不创建，后面运行wscat时Ubuntu环境中会报错。</span><br><span class="line">$ ln -s /usr/bin/nodejs /usr/bin/node</span><br></pre></td></tr></table></figure>
+<h4 id="安装ws和wscat模块">安装ws和wscat模块</h4>
+<p><code>ws</code>是nodejs的WebSocket实现，我们借助它来搭建简单的WebSocket Echo Server。<code>wscat</code>是一个可执行的WebSocket客户端，用来调试WebSocket服务是否正常。</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">$ npm install ws wscat</span><br></pre></td></tr></table></figure>
+<p>如果访问官方仓库比较慢的话，可用淘宝提供的镜像服务。</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">$ npm --registry=https://registry.npm.taobao.org install ws wscat</span><br></pre></td></tr></table></figure>
+<h4 id="创建一个简单的服务端">创建一个简单的服务端</h4>
+<p>这个简单的服务端实现的是向客户端返回客户端发送的消息。</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line">$ vim server.js</span><br><span class="line"></span><br><span class="line">console.log(&quot;Server started&quot;);</span><br><span class="line">var Msg = &apos;&apos;;</span><br><span class="line">var WebSocketServer = require(&apos;ws&apos;).Server</span><br><span class="line">    , wss = new WebSocketServer(&#123;port: 8010&#125;);</span><br><span class="line">    wss.on(&apos;connection&apos;, function(ws) &#123;</span><br><span class="line">        ws.on(&apos;message&apos;, function(message) &#123;</span><br><span class="line">        console.log(&apos;Received from client: %s&apos;, message);</span><br><span class="line">        ws.send(&apos;Server received from client: &apos; + message);</span><br><span class="line">    &#125;);</span><br><span class="line"> &#125;);</span><br></pre></td></tr></table></figure>
+<p>运行这个简单的<code>echo</code>服务</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">$ node server.js</span><br><span class="line">Server started</span><br></pre></td></tr></table></figure>
+<p>验证服务端是否正常启动</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">$ netstat  -tlunp|grep 8010</span><br><span class="line">tcp6       0      0 :::8010                 :::*                    LISTEN      23864/nodejs</span><br></pre></td></tr></table></figure>
+<h4 id="使用wscat做为客户端测试">使用wscat做为客户端测试</h4>
+<p><code>wscat</code>命令默认安装当前用户目录<code>node_modules/wscat/</code>目录，我这里的位置是<code>/root/node_modules/wscat/bin/wscat</code>。</p>
+<p>输入任意内容进行测试，得到相同返回则说明运行正常。</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line">$ cd /root/node_modules/wscat/bin/</span><br><span class="line">$ ./wscat --connect ws://127.0.0.1:8010</span><br><span class="line"></span><br><span class="line">connected (press CTRL+C to quit)</span><br><span class="line">&gt; Hello</span><br><span class="line">&lt; Server received from client: Hello</span><br><span class="line"></span><br><span class="line">&gt; Welcome to www.hi-linux.com</span><br><span class="line">&lt; Server received from client: Welcome to www.hi-linux.com</span><br></pre></td></tr></table></figure>
+<h3 id="使用nginx对websocket进行反向代理">使用Nginx对WebSocket进行反向代理</h3>
+<h4 id="安装nginx">安装Nginx</h4>
+<ul>
+<li>下载对应软件包</li>
+</ul>
+<p>Nginx从1.3.13版本就开始支持WebSocket了，并且可以为WebSocket应用程序做反向代理和负载均衡。这里Nginx选用1.9.2版本。</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">$ cd /root</span><br><span class="line">$ wget &apos;http://nginx.org/download/nginx-1.9.2.tar.gz&apos;</span><br></pre></td></tr></table></figure>
+<ul>
+<li>编译安装Nginx</li>
+</ul>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">$ apt-get install libreadline-dev libncurses5-dev libpcre3-dev libssl-dev perl make build-essential</span><br><span class="line">$ tar xzvf nginx-1.9.2.tar.gz</span><br><span class="line">$ cd nginx-1.9.2</span><br><span class="line">$ ./configure</span><br><span class="line">$ make &amp;&amp; make install</span><br></pre></td></tr></table></figure>
+<h4 id="配置nginx">配置Nginx</h4>
+<ul>
+<li>修改Nginx主配置文件</li>
+</ul>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br></pre></td><td class="code"><pre><span class="line">$ vim /usr/local/nginx/conf/nginx.conf</span><br><span class="line"></span><br><span class="line"># 在http上下文中增加如下配置，确保Nginx能处理正常http请求。</span><br><span class="line"></span><br><span class="line">http&#123;</span><br><span class="line">  map $http_upgrade $connection_upgrade &#123;</span><br><span class="line">    default upgrade;</span><br><span class="line">    &apos;&apos;      close;</span><br><span class="line">  &#125;</span><br><span class="line"></span><br><span class="line">  upstream websocket &#123;</span><br><span class="line">    #ip_hash;</span><br><span class="line">    server localhost:8010;  </span><br><span class="line">    server localhost:8011;</span><br><span class="line">  &#125;</span><br><span class="line"></span><br><span class="line"># 以下配置是在server上下文中添加，location指用于websocket连接的path。</span><br><span class="line"></span><br><span class="line">  server &#123;</span><br><span class="line">    listen       80;</span><br><span class="line">    server_name localhost;</span><br><span class="line">    access_log /var/log/nginx/yourdomain.log;</span><br><span class="line"></span><br><span class="line">    location / &#123;</span><br><span class="line">      proxy_pass http://websocket;</span><br><span class="line">      proxy_read_timeout 300s;</span><br><span class="line"></span><br><span class="line">      proxy_set_header Host $host;</span><br><span class="line">      proxy_set_header X-Real-IP $remote_addr;</span><br><span class="line">      proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;</span><br><span class="line"></span><br><span class="line">      proxy_http_version 1.1;</span><br><span class="line">      proxy_set_header Upgrade $http_upgrade;</span><br><span class="line">      proxy_set_header Connection $connection_upgrade;</span><br><span class="line">		&#125;</span><br><span class="line">	&#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>最重要的就是在反向代理的配置中增加了如下两行，其它的部分和普通的HTTP反向代理没有任何差别。</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">proxy_set_header Upgrade $http_upgrade;</span><br><span class="line">proxy_set_header Connection $connection_upgrade;</span><br></pre></td></tr></table></figure>
+<p>这里面的关键部分在于HTTP的请求中多了如下头部：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">Upgrade: websocket</span><br><span class="line">Connection: Upgrade</span><br></pre></td></tr></table></figure>
+<p>这两个字段表示请求服务器升级协议为WebSocket。服务器处理完请求后，响应如下报文：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"># 状态码为101</span><br><span class="line">HTTP/1.1 101 Switching Protocols</span><br><span class="line">Upgrade: websocket</span><br><span class="line">Connection: upgrade</span><br></pre></td></tr></table></figure>
+<p>告诉客户端已成功切换协议，升级为Websocket协议。握手成功之后，服务器端和客户端便角色对等，就像普通的Socket一样，能够双向通信。不再进行HTTP的交互，而是开始WebSocket的数据帧协议实现数据交换。</p>
+<p>这里使用<code>map</code>指令可以将变量组合成为新的变量，会根据客户端传来的连接中是否带有Upgrade头来决定是否给源站传递Connection头，这样做的方法比直接全部传递upgrade更加优雅。</p>
+<p>默认情况下，连接将会在无数据传输60秒后关闭，<code>proxy_read_timeout</code>参数可以延长这个时间或者源站通过定期发送ping帧以保持连接并确认连接是否还在使用。</p>
+<ul>
+<li>启动Nginx</li>
+</ul>
+<p>Nginx会默认安装到<code>/usr/local/nginx</code>目录下。</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">$ cd /usr/local/nginx/sbin</span><br><span class="line">$ ./nginx -c /usr/local/nginx/conf/nginx.conf</span><br></pre></td></tr></table></figure>
+<p>如果你想以Systemd服务的方式更方便的管理Nginx，可参考「<a href="https://www.hi-linux.com/posts/1084.html">基于Upsync模块实现Nginx动态配置</a>」 一文。</p>
+<ul>
+<li>测试通过Nginx访问WebSocket服务</li>
+</ul>
+<p>上面的配置会使NGINX监听80端口，并把接收到的任何请求传递给后端的WebSocket服务器。我们可以使用<code>wscat</code>作为客户端来测试一下：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line">$ cd /root/node_modules/wscat/bin/</span><br><span class="line">$ ./wscat --connect ws://192.168.2.210</span><br><span class="line">connected (press CTRL+C to quit)</span><br><span class="line">&gt; Hello Nginx</span><br><span class="line">&lt; Server received from client: Hello Nginx</span><br><span class="line">&gt; Welcome to www.hi-linux.com</span><br><span class="line">&lt; Server received from client: Welcome to www.hi-linux.com</span><br></pre></td></tr></table></figure>
+<ul>
+<li>反向代理服务器在支持WebSocket时面临的挑战</li>
+</ul>
+<p>WebSocket是端对端的，所以当一个代理服务器从客户端拦截一个Upgrade请求，它需要去发送它自己的Upgrade请求到后端服务器，也包括合适的头。</p>
+<p>因为WebSocket是一个长连接，不像HTTP那样是典型的短连接，所以反向代理服务器需要允许连接保持着打开，而不是在它们看起来空闲时就将它们关闭。</p>
+<h3 id="参考文档">参考文档</h3>
+<p><a href="http://www.google.com" target="_blank" rel="noopener">http://www.google.com</a><br>
+<a href="http://t.cn/RaTxJl9" target="_blank" rel="noopener">http://t.cn/RaTxJl9</a><br>
+<a href="https://github.com/animetosho/Nyuu/issues/14" target="_blank" rel="noopener">https://github.com/animetosho/Nyuu/issues/14</a><br>
+<a href="https://www.nginx.com/blog/websocket-nginx/" target="_blank" rel="noopener">https://www.nginx.com/blog/websocket-nginx/</a><br>
+<a href="https://www.starduster.me/2016/08/23/brief-talk-of-websocket/" target="_blank" rel="noopener">https://www.starduster.me/2016/08/23/brief-talk-of-websocket/</a></p>
+
+                
+
+                <hr>
+                <!-- Pager -->
+                <ul class="pager">
+                    
+                        <li class="previous">
+                            <a href="/posts/45101.html" data-toggle="tooltip" data-placement="top" title="最牛最暴力的开源协议 WTFPL">&larr; Previous Post</a>
+                        </li>
+                    
+                    
+                        <li class="next">
+                            <a href="/posts/36431.html" data-toggle="tooltip" data-placement="top" title="通过 Consul-Template 实现动态配置服务">Next Post &rarr;</a>
+                        </li>
+                    
+                </ul>
+
+                <!-- duoshuo Share start -->
+                
+                <!-- 多说 Share end-->
+
+                <!-- 多说评论框 start -->
+                
+                <!-- 多说评论框 end -->
+
+                <!-- disqus comment start -->
+                
+                <!-- disqus comment end -->
+
+                
+                    <!-- disqus 评论框 start -->
+                    <div class="comment">
+                        <div id="lv-container" data-id="city" data-uid="MTAyMC8yNzg2My80NDQw"></div>
+                    </div>
+                    <!-- disqus 评论框 end -->
+                
+
+            </div>
+            
+            <!-- Tabe of Content -->
+            <!-- Table of Contents -->
+
+  
+    <style>
+      span.toc-nav-number{
+        display: none
+      }
+    </style>
+  
+    
+      <aside id="sidebar">
+        <div id="toc" class="toc-article">
+        <strong class="toc-title">Contents</strong>
+        
+          <ol class="toc-nav"><li class="toc-nav-item toc-nav-level-3"><a class="toc-nav-link" href="#什么是反向代理和负载均衡"><span class="toc-nav-number">1.</span> <span class="toc-nav-text">什么是反向代理和负载均衡</span></a></li><li class="toc-nav-item toc-nav-level-3"><a class="toc-nav-link" href="#什么是websocket"><span class="toc-nav-number">2.</span> <span class="toc-nav-text">什么是WebSocket</span></a></li><li class="toc-nav-item toc-nav-level-3"><a class="toc-nav-link" href="#创建基于node的websocket服务"><span class="toc-nav-number">3.</span> <span class="toc-nav-text">创建基于Node的WebSocket服务</span></a><ol class="toc-nav-child"><li class="toc-nav-item toc-nav-level-4"><a class="toc-nav-link" href="#安装nodejs和npm"><span class="toc-nav-number">3.1.</span> <span class="toc-nav-text">安装node.js和npm</span></a></li><li class="toc-nav-item toc-nav-level-4"><a class="toc-nav-link" href="#创建nodejs软链"><span class="toc-nav-number">3.2.</span> <span class="toc-nav-text">创建nodejs软链</span></a></li><li class="toc-nav-item toc-nav-level-4"><a class="toc-nav-link" href="#安装ws和wscat模块"><span class="toc-nav-number">3.3.</span> <span class="toc-nav-text">安装ws和wscat模块</span></a></li><li class="toc-nav-item toc-nav-level-4"><a class="toc-nav-link" href="#创建一个简单的服务端"><span class="toc-nav-number">3.4.</span> <span class="toc-nav-text">创建一个简单的服务端</span></a></li><li class="toc-nav-item toc-nav-level-4"><a class="toc-nav-link" href="#使用wscat做为客户端测试"><span class="toc-nav-number">3.5.</span> <span class="toc-nav-text">使用wscat做为客户端测试</span></a></li></ol></li><li class="toc-nav-item toc-nav-level-3"><a class="toc-nav-link" href="#使用nginx对websocket进行反向代理"><span class="toc-nav-number">4.</span> <span class="toc-nav-text">使用Nginx对WebSocket进行反向代理</span></a><ol class="toc-nav-child"><li class="toc-nav-item toc-nav-level-4"><a class="toc-nav-link" href="#安装nginx"><span class="toc-nav-number">4.1.</span> <span class="toc-nav-text">安装Nginx</span></a></li><li class="toc-nav-item toc-nav-level-4"><a class="toc-nav-link" href="#配置nginx"><span class="toc-nav-number">4.2.</span> <span class="toc-nav-text">配置Nginx</span></a></li></ol></li><li class="toc-nav-item toc-nav-level-3"><a class="toc-nav-link" href="#参考文档"><span class="toc-nav-number">5.</span> <span class="toc-nav-text">参考文档</span></a></li></ol>
+        
+        </div>
+      </aside>
+    
+
+                
+            <!-- Sidebar Container -->
+            <div class="
+                col-lg-8 col-lg-offset-2
+                col-md-10 col-md-offset-1
+                sidebar-container">
+
+                <!-- Featured Tags -->
+                
+                <section>
+                    <!-- no hr -->
+                    <h5><a href="/tags/">FEATURED TAGS</a></h5>
+                    <div class="tags">
+                       
+                          <a class="tag" href="/tags/#技巧" title="技巧">技巧</a>
+                        
+                          <a class="tag" href="/tags/#Nginx" title="Nginx">Nginx</a>
+                        
+                    </div>
+                </section>
+                
+
+                <!-- Friends Blog -->
+                
+                <hr>
+                <h5>FRIENDS</h5>
+                <ul class="list-inline">
+
+                    
+                        <li><a href="http://www.mike.org.cn/" target="_blank">简单.生活</a></li>
+                    
+                        <li><a href="http://shang.qq.com/wpa/qunwpa?idkey=ea4c43493c2269428ac6ef6141de4b6d78e5ab2d41380ca4099b833b62884ee9" target="_blank">技术交流群</a></li>
+                    
+                        <li><a href="" target="_blank"></a></li>
+                    
+                        <li><a href="" target="_blank"></a></li>
+                    
+                </ul>
+                
+            </div>
+        </div>
+    </div>
+</article>
+
+
+
+
+
+
+    <!-- 来必力City版公共JS代码 start (一个网页只需插入一次) -->
+    <script type="text/javascript">
+       (function(d, s) {
+           var j, e = d.getElementsByTagName(s)[0];
+    
+           if (typeof LivereTower === 'function') { return; }
+    
+           j = d.createElement(s);
+           j.src = 'https://cdn-city.livere.com/js/embed.dist.js';
+           j.async = true;
+    
+           e.parentNode.insertBefore(j, e);
+       })(document, 'script');
+    </script>
+    <noscript>为正常使用来必力评论功能请激活JavaScript</noscript>
+    <!-- 来必力City版 公共JS代码 end -->
+
+
+
+<!-- async load function -->
+<script>
+    function async(u, c) {
+      var d = document, t = 'script',
+          o = d.createElement(t),
+          s = d.getElementsByTagName(t)[0];
+      o.src = u;
+      if (c) { o.addEventListener('load', function (e) { c(null, e); }, false); }
+      s.parentNode.insertBefore(o, s);
+    }
+</script>
+<!-- anchor-js, Doc:http://bryanbraun.github.io/anchorjs/ -->
+<script>
+    async("https://cdn.bootcss.com/anchor-js/1.1.1/anchor.min.js",function(){
+        anchors.options = {
+          visible: 'hover',
+          placement: 'left',
+          icon: 'ℬ'
+        };
+        anchors.add().remove('.intro-header h1').remove('.subheading').remove('.sidebar-container h5');
+    })
+</script>
+<style>
+    /* place left on bigger screen */
+    @media all and (min-width: 800px) {
+        .anchorjs-link{
+            position: absolute;
+            left: -0.75em;
+            font-size: 1.1em;
+            margin-top : -0.1em;
+        }
+    }
+</style>
+
+
+
+    <!-- Footer -->
+    <!-- Footer -->
+<footer>
+    <div class="container">
+        <div class="row">
+            <div class="col-lg-8 col-lg-offset-2 col-md-10 col-md-offset-1">
+                <ul class="list-inline text-center">
+                
+                    <li>
+                        <a href="/atom.xml">
+                            <span class="fa-stack fa-lg">
+                                <i class="fa fa-circle fa-stack-2x"></i>
+                                <i class="fa fa-rss fa-stack-1x fa-inverse"></i>
+                            </span>
+                        </a>
+                    </li>
+                
+                
+                
+                    <li>
+                        <a target="_blank" href="https://www.zhihu.com/people/80imike">
+                            <span class="fa-stack fa-lg">
+                                <i class="fa fa-circle fa-stack-2x"></i>
+                                <i class="fa  fa-stack-1x fa-inverse">知</i>
+                            </span>
+                        </a>
+                    </li>
+                
+
+                
+                    <li>
+                        <a target="_blank" href="http://weibo.com/2093524665">
+                            <span class="fa-stack fa-lg">
+                                <i class="fa fa-circle fa-stack-2x"></i>
+                                <i class="fa fa-weibo fa-stack-1x fa-inverse"></i>
+                            </span>
+                        </a>
+                    </li>
+                
+
+                
+
+                
+
+                
+
+                </ul>
+                <p class="copyright text-muted">
+                    Copyright &copy; Mike 2018 | Hosted by <a href="https://pages.coding.me" style="font-weight: bold">Coding Pages</a>
+                    <br>
+                    Theme by <a href="http://beantech.org">BeanTech</a> 
+                    <span style="display: inline-block; margin: 0 5px;">
+                        <i class="fa fa-heart"></i>
+                    </span> 
+                    re-Ported by <a href="http://www.huweihuang.com">胡伟煌</a> | 
+                    <iframe
+                        style="margin-left: 2px; margin-bottom:-5px;"
+                        frameborder="0" scrolling="0" width="91px" height="20px"
+                        src="https://ghbtns.com/github-btn.html?user=huweihuang&repo=hexo-theme-huweihuang&type=star&count=true" >
+                    </iframe>
+                </p>
+            </div>
+        </div>
+    </div>
+</footer>
+
+<!-- jQuery -->
+<script src="/js/jquery.min.js"></script>
+
+<!-- Bootstrap Core JavaScript -->
+<script src="/js/bootstrap.min.js"></script>
+
+<!-- Custom Theme JavaScript -->
+<script src="/js/hux-blog.min.js"></script>
+
+
+<!-- async load function -->
+<script>
+    function async(u, c) {
+      var d = document, t = 'script',
+          o = d.createElement(t),
+          s = d.getElementsByTagName(t)[0];
+      o.src = u;
+      if (c) { o.addEventListener('load', function (e) { c(null, e); }, false); }
+      s.parentNode.insertBefore(o, s);
+    }
+</script>
+
+<!-- 
+     Because of the native support for backtick-style fenced code blocks 
+     right within the Markdown is landed in Github Pages, 
+     From V1.6, There is no need for Highlight.js, 
+     so Huxblog drops it officially.
+
+     - https://github.com/blog/2100-github-pages-now-faster-and-simpler-with-jekyll-3-0  
+     - https://help.github.com/articles/creating-and-highlighting-code-blocks/    
+-->
+<!--
+    <script>
+        async("http://cdn.bootcss.com/highlight.js/8.6/highlight.min.js", function(){
+            hljs.initHighlightingOnLoad();
+        })
+    </script>
+    <link href="http://cdn.bootcss.com/highlight.js/8.6/styles/github.min.css" rel="stylesheet">
+-->
+
+
+<!-- jquery.tagcloud.js -->
+<script>
+    // only load tagcloud.js in tag.html
+    if($('#tag_cloud').length !== 0){
+        async("https://www.hi-linux.com/js/jquery.tagcloud.js",function(){
+            $.fn.tagcloud.defaults = {
+                //size: {start: 1, end: 1, unit: 'em'},
+                color: {start: '#bbbbee', end: '#0085a1'},
+            };
+            $('#tag_cloud a').tagcloud();
+        })
+    }
+</script>
+
+<!--fastClick.js -->
+<script>
+    async("https://cdn.bootcss.com/fastclick/1.0.6/fastclick.min.js", function(){
+        var $nav = document.querySelector("nav");
+        if($nav) FastClick.attach($nav);
+    })
+</script>
+
+
+<!-- Google Analytics -->
+
+
+
+
+<!-- Baidu Tongji -->
+
+
+
+
+
+
+	<a id="rocket" href="#top" class=""></a>
+	<script type="text/javascript" src="/js/totop.js?v=1.0.0" async=""></script>
+    <script type="text/javascript" src="/js/toc.js?v=1.0.0" async=""></script>
+<!-- Image to hack wechat -->
+<img src="https://www.hi-linux.com/img/icon_wechat.png" width="0" height="0" />
+<!-- Migrate from head to bottom, no longer block render and still work -->
+
+</body>
+
+</html>

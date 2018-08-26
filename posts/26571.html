@@ -1,0 +1,818 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<!-- Head tag -->
+<head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="google-site-verification" content="xBT4GhYoi5qRD5tr338pgPM5OWHHIDR6mNg1a3euekI" />
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="description" content="">
+    <meta name="keyword"  content="Linux,运维,Nginx,Zabbix,Centos,Ansible,MySQL,Python,Docker,ELK,Haproxy,Git,Nodejs,安全,技术">
+    <link rel="shortcut icon" href="/img/ironman-draw.png">
+    <!-- Place this tag in your head or just before your close body tag. -->
+    <script async defer src="https://buttons.github.io/buttons.js"></script>
+    <title>
+        
+          浅析 AnyCast 技术 - 运维之美
+        
+    </title>
+
+    <link rel="canonical" href="https://www.hi-linux.com/posts/26571.html">
+
+    <!-- Bootstrap Core CSS -->
+    <link rel="stylesheet" href="/css/bootstrap.min.css">
+
+    <!-- Custom CSS --> 
+    <link rel="stylesheet" href="/css/beantech.min.css">
+    
+    <!-- Pygments Highlight CSS -->
+    <link rel="stylesheet" href="/css/highlight.css">
+
+    <link rel="stylesheet" href="/css/widget.css">
+
+    <link rel="stylesheet" href="/css/rocket.css">
+
+    <link rel="stylesheet" href="/css/signature.css">
+
+    <link rel="stylesheet" href="/css/toc.css">
+
+    <!-- Custom Fonts -->
+    <!-- <link href="https://maxcdn.bootstrapcdn.com/font-awesome/4.3.0/css/font-awesome.min.css" rel="stylesheet" type="text/css"> -->
+    <!-- Hux change font-awesome CDN to qiniu -->
+    <link href="https://cdn.staticfile.org/font-awesome/4.5.0/css/font-awesome.min.css" rel="stylesheet" type="text/css">
+
+
+    <!-- Hux Delete, sad but pending in China
+    <link href='http://fonts.googleapis.com/css?family=Lora:400,700,400italic,700italic' rel='stylesheet' type='text/css'>
+    <link href='http://fonts.googleapis.com/css?family=Open+Sans:300italic,400italic,600italic,700italic,800italic,400,300,600,700,800' rel='stylesheet' type='text/
+    css'>
+    -->
+
+
+    <!-- HTML5 Shim and Respond.js IE8 support of HTML5 elements and media queries -->
+    <!-- WARNING: Respond.js doesn't work if you view the page via file:// -->
+    <!--[if lt IE 9]>
+        <script src="https://oss.maxcdn.com/libs/html5shiv/3.7.0/html5shiv.js"></script>
+        <script src="https://oss.maxcdn.com/libs/respond.js/1.4.2/respond.min.js"></script>
+    <![endif]-->
+
+    <!-- ga & ba script hoook -->
+    <script></script>
+</head>
+
+
+<!-- hack iOS CSS :active style -->
+<body ontouchstart="">
+	<!-- Modified by Yu-Hsuan Yen -->
+<!-- Post Header -->
+<style type="text/css">
+    header.intro-header{
+        
+            background-image: url('/img/header_img/article.jpg')
+            /*post*/
+        
+    }
+    
+</style>
+
+<header class="intro-header" >
+    <!-- Signature -->
+    <div id="signature">
+        <div class="container">
+            <div class="row">
+                <div class="col-lg-8 col-lg-offset-2 col-md-10 col-md-offset-1">
+                
+                    <div class="post-heading">
+                        <div class="tags">
+                            
+                              <a class="tag" href="/tags/#Linux" title="Linux">Linux</a>
+                            
+                              <a class="tag" href="/tags/#网络" title="网络">网络</a>
+                            
+                        </div>
+                        <h1>浅析 AnyCast 技术</h1>
+                        <h2 class="subheading"></h2>
+                        <span class="meta">
+                            Posted by Mike on
+                            2018-06-28
+                        </span>
+                    </div>
+                
+
+
+                </div>
+            </div>
+        </div>
+    </div>
+</header>
+
+	
+    <!-- Navigation -->
+<nav class="navbar navbar-default navbar-custom navbar-fixed-top">
+    <div class="container-fluid">
+        <!-- Brand and toggle get grouped for better mobile display -->
+        <div class="navbar-header page-scroll">
+            <button type="button" class="navbar-toggle">
+                <span class="sr-only">Toggle navigation</span>
+                <span class="icon-bar"></span>
+                <span class="icon-bar"></span>
+                <span class="icon-bar"></span>
+            </button>
+            <a class="navbar-brand" href="/">运维之美</a>
+        </div>
+
+        <!-- Collect the nav links, forms, and other content for toggling -->
+        <!-- Known Issue, found by Hux:
+            <nav>'s height woule be hold on by its content.
+            so, when navbar scale out, the <nav> will cover tags.
+            also mask any touch event of tags, unfortunately.
+        -->
+        <div id="huxblog_navbar">
+            <div class="navbar-collapse">
+                <ul class="nav navbar-nav navbar-right">
+                    <li>
+                        <a href="/">Home</a>
+                    </li>
+
+                    
+
+                        
+                    
+
+                        
+                    
+
+                        
+                        <li>
+                            <a href="/about/">About</a>
+                        </li>
+                        
+                    
+
+                        
+                        <li>
+                            <a href="/archive/">Archives</a>
+                        </li>
+                        
+                    
+
+                        
+                        <li>
+                            <a href="/tags/">Tags</a>
+                        </li>
+                        
+                    
+                    
+                </ul>
+            </div>
+        </div>
+        <!-- /.navbar-collapse -->
+    </div>
+    <!-- /.container -->
+</nav>
+<script>
+    // Drop Bootstarp low-performance Navbar
+    // Use customize navbar with high-quality material design animation
+    // in high-perf jank-free CSS3 implementation
+    var $body   = document.body;
+    var $toggle = document.querySelector('.navbar-toggle');
+    var $navbar = document.querySelector('#huxblog_navbar');
+    var $collapse = document.querySelector('.navbar-collapse');
+
+    $toggle.addEventListener('click', handleMagic)
+    function handleMagic(e){
+        if ($navbar.className.indexOf('in') > 0) {
+        // CLOSE
+            $navbar.className = " ";
+            // wait until animation end.
+            setTimeout(function(){
+                // prevent frequently toggle
+                if($navbar.className.indexOf('in') < 0) {
+                    $collapse.style.height = "0px"
+                }
+            },400)
+        }else{
+        // OPEN
+            $collapse.style.height = "auto"
+            $navbar.className += " in";
+        }
+    }
+</script>
+
+
+    <!-- Main Content -->
+    <!-- Modify by Yu-Hsuan Yen -->
+
+<!-- Post Content -->
+<article>
+    <div class="container">
+        <div class="row">
+
+            <!-- Post Container -->
+            <div class="
+                col-lg-8 col-lg-offset-2
+                col-md-10 col-md-offset-1
+                post-container">
+
+                <p>在讲解任播 (AnyCast) 前，我们先来说说 <code>TCP/IP</code> 协议里常见的几种数据传输方式单播、组播、广播。</p>
+<h3 id="什么是单播">什么是单播</h3>
+<p><img src="https://www.hi-linux.com/img/linux/AnyCast01.png" alt=""></p>
+<ul>
+<li>单播概念</li>
+</ul>
+<p>单播（Unicast）是指封包在计算机网络的传输过程中，目的地址为单一目标的一种传输方式。每次只有两个实体相互通信，发送端和接收端都是唯一确定的。它是现今网络应用最为广泛，通常所使用的网络协议或服务大多采用单播传输，例如一切基于 TCP 的协议。</p>
+<ul>
+<li>单播地址</li>
+</ul>
+<p>在 IPv4 网络中，0.0.0.0 到 223.255.255.255 属于单播地址。</p>
+<ul>
+<li>单播优点</li>
+</ul>
+<ol>
+<li>服务器及时响应客户机的请求。</li>
+<li>服务器针对每个客户不同的请求发送不同的数据，容易实现个性化服务。</li>
+</ol>
+<ul>
+<li>单播缺点</li>
+</ul>
+<ol>
+<li>
+<p>服务器针对每个客户机发送数据流，服务器流量＝客户机数量×客户机流量。在客户数量大、每个客户机流量大的流媒体应用中服务器不堪重负。</p>
+</li>
+<li>
+<p>现有的网络带宽是金字塔结构，城际省际主干带宽仅仅相当于其所有用户带宽之和的 5％。如果全部使用单播协议，将造成网络主干不堪重负。现在的 P2P 应用就已经使主干经常阻塞，只要有 5％ 的客户在全速使用网络，其它用户网速将严重受损，而将主干网络带宽在短时间内扩展 20 倍几乎是不可能。</p>
+</li>
+</ol>
+<a id="more"></a>
+<h3 id="什么是多播">什么是多播</h3>
+<p><img src="https://www.hi-linux.com/img/linux/AnyCast02.png" alt=""></p>
+<ul>
+<li>多播概念</li>
+</ul>
+<p>多播（Multicast，台湾又译作多点发送、多点广播或群播，中国大陆又译作组播）是指把信息同时传递给一组目的地址。它使用策略是最高效的，因为消息在每条网络链路上只需传递一次，而且只有在链路分叉的时候，消息才会被复制。</p>
+<p>与多播相比，常规的点到点的传递被称作单播。当以单播的形式把消息传递给多个接收方时，必须向每个接收者都发送一份数据副本。由此产生的多余副本将导致发送方效率低下，且缺乏可扩展性。不过，许多流行的协议用限制接收者数量的方法弥补了这一不足（例如：XMPP）。</p>
+<ul>
+<li>多播地址</li>
+</ul>
+<p>多播组可以是永久的也可以是临时的。多播组地址中，有一部分由官方分配的，称为永久多播组。永久多播组保持不变的是它的 IP 地址，组中的成员构成可以发生变化。永久多播组中成员的数量都可以是任意的，甚至可以为零。那些没有保留下来供永久组播组使用的 IP 多播地址，可以被临时多播组利用。</p>
+<p>以太网传输单播 IP 报文的时候，目的 MAC 地址使用的是接收者的 MAC 地址。但是在传输多播报文时，传输目的不再是一个具体的接收者，而是一个成员不确定的组。所以使用的是多播 MAC 地址。</p>
+<p>多播 MAC 地址是和多播 IP 地址对应的。IANA 规定，多播 MAC 地址的高 24 位为 0x01005e，低 23 位的 MAC 地址为多播 IP 地址的低 23 位。</p>
+<p>由于 IP 多播地址的后 28 位中只有 23 位被映射到 MAC 地址，这样就会有 32 个 IP多播地址映射到同一 MAC 地址上。</p>
+<p>多播地址分配情况</p>
+<blockquote>
+<ol>
+<li>224.0.0.0 - 224.0.0.255 为预留的多播地址（永久组地址），地址 224.0.0.0 保留不做分配，其它地址供路由协议使用。</li>
+<li>224.0.1.0 - 224.0.1.255 是公用多播地址。</li>
+<li>224.0.2.0 - 238.255.255.255 为用户可用的多播地址（临时组地址），全网范围内有效。</li>
+<li>239.0.0.0 - 239.255.255.255 为本地管理组播地址，仅在特定的本地范围内有效。</li>
+</ol>
+</blockquote>
+<p>永久的多播地址分配情况</p>
+<blockquote>
+<ol>
+<li>224.0.0.0 基准地址（保留）</li>
+<li>224.0.0.1 所有主机的地址 （包括所有路由器地址）</li>
+<li>224.0.0.2 所有多播路由器的地址</li>
+<li>224.0.0.3 不分配</li>
+<li>224.0.0.4 DVMRP 路由器</li>
+<li>224.0.0.5 所有 OSPF 路由器</li>
+<li>224.0.0.6 OSPF DR/BDR</li>
+<li>224.0.0.7 ST 路由器</li>
+<li>224.0.0.8 ST 主机</li>
+<li>224.0.0.9 RIP-2 路由器</li>
+<li>224.0.0.10 Eigrp 路由器</li>
+<li>224.0.0.11 活动代理</li>
+<li>224.0.0.12 DHCP 服务器/中继代理</li>
+<li>224.0.0.13 所有 PIM 路由器</li>
+<li>224.0.0.14 RSVP 封装</li>
+<li>224.0.0.15 所有 CBT 路由器</li>
+<li>224.0.0.16 指定 SBM</li>
+<li>224.0.0.17 所有 SBMS</li>
+<li>224.0.0.18 VRRP</li>
+</ol>
+</blockquote>
+<ul>
+<li>多播优点</li>
+</ul>
+<ol>
+<li>需要相同数据流的客户端加入相同的组共享一条数据流，节省了服务器的负载。</li>
+<li>由于多播协议是根据接受者的需要对数据流进行复制转发，所以服务端的服务总带宽不受客户接入端带宽的限制。IP 协议允许有 2 亿 6 千多万个（268435456）组播，所以其提供的服务可以非常丰富。</li>
+<li>此协议和单播协议一样允许在 Internet 宽带网上传输。</li>
+</ol>
+<ul>
+<li>多播缺点</li>
+</ul>
+<ol>
+<li>
+<p>与单播协议相比没有纠错机制，发生丢包错包后难以弥补，但可以通过一定的容错机制和 QOS 加以弥补。</p>
+</li>
+<li>
+<p>现行网络虽然都支持组播的传输，但在客户认证、QOS（指一个网络中能够利用各种基础技术，为指定的网络通信提供更好的服务能力。QOS 是网络的一种安全机制，用来解决网络延迟和阻塞等问题的一种技术。）等方面还需要完善。</p>
+</li>
+<li>
+<p>尽管 IP 多播是一个非常令人满意的概念模型，但它对于网络内部的状态需求要比仅提供尽力而为服务的 IP 单播模型大得多，在这一点上已经遭到了一些人的批评。更糟的是，到目前为止还没有一种机制能保证 IP 多播模型可以被扩展到足以容纳数以百万计的发送者和多播组的地步，而这往往又是使完全通用的多播应用成为商用互联网中的实际应用的必要条件。</p>
+</li>
+</ol>
+<h3 id="什么是广播">什么是广播</h3>
+<p><img src="https://www.hi-linux.com/img/linux/AnyCast03.png" alt=""></p>
+<ul>
+<li>广播概念</li>
+</ul>
+<p>广播（Broadcast）是指封包在计算机网络中传输时，目的地址为网络中所有设备的一种传输方式。实际上，这里所说的所有设备也是限定在一个范围之中，称为广播域。</p>
+<p>并非所有的计算机网络都支持广播，例如 X.25 网络和帧中继都不支持广播，而且也没有在整个互联网范围中的广播。IPv6 亦不支持广播，广播相应的功能由多播代替。</p>
+<p>通常，广播都是限制在局域网中的。比如：以太网或令牌环网络，因为广播在局域网中造成的影响远比在广域网中小得多。</p>
+<ul>
+<li>广播地址</li>
+</ul>
+<p>以太网和 IPv4 网都用全 1 的地址表示广播，分别是 ff:ff:ff:ff:ff:ff 和 255.255.255.255。</p>
+<ul>
+<li>广播优点</li>
+</ul>
+<ol>
+<li>网络设备简单，维护简单，布网成本低廉。</li>
+<li>由于服务器不用向每个客户机单独发送数据，所以服务器流量负载极低。</li>
+</ol>
+<ul>
+<li>广播缺点</li>
+</ul>
+<ol>
+<li>无法针对每个客户的要求和时间及时提供个性化服务。</li>
+<li>网络允许服务器提供数据的带宽有限，客户端的最大带宽＝服务总带宽。例如有线电视的客户端的线路支持 100 个频道（如果采用数字压缩技术，理论上可以提供 500 个频道），即使服务商有更大的财力配置更多的发送设备、改成光纤主干，也无法超过此极限。也就是说无法向众多客户提供更多样化、更加个性化的服务。</li>
+<li>广播禁止在 Internet 宽带网上传输。</li>
+</ol>
+<h3 id="什么是任播">什么是任播</h3>
+<p><img src="https://www.hi-linux.com/img/linux/AnyCast04.png" alt=""></p>
+<ul>
+<li>任播概念</li>
+</ul>
+<p>Anycast 最初是在 RFC1546 中提出并定义的，根据 RFC1546 的说明 IPv4 的任播地址不同于 IPv4 的单播地址，它建议从 IPv4 的地址空间分配出一块独立的地址空间作为任播地址空间。</p>
+<p>Anycast 提供的是一种无状态的、尽力而为的服务，目前对于 Anycast 的中文译称主要有任播、泛潘、选播等。任播的基本概念是从物理主机设备中分离出的逻辑服务标识符，任播地址可以根据服务类型来分配，使得网络服务担当一个逻辑主机的角色。</p>
+<p>RFC1546 定义的这种任播没有得到广泛的使用，在 1998 年的 RFC2373 规定了 IPv6 寻址体系结构。在这个文档中改进了任播的定义：发送到一个任播地址的报文被传送到由该地址标识的接口之一(根据路由协议的距离量度最近的一个)。RFC2373 定义的 IPv6 的任播模型没有限制路由选择的下部结构，也没有限制可使用该服务的上部协议。</p>
+<p>RFC3513 (废弃了 RFC 2373)中，进一步对任播进行了定义：任播地址被分配给两个以上的接口 (一般指不同 IP 地址的节点) ，而发送到这个地址上的分组被路由到最近的接口。这里最近可以是指路由器跳数、服务器负载、服务器吞吐量、客户和服务器之间的往返时间 (RTT，round trip time)、链路的可用带宽等特征值 (metric) 决定。</p>
+<p>在实际应用中，任播 (Anycast) 是一种网络寻址和路由的策略。Anycast 采用将一个单播地址分配到处于 Internet 中多个不同物理位置的主机上，发送到这个主机的报文被网络路由到路由协议度量的最近的目标主机上。</p>
+<p>例如：在 IP 网络上通过一个 Anycast 地址标识一组提供特定服务的主机，同时服务访问方并不关心提供服务的具体是哪一台主机（比如：DNS 或者镜像服务），访问该地址的报文可以被 IP 网络路由到这一组目标中的任何一台主机上。</p>
+<ul>
+<li>任播与单播、广播和组播区别</li>
+</ul>
+<ol>
+<li>在单播中，在网络地址和网络节点之间存在一一对应的关系。</li>
+<li>在广播和多播中，网络地址和网络节点之间存在一对多的关系。每一个目的地址对应一群接收可以复制信息的节点。</li>
+<li>在任播中，网络地址和网络节点之间存在一对多的关系。每一个地址对应一群接收节点，但在任何给定时间，只有其中之一可以接收到传送端来的信息。</li>
+<li>在互联网中，通常使用边界网关协议来实现任播。</li>
+</ol>
+<ul>
+<li>任播优点</li>
+</ul>
+<ol>
+<li>不同客户端将访问不同目的主机，此过程对客户端透明，从而实现了目的主机的负载均衡。</li>
+<li>当任意目的主机接入的网络出现故障，导致该目的主机不可达时，客户端请求可以在无人为干预的情况下自动被路由到目前可达的最近目的主机，在一定程度上为目标主机提供了冗余性。</li>
+<li>当目的主机受到 DoS 攻击而无法到达时，由于网络不可到达，客户端请求也将路由到其它目的主机上。而在 DDoS 攻击时，由于任播的负载均衡效应，避免了单台目的主机承受所有攻击流量，因此在一定程度上为目的主机提高了安全性。</li>
+<li>因为任播利用路由度量到最近的目的主机，提高了客户端响应速度。</li>
+</ol>
+<ul>
+<li>任播缺点</li>
+</ul>
+<ol>
+<li>使用任播中的共享单播地址不能作为客户端发起请求，因为请求的响应不一定能返回到发起的任播单播地址。因此，目前任播仅适合一些特定的上层协议。从目前的实际应用来看，任播最广泛的应用是 DNS 的部署。</li>
+</ol>
+<h4 id="什么是-bgp-anycast">什么是 BGP Anycast</h4>
+<p>BGP Anycast 就是利用一个或多个 AS 号码在不同的地区广播相同的一个 IP 段。利用 BGP 的寻路原则，越短的 AS Path 会选成最优路径，从而优化了访问速度。</p>
+<p>BGP Anycast 相较于 IP Anycast 多了一个 BGP AS，也就是说宣告的这段 IP 拥有独立的 AS 号，属于独立的自治域。</p>
+<p>阿里的 DNS 就是一个典型的 BGP AnyCast 服务，本质上 BGP Anycast 就是不同服务器用了相同的 IP 地址。</p>
+<h4 id="anycast-的实现原理">AnyCast 的实现原理</h4>
+<ul>
+<li>配置 AnyCast 节点组</li>
+</ul>
+<p><img src="https://www.hi-linux.com/img/linux/AnyCast05.png" alt=""></p>
+<ol>
+<li>配置三个节点的 AnyCast 组</li>
+<li>组的三个节点都使用相同的 IP 地址 10.5.0.1</li>
+</ol>
+<ul>
+<li>配置 AnyCast 的等价路由</li>
+</ul>
+<p><img src="https://www.hi-linux.com/img/linux/AnyCast06.png" alt=""></p>
+<ol>
+<li>客户端接入路由宣告相同目标地址三条路由</li>
+<li>三条路由的度量值 (Metric) 值等价</li>
+<li>可使用静态或动态协议</li>
+</ol>
+<ul>
+<li>配置 AnyCast 的多路由节点</li>
+</ul>
+<p><img src="https://www.hi-linux.com/img/linux/AnyCast07.png" alt=""></p>
+<ol>
+<li>经过之前的配置连续的数据包可被送到不同的任播节点</li>
+</ol>
+<ul>
+<li>AnyCast 不同源节点的路由选择</li>
+</ul>
+<p><img src="https://www.hi-linux.com/img/linux/AnyCast08.png" alt=""></p>
+<ol>
+<li>经过之前的配置来自不同节点的流量可被路由到不同的节点</li>
+<li>接收数据包的服务器有单播路由决定</li>
+<li>所以通讯模型适用于单个请求或单个响应的协议</li>
+</ol>
+<h4 id="域内基于-ipv4-的-anycast-服务">域内基于 IPv4 的 AnyCast 服务</h4>
+<ul>
+<li>地址的选择</li>
+</ul>
+<ol>
+<li>目前的做法是从单播 IP 地址空间分配任播地址。</li>
+<li>指定任播使用的子网（尽量小）。</li>
+</ol>
+<blockquote>
+<p>利于域间的路由宣告。<br>
+常用的指定是 24。<br>
+子网有可能不会附加任何接口。</p>
+</blockquote>
+<ul>
+<li>主机的配置</li>
+</ul>
+<ol>
+<li>配置主机接收流量的任播地址（配置与回环口）</li>
+<li>配置每个主机的唯一管理地址</li>
+</ol>
+<p>配置回环口地址</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">$ ifconfig lo:1 10.5.0.1 netmask 255.255.255.255 up</span><br></pre></td></tr></table></figure>
+<p>查看回环口地址</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">$ ifconfig lo:1</span><br><span class="line">lo:1: flags=73  mtu 65536</span><br><span class="line">        inet 10.5.0.1  netmask 255.255.255.255</span><br><span class="line">        loop  txqueuelen 1  (Local Loopback)</span><br></pre></td></tr></table></figure>
+<ul>
+<li>服务的配置</li>
+</ul>
+<p>具体的业务配置（例如DNS），这里不详述。</p>
+<ul>
+<li>网络的配置</li>
+</ul>
+<p>A. 域内的配置</p>
+<p>如果配置的服务完全在你的路由域内，则只需要考虑域内配置，条件如下：</p>
+<ol>
+<li>所有的任播节点都在域内</li>
+<li>多个域内的位置</li>
+</ol>
+<blockquote>
+<p>需要配置路由将任播流量传递给服务器。</p>
+</blockquote>
+<p>B. 静态的 IGP 路由配置</p>
+<p><img src="https://www.hi-linux.com/img/linux/AnyCast09.png" alt=""></p>
+<ol>
+<li>在路由器上配置静态路由（主机路由），确保路由通过域传播。</li>
+<li>方案优点: 无需服务中断即可重定向服务器。</li>
+<li>方案缺点: 服务器故障没有状态检测。</li>
+</ol>
+<p>C. 动态的 IGP 路由配置</p>
+<p><img src="https://www.hi-linux.com/img/linux/AnyCast10.png" alt=""></p>
+<ol>
+<li>在任播服务器上运行基于主机路由的守护进程，如 GateD、Zebra 或 Quagga。</li>
+<li>任播服务器本身是路由的发起者。</li>
+<li>当主机停机时，路由被自动撤销。</li>
+<li>方案优点：可检测到任播服务器的状态。</li>
+<li>方案缺点：任播服务器需要自建服务不可用路由自动撤销的机制。</li>
+</ol>
+<h4 id="域外基于-ipv4-的-anycast-服务">域外基于 IPv4 的 AnyCast 服务</h4>
+<ul>
+<li>配置原则</li>
+</ul>
+<ol>
+<li>域外的实现基于 BGP 协议</li>
+<li>域外的配置方式遵守传统 BGP 基本规则</li>
+</ol>
+<ul>
+<li>网络设置步骤</li>
+</ul>
+<ol>
+<li>宣告全球唯一的 AS 号</li>
+<li>宣告直连的网段</li>
+<li>宣告邻居路由的 AS 号和 IP 段</li>
+</ol>
+<ul>
+<li>服务配置步骤</li>
+</ul>
+<ol>
+<li>配置服务去监听任播 IP</li>
+</ol>
+<h3 id="参考文档">参考文档</h3>
+<p><a href="http://www.google.com" target="_blank" rel="noopener">http://www.google.com</a><br>
+<a href="http://t.cn/RBkIvnV" target="_blank" rel="noopener">http://t.cn/RBkIvnV</a><br>
+<a href="http://t.cn/RBkpQfh" target="_blank" rel="noopener">http://t.cn/RBkpQfh</a><br>
+<a href="http://t.cn/8Ftlhp9" target="_blank" rel="noopener">http://t.cn/8Ftlhp9</a><br>
+<a href="http://t.cn/RrAJNQ6" target="_blank" rel="noopener">http://t.cn/RrAJNQ6</a><br>
+<a href="http://t.cn/RGCgN9e" target="_blank" rel="noopener">http://t.cn/RGCgN9e</a></p>
+
+                
+
+                <hr>
+                <!-- Pager -->
+                <ul class="pager">
+                    
+                        <li class="previous">
+                            <a href="/posts/13732.html" data-toggle="tooltip" data-placement="top" title="图解 Docker 架构">&larr; Previous Post</a>
+                        </li>
+                    
+                    
+                        <li class="next">
+                            <a href="/posts/38677.html" data-toggle="tooltip" data-placement="top" title="推荐一款支持 SQL/NoSQL 数据库的通用命令行工具 USQL">Next Post &rarr;</a>
+                        </li>
+                    
+                </ul>
+
+                <!-- duoshuo Share start -->
+                
+                <!-- 多说 Share end-->
+
+                <!-- 多说评论框 start -->
+                
+                <!-- 多说评论框 end -->
+
+                <!-- disqus comment start -->
+                
+                <!-- disqus comment end -->
+
+                
+                    <!-- disqus 评论框 start -->
+                    <div class="comment">
+                        <div id="lv-container" data-id="city" data-uid="MTAyMC8yNzg2My80NDQw"></div>
+                    </div>
+                    <!-- disqus 评论框 end -->
+                
+
+            </div>
+            
+            <!-- Tabe of Content -->
+            <!-- Table of Contents -->
+
+  
+    <style>
+      span.toc-nav-number{
+        display: none
+      }
+    </style>
+  
+    
+      <aside id="sidebar">
+        <div id="toc" class="toc-article">
+        <strong class="toc-title">Contents</strong>
+        
+          <ol class="toc-nav"><li class="toc-nav-item toc-nav-level-3"><a class="toc-nav-link" href="#什么是单播"><span class="toc-nav-number">1.</span> <span class="toc-nav-text">什么是单播</span></a></li><li class="toc-nav-item toc-nav-level-3"><a class="toc-nav-link" href="#什么是多播"><span class="toc-nav-number">2.</span> <span class="toc-nav-text">什么是多播</span></a></li><li class="toc-nav-item toc-nav-level-3"><a class="toc-nav-link" href="#什么是广播"><span class="toc-nav-number">3.</span> <span class="toc-nav-text">什么是广播</span></a></li><li class="toc-nav-item toc-nav-level-3"><a class="toc-nav-link" href="#什么是任播"><span class="toc-nav-number">4.</span> <span class="toc-nav-text">什么是任播</span></a><ol class="toc-nav-child"><li class="toc-nav-item toc-nav-level-4"><a class="toc-nav-link" href="#什么是-bgp-anycast"><span class="toc-nav-number">4.1.</span> <span class="toc-nav-text">什么是 BGP Anycast</span></a></li><li class="toc-nav-item toc-nav-level-4"><a class="toc-nav-link" href="#anycast-的实现原理"><span class="toc-nav-number">4.2.</span> <span class="toc-nav-text">AnyCast 的实现原理</span></a></li><li class="toc-nav-item toc-nav-level-4"><a class="toc-nav-link" href="#域内基于-ipv4-的-anycast-服务"><span class="toc-nav-number">4.3.</span> <span class="toc-nav-text">域内基于 IPv4 的 AnyCast 服务</span></a></li><li class="toc-nav-item toc-nav-level-4"><a class="toc-nav-link" href="#域外基于-ipv4-的-anycast-服务"><span class="toc-nav-number">4.4.</span> <span class="toc-nav-text">域外基于 IPv4 的 AnyCast 服务</span></a></li></ol></li><li class="toc-nav-item toc-nav-level-3"><a class="toc-nav-link" href="#参考文档"><span class="toc-nav-number">5.</span> <span class="toc-nav-text">参考文档</span></a></li></ol>
+        
+        </div>
+      </aside>
+    
+
+                
+            <!-- Sidebar Container -->
+            <div class="
+                col-lg-8 col-lg-offset-2
+                col-md-10 col-md-offset-1
+                sidebar-container">
+
+                <!-- Featured Tags -->
+                
+                <section>
+                    <!-- no hr -->
+                    <h5><a href="/tags/">FEATURED TAGS</a></h5>
+                    <div class="tags">
+                       
+                          <a class="tag" href="/tags/#Linux" title="Linux">Linux</a>
+                        
+                          <a class="tag" href="/tags/#网络" title="网络">网络</a>
+                        
+                    </div>
+                </section>
+                
+
+                <!-- Friends Blog -->
+                
+                <hr>
+                <h5>FRIENDS</h5>
+                <ul class="list-inline">
+
+                    
+                        <li><a href="http://www.mike.org.cn/" target="_blank">简单.生活</a></li>
+                    
+                        <li><a href="http://shang.qq.com/wpa/qunwpa?idkey=ea4c43493c2269428ac6ef6141de4b6d78e5ab2d41380ca4099b833b62884ee9" target="_blank">技术交流群</a></li>
+                    
+                        <li><a href="" target="_blank"></a></li>
+                    
+                        <li><a href="" target="_blank"></a></li>
+                    
+                </ul>
+                
+            </div>
+        </div>
+    </div>
+</article>
+
+
+
+
+
+
+    <!-- 来必力City版公共JS代码 start (一个网页只需插入一次) -->
+    <script type="text/javascript">
+       (function(d, s) {
+           var j, e = d.getElementsByTagName(s)[0];
+    
+           if (typeof LivereTower === 'function') { return; }
+    
+           j = d.createElement(s);
+           j.src = 'https://cdn-city.livere.com/js/embed.dist.js';
+           j.async = true;
+    
+           e.parentNode.insertBefore(j, e);
+       })(document, 'script');
+    </script>
+    <noscript>为正常使用来必力评论功能请激活JavaScript</noscript>
+    <!-- 来必力City版 公共JS代码 end -->
+
+
+
+<!-- async load function -->
+<script>
+    function async(u, c) {
+      var d = document, t = 'script',
+          o = d.createElement(t),
+          s = d.getElementsByTagName(t)[0];
+      o.src = u;
+      if (c) { o.addEventListener('load', function (e) { c(null, e); }, false); }
+      s.parentNode.insertBefore(o, s);
+    }
+</script>
+<!-- anchor-js, Doc:http://bryanbraun.github.io/anchorjs/ -->
+<script>
+    async("https://cdn.bootcss.com/anchor-js/1.1.1/anchor.min.js",function(){
+        anchors.options = {
+          visible: 'hover',
+          placement: 'left',
+          icon: 'ℬ'
+        };
+        anchors.add().remove('.intro-header h1').remove('.subheading').remove('.sidebar-container h5');
+    })
+</script>
+<style>
+    /* place left on bigger screen */
+    @media all and (min-width: 800px) {
+        .anchorjs-link{
+            position: absolute;
+            left: -0.75em;
+            font-size: 1.1em;
+            margin-top : -0.1em;
+        }
+    }
+</style>
+
+
+
+    <!-- Footer -->
+    <!-- Footer -->
+<footer>
+    <div class="container">
+        <div class="row">
+            <div class="col-lg-8 col-lg-offset-2 col-md-10 col-md-offset-1">
+                <ul class="list-inline text-center">
+                
+                    <li>
+                        <a href="/atom.xml">
+                            <span class="fa-stack fa-lg">
+                                <i class="fa fa-circle fa-stack-2x"></i>
+                                <i class="fa fa-rss fa-stack-1x fa-inverse"></i>
+                            </span>
+                        </a>
+                    </li>
+                
+                
+                
+                    <li>
+                        <a target="_blank" href="https://www.zhihu.com/people/80imike">
+                            <span class="fa-stack fa-lg">
+                                <i class="fa fa-circle fa-stack-2x"></i>
+                                <i class="fa  fa-stack-1x fa-inverse">知</i>
+                            </span>
+                        </a>
+                    </li>
+                
+
+                
+                    <li>
+                        <a target="_blank" href="http://weibo.com/2093524665">
+                            <span class="fa-stack fa-lg">
+                                <i class="fa fa-circle fa-stack-2x"></i>
+                                <i class="fa fa-weibo fa-stack-1x fa-inverse"></i>
+                            </span>
+                        </a>
+                    </li>
+                
+
+                
+
+                
+
+                
+
+                </ul>
+                <p class="copyright text-muted">
+                    Copyright &copy; Mike 2018 | Hosted by <a href="https://pages.coding.me" style="font-weight: bold">Coding Pages</a>
+                    <br>
+                    Theme by <a href="http://beantech.org">BeanTech</a> 
+                    <span style="display: inline-block; margin: 0 5px;">
+                        <i class="fa fa-heart"></i>
+                    </span> 
+                    re-Ported by <a href="http://www.huweihuang.com">胡伟煌</a> | 
+                    <iframe
+                        style="margin-left: 2px; margin-bottom:-5px;"
+                        frameborder="0" scrolling="0" width="91px" height="20px"
+                        src="https://ghbtns.com/github-btn.html?user=huweihuang&repo=hexo-theme-huweihuang&type=star&count=true" >
+                    </iframe>
+                </p>
+            </div>
+        </div>
+    </div>
+</footer>
+
+<!-- jQuery -->
+<script src="/js/jquery.min.js"></script>
+
+<!-- Bootstrap Core JavaScript -->
+<script src="/js/bootstrap.min.js"></script>
+
+<!-- Custom Theme JavaScript -->
+<script src="/js/hux-blog.min.js"></script>
+
+
+<!-- async load function -->
+<script>
+    function async(u, c) {
+      var d = document, t = 'script',
+          o = d.createElement(t),
+          s = d.getElementsByTagName(t)[0];
+      o.src = u;
+      if (c) { o.addEventListener('load', function (e) { c(null, e); }, false); }
+      s.parentNode.insertBefore(o, s);
+    }
+</script>
+
+<!-- 
+     Because of the native support for backtick-style fenced code blocks 
+     right within the Markdown is landed in Github Pages, 
+     From V1.6, There is no need for Highlight.js, 
+     so Huxblog drops it officially.
+
+     - https://github.com/blog/2100-github-pages-now-faster-and-simpler-with-jekyll-3-0  
+     - https://help.github.com/articles/creating-and-highlighting-code-blocks/    
+-->
+<!--
+    <script>
+        async("http://cdn.bootcss.com/highlight.js/8.6/highlight.min.js", function(){
+            hljs.initHighlightingOnLoad();
+        })
+    </script>
+    <link href="http://cdn.bootcss.com/highlight.js/8.6/styles/github.min.css" rel="stylesheet">
+-->
+
+
+<!-- jquery.tagcloud.js -->
+<script>
+    // only load tagcloud.js in tag.html
+    if($('#tag_cloud').length !== 0){
+        async("https://www.hi-linux.com/js/jquery.tagcloud.js",function(){
+            $.fn.tagcloud.defaults = {
+                //size: {start: 1, end: 1, unit: 'em'},
+                color: {start: '#bbbbee', end: '#0085a1'},
+            };
+            $('#tag_cloud a').tagcloud();
+        })
+    }
+</script>
+
+<!--fastClick.js -->
+<script>
+    async("https://cdn.bootcss.com/fastclick/1.0.6/fastclick.min.js", function(){
+        var $nav = document.querySelector("nav");
+        if($nav) FastClick.attach($nav);
+    })
+</script>
+
+
+<!-- Google Analytics -->
+
+
+
+
+<!-- Baidu Tongji -->
+
+
+
+
+
+
+	<a id="rocket" href="#top" class=""></a>
+	<script type="text/javascript" src="/js/totop.js?v=1.0.0" async=""></script>
+    <script type="text/javascript" src="/js/toc.js?v=1.0.0" async=""></script>
+<!-- Image to hack wechat -->
+<img src="https://www.hi-linux.com/img/icon_wechat.png" width="0" height="0" />
+<!-- Migrate from head to bottom, no longer block render and still work -->
+
+</body>
+
+</html>

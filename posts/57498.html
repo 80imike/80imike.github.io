@@ -1,0 +1,624 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<!-- Head tag -->
+<head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="google-site-verification" content="xBT4GhYoi5qRD5tr338pgPM5OWHHIDR6mNg1a3euekI" />
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="description" content="">
+    <meta name="keyword"  content="Linux,运维,Nginx,Zabbix,Centos,Ansible,MySQL,Python,Docker,ELK,Haproxy,Git,Nodejs,安全,技术">
+    <link rel="shortcut icon" href="/img/ironman-draw.png">
+    <!-- Place this tag in your head or just before your close body tag. -->
+    <script async defer src="https://buttons.github.io/buttons.js"></script>
+    <title>
+        
+          如何 10 步 Docker 化一个应用 - 运维之美
+        
+    </title>
+
+    <link rel="canonical" href="https://www.hi-linux.com/posts/57498.html">
+
+    <!-- Bootstrap Core CSS -->
+    <link rel="stylesheet" href="/css/bootstrap.min.css">
+
+    <!-- Custom CSS --> 
+    <link rel="stylesheet" href="/css/beantech.min.css">
+    
+    <!-- Pygments Highlight CSS -->
+    <link rel="stylesheet" href="/css/highlight.css">
+
+    <link rel="stylesheet" href="/css/widget.css">
+
+    <link rel="stylesheet" href="/css/rocket.css">
+
+    <link rel="stylesheet" href="/css/signature.css">
+
+    <link rel="stylesheet" href="/css/toc.css">
+
+    <!-- Custom Fonts -->
+    <!-- <link href="https://maxcdn.bootstrapcdn.com/font-awesome/4.3.0/css/font-awesome.min.css" rel="stylesheet" type="text/css"> -->
+    <!-- Hux change font-awesome CDN to qiniu -->
+    <link href="https://cdn.staticfile.org/font-awesome/4.5.0/css/font-awesome.min.css" rel="stylesheet" type="text/css">
+
+
+    <!-- Hux Delete, sad but pending in China
+    <link href='http://fonts.googleapis.com/css?family=Lora:400,700,400italic,700italic' rel='stylesheet' type='text/css'>
+    <link href='http://fonts.googleapis.com/css?family=Open+Sans:300italic,400italic,600italic,700italic,800italic,400,300,600,700,800' rel='stylesheet' type='text/
+    css'>
+    -->
+
+
+    <!-- HTML5 Shim and Respond.js IE8 support of HTML5 elements and media queries -->
+    <!-- WARNING: Respond.js doesn't work if you view the page via file:// -->
+    <!--[if lt IE 9]>
+        <script src="https://oss.maxcdn.com/libs/html5shiv/3.7.0/html5shiv.js"></script>
+        <script src="https://oss.maxcdn.com/libs/respond.js/1.4.2/respond.min.js"></script>
+    <![endif]-->
+
+    <!-- ga & ba script hoook -->
+    <script></script>
+</head>
+
+
+<!-- hack iOS CSS :active style -->
+<body ontouchstart="">
+	<!-- Modified by Yu-Hsuan Yen -->
+<!-- Post Header -->
+<style type="text/css">
+    header.intro-header{
+        
+            background-image: url('/img/header_img/article.jpg')
+            /*post*/
+        
+    }
+    
+</style>
+
+<header class="intro-header" >
+    <!-- Signature -->
+    <div id="signature">
+        <div class="container">
+            <div class="row">
+                <div class="col-lg-8 col-lg-offset-2 col-md-10 col-md-offset-1">
+                
+                    <div class="post-heading">
+                        <div class="tags">
+                            
+                              <a class="tag" href="/tags/#Linux" title="Linux">Linux</a>
+                            
+                              <a class="tag" href="/tags/#Docker" title="Docker">Docker</a>
+                            
+                        </div>
+                        <h1>如何 10 步 Docker 化一个应用</h1>
+                        <h2 class="subheading"></h2>
+                        <span class="meta">
+                            Posted by Mike on
+                            2018-08-01
+                        </span>
+                    </div>
+                
+
+
+                </div>
+            </div>
+        </div>
+    </div>
+</header>
+
+	
+    <!-- Navigation -->
+<nav class="navbar navbar-default navbar-custom navbar-fixed-top">
+    <div class="container-fluid">
+        <!-- Brand and toggle get grouped for better mobile display -->
+        <div class="navbar-header page-scroll">
+            <button type="button" class="navbar-toggle">
+                <span class="sr-only">Toggle navigation</span>
+                <span class="icon-bar"></span>
+                <span class="icon-bar"></span>
+                <span class="icon-bar"></span>
+            </button>
+            <a class="navbar-brand" href="/">运维之美</a>
+        </div>
+
+        <!-- Collect the nav links, forms, and other content for toggling -->
+        <!-- Known Issue, found by Hux:
+            <nav>'s height woule be hold on by its content.
+            so, when navbar scale out, the <nav> will cover tags.
+            also mask any touch event of tags, unfortunately.
+        -->
+        <div id="huxblog_navbar">
+            <div class="navbar-collapse">
+                <ul class="nav navbar-nav navbar-right">
+                    <li>
+                        <a href="/">Home</a>
+                    </li>
+
+                    
+
+                        
+                    
+
+                        
+                    
+
+                        
+                        <li>
+                            <a href="/about/">About</a>
+                        </li>
+                        
+                    
+
+                        
+                        <li>
+                            <a href="/archive/">Archives</a>
+                        </li>
+                        
+                    
+
+                        
+                        <li>
+                            <a href="/tags/">Tags</a>
+                        </li>
+                        
+                    
+                    
+                </ul>
+            </div>
+        </div>
+        <!-- /.navbar-collapse -->
+    </div>
+    <!-- /.container -->
+</nav>
+<script>
+    // Drop Bootstarp low-performance Navbar
+    // Use customize navbar with high-quality material design animation
+    // in high-perf jank-free CSS3 implementation
+    var $body   = document.body;
+    var $toggle = document.querySelector('.navbar-toggle');
+    var $navbar = document.querySelector('#huxblog_navbar');
+    var $collapse = document.querySelector('.navbar-collapse');
+
+    $toggle.addEventListener('click', handleMagic)
+    function handleMagic(e){
+        if ($navbar.className.indexOf('in') > 0) {
+        // CLOSE
+            $navbar.className = " ";
+            // wait until animation end.
+            setTimeout(function(){
+                // prevent frequently toggle
+                if($navbar.className.indexOf('in') < 0) {
+                    $collapse.style.height = "0px"
+                }
+            },400)
+        }else{
+        // OPEN
+            $collapse.style.height = "auto"
+            $navbar.className += " in";
+        }
+    }
+</script>
+
+
+    <!-- Main Content -->
+    <!-- Modify by Yu-Hsuan Yen -->
+
+<!-- Post Content -->
+<article>
+    <div class="container">
+        <div class="row">
+
+            <!-- Post Container -->
+            <div class="
+                col-lg-8 col-lg-offset-2
+                col-md-10 col-md-offset-1
+                post-container">
+
+                <p>本文将讲解如何将应用 Docker 化的一些很实用的技巧和准则，推荐一读。</p>
+<p><strong>一、选择基础镜像</strong></p>
+<p>每种对应技术几乎都有自己的基础镜像，例如：</p>
+<ul>
+<li><a href="https://hub.docker.com/_/java/" target="_blank" rel="noopener">https://hub.docker.com/_/java/</a></li>
+<li><a href="https://hub.docker.com/_/python/" target="_blank" rel="noopener">https://hub.docker.com/_/python/</a></li>
+<li><a href="https://hub.docker.com/_/nginx/" target="_blank" rel="noopener">https://hub.docker.com/_/nginx/</a></li>
+</ul>
+<p>如果不能直接使用这些镜像，我们就需要从基础操作系统镜像开始安装所有的依赖。</p>
+<p>网上大多数教程使用的都是以 Ubuntu（例如：Ubuntu:16.04 ）作为基础镜像，这并不是一个问题，但是我建议优先考虑 Alpine 镜像：</p>
+<ul>
+<li><a href="https://hub.docker.com/_/alpine/" target="_blank" rel="noopener">https://hub.docker.com/_/alpine/</a></li>
+</ul>
+<p>Alpine 是一个非常小的基础镜像（它的容量大约只有 5MB）。</p>
+<blockquote>
+<p>注：在基于 Alpine 的镜像中你无法使用 apt-get 命令。不过你不必担心，因为 Alpine 系统有自己的软件包仓库和包管理工具 apk。关于 apk 的具体使用你可以详细参考：「<a href="https://mp.weixin.qq.com/s?__biz=MzI3MTI2NzkxMA==&amp;mid=2247484888&amp;idx=1&amp;sn=bfdd55a668b068ab34251512613e5267&amp;chksm=eac524f1ddb2ade7739c10440af8b33a39b81b8a4a57b628cc6c0d0ec3a82f18b914f4e12641&amp;mpshare=1&amp;scene=23&amp;srcid=0731dgw9eDCTtafPzAd3VxDV%23rd" target="_blank" rel="noopener">Alpine Linux配置使用技巧</a>」一文。</p>
+</blockquote>
+<p><strong>二、安装必要软件包</strong></p>
+<p>这个步骤通常比较琐碎，有一些容易忽略的细节：</p>
+<ul>
+<li>
+<p><code>apt-get update</code> 和 <code>apt-get install</code> 命令应该写在一行（如果使用 Alpine 则对应的是 apk 命令）。这不是一个常见的做法，但是在 Dockerfile 中应该要这么做。否则 <code>apt-get update</code> 命令产出的临时层可能会被缓存，导致构建时没有更新包信息。（具体可参见<a href="https://forums.docker.com/t/dockerfile-run-apt-get-install-all-packages-at-once-or-one-by-one/17191" target="_blank" rel="noopener">此文</a>）。</p>
+</li>
+<li>
+<p>确认是否只安装了实际需要的软件（特别是在生产环境中运行这个容器）。</p>
+</li>
+</ul>
+<blockquote>
+<p>注：我见过有人在他们的镜像中安装了 vim 和其他开发工具。如果这是必要的，应该针对构建、调试和开发环境创建不同的 Dockerfile。这不仅仅关系到镜像大小，还涉及到安全性、可维护性等等。</p>
+</blockquote>
+<a id="more"></a>
+<p><strong>三、添加自定义文件</strong></p>
+<p>一些优化 Dockerfile 的小提示：</p>
+<ul>
+<li>
+<p>理解 COPY 和 ADD 指令的区别，具体可参考<a href="https://docs.docker.com/develop/develop-images/dockerfile_best-practices/#add-or-copy" target="_blank" rel="noopener">此文</a>。</p>
+</li>
+<li>
+<p>尽可能遵照<a href="http://www.pathname.com/fhs/" target="_blank" rel="noopener">文件系统</a>惯例来存放文件。例如：针对解释型应用程序（如：Python），使用 /usr/src 目录。</p>
+</li>
+<li>
+<p>检查添加文件的属性。如果需要可执行权限，没有必要在镜像上新建一个层（ 通过 RUN chmod +x … 指令来增加权限）。你只需要在代码仓库的源文件上修正这些属性即可，即使开发平台是 Windows，也可以参照<a href="https://stackoverflow.com/questions/21691202/how-to-create-file-execute-mode-permissions-in-git-on-windows" target="_blank" rel="noopener">此文</a>给文件增加可执行权限。</p>
+</li>
+</ul>
+<p><strong>四、定义容器运行时的用户权限</strong></p>
+<ul>
+<li>容器中的进程默认情况下是以 root 权限运行的。</li>
+<li>如果容器中的应用程序需要使用特定的用户或组（/etc/passwd 或 /etc/group）来运行时，可以在容器启动时使用 <code>docker run</code> 命令的 <code>--user</code> 参数来指定其固定的 UID 或 GID。</li>
+<li>尽可能避免容器中的进程以 root 权限运行。</li>
+</ul>
+<blockquote>
+<p>注：现在不少热门应用程序镜像都需要用特定的用户 ID 来运行（例如:Elastic Search 需要 uid:gid = 1000:1000），请尽量不要在写出这样的镜像。更多关于容器内运行应用程序的权限说明可参考<a href="https://medium.com/@mccode/understanding-how-uid-and-gid-work-in-docker-containers-c37a01d01cf" target="_blank" rel="noopener">此文</a>。</p>
+</blockquote>
+<p><strong>五、定义暴露的端口</strong></p>
+<p>不要为了暴露特权端口（例如：80）而将容器以 root 权限运行。如果有这样的需求，可以让容器暴露一个非特权端口（例如：8080），然后在启动时进行端口映射。</p>
+<blockquote>
+<p>注：低于 1024 的 TCP / IP 端口号就是特权端口，因为不允许普通用户在这些端口上运行服务。</p>
+</blockquote>
+<p><strong>六、定义入口点（entrypoint）</strong></p>
+<ul>
+<li>
+<p>普通方式：直接运行可执行文件。</p>
+</li>
+<li>
+<p>更好的方式：创建一个 <a href="http://docker-entrypoint.sh" target="_blank" rel="noopener">docker-entrypoint.sh</a> 脚本，这样可以通过环境变量来配置容器的入口点。这也是一个非常普遍的做法，可参考下面这些例子：elasticsearch 的 <a href="https://github.com/elastic/elasticsearch-docker/tree/master/build/elasticsearch/bin" target="_blank" rel="noopener">docker-entrypoint.sh</a> 文件 和 postgres 的 <a href="https://github.com/docker-library/postgres/tree/de8ba87d50de466a1e05e111927d2bc30c2db36d/10" target="_blank" rel="noopener">docker-entrypoint.sh</a> 文件。</p>
+</li>
+</ul>
+<p><strong>七、定义一种配置方式</strong></p>
+<p>每个应用程序都需要参数化，你基本上可以遵循以下两个原则：</p>
+<ul>
+<li>
+<p>使用应用程序特定的配置文件：该方式需要通过文档来说明配置文件的格式、字段、放置位置等等（当运行环境比较复杂，例如：应用程序跨越不同的技术，则不太合适）。</p>
+</li>
+<li>
+<p>使用操作系统环境变量：简单而有效。这也是 <a href="https://12factor.net/zh_cn/config" target="_blank" rel="noopener">12-factors</a> 推荐的方式。</p>
+</li>
+</ul>
+<blockquote>
+<p>注：使用环境变量方式并不意味着您需要丢弃配置文件并重构应用程序的配置机制，你只需要通过 <a href="https://blog.csdn.net/zh515858237/article/details/79218176" target="_blank" rel="noopener">envsubst</a> 命令来替换配置文件模板中的值就可以了（这个流程一般需要在 <a href="http://docker-entrypoint.sh" target="_blank" rel="noopener">docker-entrypoint.sh</a> 文件中完成，因为这需要在容器进程运行前完成）。例如：在 Nginx 配置中使用环境变量，具体方法可参考<a href="https://docs.docker.com/samples/library/nginx/#using-environment-variables-in-nginx-configuration" target="_blank" rel="noopener">此文</a>。</p>
+</blockquote>
+<p>这种方式可以将应用程序的配置文件封装在容器内部。</p>
+<p><strong>八、外部化数据</strong></p>
+<p>关于数据存储有一条黄金法则：绝对不要将任何持久化数据保存到容器内。</p>
+<p>容器的文件系统本身是被设计成临时和短暂的。因此任何由应用程序生成的内容、数据文件和处理结果都应该保存到挂载的卷或者操作系统绑定挂载点上（既：将宿主机操作系统的目录挂载到容器中）。</p>
+<p>如果将数据保存到绑定挂载点，对于要绑定到容器的宿主机上的目录，你需要注意以下几点：</p>
+<ul>
+<li>在宿主机操作系统上创建非特权用户和组。</li>
+<li>所有需要绑定目录的所有者都是该用户。</li>
+<li>根据使用场景给授权（仅针对这个特定的用户和组，其他用户无权访问）。</li>
+<li>容器也以该用户运行。</li>
+<li>容器可以完全控制这些目录。</li>
+</ul>
+<p><strong>九、确保处理好日志</strong></p>
+<p>如果这是一个新的应用程序，并且希望它能够坚持 Docker 约定，就不应该将日志写入任何文件。应用程序应该使用标准输出和标准错误输出日志，这和之前推荐使用环境变量传递参数一样，这也是 12-factors 之一，具体可以参见<a href="https://12factor.net/zh_cn/logs" target="_blank" rel="noopener">这里</a>。</p>
+<p>Docker 会自动捕捉应用程序的标准输出，并可以通过 <code>docker logs</code> 命令查看。有关于 <code>docker logs</code> 的具体使用你可以参考<a href="https://docs.docker.com/engine/reference/commandline/logs/" target="_blank" rel="noopener">这里</a>。</p>
+<p>但是在一些实际场景下你可能会遇到问题，例如：运行一个简单的 Nginx 容器，至少会有两种不同的日志文件：</p>
+<ul>
+<li>HTTP 访问日志（Access Logs）</li>
+<li>错误日志（Error Logs）</li>
+</ul>
+<p>对于这种按照特定结构输出日志的应用，就不太适合将它们的日志输出到标准输出。这种情况下，你需要按持久化的方式处理这些日志，并确保这些日志文件的能正常的轮转。</p>
+<p><strong>十、轮转日志</strong></p>
+<p>如果应用程序将日志写到文件，或者会无限追加内容到文件，就需要关注这些文件的轮转（rotation），这对于防止服务器空间耗尽非常有用的。</p>
+<p>如果使用绑定挂载，我们可以依靠宿主机的一些工具来实现文件轮转功能。例如：logrotate，关于 logrotate 的使用你可以参考<a href="https://www.aerospike.com/docs/operations/configure/log/logrotate.html" target="_blank" rel="noopener">示例一</a>、<a href="https://www.digitalocean.com/community/tutorials/how-to-manage-logfiles-with-logrotate-on-ubuntu-16-04" target="_blank" rel="noopener">示例二</a>。</p>
+<blockquote>
+<p>注：本文在 「<a href="http://t.cn/ReT0AyJ" target="_blank" rel="noopener">如何 Docker 化任意一个应用</a>」的基础上整理和修改，原文地址：<a href="http://t.cn/ReT0AyJ" target="_blank" rel="noopener">http://t.cn/ReT0AyJ</a> 。</p>
+<p>由于微信不允许外部链接，如果你需要访问文中链接可点击文末左下角的阅读原文。</p>
+</blockquote>
+
+                
+
+                <hr>
+                <!-- Pager -->
+                <ul class="pager">
+                    
+                        <li class="previous">
+                            <a href="/posts/30305.html" data-toggle="tooltip" data-placement="top" title="从 Kubectl run 开始揭开 Kubernetes 的神迷面纱">&larr; Previous Post</a>
+                        </li>
+                    
+                    
+                        <li class="next">
+                            <a href="/posts/56619.html" data-toggle="tooltip" data-placement="top" title="浅析从外部访问 Kubernetes 集群中应用的几种方式">Next Post &rarr;</a>
+                        </li>
+                    
+                </ul>
+
+                <!-- duoshuo Share start -->
+                
+                <!-- 多说 Share end-->
+
+                <!-- 多说评论框 start -->
+                
+                <!-- 多说评论框 end -->
+
+                <!-- disqus comment start -->
+                
+                <!-- disqus comment end -->
+
+                
+                    <!-- disqus 评论框 start -->
+                    <div class="comment">
+                        <div id="lv-container" data-id="city" data-uid="MTAyMC8yNzg2My80NDQw"></div>
+                    </div>
+                    <!-- disqus 评论框 end -->
+                
+
+            </div>
+            
+            <!-- Tabe of Content -->
+            <!-- Table of Contents -->
+
+                
+            <!-- Sidebar Container -->
+            <div class="
+                col-lg-8 col-lg-offset-2
+                col-md-10 col-md-offset-1
+                sidebar-container">
+
+                <!-- Featured Tags -->
+                
+                <section>
+                    <!-- no hr -->
+                    <h5><a href="/tags/">FEATURED TAGS</a></h5>
+                    <div class="tags">
+                       
+                          <a class="tag" href="/tags/#Linux" title="Linux">Linux</a>
+                        
+                          <a class="tag" href="/tags/#Docker" title="Docker">Docker</a>
+                        
+                    </div>
+                </section>
+                
+
+                <!-- Friends Blog -->
+                
+                <hr>
+                <h5>FRIENDS</h5>
+                <ul class="list-inline">
+
+                    
+                        <li><a href="http://www.mike.org.cn/" target="_blank">简单.生活</a></li>
+                    
+                        <li><a href="http://shang.qq.com/wpa/qunwpa?idkey=ea4c43493c2269428ac6ef6141de4b6d78e5ab2d41380ca4099b833b62884ee9" target="_blank">技术交流群</a></li>
+                    
+                        <li><a href="" target="_blank"></a></li>
+                    
+                        <li><a href="" target="_blank"></a></li>
+                    
+                </ul>
+                
+            </div>
+        </div>
+    </div>
+</article>
+
+
+
+
+
+
+    <!-- 来必力City版公共JS代码 start (一个网页只需插入一次) -->
+    <script type="text/javascript">
+       (function(d, s) {
+           var j, e = d.getElementsByTagName(s)[0];
+    
+           if (typeof LivereTower === 'function') { return; }
+    
+           j = d.createElement(s);
+           j.src = 'https://cdn-city.livere.com/js/embed.dist.js';
+           j.async = true;
+    
+           e.parentNode.insertBefore(j, e);
+       })(document, 'script');
+    </script>
+    <noscript>为正常使用来必力评论功能请激活JavaScript</noscript>
+    <!-- 来必力City版 公共JS代码 end -->
+
+
+
+<!-- async load function -->
+<script>
+    function async(u, c) {
+      var d = document, t = 'script',
+          o = d.createElement(t),
+          s = d.getElementsByTagName(t)[0];
+      o.src = u;
+      if (c) { o.addEventListener('load', function (e) { c(null, e); }, false); }
+      s.parentNode.insertBefore(o, s);
+    }
+</script>
+<!-- anchor-js, Doc:http://bryanbraun.github.io/anchorjs/ -->
+<script>
+    async("https://cdn.bootcss.com/anchor-js/1.1.1/anchor.min.js",function(){
+        anchors.options = {
+          visible: 'hover',
+          placement: 'left',
+          icon: 'ℬ'
+        };
+        anchors.add().remove('.intro-header h1').remove('.subheading').remove('.sidebar-container h5');
+    })
+</script>
+<style>
+    /* place left on bigger screen */
+    @media all and (min-width: 800px) {
+        .anchorjs-link{
+            position: absolute;
+            left: -0.75em;
+            font-size: 1.1em;
+            margin-top : -0.1em;
+        }
+    }
+</style>
+
+
+
+    <!-- Footer -->
+    <!-- Footer -->
+<footer>
+    <div class="container">
+        <div class="row">
+            <div class="col-lg-8 col-lg-offset-2 col-md-10 col-md-offset-1">
+                <ul class="list-inline text-center">
+                
+                    <li>
+                        <a href="/atom.xml">
+                            <span class="fa-stack fa-lg">
+                                <i class="fa fa-circle fa-stack-2x"></i>
+                                <i class="fa fa-rss fa-stack-1x fa-inverse"></i>
+                            </span>
+                        </a>
+                    </li>
+                
+                
+                
+                    <li>
+                        <a target="_blank" href="https://www.zhihu.com/people/80imike">
+                            <span class="fa-stack fa-lg">
+                                <i class="fa fa-circle fa-stack-2x"></i>
+                                <i class="fa  fa-stack-1x fa-inverse">知</i>
+                            </span>
+                        </a>
+                    </li>
+                
+
+                
+                    <li>
+                        <a target="_blank" href="http://weibo.com/2093524665">
+                            <span class="fa-stack fa-lg">
+                                <i class="fa fa-circle fa-stack-2x"></i>
+                                <i class="fa fa-weibo fa-stack-1x fa-inverse"></i>
+                            </span>
+                        </a>
+                    </li>
+                
+
+                
+
+                
+
+                
+
+                </ul>
+                <p class="copyright text-muted">
+                    Copyright &copy; Mike 2018 | Hosted by <a href="https://pages.coding.me" style="font-weight: bold">Coding Pages</a>
+                    <br>
+                    Theme by <a href="http://beantech.org">BeanTech</a> 
+                    <span style="display: inline-block; margin: 0 5px;">
+                        <i class="fa fa-heart"></i>
+                    </span> 
+                    re-Ported by <a href="http://www.huweihuang.com">胡伟煌</a> | 
+                    <iframe
+                        style="margin-left: 2px; margin-bottom:-5px;"
+                        frameborder="0" scrolling="0" width="91px" height="20px"
+                        src="https://ghbtns.com/github-btn.html?user=huweihuang&repo=hexo-theme-huweihuang&type=star&count=true" >
+                    </iframe>
+                </p>
+            </div>
+        </div>
+    </div>
+</footer>
+
+<!-- jQuery -->
+<script src="/js/jquery.min.js"></script>
+
+<!-- Bootstrap Core JavaScript -->
+<script src="/js/bootstrap.min.js"></script>
+
+<!-- Custom Theme JavaScript -->
+<script src="/js/hux-blog.min.js"></script>
+
+
+<!-- async load function -->
+<script>
+    function async(u, c) {
+      var d = document, t = 'script',
+          o = d.createElement(t),
+          s = d.getElementsByTagName(t)[0];
+      o.src = u;
+      if (c) { o.addEventListener('load', function (e) { c(null, e); }, false); }
+      s.parentNode.insertBefore(o, s);
+    }
+</script>
+
+<!-- 
+     Because of the native support for backtick-style fenced code blocks 
+     right within the Markdown is landed in Github Pages, 
+     From V1.6, There is no need for Highlight.js, 
+     so Huxblog drops it officially.
+
+     - https://github.com/blog/2100-github-pages-now-faster-and-simpler-with-jekyll-3-0  
+     - https://help.github.com/articles/creating-and-highlighting-code-blocks/    
+-->
+<!--
+    <script>
+        async("http://cdn.bootcss.com/highlight.js/8.6/highlight.min.js", function(){
+            hljs.initHighlightingOnLoad();
+        })
+    </script>
+    <link href="http://cdn.bootcss.com/highlight.js/8.6/styles/github.min.css" rel="stylesheet">
+-->
+
+
+<!-- jquery.tagcloud.js -->
+<script>
+    // only load tagcloud.js in tag.html
+    if($('#tag_cloud').length !== 0){
+        async("https://www.hi-linux.com/js/jquery.tagcloud.js",function(){
+            $.fn.tagcloud.defaults = {
+                //size: {start: 1, end: 1, unit: 'em'},
+                color: {start: '#bbbbee', end: '#0085a1'},
+            };
+            $('#tag_cloud a').tagcloud();
+        })
+    }
+</script>
+
+<!--fastClick.js -->
+<script>
+    async("https://cdn.bootcss.com/fastclick/1.0.6/fastclick.min.js", function(){
+        var $nav = document.querySelector("nav");
+        if($nav) FastClick.attach($nav);
+    })
+</script>
+
+
+<!-- Google Analytics -->
+
+
+
+
+<!-- Baidu Tongji -->
+
+
+
+
+
+
+	<a id="rocket" href="#top" class=""></a>
+	<script type="text/javascript" src="/js/totop.js?v=1.0.0" async=""></script>
+    <script type="text/javascript" src="/js/toc.js?v=1.0.0" async=""></script>
+<!-- Image to hack wechat -->
+<img src="https://www.hi-linux.com/img/icon_wechat.png" width="0" height="0" />
+<!-- Migrate from head to bottom, no longer block render and still work -->
+
+</body>
+
+</html>

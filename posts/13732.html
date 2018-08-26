@@ -1,0 +1,734 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<!-- Head tag -->
+<head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="google-site-verification" content="xBT4GhYoi5qRD5tr338pgPM5OWHHIDR6mNg1a3euekI" />
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="description" content="">
+    <meta name="keyword"  content="Linux,运维,Nginx,Zabbix,Centos,Ansible,MySQL,Python,Docker,ELK,Haproxy,Git,Nodejs,安全,技术">
+    <link rel="shortcut icon" href="/img/ironman-draw.png">
+    <!-- Place this tag in your head or just before your close body tag. -->
+    <script async defer src="https://buttons.github.io/buttons.js"></script>
+    <title>
+        
+          图解 Docker 架构 - 运维之美
+        
+    </title>
+
+    <link rel="canonical" href="https://www.hi-linux.com/posts/13732.html">
+
+    <!-- Bootstrap Core CSS -->
+    <link rel="stylesheet" href="/css/bootstrap.min.css">
+
+    <!-- Custom CSS --> 
+    <link rel="stylesheet" href="/css/beantech.min.css">
+    
+    <!-- Pygments Highlight CSS -->
+    <link rel="stylesheet" href="/css/highlight.css">
+
+    <link rel="stylesheet" href="/css/widget.css">
+
+    <link rel="stylesheet" href="/css/rocket.css">
+
+    <link rel="stylesheet" href="/css/signature.css">
+
+    <link rel="stylesheet" href="/css/toc.css">
+
+    <!-- Custom Fonts -->
+    <!-- <link href="https://maxcdn.bootstrapcdn.com/font-awesome/4.3.0/css/font-awesome.min.css" rel="stylesheet" type="text/css"> -->
+    <!-- Hux change font-awesome CDN to qiniu -->
+    <link href="https://cdn.staticfile.org/font-awesome/4.5.0/css/font-awesome.min.css" rel="stylesheet" type="text/css">
+
+
+    <!-- Hux Delete, sad but pending in China
+    <link href='http://fonts.googleapis.com/css?family=Lora:400,700,400italic,700italic' rel='stylesheet' type='text/css'>
+    <link href='http://fonts.googleapis.com/css?family=Open+Sans:300italic,400italic,600italic,700italic,800italic,400,300,600,700,800' rel='stylesheet' type='text/
+    css'>
+    -->
+
+
+    <!-- HTML5 Shim and Respond.js IE8 support of HTML5 elements and media queries -->
+    <!-- WARNING: Respond.js doesn't work if you view the page via file:// -->
+    <!--[if lt IE 9]>
+        <script src="https://oss.maxcdn.com/libs/html5shiv/3.7.0/html5shiv.js"></script>
+        <script src="https://oss.maxcdn.com/libs/respond.js/1.4.2/respond.min.js"></script>
+    <![endif]-->
+
+    <!-- ga & ba script hoook -->
+    <script></script>
+</head>
+
+
+<!-- hack iOS CSS :active style -->
+<body ontouchstart="">
+	<!-- Modified by Yu-Hsuan Yen -->
+<!-- Post Header -->
+<style type="text/css">
+    header.intro-header{
+        
+            background-image: url('/img/header_img/article.jpg')
+            /*post*/
+        
+    }
+    
+</style>
+
+<header class="intro-header" >
+    <!-- Signature -->
+    <div id="signature">
+        <div class="container">
+            <div class="row">
+                <div class="col-lg-8 col-lg-offset-2 col-md-10 col-md-offset-1">
+                
+                    <div class="post-heading">
+                        <div class="tags">
+                            
+                              <a class="tag" href="/tags/#Linux" title="Linux">Linux</a>
+                            
+                              <a class="tag" href="/tags/#Docker" title="Docker">Docker</a>
+                            
+                        </div>
+                        <h1>图解 Docker 架构</h1>
+                        <h2 class="subheading"></h2>
+                        <span class="meta">
+                            Posted by Mike on
+                            2018-07-07
+                        </span>
+                    </div>
+                
+
+
+                </div>
+            </div>
+        </div>
+    </div>
+</header>
+
+	
+    <!-- Navigation -->
+<nav class="navbar navbar-default navbar-custom navbar-fixed-top">
+    <div class="container-fluid">
+        <!-- Brand and toggle get grouped for better mobile display -->
+        <div class="navbar-header page-scroll">
+            <button type="button" class="navbar-toggle">
+                <span class="sr-only">Toggle navigation</span>
+                <span class="icon-bar"></span>
+                <span class="icon-bar"></span>
+                <span class="icon-bar"></span>
+            </button>
+            <a class="navbar-brand" href="/">运维之美</a>
+        </div>
+
+        <!-- Collect the nav links, forms, and other content for toggling -->
+        <!-- Known Issue, found by Hux:
+            <nav>'s height woule be hold on by its content.
+            so, when navbar scale out, the <nav> will cover tags.
+            also mask any touch event of tags, unfortunately.
+        -->
+        <div id="huxblog_navbar">
+            <div class="navbar-collapse">
+                <ul class="nav navbar-nav navbar-right">
+                    <li>
+                        <a href="/">Home</a>
+                    </li>
+
+                    
+
+                        
+                    
+
+                        
+                    
+
+                        
+                        <li>
+                            <a href="/about/">About</a>
+                        </li>
+                        
+                    
+
+                        
+                        <li>
+                            <a href="/archive/">Archives</a>
+                        </li>
+                        
+                    
+
+                        
+                        <li>
+                            <a href="/tags/">Tags</a>
+                        </li>
+                        
+                    
+                    
+                </ul>
+            </div>
+        </div>
+        <!-- /.navbar-collapse -->
+    </div>
+    <!-- /.container -->
+</nav>
+<script>
+    // Drop Bootstarp low-performance Navbar
+    // Use customize navbar with high-quality material design animation
+    // in high-perf jank-free CSS3 implementation
+    var $body   = document.body;
+    var $toggle = document.querySelector('.navbar-toggle');
+    var $navbar = document.querySelector('#huxblog_navbar');
+    var $collapse = document.querySelector('.navbar-collapse');
+
+    $toggle.addEventListener('click', handleMagic)
+    function handleMagic(e){
+        if ($navbar.className.indexOf('in') > 0) {
+        // CLOSE
+            $navbar.className = " ";
+            // wait until animation end.
+            setTimeout(function(){
+                // prevent frequently toggle
+                if($navbar.className.indexOf('in') < 0) {
+                    $collapse.style.height = "0px"
+                }
+            },400)
+        }else{
+        // OPEN
+            $collapse.style.height = "auto"
+            $navbar.className += " in";
+        }
+    }
+</script>
+
+
+    <!-- Main Content -->
+    <!-- Modify by Yu-Hsuan Yen -->
+
+<!-- Post Content -->
+<article>
+    <div class="container">
+        <div class="row">
+
+            <!-- Post Container -->
+            <div class="
+                col-lg-8 col-lg-offset-2
+                col-md-10 col-md-offset-1
+                post-container">
+
+                <h3 id="docker-总架构图">Docker 总架构图</h3>
+<p><img src="https://www.hi-linux.com/img/linux/docker-arch1.jpg" alt=""></p>
+<p>Docker 是一个 C/S 模式的架构，后端是一个松耦合架构，模块各司其职。</p>
+<ol>
+<li>
+<p>用户是使用 Docker Client 与 Docker Daemon 建立通信，并发送请求给后者。</p>
+</li>
+<li>
+<p>Docker Daemon 作为 Docker 架构中的主体部分，首先提供 Docker Server 的功能使其可以接受 Docker Client 的请求。</p>
+</li>
+<li>
+<p>Docker Engine 执行 Docker 内部的一系列工作，每一项工作都是以一个 Job 的形式的存在。</p>
+</li>
+<li>
+<p>Job 的运行过程中，当需要容器镜像时，则从 Docker Registry 中下载镜像，并通过镜像管理驱动 Graphdriver 将下载镜像以 Graph 的形式存储。</p>
+</li>
+<li>
+<p>当需要为 Docker 创建网络环境时，通过网络管理驱动 Networkdriver 创建并配置 Docker容器网络环境。</p>
+</li>
+<li>
+<p>当需要限制 Docker 容器运行资源或执行用户指令等操作时，则通过 Execdriver 来完成。</p>
+</li>
+<li>
+<p>Libcontainer 是一项独立的容器管理包，Networkdriver 以及 Execdriver 都是通过 Libcontainer 来实现具体对容器进行的操作。</p>
+</li>
+</ol>
+<a id="more"></a>
+<h3 id="docker-各模块组件分析">Docker 各模块组件分析</h3>
+<h4 id="docker-client发起请求">Docker Client「发起请求」</h4>
+<ol>
+<li>
+<p>Docker Client 是 和 Docker Daemon 建立通信的客户端。用户使用的可执行文件为 docker（一个命令行可执行文件），docker 命令使用后接参数的形式来实现一个完整的请求命令（例如：<code>docker images</code>，docker 为命令不可变，images 为参数可变）。</p>
+</li>
+<li>
+<p>Docker Client 可以通过以下三种方式和 Docker Daemon 建立通信：<code>tcp://host:port</code>、<code>unix://path_to_socket</code> 和 <code>fd://socketfd</code></p>
+</li>
+<li>
+<p>Docker Client 发送容器管理请求后，由 Docker Daemon 接受并处理请求，当 Docker Client 接收到返回的请求相应并简单处理后，Docker Client 一次完整的生命周期就结束了。(一次完整的请求：发送请求→处理请求→返回结果)，与传统的 C/S 架构请求流程并无不同。</p>
+</li>
+</ol>
+<h4 id="docker-daemon-后台守护进程">Docker Daemon 「后台守护进程」</h4>
+<ol>
+<li>Docker Daemon 架构图</li>
+</ol>
+<p><img src="https://www.hi-linux.com/img/linux/docker-arch2.jpg" alt=""></p>
+<ol start="2">
+<li>Docker Server 「调度分发请求」</li>
+</ol>
+<ul>
+<li>Docker Server 架构图</li>
+</ul>
+<p><img src="https://www.hi-linux.com/img/linux/docker-arch3.jpg" alt=""></p>
+<ul>
+<li>
+<p>Docker Server 相当于 C/S 架构的服务端。功能为接受并调度分发 Docker Client 发送的请求。接受请求后，Docker Server 通过路由与分发调度，找到相应的 Handler 来执行请求。</p>
+</li>
+<li>
+<p>在 Docker 的启动过程中，通过包 gorilla/mux 创建了一个 mux.Router 来提供请求的路由功能。在 Golang 中 gorilla/mux 是一个强大的 URL 路由器以及调度分发器。该 mux.Router 中添加了众多的路由项，每一个路由项由 HTTP 请求方法（PUT、POST、GET 或DELETE）、URL、Handler 三部分组成。</p>
+</li>
+<li>
+<p>创建完 mux.Router 之后，Docker 将 Server 的监听地址以及 mux.Router 作为参数来创建一个 httpSrv=http.Server{}，最终执行 httpSrv.Serve() 为请求服务。</p>
+</li>
+<li>
+<p>在 Docker Server 的服务过程中，Docker Server 在 listener 上接受 Docker Client 的访问请求，并创建一个全新的 goroutine 来服务该请求。在 goroutine 中，首先读取请求内容并做解析工作，接着找到相应的路由项并调用相应的 Handler 来处理该请求，最后 Handler 处理完请求之后回复该请求。</p>
+</li>
+</ul>
+<ol start="3">
+<li>Docker Engine</li>
+</ol>
+<ul>
+<li>
+<p>Docker Engine 是 Docker 架构中的运行引擎，同时也 Docker 运行的核心模块。它扮演 Docker Container 存储仓库的角色，并且通过执行 Job 的方式来操纵管理这些容器。</p>
+</li>
+<li>
+<p>在 Docker Engine 数据结构的设计与实现过程中，有一个 Handler 对象。该 Handler 对象存储的都是关于众多特定 Job 的 Handler 处理访问。举例说明: Docker Engine 的Handler 对象中有一项为：{“create”: daemon.ContainerCreate,}，则说明当名为&quot;create&quot; 的 Job 在运行时，执行的是 daemon.ContainerCreate 的 Handler。</p>
+</li>
+</ul>
+<ol start="4">
+<li>Job</li>
+</ol>
+<ul>
+<li>
+<p>一个 Job 可以认为是 Docker 架构中 Docker Engine 内部最基本的工作执行单元。Docker 可以做的每一项工作，都可以抽象为一个 Job。例如：在容器内部运行一个进程，这是一个 Job；创建一个新的容器，这是一个 Job。 Docker Server 的运行过程也是一个 Job，名为 ServeApi。</p>
+</li>
+<li>
+<p>Job 的设计者，把 Job 设计得与 Unix 进程相仿。比如说：Job 有一个名称、有参数、有环境变量、有标准的输入输出、有错误处理，有返回状态等。</p>
+</li>
+</ul>
+<h4 id="docker-registry-镜像注册中心">Docker Registry 「镜像注册中心」</h4>
+<ol>
+<li>
+<p>Docker Registry 是一个存储容器镜像的仓库（注册中心），可理解为云端镜像仓库。按 Repository 来分类，<code>docker pull</code> 按照 [repository]:[tag] 来精确定义一个具体的 Image。</p>
+</li>
+<li>
+<p>在 Docker 的运行过程中，Docker Daemon 会与 Docker Registry 通信，并实现搜索镜像、下载镜像、上传镜像三个功能，这三个功能对应的 Job 名称分别为： “search”、“pull” 与 “push”。</p>
+</li>
+<li>
+<p>Docker Registry 可分为公有仓库（ Docker Hub）和私有仓库。</p>
+</li>
+</ol>
+<h4 id="graph-docker-内部数据库">Graph 「Docker 内部数据库」</h4>
+<ol>
+<li>Graph 架构图</li>
+</ol>
+<p><img src="https://www.hi-linux.com/img/linux/docker-arch4.jpg" alt=""></p>
+<ol start="2">
+<li>Repository</li>
+</ol>
+<ul>
+<li>已下载镜像的保管者（包括下载的镜像和通过 Dockerfile 构建的镜像）。</li>
+<li>一个 Repository 表示某类镜像的仓库（例如：Ubuntu），同一个 Repository 内的镜像用 Tag 来区分（表示同一类镜像的不同标签或版本）。一个 Registry 包含多个Repository，一个 Repository 包含同类型的多个 Image。</li>
+<li>镜像的存储类型有 Aufs、Devicemapper、Btrfs、Vfs等。其中 CentOS 系统 7.x 以下版本使用 Devicemapper 的存储类型。</li>
+<li>同时在 Graph 的本地目录中存储有关于每一个的容器镜像具体信息，包含有：该容器镜像的元数据、容器镜像的大小信息、以及该容器镜像所代表的具体 rootfs。</li>
+</ul>
+<ol start="3">
+<li>GraphDB</li>
+</ol>
+<ul>
+<li>已下载容器镜像之间关系的记录者。</li>
+<li>GraphDB 是一个构建在 SQLite 之上的小型数据库，实现了节点的命名以及节点之间关联关系的记录。</li>
+</ul>
+<h4 id="driver-执行部分">Driver 「执行部分」</h4>
+<p>Driver 是 Docker 架构中的驱动模块。通过 Driver 驱动，Docker 可以实现对 Docker 容器执行环境的定制。即 Graph 负责镜像的存储，Driver 负责容器的执行。</p>
+<h5 id="graphdriver">Graphdriver</h5>
+<ol>
+<li>Graphdriver 架构图</li>
+</ol>
+<p><img src="https://www.hi-linux.com/img/linux/docker-arch5.jpg" alt=""></p>
+<ol start="2">
+<li>Graphdriver 主要用于完成容器镜像的管理，包括存储与获取。</li>
+<li>存储：<code>docker pull</code> 下载的镜像由 Graphdriver 存储到本地的指定目录（ Graph 中）。</li>
+<li>获取：<code>docker run</code>（create）用镜像来创建容器的时候由 Graphdriver 到本地 Graph中获取镜像。</li>
+</ol>
+<h5 id="networkdriver">Networkdriver</h5>
+<ol>
+<li>Networkdriver 架构图</li>
+</ol>
+<p><img src="https://www.hi-linux.com/img/linux/docker-arch6.jpg" alt=""></p>
+<ol start="2">
+<li>Networkdriver 的用途是完成 Docker 容器网络环境的配置，其中包括:</li>
+</ol>
+<ul>
+<li>Docker 启动时为 Docker 环境创建网桥。</li>
+<li>Docker 容器创建时为其创建专属虚拟网卡设备。</li>
+<li>Docker 容器分配IP、端口并与宿主机做端口映射，设置容器防火墙策略等。</li>
+</ul>
+<h5 id="execdriver">Execdriver</h5>
+<ol>
+<li>Execdriver 架构图</li>
+</ol>
+<p><img src="https://www.hi-linux.com/img/linux/docker-arch7.jpg" alt=""></p>
+<ol start="2">
+<li>
+<p>Execdriver 作为 Docker 容器的执行驱动，负责创建容器运行命名空间、容器资源使用的统计与限制、容器内部进程的真正运行等。</p>
+</li>
+<li>
+<p>现在 Execdriver 默认使用 Native 驱动，不依赖于 LXC。</p>
+</li>
+</ol>
+<h4 id="libcontainer-函数库">Libcontainer 「函数库」</h4>
+<ol>
+<li>Libcontainer 架构图</li>
+</ol>
+<p><img src="https://www.hi-linux.com/img/linux/docker-arch8.jpg" alt=""></p>
+<ol start="2">
+<li>
+<p>Libcontainer 是 Docker 架构中一个使用 Go 语言设计实现的库，设计初衷是希望该库可以不依靠任何依赖，直接访问内核中与容器相关的 API。</p>
+</li>
+<li>
+<p>Docker 可以直接调用 Libcontainer 来操纵容器的 Namespace、Cgroups、Apparmor、网络设备以及防火墙规则等。</p>
+</li>
+<li>
+<p>Libcontainer 提供了一整套标准的接口来满足上层对容器管理的需求。或者说 Libcontainer 屏蔽了 Docker 上层对容器的直接管理。</p>
+</li>
+</ol>
+<h4 id="docker-container-服务交付的最终形式">Docker Container 「服务交付的最终形式」</h4>
+<ol>
+<li>Docker Container 架构</li>
+</ol>
+<p><img src="https://www.hi-linux.com/img/linux/docker-arch9.jpg" alt=""></p>
+<ol start="2">
+<li>
+<p>Docker Container（ Docker 容器 ）是 Docker 架构中服务交付的最终体现形式。</p>
+</li>
+<li>
+<p>Docker 按照用户的需求与指令，订制相应的 Docker 容器：</p>
+</li>
+</ol>
+<ul>
+<li>用户通过指定容器镜像，使得 Docker 容器可以自定义 rootfs 等文件系统。</li>
+<li>用户通过指定计算资源的配额，使得 Docker 容器使用指定的计算资源。</li>
+<li>用户通过配置网络及其安全策略，使得 Docker 容器拥有独立且安全的网络环境。</li>
+<li>用户通过指定运行的命令，使得 Docker 容器执行指定的工作。</li>
+</ul>
+<blockquote>
+<p>本文在 「<a href="http://www.huweihuang.com/article/docker/docker-architecture/" target="_blank" rel="noopener">Docker 整体架构图</a>」的基础上整理和修改。</p>
+</blockquote>
+<h3 id="参考文档">参考文档</h3>
+<p><a href="http://www.google.com" target="_blank" rel="noopener">http://www.google.com</a><br>
+<a href="http://t.cn/RdiV7Sn" target="_blank" rel="noopener">http://t.cn/RdiV7Sn</a></p>
+
+                
+
+                <hr>
+                <!-- Pager -->
+                <ul class="pager">
+                    
+                        <li class="previous">
+                            <a href="/posts/32833.html" data-toggle="tooltip" data-placement="top" title="浏览器数据库 IndexedDB 入门教程">&larr; Previous Post</a>
+                        </li>
+                    
+                    
+                        <li class="next">
+                            <a href="/posts/26571.html" data-toggle="tooltip" data-placement="top" title="浅析 AnyCast 技术">Next Post &rarr;</a>
+                        </li>
+                    
+                </ul>
+
+                <!-- duoshuo Share start -->
+                
+                <!-- 多说 Share end-->
+
+                <!-- 多说评论框 start -->
+                
+                <!-- 多说评论框 end -->
+
+                <!-- disqus comment start -->
+                
+                <!-- disqus comment end -->
+
+                
+                    <!-- disqus 评论框 start -->
+                    <div class="comment">
+                        <div id="lv-container" data-id="city" data-uid="MTAyMC8yNzg2My80NDQw"></div>
+                    </div>
+                    <!-- disqus 评论框 end -->
+                
+
+            </div>
+            
+            <!-- Tabe of Content -->
+            <!-- Table of Contents -->
+
+  
+    <style>
+      span.toc-nav-number{
+        display: none
+      }
+    </style>
+  
+    
+      <aside id="sidebar">
+        <div id="toc" class="toc-article">
+        <strong class="toc-title">Contents</strong>
+        
+          <ol class="toc-nav"><li class="toc-nav-item toc-nav-level-3"><a class="toc-nav-link" href="#docker-总架构图"><span class="toc-nav-number">1.</span> <span class="toc-nav-text">Docker 总架构图</span></a></li><li class="toc-nav-item toc-nav-level-3"><a class="toc-nav-link" href="#docker-各模块组件分析"><span class="toc-nav-number">2.</span> <span class="toc-nav-text">Docker 各模块组件分析</span></a><ol class="toc-nav-child"><li class="toc-nav-item toc-nav-level-4"><a class="toc-nav-link" href="#docker-client发起请求"><span class="toc-nav-number">2.1.</span> <span class="toc-nav-text">Docker Client「发起请求」</span></a></li><li class="toc-nav-item toc-nav-level-4"><a class="toc-nav-link" href="#docker-daemon-后台守护进程"><span class="toc-nav-number">2.2.</span> <span class="toc-nav-text">Docker Daemon 「后台守护进程」</span></a></li><li class="toc-nav-item toc-nav-level-4"><a class="toc-nav-link" href="#docker-registry-镜像注册中心"><span class="toc-nav-number">2.3.</span> <span class="toc-nav-text">Docker Registry 「镜像注册中心」</span></a></li><li class="toc-nav-item toc-nav-level-4"><a class="toc-nav-link" href="#graph-docker-内部数据库"><span class="toc-nav-number">2.4.</span> <span class="toc-nav-text">Graph 「Docker 内部数据库」</span></a></li><li class="toc-nav-item toc-nav-level-4"><a class="toc-nav-link" href="#driver-执行部分"><span class="toc-nav-number">2.5.</span> <span class="toc-nav-text">Driver 「执行部分」</span></a><ol class="toc-nav-child"><li class="toc-nav-item toc-nav-level-5"><a class="toc-nav-link" href="#graphdriver"><span class="toc-nav-number">2.5.1.</span> <span class="toc-nav-text">Graphdriver</span></a></li><li class="toc-nav-item toc-nav-level-5"><a class="toc-nav-link" href="#networkdriver"><span class="toc-nav-number">2.5.2.</span> <span class="toc-nav-text">Networkdriver</span></a></li><li class="toc-nav-item toc-nav-level-5"><a class="toc-nav-link" href="#execdriver"><span class="toc-nav-number">2.5.3.</span> <span class="toc-nav-text">Execdriver</span></a></li></ol></li><li class="toc-nav-item toc-nav-level-4"><a class="toc-nav-link" href="#libcontainer-函数库"><span class="toc-nav-number">2.6.</span> <span class="toc-nav-text">Libcontainer 「函数库」</span></a></li><li class="toc-nav-item toc-nav-level-4"><a class="toc-nav-link" href="#docker-container-服务交付的最终形式"><span class="toc-nav-number">2.7.</span> <span class="toc-nav-text">Docker Container 「服务交付的最终形式」</span></a></li></ol></li><li class="toc-nav-item toc-nav-level-3"><a class="toc-nav-link" href="#参考文档"><span class="toc-nav-number">3.</span> <span class="toc-nav-text">参考文档</span></a></li></ol>
+        
+        </div>
+      </aside>
+    
+
+                
+            <!-- Sidebar Container -->
+            <div class="
+                col-lg-8 col-lg-offset-2
+                col-md-10 col-md-offset-1
+                sidebar-container">
+
+                <!-- Featured Tags -->
+                
+                <section>
+                    <!-- no hr -->
+                    <h5><a href="/tags/">FEATURED TAGS</a></h5>
+                    <div class="tags">
+                       
+                          <a class="tag" href="/tags/#Linux" title="Linux">Linux</a>
+                        
+                          <a class="tag" href="/tags/#Docker" title="Docker">Docker</a>
+                        
+                    </div>
+                </section>
+                
+
+                <!-- Friends Blog -->
+                
+                <hr>
+                <h5>FRIENDS</h5>
+                <ul class="list-inline">
+
+                    
+                        <li><a href="http://www.mike.org.cn/" target="_blank">简单.生活</a></li>
+                    
+                        <li><a href="http://shang.qq.com/wpa/qunwpa?idkey=ea4c43493c2269428ac6ef6141de4b6d78e5ab2d41380ca4099b833b62884ee9" target="_blank">技术交流群</a></li>
+                    
+                        <li><a href="" target="_blank"></a></li>
+                    
+                        <li><a href="" target="_blank"></a></li>
+                    
+                </ul>
+                
+            </div>
+        </div>
+    </div>
+</article>
+
+
+
+
+
+
+    <!-- 来必力City版公共JS代码 start (一个网页只需插入一次) -->
+    <script type="text/javascript">
+       (function(d, s) {
+           var j, e = d.getElementsByTagName(s)[0];
+    
+           if (typeof LivereTower === 'function') { return; }
+    
+           j = d.createElement(s);
+           j.src = 'https://cdn-city.livere.com/js/embed.dist.js';
+           j.async = true;
+    
+           e.parentNode.insertBefore(j, e);
+       })(document, 'script');
+    </script>
+    <noscript>为正常使用来必力评论功能请激活JavaScript</noscript>
+    <!-- 来必力City版 公共JS代码 end -->
+
+
+
+<!-- async load function -->
+<script>
+    function async(u, c) {
+      var d = document, t = 'script',
+          o = d.createElement(t),
+          s = d.getElementsByTagName(t)[0];
+      o.src = u;
+      if (c) { o.addEventListener('load', function (e) { c(null, e); }, false); }
+      s.parentNode.insertBefore(o, s);
+    }
+</script>
+<!-- anchor-js, Doc:http://bryanbraun.github.io/anchorjs/ -->
+<script>
+    async("https://cdn.bootcss.com/anchor-js/1.1.1/anchor.min.js",function(){
+        anchors.options = {
+          visible: 'hover',
+          placement: 'left',
+          icon: 'ℬ'
+        };
+        anchors.add().remove('.intro-header h1').remove('.subheading').remove('.sidebar-container h5');
+    })
+</script>
+<style>
+    /* place left on bigger screen */
+    @media all and (min-width: 800px) {
+        .anchorjs-link{
+            position: absolute;
+            left: -0.75em;
+            font-size: 1.1em;
+            margin-top : -0.1em;
+        }
+    }
+</style>
+
+
+
+    <!-- Footer -->
+    <!-- Footer -->
+<footer>
+    <div class="container">
+        <div class="row">
+            <div class="col-lg-8 col-lg-offset-2 col-md-10 col-md-offset-1">
+                <ul class="list-inline text-center">
+                
+                    <li>
+                        <a href="/atom.xml">
+                            <span class="fa-stack fa-lg">
+                                <i class="fa fa-circle fa-stack-2x"></i>
+                                <i class="fa fa-rss fa-stack-1x fa-inverse"></i>
+                            </span>
+                        </a>
+                    </li>
+                
+                
+                
+                    <li>
+                        <a target="_blank" href="https://www.zhihu.com/people/80imike">
+                            <span class="fa-stack fa-lg">
+                                <i class="fa fa-circle fa-stack-2x"></i>
+                                <i class="fa  fa-stack-1x fa-inverse">知</i>
+                            </span>
+                        </a>
+                    </li>
+                
+
+                
+                    <li>
+                        <a target="_blank" href="http://weibo.com/2093524665">
+                            <span class="fa-stack fa-lg">
+                                <i class="fa fa-circle fa-stack-2x"></i>
+                                <i class="fa fa-weibo fa-stack-1x fa-inverse"></i>
+                            </span>
+                        </a>
+                    </li>
+                
+
+                
+
+                
+
+                
+
+                </ul>
+                <p class="copyright text-muted">
+                    Copyright &copy; Mike 2018 | Hosted by <a href="https://pages.coding.me" style="font-weight: bold">Coding Pages</a>
+                    <br>
+                    Theme by <a href="http://beantech.org">BeanTech</a> 
+                    <span style="display: inline-block; margin: 0 5px;">
+                        <i class="fa fa-heart"></i>
+                    </span> 
+                    re-Ported by <a href="http://www.huweihuang.com">胡伟煌</a> | 
+                    <iframe
+                        style="margin-left: 2px; margin-bottom:-5px;"
+                        frameborder="0" scrolling="0" width="91px" height="20px"
+                        src="https://ghbtns.com/github-btn.html?user=huweihuang&repo=hexo-theme-huweihuang&type=star&count=true" >
+                    </iframe>
+                </p>
+            </div>
+        </div>
+    </div>
+</footer>
+
+<!-- jQuery -->
+<script src="/js/jquery.min.js"></script>
+
+<!-- Bootstrap Core JavaScript -->
+<script src="/js/bootstrap.min.js"></script>
+
+<!-- Custom Theme JavaScript -->
+<script src="/js/hux-blog.min.js"></script>
+
+
+<!-- async load function -->
+<script>
+    function async(u, c) {
+      var d = document, t = 'script',
+          o = d.createElement(t),
+          s = d.getElementsByTagName(t)[0];
+      o.src = u;
+      if (c) { o.addEventListener('load', function (e) { c(null, e); }, false); }
+      s.parentNode.insertBefore(o, s);
+    }
+</script>
+
+<!-- 
+     Because of the native support for backtick-style fenced code blocks 
+     right within the Markdown is landed in Github Pages, 
+     From V1.6, There is no need for Highlight.js, 
+     so Huxblog drops it officially.
+
+     - https://github.com/blog/2100-github-pages-now-faster-and-simpler-with-jekyll-3-0  
+     - https://help.github.com/articles/creating-and-highlighting-code-blocks/    
+-->
+<!--
+    <script>
+        async("http://cdn.bootcss.com/highlight.js/8.6/highlight.min.js", function(){
+            hljs.initHighlightingOnLoad();
+        })
+    </script>
+    <link href="http://cdn.bootcss.com/highlight.js/8.6/styles/github.min.css" rel="stylesheet">
+-->
+
+
+<!-- jquery.tagcloud.js -->
+<script>
+    // only load tagcloud.js in tag.html
+    if($('#tag_cloud').length !== 0){
+        async("https://www.hi-linux.com/js/jquery.tagcloud.js",function(){
+            $.fn.tagcloud.defaults = {
+                //size: {start: 1, end: 1, unit: 'em'},
+                color: {start: '#bbbbee', end: '#0085a1'},
+            };
+            $('#tag_cloud a').tagcloud();
+        })
+    }
+</script>
+
+<!--fastClick.js -->
+<script>
+    async("https://cdn.bootcss.com/fastclick/1.0.6/fastclick.min.js", function(){
+        var $nav = document.querySelector("nav");
+        if($nav) FastClick.attach($nav);
+    })
+</script>
+
+
+<!-- Google Analytics -->
+
+
+
+
+<!-- Baidu Tongji -->
+
+
+
+
+
+
+	<a id="rocket" href="#top" class=""></a>
+	<script type="text/javascript" src="/js/totop.js?v=1.0.0" async=""></script>
+    <script type="text/javascript" src="/js/toc.js?v=1.0.0" async=""></script>
+<!-- Image to hack wechat -->
+<img src="https://www.hi-linux.com/img/icon_wechat.png" width="0" height="0" />
+<!-- Migrate from head to bottom, no longer block render and still work -->
+
+</body>
+
+</html>

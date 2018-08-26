@@ -1,0 +1,644 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<!-- Head tag -->
+<head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="google-site-verification" content="xBT4GhYoi5qRD5tr338pgPM5OWHHIDR6mNg1a3euekI" />
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="description" content="">
+    <meta name="keyword"  content="Linux,运维,Nginx,Zabbix,Centos,Ansible,MySQL,Python,Docker,ELK,Haproxy,Git,Nodejs,安全,技术">
+    <link rel="shortcut icon" href="/img/ironman-draw.png">
+    <!-- Place this tag in your head or just before your close body tag. -->
+    <script async defer src="https://buttons.github.io/buttons.js"></script>
+    <title>
+        
+          使用 Mosh 来优化 SSH 连接 - 运维之美
+        
+    </title>
+
+    <link rel="canonical" href="https://www.hi-linux.com/posts/23118.html">
+
+    <!-- Bootstrap Core CSS -->
+    <link rel="stylesheet" href="/css/bootstrap.min.css">
+
+    <!-- Custom CSS --> 
+    <link rel="stylesheet" href="/css/beantech.min.css">
+    
+    <!-- Pygments Highlight CSS -->
+    <link rel="stylesheet" href="/css/highlight.css">
+
+    <link rel="stylesheet" href="/css/widget.css">
+
+    <link rel="stylesheet" href="/css/rocket.css">
+
+    <link rel="stylesheet" href="/css/signature.css">
+
+    <link rel="stylesheet" href="/css/toc.css">
+
+    <!-- Custom Fonts -->
+    <!-- <link href="https://maxcdn.bootstrapcdn.com/font-awesome/4.3.0/css/font-awesome.min.css" rel="stylesheet" type="text/css"> -->
+    <!-- Hux change font-awesome CDN to qiniu -->
+    <link href="https://cdn.staticfile.org/font-awesome/4.5.0/css/font-awesome.min.css" rel="stylesheet" type="text/css">
+
+
+    <!-- Hux Delete, sad but pending in China
+    <link href='http://fonts.googleapis.com/css?family=Lora:400,700,400italic,700italic' rel='stylesheet' type='text/css'>
+    <link href='http://fonts.googleapis.com/css?family=Open+Sans:300italic,400italic,600italic,700italic,800italic,400,300,600,700,800' rel='stylesheet' type='text/
+    css'>
+    -->
+
+
+    <!-- HTML5 Shim and Respond.js IE8 support of HTML5 elements and media queries -->
+    <!-- WARNING: Respond.js doesn't work if you view the page via file:// -->
+    <!--[if lt IE 9]>
+        <script src="https://oss.maxcdn.com/libs/html5shiv/3.7.0/html5shiv.js"></script>
+        <script src="https://oss.maxcdn.com/libs/respond.js/1.4.2/respond.min.js"></script>
+    <![endif]-->
+
+    <!-- ga & ba script hoook -->
+    <script></script>
+</head>
+
+
+<!-- hack iOS CSS :active style -->
+<body ontouchstart="">
+	<!-- Modified by Yu-Hsuan Yen -->
+<!-- Post Header -->
+<style type="text/css">
+    header.intro-header{
+        
+            background-image: url('/img/header_img/article.jpg')
+            /*post*/
+        
+    }
+    
+</style>
+
+<header class="intro-header" >
+    <!-- Signature -->
+    <div id="signature">
+        <div class="container">
+            <div class="row">
+                <div class="col-lg-8 col-lg-offset-2 col-md-10 col-md-offset-1">
+                
+                    <div class="post-heading">
+                        <div class="tags">
+                            
+                              <a class="tag" href="/tags/#Linux" title="Linux">Linux</a>
+                            
+                              <a class="tag" href="/tags/#SSH" title="SSH">SSH</a>
+                            
+                        </div>
+                        <h1>使用 Mosh 来优化 SSH 连接</h1>
+                        <h2 class="subheading"></h2>
+                        <span class="meta">
+                            Posted by Mike on
+                            2016-07-19
+                        </span>
+                    </div>
+                
+
+
+                </div>
+            </div>
+        </div>
+    </div>
+</header>
+
+	
+    <!-- Navigation -->
+<nav class="navbar navbar-default navbar-custom navbar-fixed-top">
+    <div class="container-fluid">
+        <!-- Brand and toggle get grouped for better mobile display -->
+        <div class="navbar-header page-scroll">
+            <button type="button" class="navbar-toggle">
+                <span class="sr-only">Toggle navigation</span>
+                <span class="icon-bar"></span>
+                <span class="icon-bar"></span>
+                <span class="icon-bar"></span>
+            </button>
+            <a class="navbar-brand" href="/">运维之美</a>
+        </div>
+
+        <!-- Collect the nav links, forms, and other content for toggling -->
+        <!-- Known Issue, found by Hux:
+            <nav>'s height woule be hold on by its content.
+            so, when navbar scale out, the <nav> will cover tags.
+            also mask any touch event of tags, unfortunately.
+        -->
+        <div id="huxblog_navbar">
+            <div class="navbar-collapse">
+                <ul class="nav navbar-nav navbar-right">
+                    <li>
+                        <a href="/">Home</a>
+                    </li>
+
+                    
+
+                        
+                    
+
+                        
+                    
+
+                        
+                        <li>
+                            <a href="/about/">About</a>
+                        </li>
+                        
+                    
+
+                        
+                        <li>
+                            <a href="/archive/">Archives</a>
+                        </li>
+                        
+                    
+
+                        
+                        <li>
+                            <a href="/tags/">Tags</a>
+                        </li>
+                        
+                    
+                    
+                </ul>
+            </div>
+        </div>
+        <!-- /.navbar-collapse -->
+    </div>
+    <!-- /.container -->
+</nav>
+<script>
+    // Drop Bootstarp low-performance Navbar
+    // Use customize navbar with high-quality material design animation
+    // in high-perf jank-free CSS3 implementation
+    var $body   = document.body;
+    var $toggle = document.querySelector('.navbar-toggle');
+    var $navbar = document.querySelector('#huxblog_navbar');
+    var $collapse = document.querySelector('.navbar-collapse');
+
+    $toggle.addEventListener('click', handleMagic)
+    function handleMagic(e){
+        if ($navbar.className.indexOf('in') > 0) {
+        // CLOSE
+            $navbar.className = " ";
+            // wait until animation end.
+            setTimeout(function(){
+                // prevent frequently toggle
+                if($navbar.className.indexOf('in') < 0) {
+                    $collapse.style.height = "0px"
+                }
+            },400)
+        }else{
+        // OPEN
+            $collapse.style.height = "auto"
+            $navbar.className += " in";
+        }
+    }
+</script>
+
+
+    <!-- Main Content -->
+    <!-- Modify by Yu-Hsuan Yen -->
+
+<!-- Post Content -->
+<article>
+    <div class="container">
+        <div class="row">
+
+            <!-- Post Container -->
+            <div class="
+                col-lg-8 col-lg-offset-2
+                col-md-10 col-md-offset-1
+                post-container">
+
+                <h3 id="什么是mosh">什么是Mosh</h3>
+<p>Mosh表示移动Shell(Mobile Shell)，是一个用于从客户端跨互联网连接远程服务器的命令行工具。它能用于SSH连接，但是比Secure Shell功能更多。它是一个类似于SSH而带有更多功能的应用。程序最初由Keith Winstein 编写，用于类Unix的操作系统中，发布于GNU GPL V3协议下。</p>
+<p>Mosh最大的特点是基于UDP方式传输，支持在服务端创建一个临时的Key供客户端一次性连接，退出后失效；也支持通过SSH的配置进行认证，但数据传输本身还是自身的UDP方式。</p>
+<a id="more"></a>
+<p>另外，Mosh还有两个我觉得非常有用的功能</p>
+<ul>
+<li>会话的中断不会导致当前正在前端执行的命令中断，相当于你所有的操作都是在screen命令中一样在后台执行。</li>
+<li>会话在中断过后，不会立刻退出，而是启用一个计时器，当网络恢复后会自动重新连接，同时会延续之前的会话，不会重新开启一个。</li>
+</ul>
+<h4 id="mosh的功能">Mosh的功能</h4>
+<ul>
+<li>它是一个支持漫游的远程终端程序</li>
+<li>在所有主流的类 Unix 版本中可用，如 Linux、FreeBSD、Solaris、Mac OS X和Android</li>
+<li>支持不稳定连接</li>
+<li>支持智能的本地回显</li>
+<li>支持用户输入的行编辑</li>
+<li>响应式设计及在 wifi、3G、长距离连接下的鲁棒性</li>
+<li>在IP改变后保持连接。它使用UDP代替TCP(在SSH中使用)，当连接被重置或者获得新的IP后TCP会超时，但是UDP仍然保持连接</li>
+<li>在很长的时候之后恢复会话时仍然保持连接</li>
+<li>没有网络延迟。立即显示用户输入和删除而没有延迟</li>
+<li>像SSH那样支持一些旧的方式登录</li>
+<li>包丢失处理机制</li>
+</ul>
+<h3 id="mosh安装配置">Mosh安装配置</h3>
+<p>Mosh需要同时在服务器端与客户端上安装，这是一件非常简单的事情。</p>
+<h4 id="linux中安装mosh">Linux中安装Mosh</h4>
+<ul>
+<li>在Debian、Ubuntu 和Mint 类似的系统中，你可以很容易地用apt-get包管理器安装。</li>
+</ul>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">$ apt-get update</span><br><span class="line">$ apt-get install mosh</span><br></pre></td></tr></table></figure>
+<ul>
+<li>在基于RHEL/CentOS/Fedora的系统中，要使用yum包管理器安装mosh，你需要打开第三方的EPEL。</li>
+</ul>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">$ yum update</span><br><span class="line">$ yum install mosh</span><br></pre></td></tr></table></figure>
+<ul>
+<li>在Fedora 22+的版本中，你需要使用dnf包管理器来安装Mosh。</li>
+</ul>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">$ dnf install mosh</span><br></pre></td></tr></table></figure>
+<h4 id="mac中安装mosh">MAC中安装Mosh</h4>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">$ brew install mosh</span><br><span class="line">$ brew install --HEAD mosh #安装git最新版本</span><br></pre></td></tr></table></figure>
+<p><strong>注：目前Mosh的最新版本是1.2.4，这个版本有一个小问题就是不会汇报鼠标事件，如果你在远程的VIM或者tmux等支持鼠标事件的程序中喜欢用滚轮或者触摸屏滚动屏幕的话，可能会有点不习惯。如果不能忍可以自己编译安装Git里的最新版本的Mosh。</strong></p>
+<h4 id="检查mosh的版本">检查Mosh的版本</h4>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">$ mosh --version</span><br><span class="line">mosh 1.2.4</span><br><span class="line">Copyright 2012 Keith Winstein &lt;mosh-devel@mit.edu&gt;</span><br><span class="line">License GPLv3+: GNU GPL version 3 or later &lt;http://gnu.org/licenses/gpl.html&gt;.</span><br><span class="line">This is free software: you are free to change and redistribute it.</span><br><span class="line">There is NO WARRANTY, to the extent permitted by law.</span><br></pre></td></tr></table></figure>
+<p>你可以输入exit来退出Mosh会话。</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">$ exit</span><br></pre></td></tr></table></figure>
+<h3 id="mosh参数说明">Mosh参数说明</h3>
+<p>Mosh支持很多选项，你可以用下面的方法看到</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br></pre></td><td class="code"><pre><span class="line">$ mosh --help</span><br><span class="line">Usage: /usr/bin/mosh [options] [--] [user@]host [command...]</span><br><span class="line">        --client=PATH        mosh client on local machine</span><br><span class="line">                                (default: &quot;mosh-client&quot;)</span><br><span class="line">        --server=COMMAND     mosh server on remote machine</span><br><span class="line">                                (default: &quot;mosh-server&quot;)</span><br><span class="line"></span><br><span class="line">        --predict=adaptive      local echo for slower links [default]</span><br><span class="line">-a      --predict=always        use local echo even on fast links</span><br><span class="line">-n      --predict=never         never use local echo</span><br><span class="line">        --predict=experimental  aggressively echo even when incorrect</span><br><span class="line"></span><br><span class="line">-p PORT[:PORT2]</span><br><span class="line">        --port=PORT[:PORT2]  server-side UDP port or range</span><br><span class="line"></span><br><span class="line">        --ssh=COMMAND        ssh command to run when setting up session</span><br><span class="line">                                (example: &quot;ssh -p 2222&quot;)</span><br><span class="line">                                (default: &quot;ssh&quot;)</span><br><span class="line"></span><br><span class="line">        --no-init            do not send terminal initialization string</span><br><span class="line"></span><br><span class="line">        --help               this message</span><br><span class="line">        --version            version and copyright information</span><br><span class="line"></span><br><span class="line">Please report bugs to mosh-devel@mit.edu.</span><br><span class="line">Mosh home page: http://mosh.mit.edu</span><br></pre></td></tr></table></figure>
+<h3 id="mosh远程连接">Mosh远程连接</h3>
+<p>Mosh使用的UDP协议连接的，使用的端口是从60000到61000，如果开启了防火墙服务器上就需要打开相应的UDP端口。一个Mosh连接就会打开一个UDP端口，比如建立两个连接就是60001、60002，以此类推。</p>
+<p>假设Mosh使用60001 UDP端口，则在服务器上运行</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">$ iptables -I INPUT -p udp --dport 60001 -j ACCEPT</span><br></pre></td></tr></table></figure>
+<p>这样就在服务器上打开60001这个UDP端口。当然，最好是把上一条命令写入服务器iptables的规则中，这样不必要每次都手动打开这个端口。</p>
+<h3 id="mosh的使用">Mosh的使用</h3>
+<ul>
+<li>使用Mosh登录远程Linux服务器</li>
+</ul>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">$ mosh USERNAME@IP</span><br></pre></td></tr></table></figure>
+<ul>
+<li>指定开启的端口</li>
+</ul>
+<p>客户端进行连接时指定端口并开启端口，默认端口从60001开始开启。接下来就是从客户端连接，如下：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"># 如果原来连接服务器是采用密码的方式登录，会提示输入密码，如果ssh已经做好了密钥认证，则可以直接连接</span><br><span class="line">$ mosh -p 60001 用户名@ip地址</span><br></pre></td></tr></table></figure>
+<p><strong>注：p参数用于指定UDP端口。</strong></p>
+<ul>
+<li>采用SSH配置进行认证</li>
+</ul>
+<p>假如你的SSH连接设置公钥/私钥连接，比如<code>ssh hi-linux</code>即可直接连接服务器而无需输入密码，则mosh命令也可以以<code>mosh hi-linux</code>的形式连接，基本上，可以把它当作ssh命令的替换，只不过SSH开的是TCP口，Mosh开的是UDP口。</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">$ mosh mike@hi-linux.com</span><br><span class="line">$ exit</span><br><span class="line">logout</span><br><span class="line">[mosh is exiting.]</span><br></pre></td></tr></table></figure>
+<ul>
+<li>指定服务端SSH开启的端口</li>
+</ul>
+<p>假设服务端开始的端口是2222</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">$ mosh --ssh=&quot;ssh -p 2222&quot; 用户@服务器IP</span><br></pre></td></tr></table></figure>
+<ul>
+<li>如果私钥不在默认的目录</li>
+</ul>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">$ mosh --ssh=&quot;~/bin/ssh -i ./identity&quot;  用户@服务器IP</span><br></pre></td></tr></table></figure>
+<ul>
+<li>如果服务端修改过SSH的端口，或需要指定单独的SSHKEY，可以通过<code>--ssh</code>参数的方式</li>
+</ul>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">$ mosh --ssh=&quot;ssh -i /home/dong.guo/.ssh/oozie -p 2222&quot;</span><br></pre></td></tr></table></figure>
+<ul>
+<li>采用临时Key的方式进行一次性认证</li>
+</ul>
+<p>先需要在服务端创建Key，然后客户端通过这个Key进行登录，该Key会在会话结束十分钟后自动失效。</p>
+<p>创建一个临时的Key和端口供Client登录</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line">$ mosh-server</span><br><span class="line"></span><br><span class="line">MOSH CONNECT 60001 hNpGrd5rzRrfP47LQEizJw</span><br><span class="line">mosh-server (mosh 1.2.4)</span><br><span class="line">Copyright 2012 Keith Winstein &lt;mosh-devel@mit.edu&gt;</span><br><span class="line">License GPLv3+: GNU GPL version 3 or later &lt;http://gnu.org/licenses/gpl.html&gt;.</span><br><span class="line">This is free software: you are free to change and redistribute it.</span><br><span class="line">There is NO WARRANTY, to the extent permitted by law.</span><br><span class="line">[mosh-server detached, pid = 27290]</span><br></pre></td></tr></table></figure>
+<p>定义好MOSH_KEY的值</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">$ export MOSH_KEY=hNpGrd5rzRrfP47LQEizJw</span><br></pre></td></tr></table></figure>
+<p>使用临时Key进行登陆</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">$ mosh-client 192.168.92.128 60001</span><br><span class="line">$ exit</span><br><span class="line">logout</span><br><span class="line">[mosh is exiting.]</span><br></pre></td></tr></table></figure>
+<p><strong>注：mosh-client后面只能跟服务器具体的IP地址和临时端口，不支持主机名或域名方式</strong></p>
+<h3 id="总结">总结</h3>
+<p>Mosh是一款在大多数linux发行版的仓库中可以下载的一款小工具。虽然它有一些差异尤其是安全问题和额外的需求，它的功能，比如漫游后保持连接是一个加分点。我的建议是任何一个使用SSH的Linux用户都应该试试这个程序，Mosh值得一试。</p>
+<p><strong>Mosh的优缺点</strong></p>
+<ul>
+<li>Mosh有额外的需求，比如需要允许UDP 直接连接，这在SSH不需要。</li>
+<li>动态分配的端口范围是60000-61000。第一个打开的端口是分配好的。每个连接都需要一个端口。</li>
+<li>默认的端口分配是一个严重的安全问题，尤其是在生产环境中。</li>
+<li>支持IPv6连接，但是不支持IPv6漫游。</li>
+<li>不支持回滚。</li>
+<li>不支持X11转发。</li>
+<li>不支持ssh-agent转发。</li>
+</ul>
+<h3 id="参考文档">参考文档</h3>
+<p><a href="http://www.google.com" target="_blank" rel="noopener">http://www.google.com</a><br>
+<a href="https://mosh.mit.edu/" target="_blank" rel="noopener">https://mosh.mit.edu/</a><br>
+<a href="http://heylinux.com/archives/2955.html" target="_blank" rel="noopener">http://heylinux.com/archives/2955.html</a><br>
+<a href="http://blog.szrf215.com/p/4b16d7c218db" target="_blank" rel="noopener">http://blog.szrf215.com/p/4b16d7c218db</a></p>
+
+                
+
+                <hr>
+                <!-- Pager -->
+                <ul class="pager">
+                    
+                        <li class="previous">
+                            <a href="/posts/12477.html" data-toggle="tooltip" data-placement="top" title="VSFTPD 安装和配置 FTP 虚拟用户实践">&larr; Previous Post</a>
+                        </li>
+                    
+                    
+                        <li class="next">
+                            <a href="/posts/5492.html" data-toggle="tooltip" data-placement="top" title="Apache/Nginx 通过 UserAgent 屏蔽蜘蛛和采集">Next Post &rarr;</a>
+                        </li>
+                    
+                </ul>
+
+                <!-- duoshuo Share start -->
+                
+                <!-- 多说 Share end-->
+
+                <!-- 多说评论框 start -->
+                
+                <!-- 多说评论框 end -->
+
+                <!-- disqus comment start -->
+                
+                <!-- disqus comment end -->
+
+                
+                    <!-- disqus 评论框 start -->
+                    <div class="comment">
+                        <div id="lv-container" data-id="city" data-uid="MTAyMC8yNzg2My80NDQw"></div>
+                    </div>
+                    <!-- disqus 评论框 end -->
+                
+
+            </div>
+            
+            <!-- Tabe of Content -->
+            <!-- Table of Contents -->
+
+  
+    <style>
+      span.toc-nav-number{
+        display: none
+      }
+    </style>
+  
+    
+      <aside id="sidebar">
+        <div id="toc" class="toc-article">
+        <strong class="toc-title">Contents</strong>
+        
+          <ol class="toc-nav"><li class="toc-nav-item toc-nav-level-3"><a class="toc-nav-link" href="#什么是mosh"><span class="toc-nav-number">1.</span> <span class="toc-nav-text">什么是Mosh</span></a><ol class="toc-nav-child"><li class="toc-nav-item toc-nav-level-4"><a class="toc-nav-link" href="#mosh的功能"><span class="toc-nav-number">1.1.</span> <span class="toc-nav-text">Mosh的功能</span></a></li></ol></li><li class="toc-nav-item toc-nav-level-3"><a class="toc-nav-link" href="#mosh安装配置"><span class="toc-nav-number">2.</span> <span class="toc-nav-text">Mosh安装配置</span></a><ol class="toc-nav-child"><li class="toc-nav-item toc-nav-level-4"><a class="toc-nav-link" href="#linux中安装mosh"><span class="toc-nav-number">2.1.</span> <span class="toc-nav-text">Linux中安装Mosh</span></a></li><li class="toc-nav-item toc-nav-level-4"><a class="toc-nav-link" href="#mac中安装mosh"><span class="toc-nav-number">2.2.</span> <span class="toc-nav-text">MAC中安装Mosh</span></a></li><li class="toc-nav-item toc-nav-level-4"><a class="toc-nav-link" href="#检查mosh的版本"><span class="toc-nav-number">2.3.</span> <span class="toc-nav-text">检查Mosh的版本</span></a></li></ol></li><li class="toc-nav-item toc-nav-level-3"><a class="toc-nav-link" href="#mosh参数说明"><span class="toc-nav-number">3.</span> <span class="toc-nav-text">Mosh参数说明</span></a></li><li class="toc-nav-item toc-nav-level-3"><a class="toc-nav-link" href="#mosh远程连接"><span class="toc-nav-number">4.</span> <span class="toc-nav-text">Mosh远程连接</span></a></li><li class="toc-nav-item toc-nav-level-3"><a class="toc-nav-link" href="#mosh的使用"><span class="toc-nav-number">5.</span> <span class="toc-nav-text">Mosh的使用</span></a></li><li class="toc-nav-item toc-nav-level-3"><a class="toc-nav-link" href="#总结"><span class="toc-nav-number">6.</span> <span class="toc-nav-text">总结</span></a></li><li class="toc-nav-item toc-nav-level-3"><a class="toc-nav-link" href="#参考文档"><span class="toc-nav-number">7.</span> <span class="toc-nav-text">参考文档</span></a></li></ol>
+        
+        </div>
+      </aside>
+    
+
+                
+            <!-- Sidebar Container -->
+            <div class="
+                col-lg-8 col-lg-offset-2
+                col-md-10 col-md-offset-1
+                sidebar-container">
+
+                <!-- Featured Tags -->
+                
+                <section>
+                    <!-- no hr -->
+                    <h5><a href="/tags/">FEATURED TAGS</a></h5>
+                    <div class="tags">
+                       
+                          <a class="tag" href="/tags/#Linux" title="Linux">Linux</a>
+                        
+                          <a class="tag" href="/tags/#SSH" title="SSH">SSH</a>
+                        
+                    </div>
+                </section>
+                
+
+                <!-- Friends Blog -->
+                
+                <hr>
+                <h5>FRIENDS</h5>
+                <ul class="list-inline">
+
+                    
+                        <li><a href="http://www.mike.org.cn/" target="_blank">简单.生活</a></li>
+                    
+                        <li><a href="http://shang.qq.com/wpa/qunwpa?idkey=ea4c43493c2269428ac6ef6141de4b6d78e5ab2d41380ca4099b833b62884ee9" target="_blank">技术交流群</a></li>
+                    
+                        <li><a href="" target="_blank"></a></li>
+                    
+                        <li><a href="" target="_blank"></a></li>
+                    
+                </ul>
+                
+            </div>
+        </div>
+    </div>
+</article>
+
+
+
+
+
+
+    <!-- 来必力City版公共JS代码 start (一个网页只需插入一次) -->
+    <script type="text/javascript">
+       (function(d, s) {
+           var j, e = d.getElementsByTagName(s)[0];
+    
+           if (typeof LivereTower === 'function') { return; }
+    
+           j = d.createElement(s);
+           j.src = 'https://cdn-city.livere.com/js/embed.dist.js';
+           j.async = true;
+    
+           e.parentNode.insertBefore(j, e);
+       })(document, 'script');
+    </script>
+    <noscript>为正常使用来必力评论功能请激活JavaScript</noscript>
+    <!-- 来必力City版 公共JS代码 end -->
+
+
+
+<!-- async load function -->
+<script>
+    function async(u, c) {
+      var d = document, t = 'script',
+          o = d.createElement(t),
+          s = d.getElementsByTagName(t)[0];
+      o.src = u;
+      if (c) { o.addEventListener('load', function (e) { c(null, e); }, false); }
+      s.parentNode.insertBefore(o, s);
+    }
+</script>
+<!-- anchor-js, Doc:http://bryanbraun.github.io/anchorjs/ -->
+<script>
+    async("https://cdn.bootcss.com/anchor-js/1.1.1/anchor.min.js",function(){
+        anchors.options = {
+          visible: 'hover',
+          placement: 'left',
+          icon: 'ℬ'
+        };
+        anchors.add().remove('.intro-header h1').remove('.subheading').remove('.sidebar-container h5');
+    })
+</script>
+<style>
+    /* place left on bigger screen */
+    @media all and (min-width: 800px) {
+        .anchorjs-link{
+            position: absolute;
+            left: -0.75em;
+            font-size: 1.1em;
+            margin-top : -0.1em;
+        }
+    }
+</style>
+
+
+
+    <!-- Footer -->
+    <!-- Footer -->
+<footer>
+    <div class="container">
+        <div class="row">
+            <div class="col-lg-8 col-lg-offset-2 col-md-10 col-md-offset-1">
+                <ul class="list-inline text-center">
+                
+                    <li>
+                        <a href="/atom.xml">
+                            <span class="fa-stack fa-lg">
+                                <i class="fa fa-circle fa-stack-2x"></i>
+                                <i class="fa fa-rss fa-stack-1x fa-inverse"></i>
+                            </span>
+                        </a>
+                    </li>
+                
+                
+                
+                    <li>
+                        <a target="_blank" href="https://www.zhihu.com/people/80imike">
+                            <span class="fa-stack fa-lg">
+                                <i class="fa fa-circle fa-stack-2x"></i>
+                                <i class="fa  fa-stack-1x fa-inverse">知</i>
+                            </span>
+                        </a>
+                    </li>
+                
+
+                
+                    <li>
+                        <a target="_blank" href="http://weibo.com/2093524665">
+                            <span class="fa-stack fa-lg">
+                                <i class="fa fa-circle fa-stack-2x"></i>
+                                <i class="fa fa-weibo fa-stack-1x fa-inverse"></i>
+                            </span>
+                        </a>
+                    </li>
+                
+
+                
+
+                
+
+                
+
+                </ul>
+                <p class="copyright text-muted">
+                    Copyright &copy; Mike 2018 | Hosted by <a href="https://pages.coding.me" style="font-weight: bold">Coding Pages</a>
+                    <br>
+                    Theme by <a href="http://beantech.org">BeanTech</a> 
+                    <span style="display: inline-block; margin: 0 5px;">
+                        <i class="fa fa-heart"></i>
+                    </span> 
+                    re-Ported by <a href="http://www.huweihuang.com">胡伟煌</a> | 
+                    <iframe
+                        style="margin-left: 2px; margin-bottom:-5px;"
+                        frameborder="0" scrolling="0" width="91px" height="20px"
+                        src="https://ghbtns.com/github-btn.html?user=huweihuang&repo=hexo-theme-huweihuang&type=star&count=true" >
+                    </iframe>
+                </p>
+            </div>
+        </div>
+    </div>
+</footer>
+
+<!-- jQuery -->
+<script src="/js/jquery.min.js"></script>
+
+<!-- Bootstrap Core JavaScript -->
+<script src="/js/bootstrap.min.js"></script>
+
+<!-- Custom Theme JavaScript -->
+<script src="/js/hux-blog.min.js"></script>
+
+
+<!-- async load function -->
+<script>
+    function async(u, c) {
+      var d = document, t = 'script',
+          o = d.createElement(t),
+          s = d.getElementsByTagName(t)[0];
+      o.src = u;
+      if (c) { o.addEventListener('load', function (e) { c(null, e); }, false); }
+      s.parentNode.insertBefore(o, s);
+    }
+</script>
+
+<!-- 
+     Because of the native support for backtick-style fenced code blocks 
+     right within the Markdown is landed in Github Pages, 
+     From V1.6, There is no need for Highlight.js, 
+     so Huxblog drops it officially.
+
+     - https://github.com/blog/2100-github-pages-now-faster-and-simpler-with-jekyll-3-0  
+     - https://help.github.com/articles/creating-and-highlighting-code-blocks/    
+-->
+<!--
+    <script>
+        async("http://cdn.bootcss.com/highlight.js/8.6/highlight.min.js", function(){
+            hljs.initHighlightingOnLoad();
+        })
+    </script>
+    <link href="http://cdn.bootcss.com/highlight.js/8.6/styles/github.min.css" rel="stylesheet">
+-->
+
+
+<!-- jquery.tagcloud.js -->
+<script>
+    // only load tagcloud.js in tag.html
+    if($('#tag_cloud').length !== 0){
+        async("https://www.hi-linux.com/js/jquery.tagcloud.js",function(){
+            $.fn.tagcloud.defaults = {
+                //size: {start: 1, end: 1, unit: 'em'},
+                color: {start: '#bbbbee', end: '#0085a1'},
+            };
+            $('#tag_cloud a').tagcloud();
+        })
+    }
+</script>
+
+<!--fastClick.js -->
+<script>
+    async("https://cdn.bootcss.com/fastclick/1.0.6/fastclick.min.js", function(){
+        var $nav = document.querySelector("nav");
+        if($nav) FastClick.attach($nav);
+    })
+</script>
+
+
+<!-- Google Analytics -->
+
+
+
+
+<!-- Baidu Tongji -->
+
+
+
+
+
+
+	<a id="rocket" href="#top" class=""></a>
+	<script type="text/javascript" src="/js/totop.js?v=1.0.0" async=""></script>
+    <script type="text/javascript" src="/js/toc.js?v=1.0.0" async=""></script>
+<!-- Image to hack wechat -->
+<img src="https://www.hi-linux.com/img/icon_wechat.png" width="0" height="0" />
+<!-- Migrate from head to bottom, no longer block render and still work -->
+
+</body>
+
+</html>

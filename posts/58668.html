@@ -1,0 +1,723 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<!-- Head tag -->
+<head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="google-site-verification" content="xBT4GhYoi5qRD5tr338pgPM5OWHHIDR6mNg1a3euekI" />
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="description" content="">
+    <meta name="keyword"  content="Linux,运维,Nginx,Zabbix,Centos,Ansible,MySQL,Python,Docker,ELK,Haproxy,Git,Nodejs,安全,技术">
+    <link rel="shortcut icon" href="/img/ironman-draw.png">
+    <!-- Place this tag in your head or just before your close body tag. -->
+    <script async defer src="https://buttons.github.io/buttons.js"></script>
+    <title>
+        
+          Docker 跨主机通信解决方案探讨 - 运维之美
+        
+    </title>
+
+    <link rel="canonical" href="https://www.hi-linux.com/posts/58668.html">
+
+    <!-- Bootstrap Core CSS -->
+    <link rel="stylesheet" href="/css/bootstrap.min.css">
+
+    <!-- Custom CSS --> 
+    <link rel="stylesheet" href="/css/beantech.min.css">
+    
+    <!-- Pygments Highlight CSS -->
+    <link rel="stylesheet" href="/css/highlight.css">
+
+    <link rel="stylesheet" href="/css/widget.css">
+
+    <link rel="stylesheet" href="/css/rocket.css">
+
+    <link rel="stylesheet" href="/css/signature.css">
+
+    <link rel="stylesheet" href="/css/toc.css">
+
+    <!-- Custom Fonts -->
+    <!-- <link href="https://maxcdn.bootstrapcdn.com/font-awesome/4.3.0/css/font-awesome.min.css" rel="stylesheet" type="text/css"> -->
+    <!-- Hux change font-awesome CDN to qiniu -->
+    <link href="https://cdn.staticfile.org/font-awesome/4.5.0/css/font-awesome.min.css" rel="stylesheet" type="text/css">
+
+
+    <!-- Hux Delete, sad but pending in China
+    <link href='http://fonts.googleapis.com/css?family=Lora:400,700,400italic,700italic' rel='stylesheet' type='text/css'>
+    <link href='http://fonts.googleapis.com/css?family=Open+Sans:300italic,400italic,600italic,700italic,800italic,400,300,600,700,800' rel='stylesheet' type='text/
+    css'>
+    -->
+
+
+    <!-- HTML5 Shim and Respond.js IE8 support of HTML5 elements and media queries -->
+    <!-- WARNING: Respond.js doesn't work if you view the page via file:// -->
+    <!--[if lt IE 9]>
+        <script src="https://oss.maxcdn.com/libs/html5shiv/3.7.0/html5shiv.js"></script>
+        <script src="https://oss.maxcdn.com/libs/respond.js/1.4.2/respond.min.js"></script>
+    <![endif]-->
+
+    <!-- ga & ba script hoook -->
+    <script></script>
+</head>
+
+
+<!-- hack iOS CSS :active style -->
+<body ontouchstart="">
+	<!-- Modified by Yu-Hsuan Yen -->
+<!-- Post Header -->
+<style type="text/css">
+    header.intro-header{
+        
+            background-image: url('/img/header_img/article.jpg')
+            /*post*/
+        
+    }
+    
+</style>
+
+<header class="intro-header" >
+    <!-- Signature -->
+    <div id="signature">
+        <div class="container">
+            <div class="row">
+                <div class="col-lg-8 col-lg-offset-2 col-md-10 col-md-offset-1">
+                
+                    <div class="post-heading">
+                        <div class="tags">
+                            
+                              <a class="tag" href="/tags/#Docker" title="Docker">Docker</a>
+                            
+                              <a class="tag" href="/tags/#Kubernetes" title="Kubernetes">Kubernetes</a>
+                            
+                        </div>
+                        <h1>Docker 跨主机通信解决方案探讨</h1>
+                        <h2 class="subheading"></h2>
+                        <span class="meta">
+                            Posted by Mike on
+                            2017-04-20
+                        </span>
+                    </div>
+                
+
+
+                </div>
+            </div>
+        </div>
+    </div>
+</header>
+
+	
+    <!-- Navigation -->
+<nav class="navbar navbar-default navbar-custom navbar-fixed-top">
+    <div class="container-fluid">
+        <!-- Brand and toggle get grouped for better mobile display -->
+        <div class="navbar-header page-scroll">
+            <button type="button" class="navbar-toggle">
+                <span class="sr-only">Toggle navigation</span>
+                <span class="icon-bar"></span>
+                <span class="icon-bar"></span>
+                <span class="icon-bar"></span>
+            </button>
+            <a class="navbar-brand" href="/">运维之美</a>
+        </div>
+
+        <!-- Collect the nav links, forms, and other content for toggling -->
+        <!-- Known Issue, found by Hux:
+            <nav>'s height woule be hold on by its content.
+            so, when navbar scale out, the <nav> will cover tags.
+            also mask any touch event of tags, unfortunately.
+        -->
+        <div id="huxblog_navbar">
+            <div class="navbar-collapse">
+                <ul class="nav navbar-nav navbar-right">
+                    <li>
+                        <a href="/">Home</a>
+                    </li>
+
+                    
+
+                        
+                    
+
+                        
+                    
+
+                        
+                        <li>
+                            <a href="/about/">About</a>
+                        </li>
+                        
+                    
+
+                        
+                        <li>
+                            <a href="/archive/">Archives</a>
+                        </li>
+                        
+                    
+
+                        
+                        <li>
+                            <a href="/tags/">Tags</a>
+                        </li>
+                        
+                    
+                    
+                </ul>
+            </div>
+        </div>
+        <!-- /.navbar-collapse -->
+    </div>
+    <!-- /.container -->
+</nav>
+<script>
+    // Drop Bootstarp low-performance Navbar
+    // Use customize navbar with high-quality material design animation
+    // in high-perf jank-free CSS3 implementation
+    var $body   = document.body;
+    var $toggle = document.querySelector('.navbar-toggle');
+    var $navbar = document.querySelector('#huxblog_navbar');
+    var $collapse = document.querySelector('.navbar-collapse');
+
+    $toggle.addEventListener('click', handleMagic)
+    function handleMagic(e){
+        if ($navbar.className.indexOf('in') > 0) {
+        // CLOSE
+            $navbar.className = " ";
+            // wait until animation end.
+            setTimeout(function(){
+                // prevent frequently toggle
+                if($navbar.className.indexOf('in') < 0) {
+                    $collapse.style.height = "0px"
+                }
+            },400)
+        }else{
+        // OPEN
+            $collapse.style.height = "auto"
+            $navbar.className += " in";
+        }
+    }
+</script>
+
+
+    <!-- Main Content -->
+    <!-- Modify by Yu-Hsuan Yen -->
+
+<!-- Post Content -->
+<article>
+    <div class="container">
+        <div class="row">
+
+            <!-- Post Container -->
+            <div class="
+                col-lg-8 col-lg-offset-2
+                col-md-10 col-md-offset-1
+                post-container">
+
+                <p>Docker容器技术正在被企业应用在越来越多的领域中，比如快速部署环境、简化基础设施的配置流程等等。</p>
+<p>当你开始在真实的生产环境使用Docker容器去部署应用系统时，你可能需要用到多个容器部署一套复杂的多层应用系统，其中每个容器部署一个特定的应用系统。</p>
+<p>此时可能就会遇到如下问题：有多台宿主机，我们事先不知道会在哪台宿主机上创建容器，如何保证在这些宿主机上创建的容器们可以互相联通？</p>
+<a id="more"></a>
+<h3 id="关于sdn和容器">关于SDN和容器</h3>
+<p>作为近年来比较热的一个概念，众所周知SDN是Software Defined Network的缩写，即软件定义网络。但不同的人对SDN有不同的理解。在广义上，只要是你通过软件实现了一个东西，然后那个东西能够灵活地去达到网络上面的部署和伸缩，这就可以被认为是SDN。</p>
+<p><strong>围绕容器的开源的SDN解决方案</strong></p>
+<p>Docker自己的网络方案比较简单，就是每个宿主机上会跑一个非常纯粹的Linux Bridge，这个Bridge可以认为是一个二层的交换机，但它的能力有限，只能做一些简单的学习和转发。然后出来的流量，出网桥的流量会走IPTABLES，做NAT的地址转换，然后靠路由转发去做一个宿主之间的通信。</p>
+<p>但是当真正用它的网络模型部署一个比较复杂的业务时，会存在很多问题，比如容器重启之后IP就变了；或者是由于每台宿主机会分配固定的网段，因此同一个容器迁到不同宿主机时，它的IP可能会发生变化，因为它是在不同的网段；同时，NAT的存在会造成两端在通讯时看到对方的地址是不真实的，因为它被NAT过；并且NAT本身也是有性能损耗等。这些问题都对使用Docker自己的网络方案造成了障碍。</p>
+<p>由于容器技术给传统的虚拟化网络提出了一些新的挑战，所以围绕Docker产生了很多不同的网络解决方案，以弥补Docker在这些方面的不足。</p>
+<h3 id="现有的主要docker网络方案">现有的主要Docker网络方案</h3>
+<h4 id="基于实现方式分类">基于实现方式分类</h4>
+<p><strong>隧道方案</strong></p>
+<p>通过隧道，或者说Overlay Networking的方式：</p>
+<ul>
+<li>Weave：UDP广播，本机建立新的BR，通过PCAP互通。</li>
+<li>Open vSwitch(OVS)：基于VxLAN和GRE协议，但是性能方面损失比较严重。</li>
+<li>Flannel：UDP广播，VxLan。</li>
+</ul>
+<p>隧道方案在IaaS层的网络中应用也比较多，大家共识是随着节点规模的增长复杂度会提升，而且出了网络问题跟踪起来比较麻烦，大规模集群情况下这是需要考虑的一个点。</p>
+<p><strong>路由方案</strong></p>
+<p>通过路由来实现，比较典型的代表有：</p>
+<ul>
+<li>Calico：基于BGP协议的路由方案，支持很细致的ACL控制，对混合云亲和度比较高。</li>
+<li>Macvlan：从逻辑和Kernel层来看隔离性和性能最优的方案，基于二层隔离，所以需要二层路由器支持，大多数云服务商不支持，所以混合云上比较难以实现。</li>
+</ul>
+<p>路由方案一般是从3层或者2层实现隔离和跨主机容器互通的，出了问题也很容易排查。</p>
+<h4 id="基于网络模型分类">基于网络模型分类</h4>
+<p><strong>Docker Libnetwork Container Network Model(CNM)阵营</strong></p>
+<ul>
+<li>Docker Swarm overlay</li>
+<li>Macvlan &amp; IP network drivers</li>
+<li>Calico</li>
+<li>Contiv（from Cisco）</li>
+</ul>
+<p>Docker Libnetwork的优势就是原生，而且和Docker容器生命周期结合紧密；缺点也可以理解为是原生，被Docker“绑架”。</p>
+<p><strong>Container Network Interface(CNI)阵营</strong></p>
+<ul>
+<li>Kubernetes</li>
+<li>Weave</li>
+<li>Macvlan</li>
+<li>Flannel</li>
+<li>Calico</li>
+<li>Contiv</li>
+<li>Mesos CNI</li>
+</ul>
+<p>CNI的优势是兼容其他容器技术(e.g. rkt)及上层编排系统(Kuberneres &amp; Mesos)，而且社区活跃势头迅猛，Kubernetes加上CoreOS主推；缺点是非Docker原生。</p>
+<p>从上的可以看出，有一些第三方的网络方案是同时属于两个阵营的。</p>
+<p>本文主要介绍了Docker容器平台中的<code>libnetwork</code>，<code>flannel</code>，<code>calico</code>，<code>weave</code>这几种跨主机通信方案，并对各个方案的原理进行阐述。</p>
+<h3 id="libnetwork">Libnetwork</h3>
+<p>Libnetwork是从1.6版本开始将Docker的网络功能从Docker核心代码中分离出去，形成一个单独的库。Libnetwork的目标是定义一个健壮的容器网络模型，提供一个一致的编程接口和应用程序的网络抽象。</p>
+<p>Libnetwork通过插件的形式为Docker提供网络功能，使得用户可以根据自己的需求实现自己的Driver来提供不同的网络功能。从1.9版本开始，docker已经实现了基于Libnetwork和libkv库的网络模式-多主机的Overlay网络。</p>
+<p>Libnetwork所要实现的网络模型基本是这样的：用户可以创建一个或多个网络(一个网络就是一个网桥或者一个VLAN)，一个容器可以加入一个或多个网络。 同一个网络中容器可以通信，不同网络中的容器隔离。</p>
+<p>Libnetwork实现了一个叫做Container Network Model (CNM)的东西，也就是说希望成为容器的标准网络模型、框架。其包含了下面几个概念：</p>
+<p><img src="https://www.hi-linux.com/img/linux/libnetwork1.jpg" alt=""></p>
+<ul>
+<li>
+<p>Sandbox。Sandbox包含容器网络栈的配置，包括容器接口，路由表，DNS配置等的管理。 linux network namespace是常见的一种sandbox的实现。Sandbox中包含众多网络中的若干Endpoint。</p>
+</li>
+<li>
+<p>Endpoint。Neutron中和Endpoint相对的概念应该是VNIC，也就是虚拟机的虚拟网卡（也可以看成是VIF）。Endpoint的常见实现包括veth pair、Openvswitch的internal port。当Sandbox要和外界通信的时候就是通过Endpoint连接到外界的，最简单的情况就是连接到一个Bridge上。</p>
+</li>
+<li>
+<p>Network。Network是一组可以互相通信的Endpoints集合，组内endpoint可以相互通讯。不同组内endpoint是不能通迅的，是完全隔离的。常见的实现包括linux bridge,vlan等。</p>
+</li>
+</ul>
+<p>目前已经实现了如下Driver：</p>
+<ul>
+<li>
+<p>Host：主机网络，只用这种网络的容器会使用主机的网络，这种网络对外界是完全开放的，能够访问到主机，就能访问到容器。</p>
+</li>
+<li>
+<p>Bridge：桥接网络，这个Driver就是Docker现有网络Bridge模式的实现。除非创建容器的时候指定网络，不然容器就会默认的使用桥接网络。属于这个网络的容器之间可以相互通信，外界想要访问到这个网络的容器需使用桥接网络。</p>
+</li>
+<li>
+<p>Null： Driver的空实现，类似于Docker容器的None模式。使用这种网络的容器会完全隔离。</p>
+</li>
+<li>
+<p>Overlay： Overlay驱动可以实现通过vxlan等重叠网络封装技术跨越多个主机的网络，目前Docker已经自带该驱动。</p>
+</li>
+<li>
+<p>Remote：Remote驱动包不提供驱动，但提供了融合第三方驱动的接口。</p>
+</li>
+</ul>
+<h3 id="flannel">flannel</h3>
+<p>Flannel之前的名字是Rudder，它是由CoreOS团队针对Kubernetes设计的一个重载网络工具，它的主要思路是：预先留出一个网段，每个主机使用其中一部分，然后每个容器被分配不同的ip；让所有的容器认为大家在同一个直连的网络，底层通过UDP/VxLAN等进行报文的封装和转发。</p>
+<p>Flannel类似于weave、vxlan，提供了一个可配置的虚拟承载网络。Flannel以一个daemon形式运行，负责子网的分配，flannel使用etcd存储、交换网络配置、状态等信息。</p>
+<p><strong>flannel基本原理</strong></p>
+<p>flannel默认使用8285端口作为UDP封装报文的端口，VxLan使用8472端口。</p>
+<p><img src="https://www.hi-linux.com/img/linux/flannel-01.png" alt=""></p>
+<ol>
+<li>容器直接使用目标容器的ip访问，默认通过容器内部的eth0发送出去。</li>
+<li>报文通过veth pair被发送到vethXXX。</li>
+<li>vethXXX是直接连接到虚拟交换机docker0的，报文通过虚拟bridge docker0发送出去。</li>
+<li>查找路由表，外部容器ip的报文都会转发到flannel0虚拟网卡，这是一个P2P的虚拟网卡，然后报文就被转发到监听在另一端的flanneld。</li>
+<li>flanneld通过etcd维护了各个节点之间的路由表，把原来的报文UDP封装一层，通过配置的iface发送出去。</li>
+<li>报文通过主机之间的网络找到目标主机。</li>
+<li>报文继续往上，到传输层，交给监听在8285端口的flanneld程序处理。</li>
+<li>数据被解包，然后发送给flannel0虚拟网卡。</li>
+<li>查找路由表，发现对应容器的报文要交给docker0。</li>
+<li>docker0找到连到自己的容器，把报文发送过去。</li>
+</ol>
+<p>之前也写了一篇关于flannel的文章，有兴趣可以读一下：「<a href="https://www.hi-linux.com/posts/30481.html">flannel原理简析及安装</a>」</p>
+<h3 id="calico">Calico</h3>
+<p>Calico是一个纯3层的数据中心网络方案，而且无缝集成像OpenStack这种IaaS云架构，能够提供可控的VM、容器、裸机之间的IP通信。</p>
+<p>它基于BPG协议和Linux自己的路由转发机制，不依赖特殊硬件，没有使用NAT或Tunnel等技术。能够方便的部署在物理服务器、虚拟机或者容器环境下。同时它自带的基于Iptables的ACL管理组件非常灵活，能够满足比较复杂的安全隔离需求。</p>
+<p>Calico在每一个计算节点利用Linux Kernel实现了一个高效的vRouter来负责数据转发，而每个vRouter通过BGP协议负责把自己上运行的workload的路由信息像整个Calico网络内传播–小规模部署可以直接互联，大规模下可通过指定的BGP route reflector来完成。</p>
+<p>这样保证最终所有的workload之间的数据流量都是通过IP路由的方式完成互联的。</p>
+<p><strong>基本原理</strong></p>
+<p><img src="https://www.hi-linux.com/img/linux/calico1.jpg" alt=""></p>
+<p>Calico的方案如上图所示。它把每个操作系统的协议栈认为是一个路由器，然后把所有的容器认为是连在这个路由器上的网络终端，在路由器之间跑标准的路由协议–BGP的协议，然后让它们自己去学习这个网络拓扑该如何转发。所以Calico方案其实是一个纯三层的方案，也就是说让每台机器的协议栈的三层去确保两个容器，跨主机容器之间的三层连通性。</p>
+<p><strong>Calico架构</strong></p>
+<p><img src="https://www.hi-linux.com/img/linux/calico2.png" alt=""></p>
+<p>结合上面这张图，我们来过一遍Calico的核心组件：</p>
+<ul>
+<li>Felix:Calico Agent，跑在每台需要运行Workload的节点上，主要负责配置路由及ACLS等信息来确保Endpoint的连通状态。</li>
+<li>etcd:分布式键值存储，主要负责网络元数据一致性，确保Calico网络状态的准确性。</li>
+<li>BGP Client（BIRD）: 主要负责把Felix写入Kernel的路由信息分发到当前Calico网络，确保Workload间的通信的有效性。</li>
+<li>BGP Route Reflector（BIRD）：大规模部署时使用，摒弃所有节点互联的mesh模式，通过一个或者多个BGP Route Reflector来完成集中式的路由分发。</li>
+</ul>
+<p>每个节点上会运行两个主要的程序，一个是它自己的叫Felix，它会监听ECTD中心的存储，从它获取事件，比如说用户在这台机器上加了一个IP，或者是分配了一个容器等。接着会在这台机器上创建出一个容器，并将其网卡、IP、MAC都设置好，然后在内核的路由表里面写一条，注明这个IP应该到这张网卡。</p>
+<p>bird是一个标准的路由程序，它会从内核里面获取哪一些IP的路由发生了变化，然后通过标准BGP的路由协议扩散到整个其他的宿主机上，让外界都知道这个IP在这里，你们路由的时候得到这里来。</p>
+<p>由于Calico是一种纯三层的实现，因此可以避免与二层方案相关的数据包封装的操作，中间没有任何的NAT，没有任何的overlay，所以它的转发效率可能是所有方案中最高的，因为它的包直接走原生TCP/IP的协议栈，它的隔离也因为这个栈而变得好做。因为TCP/IP的协议栈提供了一整套的防火墙的规则，所以它可以通过IPTABLES的规则达到比较复杂的隔离逻辑。</p>
+<p><strong>Calico优劣势</strong></p>
+<ul>
+<li>Calico的优势</li>
+</ul>
+<ol>
+<li>网络拓扑直观易懂，平行式扩展，可扩展性强</li>
+<li>容器间网络三层隔离，无需要担心arp风暴</li>
+<li>基于iptable/linux kernel包转发效率高，损耗低</li>
+<li>更容易的编程语言(python)</li>
+<li>社区活跃，正式版本较成熟</li>
+</ol>
+<ul>
+<li>Calico的劣势</li>
+</ul>
+<ol>
+<li>calico仅支持TCP, UDP, ICMP andICMPv6协议，如果你想使用L4协议，你只能选择Flannel,Weave或Docker Overlay Network。</li>
+<li>Calico没有加密数据路径。 用不可信网络上的Calico建立覆盖网络是不安全的。</li>
+<li>没有IP重叠支持。 虽然Calico社区正在开发一个实验功能，将重叠IPv4包放入IPv6包中。 但这只是一个辅助解决方案，并不完全支持技术上的IP重叠。</li>
+</ol>
+<h3 id="weave">Weave</h3>
+<p>Weave是由Zett.io公司开发的，它能够创建一个虚拟网络，用于连接部署在多台主机上的Docker容器，这样容器就像被接入了同一个网络交换机，那些使用网络的应用程序不必去配置端口映射和链接等信息。</p>
+<p>外部设备能够访问Weave网络上的应用程序容器所提供的服务，同时已有的内部系统也能够暴露到应用程序容器上。Weave能够穿透防火墙并运行在部分连接的网络上，另外，Weave的通信支持加密，所以用户可以从一个不受信任的网络连接到主机。</p>
+<p><strong>Weave实现原理</strong></p>
+<p><img src="https://www.hi-linux.com/img/linux/weave1.png" alt=""></p>
+<p>容器的网络通讯都通过route服务和网桥转发。</p>
+<p><img src="https://www.hi-linux.com/img/linux/weave2.png" alt=""></p>
+<p>Weave会在主机上创建一个网桥,每一个容器通过veth pair连接到该网桥上，同时网桥上有个Weave router的容器与之连接，该router会通过连接在网桥上的接口来抓取网络包(该接口工作在Promiscuous模式)。</p>
+<p>在每一个部署Docker的主机(可能是物理机也可能是虚拟机)上都部署有一个W(即Weave router)，它本身也可以以一个容器的形式部署)。Weave run的时候就可以给每个veth的容器端分配一个ip和相应的掩码。veth的网桥这端就是Weave router容器，并在Weave launch的时候分配好ip和掩码。</p>
+<p>Weave网络是由这些weave routers组成的对等端点(peer)构成，每个对等的一端都有自己的名字，其中包括一个可读性好的名字用于表示状态和日志的输出，一个唯一标识符用于运行中相互区别，即使重启Docker主机名字也保持不变，这些名字默认是mac地址。</p>
+<p>每个部署了Weave router的主机都需要将TCP和UDP的6783端口的防火墙设置打开，保证Weave router之间控制面流量和数据面流量的通过。控制面由weave routers之间建立的TCP连接构成，通过它进行握手和拓扑关系信息的交换通信。 这个通信可以被配置为加密通信。而数据面由Weave routers之间建立的UDP连接构成，这些连接大部分都会加密。这些连接都是全双工的，并且可以穿越防火墙。</p>
+<p><strong>Weave优劣势</strong></p>
+<ul>
+<li>Weave优势</li>
+</ul>
+<ol>
+<li>支持主机间通信加密。</li>
+<li>支持container动态加入或者剥离网络。</li>
+<li>支持跨主机多子网通信。</li>
+</ol>
+<ul>
+<li>Weave劣势</li>
+</ul>
+<ol>
+<li>只能通过weave launch或者weave connect加入weave网络。</li>
+</ol>
+<h3 id="各方案对比">各方案对比</h3>
+<ul>
+<li>Flannel和overlay方案均使用承载网络，承载网络的优势和劣势都是非常明显。</li>
+</ul>
+<p>优势有：对底层网络依赖较少，不管底层是物理网络还是虚拟网络，对层叠网络的配置管理影响较少；配置简单，逻辑清晰，易于理解和学习，非常适用于开发测试等对网络性能要求不高的场景。</p>
+<p>劣势主要包括：网络封装是一种传输开销，对网络性能会有影响，不适用于对网络性能要求高的生产场景；由于对底层网络结构缺乏了解，无法做到真正有效的流量工程控制，也会对网络性能产生影响；某些情况下也不能完全做到与下层网络无关，例如隧道封装会对网络的MTU限制产生影响。</p>
+<ul>
+<li>
+<p>Calico方案因为没有隧道封装的网络开销，会带来相对较高的网络性能。不支持多租户，由于没有封装所有的容器只能通过真实的IP来区分自己，这就要求所有租户的容器统一分配一个地址空间。Calico基于三层转发的原理对物理架构可能会有一定的要求和侵入性。</p>
+</li>
+<li>
+<p>weave可以穿透防火墙，安全性较高，流量是被加密的，允许主机连接通过一个不被信任的网络，同样会有承载网络的带来的优缺点。</p>
+</li>
+</ul>
+<h3 id="参考文档">参考文档</h3>
+<p><a href="http://www.google.com" target="_blank" rel="noopener">http://www.google.com</a><br>
+<a href="http://t.cn/RXXC3Vf" target="_blank" rel="noopener">http://t.cn/RXXC3Vf</a><br>
+<a href="http://t.cn/RXXNzkR" target="_blank" rel="noopener">http://t.cn/RXXNzkR</a><br>
+<a href="http://t.cn/RXXlQD0" target="_blank" rel="noopener">http://t.cn/RXXlQD0</a><br>
+<a href="http://t.cn/R5un2n0" target="_blank" rel="noopener">http://t.cn/R5un2n0</a><br>
+<a href="http://debugo.com/docker-weave/" target="_blank" rel="noopener">http://debugo.com/docker-weave/</a></p>
+
+                
+
+                <hr>
+                <!-- Pager -->
+                <ul class="pager">
+                    
+                        <li class="previous">
+                            <a href="/posts/54191.html" data-toggle="tooltip" data-placement="top" title="使用 Weave 实现 Docker 多宿主机互联">&larr; Previous Post</a>
+                        </li>
+                    
+                    
+                        <li class="next">
+                            <a href="/posts/30481.html" data-toggle="tooltip" data-placement="top" title="Flannel 原理简析及安装">Next Post &rarr;</a>
+                        </li>
+                    
+                </ul>
+
+                <!-- duoshuo Share start -->
+                
+                <!-- 多说 Share end-->
+
+                <!-- 多说评论框 start -->
+                
+                <!-- 多说评论框 end -->
+
+                <!-- disqus comment start -->
+                
+                <!-- disqus comment end -->
+
+                
+                    <!-- disqus 评论框 start -->
+                    <div class="comment">
+                        <div id="lv-container" data-id="city" data-uid="MTAyMC8yNzg2My80NDQw"></div>
+                    </div>
+                    <!-- disqus 评论框 end -->
+                
+
+            </div>
+            
+            <!-- Tabe of Content -->
+            <!-- Table of Contents -->
+
+  
+    <style>
+      span.toc-nav-number{
+        display: none
+      }
+    </style>
+  
+    
+      <aside id="sidebar">
+        <div id="toc" class="toc-article">
+        <strong class="toc-title">Contents</strong>
+        
+          <ol class="toc-nav"><li class="toc-nav-item toc-nav-level-3"><a class="toc-nav-link" href="#关于sdn和容器"><span class="toc-nav-number">1.</span> <span class="toc-nav-text">关于SDN和容器</span></a></li><li class="toc-nav-item toc-nav-level-3"><a class="toc-nav-link" href="#现有的主要docker网络方案"><span class="toc-nav-number">2.</span> <span class="toc-nav-text">现有的主要Docker网络方案</span></a><ol class="toc-nav-child"><li class="toc-nav-item toc-nav-level-4"><a class="toc-nav-link" href="#基于实现方式分类"><span class="toc-nav-number">2.1.</span> <span class="toc-nav-text">基于实现方式分类</span></a></li><li class="toc-nav-item toc-nav-level-4"><a class="toc-nav-link" href="#基于网络模型分类"><span class="toc-nav-number">2.2.</span> <span class="toc-nav-text">基于网络模型分类</span></a></li></ol></li><li class="toc-nav-item toc-nav-level-3"><a class="toc-nav-link" href="#libnetwork"><span class="toc-nav-number">3.</span> <span class="toc-nav-text">Libnetwork</span></a></li><li class="toc-nav-item toc-nav-level-3"><a class="toc-nav-link" href="#flannel"><span class="toc-nav-number">4.</span> <span class="toc-nav-text">flannel</span></a></li><li class="toc-nav-item toc-nav-level-3"><a class="toc-nav-link" href="#calico"><span class="toc-nav-number">5.</span> <span class="toc-nav-text">Calico</span></a></li><li class="toc-nav-item toc-nav-level-3"><a class="toc-nav-link" href="#weave"><span class="toc-nav-number">6.</span> <span class="toc-nav-text">Weave</span></a></li><li class="toc-nav-item toc-nav-level-3"><a class="toc-nav-link" href="#各方案对比"><span class="toc-nav-number">7.</span> <span class="toc-nav-text">各方案对比</span></a></li><li class="toc-nav-item toc-nav-level-3"><a class="toc-nav-link" href="#参考文档"><span class="toc-nav-number">8.</span> <span class="toc-nav-text">参考文档</span></a></li></ol>
+        
+        </div>
+      </aside>
+    
+
+                
+            <!-- Sidebar Container -->
+            <div class="
+                col-lg-8 col-lg-offset-2
+                col-md-10 col-md-offset-1
+                sidebar-container">
+
+                <!-- Featured Tags -->
+                
+                <section>
+                    <!-- no hr -->
+                    <h5><a href="/tags/">FEATURED TAGS</a></h5>
+                    <div class="tags">
+                       
+                          <a class="tag" href="/tags/#Docker" title="Docker">Docker</a>
+                        
+                          <a class="tag" href="/tags/#Kubernetes" title="Kubernetes">Kubernetes</a>
+                        
+                    </div>
+                </section>
+                
+
+                <!-- Friends Blog -->
+                
+                <hr>
+                <h5>FRIENDS</h5>
+                <ul class="list-inline">
+
+                    
+                        <li><a href="http://www.mike.org.cn/" target="_blank">简单.生活</a></li>
+                    
+                        <li><a href="http://shang.qq.com/wpa/qunwpa?idkey=ea4c43493c2269428ac6ef6141de4b6d78e5ab2d41380ca4099b833b62884ee9" target="_blank">技术交流群</a></li>
+                    
+                        <li><a href="" target="_blank"></a></li>
+                    
+                        <li><a href="" target="_blank"></a></li>
+                    
+                </ul>
+                
+            </div>
+        </div>
+    </div>
+</article>
+
+
+
+
+
+
+    <!-- 来必力City版公共JS代码 start (一个网页只需插入一次) -->
+    <script type="text/javascript">
+       (function(d, s) {
+           var j, e = d.getElementsByTagName(s)[0];
+    
+           if (typeof LivereTower === 'function') { return; }
+    
+           j = d.createElement(s);
+           j.src = 'https://cdn-city.livere.com/js/embed.dist.js';
+           j.async = true;
+    
+           e.parentNode.insertBefore(j, e);
+       })(document, 'script');
+    </script>
+    <noscript>为正常使用来必力评论功能请激活JavaScript</noscript>
+    <!-- 来必力City版 公共JS代码 end -->
+
+
+
+<!-- async load function -->
+<script>
+    function async(u, c) {
+      var d = document, t = 'script',
+          o = d.createElement(t),
+          s = d.getElementsByTagName(t)[0];
+      o.src = u;
+      if (c) { o.addEventListener('load', function (e) { c(null, e); }, false); }
+      s.parentNode.insertBefore(o, s);
+    }
+</script>
+<!-- anchor-js, Doc:http://bryanbraun.github.io/anchorjs/ -->
+<script>
+    async("https://cdn.bootcss.com/anchor-js/1.1.1/anchor.min.js",function(){
+        anchors.options = {
+          visible: 'hover',
+          placement: 'left',
+          icon: 'ℬ'
+        };
+        anchors.add().remove('.intro-header h1').remove('.subheading').remove('.sidebar-container h5');
+    })
+</script>
+<style>
+    /* place left on bigger screen */
+    @media all and (min-width: 800px) {
+        .anchorjs-link{
+            position: absolute;
+            left: -0.75em;
+            font-size: 1.1em;
+            margin-top : -0.1em;
+        }
+    }
+</style>
+
+
+
+    <!-- Footer -->
+    <!-- Footer -->
+<footer>
+    <div class="container">
+        <div class="row">
+            <div class="col-lg-8 col-lg-offset-2 col-md-10 col-md-offset-1">
+                <ul class="list-inline text-center">
+                
+                    <li>
+                        <a href="/atom.xml">
+                            <span class="fa-stack fa-lg">
+                                <i class="fa fa-circle fa-stack-2x"></i>
+                                <i class="fa fa-rss fa-stack-1x fa-inverse"></i>
+                            </span>
+                        </a>
+                    </li>
+                
+                
+                
+                    <li>
+                        <a target="_blank" href="https://www.zhihu.com/people/80imike">
+                            <span class="fa-stack fa-lg">
+                                <i class="fa fa-circle fa-stack-2x"></i>
+                                <i class="fa  fa-stack-1x fa-inverse">知</i>
+                            </span>
+                        </a>
+                    </li>
+                
+
+                
+                    <li>
+                        <a target="_blank" href="http://weibo.com/2093524665">
+                            <span class="fa-stack fa-lg">
+                                <i class="fa fa-circle fa-stack-2x"></i>
+                                <i class="fa fa-weibo fa-stack-1x fa-inverse"></i>
+                            </span>
+                        </a>
+                    </li>
+                
+
+                
+
+                
+
+                
+
+                </ul>
+                <p class="copyright text-muted">
+                    Copyright &copy; Mike 2018 | Hosted by <a href="https://pages.coding.me" style="font-weight: bold">Coding Pages</a>
+                    <br>
+                    Theme by <a href="http://beantech.org">BeanTech</a> 
+                    <span style="display: inline-block; margin: 0 5px;">
+                        <i class="fa fa-heart"></i>
+                    </span> 
+                    re-Ported by <a href="http://www.huweihuang.com">胡伟煌</a> | 
+                    <iframe
+                        style="margin-left: 2px; margin-bottom:-5px;"
+                        frameborder="0" scrolling="0" width="91px" height="20px"
+                        src="https://ghbtns.com/github-btn.html?user=huweihuang&repo=hexo-theme-huweihuang&type=star&count=true" >
+                    </iframe>
+                </p>
+            </div>
+        </div>
+    </div>
+</footer>
+
+<!-- jQuery -->
+<script src="/js/jquery.min.js"></script>
+
+<!-- Bootstrap Core JavaScript -->
+<script src="/js/bootstrap.min.js"></script>
+
+<!-- Custom Theme JavaScript -->
+<script src="/js/hux-blog.min.js"></script>
+
+
+<!-- async load function -->
+<script>
+    function async(u, c) {
+      var d = document, t = 'script',
+          o = d.createElement(t),
+          s = d.getElementsByTagName(t)[0];
+      o.src = u;
+      if (c) { o.addEventListener('load', function (e) { c(null, e); }, false); }
+      s.parentNode.insertBefore(o, s);
+    }
+</script>
+
+<!-- 
+     Because of the native support for backtick-style fenced code blocks 
+     right within the Markdown is landed in Github Pages, 
+     From V1.6, There is no need for Highlight.js, 
+     so Huxblog drops it officially.
+
+     - https://github.com/blog/2100-github-pages-now-faster-and-simpler-with-jekyll-3-0  
+     - https://help.github.com/articles/creating-and-highlighting-code-blocks/    
+-->
+<!--
+    <script>
+        async("http://cdn.bootcss.com/highlight.js/8.6/highlight.min.js", function(){
+            hljs.initHighlightingOnLoad();
+        })
+    </script>
+    <link href="http://cdn.bootcss.com/highlight.js/8.6/styles/github.min.css" rel="stylesheet">
+-->
+
+
+<!-- jquery.tagcloud.js -->
+<script>
+    // only load tagcloud.js in tag.html
+    if($('#tag_cloud').length !== 0){
+        async("https://www.hi-linux.com/js/jquery.tagcloud.js",function(){
+            $.fn.tagcloud.defaults = {
+                //size: {start: 1, end: 1, unit: 'em'},
+                color: {start: '#bbbbee', end: '#0085a1'},
+            };
+            $('#tag_cloud a').tagcloud();
+        })
+    }
+</script>
+
+<!--fastClick.js -->
+<script>
+    async("https://cdn.bootcss.com/fastclick/1.0.6/fastclick.min.js", function(){
+        var $nav = document.querySelector("nav");
+        if($nav) FastClick.attach($nav);
+    })
+</script>
+
+
+<!-- Google Analytics -->
+
+
+
+
+<!-- Baidu Tongji -->
+
+
+
+
+
+
+	<a id="rocket" href="#top" class=""></a>
+	<script type="text/javascript" src="/js/totop.js?v=1.0.0" async=""></script>
+    <script type="text/javascript" src="/js/toc.js?v=1.0.0" async=""></script>
+<!-- Image to hack wechat -->
+<img src="https://www.hi-linux.com/img/icon_wechat.png" width="0" height="0" />
+<!-- Migrate from head to bottom, no longer block render and still work -->
+
+</body>
+
+</html>

@@ -1,0 +1,736 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<!-- Head tag -->
+<head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="google-site-verification" content="xBT4GhYoi5qRD5tr338pgPM5OWHHIDR6mNg1a3euekI" />
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="description" content="">
+    <meta name="keyword"  content="Linux,运维,Nginx,Zabbix,Centos,Ansible,MySQL,Python,Docker,ELK,Haproxy,Git,Nodejs,安全,技术">
+    <link rel="shortcut icon" href="/img/ironman-draw.png">
+    <!-- Place this tag in your head or just before your close body tag. -->
+    <script async defer src="https://buttons.github.io/buttons.js"></script>
+    <title>
+        
+          MySQL 用户和角色管理入门 - 运维之美
+        
+    </title>
+
+    <link rel="canonical" href="https://www.hi-linux.com/posts/61905.html">
+
+    <!-- Bootstrap Core CSS -->
+    <link rel="stylesheet" href="/css/bootstrap.min.css">
+
+    <!-- Custom CSS --> 
+    <link rel="stylesheet" href="/css/beantech.min.css">
+    
+    <!-- Pygments Highlight CSS -->
+    <link rel="stylesheet" href="/css/highlight.css">
+
+    <link rel="stylesheet" href="/css/widget.css">
+
+    <link rel="stylesheet" href="/css/rocket.css">
+
+    <link rel="stylesheet" href="/css/signature.css">
+
+    <link rel="stylesheet" href="/css/toc.css">
+
+    <!-- Custom Fonts -->
+    <!-- <link href="https://maxcdn.bootstrapcdn.com/font-awesome/4.3.0/css/font-awesome.min.css" rel="stylesheet" type="text/css"> -->
+    <!-- Hux change font-awesome CDN to qiniu -->
+    <link href="https://cdn.staticfile.org/font-awesome/4.5.0/css/font-awesome.min.css" rel="stylesheet" type="text/css">
+
+
+    <!-- Hux Delete, sad but pending in China
+    <link href='http://fonts.googleapis.com/css?family=Lora:400,700,400italic,700italic' rel='stylesheet' type='text/css'>
+    <link href='http://fonts.googleapis.com/css?family=Open+Sans:300italic,400italic,600italic,700italic,800italic,400,300,600,700,800' rel='stylesheet' type='text/
+    css'>
+    -->
+
+
+    <!-- HTML5 Shim and Respond.js IE8 support of HTML5 elements and media queries -->
+    <!-- WARNING: Respond.js doesn't work if you view the page via file:// -->
+    <!--[if lt IE 9]>
+        <script src="https://oss.maxcdn.com/libs/html5shiv/3.7.0/html5shiv.js"></script>
+        <script src="https://oss.maxcdn.com/libs/respond.js/1.4.2/respond.min.js"></script>
+    <![endif]-->
+
+    <!-- ga & ba script hoook -->
+    <script></script>
+</head>
+
+
+<!-- hack iOS CSS :active style -->
+<body ontouchstart="">
+	<!-- Modified by Yu-Hsuan Yen -->
+<!-- Post Header -->
+<style type="text/css">
+    header.intro-header{
+        
+            background-image: url('/img/header_img/article.jpg')
+            /*post*/
+        
+    }
+    
+</style>
+
+<header class="intro-header" >
+    <!-- Signature -->
+    <div id="signature">
+        <div class="container">
+            <div class="row">
+                <div class="col-lg-8 col-lg-offset-2 col-md-10 col-md-offset-1">
+                
+                    <div class="post-heading">
+                        <div class="tags">
+                            
+                              <a class="tag" href="/tags/#Linux" title="Linux">Linux</a>
+                            
+                              <a class="tag" href="/tags/#MySQL" title="MySQL">MySQL</a>
+                            
+                        </div>
+                        <h1>MySQL 用户和角色管理入门</h1>
+                        <h2 class="subheading"></h2>
+                        <span class="meta">
+                            Posted by Mike on
+                            2018-05-08
+                        </span>
+                    </div>
+                
+
+
+                </div>
+            </div>
+        </div>
+    </div>
+</header>
+
+	
+    <!-- Navigation -->
+<nav class="navbar navbar-default navbar-custom navbar-fixed-top">
+    <div class="container-fluid">
+        <!-- Brand and toggle get grouped for better mobile display -->
+        <div class="navbar-header page-scroll">
+            <button type="button" class="navbar-toggle">
+                <span class="sr-only">Toggle navigation</span>
+                <span class="icon-bar"></span>
+                <span class="icon-bar"></span>
+                <span class="icon-bar"></span>
+            </button>
+            <a class="navbar-brand" href="/">运维之美</a>
+        </div>
+
+        <!-- Collect the nav links, forms, and other content for toggling -->
+        <!-- Known Issue, found by Hux:
+            <nav>'s height woule be hold on by its content.
+            so, when navbar scale out, the <nav> will cover tags.
+            also mask any touch event of tags, unfortunately.
+        -->
+        <div id="huxblog_navbar">
+            <div class="navbar-collapse">
+                <ul class="nav navbar-nav navbar-right">
+                    <li>
+                        <a href="/">Home</a>
+                    </li>
+
+                    
+
+                        
+                    
+
+                        
+                    
+
+                        
+                        <li>
+                            <a href="/about/">About</a>
+                        </li>
+                        
+                    
+
+                        
+                        <li>
+                            <a href="/archive/">Archives</a>
+                        </li>
+                        
+                    
+
+                        
+                        <li>
+                            <a href="/tags/">Tags</a>
+                        </li>
+                        
+                    
+                    
+                </ul>
+            </div>
+        </div>
+        <!-- /.navbar-collapse -->
+    </div>
+    <!-- /.container -->
+</nav>
+<script>
+    // Drop Bootstarp low-performance Navbar
+    // Use customize navbar with high-quality material design animation
+    // in high-perf jank-free CSS3 implementation
+    var $body   = document.body;
+    var $toggle = document.querySelector('.navbar-toggle');
+    var $navbar = document.querySelector('#huxblog_navbar');
+    var $collapse = document.querySelector('.navbar-collapse');
+
+    $toggle.addEventListener('click', handleMagic)
+    function handleMagic(e){
+        if ($navbar.className.indexOf('in') > 0) {
+        // CLOSE
+            $navbar.className = " ";
+            // wait until animation end.
+            setTimeout(function(){
+                // prevent frequently toggle
+                if($navbar.className.indexOf('in') < 0) {
+                    $collapse.style.height = "0px"
+                }
+            },400)
+        }else{
+        // OPEN
+            $collapse.style.height = "auto"
+            $navbar.className += " in";
+        }
+    }
+</script>
+
+
+    <!-- Main Content -->
+    <!-- Modify by Yu-Hsuan Yen -->
+
+<!-- Post Content -->
+<article>
+    <div class="container">
+        <div class="row">
+
+            <!-- Post Container -->
+            <div class="
+                col-lg-8 col-lg-offset-2
+                col-md-10 col-md-offset-1
+                post-container">
+
+                <p>MySQL 8.0 正式版目前已发布，MySQL 8.0 增加了很多新的功能，具体可参考「<a href="https://mp.weixin.qq.com/s/LbYghdQwLmHtiYjmSO16Ow" target="_blank" rel="noopener">MySQL 8.0 正式版 8.0.11 发布！</a>」一文。</p>
+<p>MySQL 8.0 在用户管理方面增加了角色管理，默认的密码加密方式也做了调整，由之前的 <code>SHA1</code> 改为了 <code>SHA2</code>。同时加上 MySQL 5.7 的禁用用户和用户过期的功能，MySQL 在用户管理方面的功能和安全性都较之前版本大大的增强了。</p>
+<p>在本教程中，我们将介绍 MySQL 下用户管理上的一些新特性和如何使用角色来简化权限管理。</p>
+<blockquote>
+<p>注：本教程大部分特性要 MySQL 8.0 + 以上版本才支持。</p>
+</blockquote>
+<a id="more"></a>
+<h3 id="mysql-用户管理">MySQL 用户管理</h3>
+<h4 id="验证插件和密码加密方式的变化">验证插件和密码加密方式的变化</h4>
+<p>在 MySQL 8.0 中，<code>caching_sha2_password</code> 是默认的身份验证插件而不是之前版本的 <code>mysql_native_password</code>，默认的密码加密方式是 <code>SHA2</code> 。</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br></pre></td><td class="code"><pre><span class="line">mysql&gt; show variables like &apos;default_authentication_plugin&apos;;</span><br><span class="line">+-------------------------------+-----------------------+</span><br><span class="line">| Variable_name                 | Value                 |</span><br><span class="line">+-------------------------------+-----------------------+</span><br><span class="line">| default_authentication_plugin | caching_sha2_password |</span><br><span class="line">+-------------------------------+-----------------------+</span><br><span class="line">1 row in set (0.00 sec)</span><br><span class="line"></span><br><span class="line">mysql&gt; select user,host,plugin from mysql.user;</span><br><span class="line">+------------------+-----------+-----------------------+</span><br><span class="line">| user             | host      | plugin                |</span><br><span class="line">+------------------+-----------+-----------------------+</span><br><span class="line">| root             | %         | caching_sha2_password |</span><br><span class="line">| mysql.infoschema | localhost | mysql_native_password |</span><br><span class="line">| mysql.session    | localhost | mysql_native_password |</span><br><span class="line">| mysql.sys        | localhost | mysql_native_password |</span><br><span class="line">| root             | localhost | caching_sha2_password |</span><br><span class="line">+------------------+-----------+-----------------------+</span><br><span class="line">5 rows in set (0.00 sec)</span><br></pre></td></tr></table></figure>
+<p>如果需要保持之前的验证方式并保持之前版本的密码加密方式需要在配置文件 my.cnf 中修改以下配置项并重启服务后生效。</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">[mysqld]</span><br><span class="line">default_authentication_plugin = mysql_native_password</span><br></pre></td></tr></table></figure>
+<blockquote>
+<p>注：此选项暂不支持 MySQL 8.0 动态修改特性。</p>
+</blockquote>
+<p>将 MySQL 8.0 中已有的 <code>SHA2</code> 密码修改为 <code>SHA1</code> 的模式。</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"># 更新用户的密码加密方式为之前版本的方式</span><br><span class="line">mysql&gt; ALTER USER &apos;root&apos;@&apos;127.0.0.1&apos; IDENTIFIED WITH mysql_native_password BY &apos;password&apos;;</span><br><span class="line"># 刷新权限</span><br><span class="line">mysql&gt; FLUSH PRIVILEGES;</span><br></pre></td></tr></table></figure>
+<blockquote>
+<p>注：如果没有特殊的原因，建议使用更安全的新加密方式。</p>
+</blockquote>
+<h4 id="用户授权和修改密码">用户授权和修改密码</h4>
+<p>MySQL 8.0 的用户授权语句和之前版本有所区别，老版本的常用授权语句在 MySQL 8.0 版本中 已不能使用，如使用旧版本授权语句会报错。</p>
+<ul>
+<li>在 MySQL 8.0 用之前版本授权语句创建用户。</li>
+</ul>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">mysql&gt; GRANT ALL PRIVILEGES ON *.* TO `mike`@`%` IDENTIFIED BY &apos;000000&apos; WITH GRANT OPTION;</span><br><span class="line">ERROR 1064 (42000): You have an error in your SQL syntax; check the manual that corresponds to your MySQL server version for the right syntax to use near &apos;IDENTIFIED BY &apos;000000&apos; WITH GRANT OPTION&apos; at line 1</span><br></pre></td></tr></table></figure>
+<ul>
+<li>在 MySQL 8.0 版本中正确授权语句。</li>
+</ul>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">mysql&gt; CREATE USER &apos;mike&apos;@&apos;%&apos; IDENTIFIED BY &apos;000000&apos;;</span><br><span class="line">mysql&gt; GRANT ALL ON *.* TO &apos;mike&apos;@&apos;%&apos; WITH GRANT OPTION;</span><br></pre></td></tr></table></figure>
+<h4 id="密码过期时间管理">密码过期时间管理</h4>
+<p>MySQL 从 5.6.6 开始引入密码自动过期的新功能，并在 MySQL 5.7.4 版本中改进了用户密码过期时间这个特性。现在可以通过一个全局变量 <code>default_password_lifetime</code> 来设置一个全局的自动密码过期策略。</p>
+<p><code>default_password_lifetime</code> 其默认值为 0，表示禁用自动密码过期。<code>default_password_lifetime</code> 的值如是是正整数 N ，则表示允许的设置密码生存周期 为 N，单位为天 。</p>
+<ul>
+<li><code>default_password_lifetime</code> 全局密码到期策略默认为永久，不过期。</li>
+</ul>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line">mysql&gt; show variables like &apos;default_password_lifetime&apos;;</span><br><span class="line">+---------------------------+-------+</span><br><span class="line">| Variable_name             | Value |</span><br><span class="line">+---------------------------+-------+</span><br><span class="line">| default_password_lifetime | 0     |</span><br><span class="line">+---------------------------+-------+</span><br><span class="line">1 row in set (0.00 sec)</span><br></pre></td></tr></table></figure>
+<ul>
+<li>如果你要建立一个全局策略，让所有用户的密码的使用期限为六个月，可在服务端配置文件 my.cnf 中修改 <code>default_password_lifetime</code> 配置项的值为 180。</li>
+</ul>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">[mysqld]</span><br><span class="line">default_password_lifetime=180</span><br></pre></td></tr></table></figure>
+<ul>
+<li>如果你要恢复全局策略，让所有用户的密码永不过期，可在服务端配置文件 my.cnf 中修改 <code>default_password_lifetime</code> 配置项的值为 0。</li>
+</ul>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">[mysqld]</span><br><span class="line">default_password_lifetime=0</span><br></pre></td></tr></table></figure>
+<ul>
+<li><code>default_password_lifetime</code> 参数是支持永久动态设置的，你也可以用以下命令在 MySQL 命令行下直接设置生效。</li>
+</ul>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line"># 设置默认密码过期策略为 180 天后过期</span><br><span class="line">mysql&gt; SET PERSIST default_password_lifetime = 180;</span><br><span class="line"></span><br><span class="line"># 设置默认密码过期策略为永不过期</span><br><span class="line">mysql&gt; SET PERSIST default_password_lifetime = 0;</span><br><span class="line"></span><br><span class="line"># MySQL 8.0 永久动态修改参数会保存在配置文件 mysqld-auto.cnf 中，保存的格式为JSON串。</span><br><span class="line">$ cat  /var/lib/mysql/mysqld-auto.cnf</span><br><span class="line">&#123; &quot;Version&quot; : 1 , &quot;mysql_server&quot; : &#123; &quot;default_password_lifetime&quot; : &#123; &quot;Value&quot; : &quot;180&quot; , &quot;Metadata&quot; : &#123; &quot;Timestamp&quot; : 1525663928688419 , &quot;User&quot; : &quot;root&quot; , &quot;Host&quot; : &quot;&quot; &#125; &#125; &#125; &#125;</span><br></pre></td></tr></table></figure>
+<ul>
+<li>创建和修改带有密码过期时间的用户示例</li>
+</ul>
+<p>创建或修改一个用户的密码过期时间为 90 天。</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">mysql&gt; CREATE USER &apos;mike&apos;@&apos;%&apos; IDENTIFIED BY &apos;000000&apos; PASSWORD EXPIRE INTERVAL 90 DAY;</span><br><span class="line">mysql&gt; ALTER USER `mike`@`%` PASSWORD EXPIRE INTERVAL 90 DAY;</span><br></pre></td></tr></table></figure>
+<p>创建或修改一个用户的密码过期时间为永不过期。</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">mysql&gt; CREATE USER &apos;mike&apos;@&apos;%&apos; PASSWORD EXPIRE NEVER;</span><br><span class="line">mysql&gt; ALTER USER &apos;mike&apos;@&apos;%&apos; PASSWORD EXPIRE NEVER;</span><br></pre></td></tr></table></figure>
+<p>创建或修改一个遵循全局到期策略的用户。</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">mysql&gt; CREATE USER &apos;mike&apos;@&apos;%&apos; PASSWORD EXPIRE DEFAULT;</span><br><span class="line">mysql&gt; ALTER USER &apos;mike&apos;@&apos;%&apos; PASSWORD EXPIRE DEFAULT;</span><br></pre></td></tr></table></figure>
+<p>查看用户的密码过期时间。</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line">mysql&gt; select user,host,password_last_changed,password_lifetime,password_expired from mysql.user;</span><br><span class="line">+------------------+-----------+-----------------------+-------------------+------------------+</span><br><span class="line">| user             | host      | password_last_changed | password_lifetime | password_expired |</span><br><span class="line">+------------------+-----------+-----------------------+-------------------+------------------+</span><br><span class="line">| mike             | %         | 2018-05-07 11:13:39   |                90 | N                |</span><br><span class="line">| root             | %         | 2018-05-04 16:46:05   |              NULL | N                |</span><br><span class="line">| mysql.infoschema | localhost | 2018-05-04 16:45:55   |              NULL | N                |</span><br><span class="line">| mysql.session    | localhost | 2018-05-04 16:45:55   |              NULL | N                |</span><br><span class="line">| mysql.sys        | localhost | 2018-05-04 16:45:55   |              NULL | N                |</span><br><span class="line">| root             | localhost | 2018-05-04 16:46:05   |              NULL | N                |</span><br><span class="line">+------------------+-----------+-----------------------+-------------------+------------------+</span><br><span class="line">6 rows in set (0.00 sec)</span><br></pre></td></tr></table></figure>
+<h4 id="锁定解锁用户帐户">锁定/解锁用户帐户</h4>
+<p>从 MySQL 5.7.8 开始，用户管理方面添加了锁定/解锁用户帐户的新特性。下面我们就来看下这个特性的一些具体示例。</p>
+<ul>
+<li>创建一个带帐户锁的用户</li>
+</ul>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">mysql&gt; CREATE USER &apos;mike-temp1&apos;@&apos;%&apos; IDENTIFIED BY &apos;000000&apos; ACCOUNT LOCK;</span><br></pre></td></tr></table></figure>
+<p>接下来尝试用新创建的用户登陆，此时会得到一个 ERROR 3118 错误消息提示。</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">$ mysql -umike-temp1 -p000000</span><br><span class="line">mysql: [Warning] Using a password on the command line interface can be insecure.</span><br><span class="line">ERROR 3118 (HY000): Access denied for user &apos;mike-temp1&apos;@&apos;172.22.0.1&apos;. Account is locked.</span><br></pre></td></tr></table></figure>
+<p>如果你需要解锁此用户，此时就需要使用以下语句对其进行解锁了。</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">mysql&gt; ALTER USER &apos;mike-temp1&apos;@&apos;%&apos; ACCOUNT UNLOCK;</span><br><span class="line">Query OK, 0 rows affected (0.00 sec)</span><br></pre></td></tr></table></figure>
+<p>现在，这个用户就已经解锁，再次尝试登陆。</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br></pre></td><td class="code"><pre><span class="line">$ mysql -umike-temp1 -p000000</span><br><span class="line">Welcome to the MySQL monitor.  Commands end with ; or \g.</span><br><span class="line">Your MySQL connection id is 10</span><br><span class="line">Server version: 8.0.11 MySQL Community Server - GPL</span><br><span class="line"></span><br><span class="line">Copyright (c) 2000, 2018, Oracle and/or its affiliates. All rights reserved.</span><br><span class="line"></span><br><span class="line">Oracle is a registered trademark of Oracle Corporation and/or its</span><br><span class="line">affiliates. Other names may be trademarks of their respective</span><br><span class="line">owners.</span><br><span class="line"></span><br><span class="line">Type &apos;help;&apos; or &apos;\h&apos; for help. Type &apos;\c&apos; to clear the current input statement.</span><br><span class="line"></span><br><span class="line">mysql&gt;</span><br></pre></td></tr></table></figure>
+<ul>
+<li>修改一个用户为锁定状态</li>
+</ul>
+<p>如果用户已建立，你也可以这样锁定用户帐户。</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">mysql&gt; ALTER USER &apos;mike&apos;@&apos;%&apos; ACCOUNT LOCK;</span><br><span class="line">Query OK, 0 rows affected (0.00 sec)</span><br></pre></td></tr></table></figure>
+<h4 id="设置-mysql-用户密码重用策略">设置 MySQL 用户密码重用策略</h4>
+<p>从 MySQL 8.0 开始允许限制重复使用以前的密码。可以根据密码更改次数、已用时间或两者来建立密码重用限制。帐户的密码历史由过去分配的密码组成，MySQL 可以限制从此历史记录中选择新密码。</p>
+<ul>
+<li>如果根据密码更改次数限制帐户，则无法从指定数量的最新密码中选择新密码。例如：如果密码更改的最小数量设置为 3，则新密码不能与任何最近的3个密码相同。</li>
+<li>如果根据密码修改时间来限制帐户，则无法将指定时间历史记录中的密码中选择为新密码。例如：如果密码重用间隔设置为 60，则新密码不得在最近 60 天内选择的密码相同。</li>
+</ul>
+<blockquote>
+<p>注：空密码不记录在密码历史记录中，并随时可以重复使用。</p>
+</blockquote>
+<p>要建立全局密码重用策略，可修改 <code>password_history</code> 和 <code>password_reuse_interval</code> 系统变量。该变量可在服务配置文件 my.cnf 中配置，以禁止重复使用最近 6 个密码或最近 180 天内使用过的任何密码为例。</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">[mysqld]</span><br><span class="line">password_history=6</span><br><span class="line">password_reuse_interval=180</span><br></pre></td></tr></table></figure>
+<p>该参数是支持永久动态设置，也可以直接用下面语句进行设置。</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">mysql&gt; SET PERSIST password_history = 6;</span><br><span class="line">mysql&gt; SET PERSIST password_reuse_interval = 180;</span><br></pre></td></tr></table></figure>
+<h3 id="mysql-角色管理">MySQL 角色管理</h3>
+<p>MySQL 数据库中通常都会出现多个拥有相同权限集合的用户，在之前版本中只有分别向多个用户授予和撤销权限才能实现单独更改每个用户的权限。在用户数量比较多的时候，这样的操作是非常耗时的。</p>
+<p>MySQL 8.0 为了用户权限管理更容易，提供了一个角色管理的新功能。角色是指定的权限集合，和用户帐户一样可以对角色进行权限的授予和撤消。如果用户被授予角色权限，则该用户拥有该角色的权限。</p>
+<p>MySQL 8.0 提供的角色管理功能如下：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line">CREATE ROLE 角色创建</span><br><span class="line">DROP ROLE 角色删除</span><br><span class="line">GRANT 为用户和角色分配权限</span><br><span class="line">REVOKE 为用户和角色撤销权限</span><br><span class="line">SHOW GRANTS 显示用户和角色的权限</span><br><span class="line">SET DEFAULT ROLE 指定哪些帐户角色默认处于活动状态</span><br><span class="line">SET ROLE 更改当前会话中的活动角色</span><br><span class="line">CURRENT_ROLE() 显示当前会话中的活动角色</span><br></pre></td></tr></table></figure>
+<h4 id="创建角色并授予用户角色权限">创建角色并授予用户角色权限</h4>
+<p>这里我们以几种常见场景为例。</p>
+<ul>
+<li>应用程序需要读/写权限。</li>
+<li>运维人员需要完全访问数据库。</li>
+<li>部分开发人员需要读取权限。</li>
+<li>部分开发人员需要读写权限。</li>
+</ul>
+<p>如果要向多个用户授予相同的权限集，则应按如下步骤来进行。</p>
+<ul>
+<li>创建新的角色</li>
+<li>授予角色权限</li>
+<li>授予用户角色</li>
+</ul>
+<p>首先，我们创建四个角色。为了清楚区分角色的权限，建议将角色名称命名得比较直观。</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">mysql&gt; CREATE ROLE &apos;app&apos;, &apos;ops&apos;, &apos;dev_read&apos;, &apos;dev_write&apos;;</span><br></pre></td></tr></table></figure>
+<blockquote>
+<p>注：角色名称格式类似于由用户和主机部分组成的用户帐户，如：role_name@host_name。如果省略主机部分，则默认为 “%”，表示任何主机。</p>
+</blockquote>
+<p>创建好角色后，我们就给角色授予对应的权限。要授予角色权限，您可以使用 <code>GRANT</code> 语句。</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line"># 以下语句是向 app 角色授予 wordpress 数据库的读写权限</span><br><span class="line">mysql&gt; GRANT SELECT, INSERT, UPDATE, DELETE ON wordpress.* TO &apos;app&apos;;</span><br><span class="line"># 以下语句是向 ops 角色授予 wordpress 数据库的所有权限</span><br><span class="line">mysql&gt; GRANT ALL PRIVILEGES ON wordpress.* TO &apos;ops&apos;;</span><br><span class="line"># 以下语句是向 dev_read 角色授予 wordpress 数据库的只读权限</span><br><span class="line">mysql&gt; GRANT SELECT ON wordpress.* TO &apos;dev_read&apos;;</span><br><span class="line"># 以下语句是向 dev_write 角色授予 wordpress 数据库的写权限</span><br><span class="line">mysql&gt; GRANT INSERT, UPDATE, DELETE ON wordpress.* TO &apos;dev_write&apos;;</span><br></pre></td></tr></table></figure>
+<blockquote>
+<p>注：这里假定需授权的数据库名称为 wordpress。</p>
+</blockquote>
+<p>最后根据实际情况，我们将指定用户加入到对应的角色。假设需要一个应用程序使用的帐户、一个运维人员帐户、一个是开发人员只读帐户和两个开发人员读写帐户。</p>
+<ul>
+<li>创建新用户</li>
+</ul>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line"># 应用程序帐户</span><br><span class="line">mysql&gt; CREATE USER &apos;app01&apos;@&apos;%&apos; IDENTIFIED BY &apos;000000&apos;;</span><br><span class="line"># 运维人员帐户</span><br><span class="line">mysql&gt; CREATE USER &apos;ops01&apos;@&apos;%&apos; IDENTIFIED BY &apos;000000&apos;;</span><br><span class="line"># 开发人员只读帐户</span><br><span class="line">mysql&gt; CREATE USER &apos;dev01&apos;@&apos;%&apos; IDENTIFIED BY &apos;000000&apos;;</span><br><span class="line"># 开发读写帐户</span><br><span class="line">mysql&gt; CREATE USER &apos;dev02&apos;@&apos;%&apos; IDENTIFIED BY &apos;000000&apos;;</span><br><span class="line">mysql&gt; CREATE USER &apos;dev03&apos;@&apos;%&apos; IDENTIFIED BY &apos;000000&apos;;</span><br></pre></td></tr></table></figure>
+<ul>
+<li>给用户分配角色</li>
+</ul>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">mysql&gt; GRANT app TO &apos;app01&apos;@&apos;%&apos;;</span><br><span class="line">mysql&gt; GRANT ops TO &apos;ops01&apos;@&apos;%&apos;;</span><br><span class="line">mysql&gt; GRANT dev_read TO &apos;dev01&apos;@&apos;%&apos;;</span><br></pre></td></tr></table></figure>
+<p>如果要将多个用户同时加入多个角色，可以使用类似语句。</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">mysql&gt; GRANT dev_read, dev_write TO &apos;dev02&apos;@&apos;%&apos;, &apos;dev03&apos;@&apos;%&apos;;</span><br></pre></td></tr></table></figure>
+<h4 id="检查角色权限">检查角色权限</h4>
+<p>要验证角色是否正确分配，可以使用 <code>SHOW GRANTS</code> 语句。</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line">mysql&gt; SHOW GRANTS FOR &apos;dev01&apos;@&apos;%&apos;;</span><br><span class="line">+-------------------------------------+</span><br><span class="line">| Grants for dev01@%                  |</span><br><span class="line">+-------------------------------------+</span><br><span class="line">| GRANT USAGE ON *.* TO `dev01`@`%`   |</span><br><span class="line">| GRANT `dev_read`@`%` TO `dev01`@`%` |</span><br><span class="line">+-------------------------------------+</span><br><span class="line">2 rows in set (0.00 sec)</span><br></pre></td></tr></table></figure>
+<p>正如你所看到的，和之前版本不同的是 <code>SHOW GRANTS</code> 只返回授予角色。如果要显示角色所代表的权限，需要加上 <code>USING</code> 子句和授权角色的名称。</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line">mysql&gt; SHOW GRANTS FOR &apos;dev01&apos;@&apos;%&apos; USING dev_read;</span><br><span class="line">+----------------------------------------------+</span><br><span class="line">| Grants for dev01@%                           |</span><br><span class="line">+----------------------------------------------+</span><br><span class="line">| GRANT USAGE ON *.* TO `dev01`@`%`            |</span><br><span class="line">| GRANT SELECT ON `wordpress`.* TO `dev01`@`%` |</span><br><span class="line">| GRANT `dev_read`@`%` TO `dev01`@`%`          |</span><br><span class="line">+----------------------------------------------+</span><br><span class="line">3 rows in set (0.00 sec)</span><br></pre></td></tr></table></figure>
+<h4 id="设置默认角色">设置默认角色</h4>
+<p>现在，如果您使用 dev01 用户帐户连接到 MySQL，并尝试访问 wordpress 数据库会出现以下错误。</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br></pre></td><td class="code"><pre><span class="line">$ mysql -u dev01 -p000000</span><br><span class="line">Welcome to the MySQL monitor.  Commands end with ; or \g.</span><br><span class="line">Your MySQL connection id is 11</span><br><span class="line">Server version: 8.0.11 MySQL Community Server - GPL</span><br><span class="line"></span><br><span class="line">Copyright (c) 2000, 2018, Oracle and/or its affiliates. All rights reserved.</span><br><span class="line"></span><br><span class="line">Oracle is a registered trademark of Oracle Corporation and/or its</span><br><span class="line">affiliates. Other names may be trademarks of their respective</span><br><span class="line">owners.</span><br><span class="line"></span><br><span class="line">Type &apos;help;&apos; or &apos;\h&apos; for help. Type &apos;\c&apos; to clear the current input statement.</span><br><span class="line"></span><br><span class="line">mysql&gt; use wordpress;</span><br><span class="line">ERROR 1044 (42000): Access denied for user &apos;dev01&apos;@&apos;%&apos; to database &apos;wordpress&apos;</span><br></pre></td></tr></table></figure>
+<p>这是因为在向用户帐户授予角色后，当用户帐户连接到数据库服务器时，它并不会自动使角色变为活动状态。</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line"># 调用 CURRENT_ROLE() 函数查看当前角色。</span><br><span class="line">mysql&gt; SELECT current_role();</span><br><span class="line">+----------------+</span><br><span class="line">| current_role() |</span><br><span class="line">+----------------+</span><br><span class="line">| NONE           |</span><br><span class="line">+----------------+</span><br><span class="line">1 row in set (0.00 sec)</span><br></pre></td></tr></table></figure>
+<p>这里返回 NONE，就意味着当前没有启用任何角色。要在每次用户帐户连接到数据库服务器时指定哪些角色应该处于活动状态，需用使用 <code>SET DEFAULT ROLE</code> 语句来指定。</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"># 以下语句将把 dev01 帐户分配的所有角色都设置为默认值。</span><br><span class="line">mysql&gt; SET DEFAULT ROLE ALL TO &apos;dev01&apos;@&apos;%&apos;;</span><br></pre></td></tr></table></figure>
+<p>再次使用 dev01 用户帐户连接到 MySQL 数据库服务器并调用 <code>CURRENT_ROLE()</code> 函数，您将看到 dev01 用户帐户的默认角色。</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br></pre></td><td class="code"><pre><span class="line">$ mysql -u dev01 -p000000</span><br><span class="line">Welcome to the MySQL monitor.  Commands end with ; or \g.</span><br><span class="line">Your MySQL connection id is 11</span><br><span class="line">Server version: 8.0.11 MySQL Community Server - GPL</span><br><span class="line"></span><br><span class="line">Copyright (c) 2000, 2018, Oracle and/or its affiliates. All rights reserved.</span><br><span class="line"></span><br><span class="line">Oracle is a registered trademark of Oracle Corporation and/or its</span><br><span class="line">affiliates. Other names may be trademarks of their respective</span><br><span class="line">owners.</span><br><span class="line"></span><br><span class="line">Type &apos;help;&apos; or &apos;\h&apos; for help. Type &apos;\c&apos; to clear the current input statement.</span><br><span class="line"></span><br><span class="line">mysql&gt; </span><br><span class="line"></span><br><span class="line"># 查看 dev01 用户帐户的默认角色。</span><br><span class="line">mysql&gt; SELECT current_role();</span><br><span class="line">+----------------+</span><br><span class="line">| current_role() |</span><br><span class="line">+----------------+</span><br><span class="line">| `dev_read`@`%` |</span><br><span class="line">+----------------+</span><br><span class="line">1 row in set (0.00 sec)</span><br></pre></td></tr></table></figure>
+<p>最后通过将当前数据库切换到 wordpress 数据库，并执行 <code>SELECT</code> 语句和 <code>DELETE</code> 语句来测试 dev01 帐户的权限。</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line">mysql&gt; use wordpress;</span><br><span class="line">Database changed</span><br><span class="line"></span><br><span class="line">mysql&gt; select  count(*) from wp_terms;</span><br><span class="line">+----------+</span><br><span class="line">| count(*) |</span><br><span class="line">+----------+</span><br><span class="line">|      357 |</span><br><span class="line">+----------+</span><br><span class="line">1 row in set (0.00 sec)</span><br><span class="line"></span><br><span class="line">mysql&gt; DELETE from wp_terms;</span><br><span class="line">ERROR 1142 (42000): DELETE command denied to user &apos;dev01&apos;@&apos;172.22.0.1&apos; for table &apos;wp_terms&apos;</span><br></pre></td></tr></table></figure>
+<p>如上面结果所示，当我们发出 <code>DELETE</code> 语句时，就收到一个错误。因为 dev01 用户帐户只有读取访问权限。</p>
+<h4 id="设置活动角色">设置活动角色</h4>
+<p>用户帐户可以通过指定哪个授权角色处于活动状态来修改当前用户在当前会话中的有效权限。</p>
+<ul>
+<li>将活动角色设置为 NONE，表示没有活动角色。</li>
+</ul>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">mysql&gt; SET ROLE NONE;</span><br></pre></td></tr></table></figure>
+<ul>
+<li>将活动角色设置为所有授予的角色。</li>
+</ul>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">mysql&gt; SET ROLE ALL;</span><br></pre></td></tr></table></figure>
+<ul>
+<li>将活动角色设置为由 <code>SET DEFAULT ROLE</code> 语句设置的默认角色。</li>
+</ul>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">mysql&gt; SET ROLE DEFAULT;</span><br></pre></td></tr></table></figure>
+<ul>
+<li>同时设置多个活动的角色。</li>
+</ul>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">mysql&gt; SET ROLE granted_role_1, granted_role_2, ...</span><br></pre></td></tr></table></figure>
+<h4 id="撤消角色或角色权限">撤消角色或角色权限</h4>
+<p>正如可以授权某个用户的角色一样，也可以从用户帐户中撤销这些角色。要从用户帐户中撤销角色需要使用 <code>REVOKE</code> 语句。</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">mysql&gt; REVOKE role FROM user;</span><br></pre></td></tr></table></figure>
+<p><code>REVOKE</code> 也可以用于修改角色权限。这不仅影响角色本身权限，还影响任何授予该角色的用户权限。假设想临时让所有开发用户只读，可以使用 <code>REVOKE</code> 从 dev_write 角色中撤消修改权限。我们先来看下用户帐户 dev02 撤消前的权限。</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line">mysql&gt; SHOW GRANTS FOR &apos;dev02&apos;@&apos;%&apos; USING &apos;dev_read&apos;, &apos;dev_write&apos;;</span><br><span class="line">+----------------------------------------------------------------------+</span><br><span class="line">| Grants for dev02@%                                                   |</span><br><span class="line">+----------------------------------------------------------------------+</span><br><span class="line">| GRANT USAGE ON *.* TO `dev02`@`%`                                    |</span><br><span class="line">| GRANT SELECT, INSERT, UPDATE, DELETE ON `wordpress`.* TO `dev02`@`%` |</span><br><span class="line">| GRANT `dev_read`@`%`,`dev_write`@`%` TO `dev02`@`%`                  |</span><br><span class="line">+----------------------------------------------------------------------+</span><br><span class="line">3 rows in set (0.00 sec)</span><br></pre></td></tr></table></figure>
+<p>接下来从 dev_write 角色中撤消掉修改权限。</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">mysql&gt; REVOKE INSERT, UPDATE, DELETE ON wordpress.* FROM &apos;dev_write&apos;;</span><br><span class="line">Query OK, 0 rows affected (0.03 sec)</span><br></pre></td></tr></table></figure>
+<p>最后我们在来看看 dev02 用户帐户当前权限。</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line">mysql&gt; SHOW GRANTS FOR &apos;dev02&apos;@&apos;%&apos; USING &apos;dev_read&apos;, &apos;dev_write&apos;;</span><br><span class="line">+-----------------------------------------------------+</span><br><span class="line">| Grants for dev02@%                                  |</span><br><span class="line">+-----------------------------------------------------+</span><br><span class="line">| GRANT USAGE ON *.* TO `dev02`@`%`                   |</span><br><span class="line">| GRANT SELECT ON `wordpress`.* TO `dev02`@`%`        |</span><br><span class="line">| GRANT `dev_read`@`%`,`dev_write`@`%` TO `dev02`@`%` |</span><br><span class="line">+-----------------------------------------------------+</span><br><span class="line">3 rows in set (0.00 sec)</span><br></pre></td></tr></table></figure>
+<p>从上面的结果可以看出，角色中撤销权限会影响到该角色中任何用户的权限。因此 dev02 现在已经没有表修改权限（INSERT，UPDATE，和 DELETE 权限已经去掉）。如果要恢复角色的修改权限，只需重新授予它们即可。</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line"># 授予 dev_write 角色修改权限。</span><br><span class="line">mysql&gt; GRANT INSERT, UPDATE, DELETE ON wordpress.* TO &apos;dev_write&apos;;</span><br><span class="line"></span><br><span class="line"># 再次查看 dev02 用户权限，修改权限已经恢复。</span><br><span class="line">mysql&gt; SHOW GRANTS FOR &apos;dev02&apos;@&apos;%&apos; USING &apos;dev_read&apos;, &apos;dev_write&apos;;</span><br><span class="line">+----------------------------------------------------------------------+</span><br><span class="line">| Grants for dev02@%                                                   |</span><br><span class="line">+----------------------------------------------------------------------+</span><br><span class="line">| GRANT USAGE ON *.* TO `dev02`@`%`                                    |</span><br><span class="line">| GRANT SELECT, INSERT, UPDATE, DELETE ON `wordpress`.* TO `dev02`@`%` |</span><br><span class="line">| GRANT `dev_read`@`%`,`dev_write`@`%` TO `dev02`@`%`                  |</span><br><span class="line">+----------------------------------------------------------------------+</span><br><span class="line">3 rows in set (0.00 sec)</span><br></pre></td></tr></table></figure>
+<h4 id="删除角色">删除角色</h4>
+<p>要删除一个或多个角色，可以使用 <code>DROP ROLE</code> 语句。</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">mysql&gt; DROP ROLE &apos;role_name&apos;, &apos;role_name&apos;, ...;</span><br></pre></td></tr></table></figure>
+<p>如同 <code>REVOKE</code> 语句一样，删除角色会从授权它的每个帐户中撤消该角色。例如，要删除 dev_read，dev_write角色，可使用以下语句。</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">mysql&gt; DROP ROLE &apos;dev_read&apos;, &apos;dev_write&apos;;</span><br></pre></td></tr></table></figure>
+<h4 id="复制用户帐户权限到另一个用户">复制用户帐户权限到另一个用户</h4>
+<p>MySQL 8.0 将每一个用户帐户视为角色，因此可以将用户帐户授予另一个用户帐户。例如：将一开发人员帐号权限复制到另一开发人员帐号。</p>
+<ul>
+<li>创建一个新的开发用户帐户</li>
+</ul>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">mysql&gt; CREATE USER &apos;dev04&apos;@&apos;%&apos; IDENTIFIED BY &apos;000000&apos;;</span><br><span class="line">Query OK, 0 rows affected (0.04 sec)</span><br></pre></td></tr></table></figure>
+<ul>
+<li>将 dev02 用户帐户的权限复制到 dev04 用户帐户</li>
+</ul>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">mysql&gt; GRANT &apos;dev02&apos;@&apos;%&apos; TO &apos;dev04&apos;@&apos;%&apos;;</span><br><span class="line">Query OK, 0 rows affected (0.09 sec)</span><br></pre></td></tr></table></figure>
+<ul>
+<li>查看 dev04 用户帐户的权限</li>
+</ul>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line">mysql&gt; SHOW GRANTS FOR &apos;dev04&apos;@&apos;%&apos; USING &apos;dev02&apos;;</span><br><span class="line">+----------------------------------------------------------------------+</span><br><span class="line">| Grants for dev04@%                                                   |</span><br><span class="line">+----------------------------------------------------------------------+</span><br><span class="line">| GRANT USAGE ON *.* TO `dev04`@`%`                                    |</span><br><span class="line">| GRANT SELECT, INSERT, UPDATE, DELETE ON `wordpress`.* TO `dev04`@`%` |</span><br><span class="line">| GRANT `dev02`@`%` TO `dev04`@`%`                                     |</span><br><span class="line">+----------------------------------------------------------------------+</span><br><span class="line">3 rows in set (0.00 sec)</span><br></pre></td></tr></table></figure>
+<h3 id="参考文档">参考文档</h3>
+<p><a href="http://www.google.com" target="_blank" rel="noopener">http://www.google.com</a><br>
+<a href="http://t.cn/RuTna0t" target="_blank" rel="noopener">http://t.cn/RuTna0t</a><br>
+<a href="http://t.cn/RuTnEPH" target="_blank" rel="noopener">http://t.cn/RuTnEPH</a><br>
+<a href="http://t.cn/RuTnFGz" target="_blank" rel="noopener">http://t.cn/RuTnFGz</a><br>
+<a href="http://t.cn/RuTnFGz" target="_blank" rel="noopener">http://t.cn/RuTnFGz</a></p>
+
+                
+
+                <hr>
+                <!-- Pager -->
+                <ul class="pager">
+                    
+                        <li class="previous">
+                            <a href="/posts/36106.html" data-toggle="tooltip" data-placement="top" title="各大经典互联网公司技术架构分享「包含腾讯、阿里等知名公司」">&larr; Previous Post</a>
+                        </li>
+                    
+                    
+                        <li class="next">
+                            <a href="/posts/60777.html" data-toggle="tooltip" data-placement="top" title="Docker 下部署 .NET 应用教程">Next Post &rarr;</a>
+                        </li>
+                    
+                </ul>
+
+                <!-- duoshuo Share start -->
+                
+                <!-- 多说 Share end-->
+
+                <!-- 多说评论框 start -->
+                
+                <!-- 多说评论框 end -->
+
+                <!-- disqus comment start -->
+                
+                <!-- disqus comment end -->
+
+                
+                    <!-- disqus 评论框 start -->
+                    <div class="comment">
+                        <div id="lv-container" data-id="city" data-uid="MTAyMC8yNzg2My80NDQw"></div>
+                    </div>
+                    <!-- disqus 评论框 end -->
+                
+
+            </div>
+            
+            <!-- Tabe of Content -->
+            <!-- Table of Contents -->
+
+  
+    <style>
+      span.toc-nav-number{
+        display: none
+      }
+    </style>
+  
+    
+      <aside id="sidebar">
+        <div id="toc" class="toc-article">
+        <strong class="toc-title">Contents</strong>
+        
+          <ol class="toc-nav"><li class="toc-nav-item toc-nav-level-3"><a class="toc-nav-link" href="#mysql-用户管理"><span class="toc-nav-number">1.</span> <span class="toc-nav-text">MySQL 用户管理</span></a><ol class="toc-nav-child"><li class="toc-nav-item toc-nav-level-4"><a class="toc-nav-link" href="#验证插件和密码加密方式的变化"><span class="toc-nav-number">1.1.</span> <span class="toc-nav-text">验证插件和密码加密方式的变化</span></a></li><li class="toc-nav-item toc-nav-level-4"><a class="toc-nav-link" href="#用户授权和修改密码"><span class="toc-nav-number">1.2.</span> <span class="toc-nav-text">用户授权和修改密码</span></a></li><li class="toc-nav-item toc-nav-level-4"><a class="toc-nav-link" href="#密码过期时间管理"><span class="toc-nav-number">1.3.</span> <span class="toc-nav-text">密码过期时间管理</span></a></li><li class="toc-nav-item toc-nav-level-4"><a class="toc-nav-link" href="#锁定解锁用户帐户"><span class="toc-nav-number">1.4.</span> <span class="toc-nav-text">锁定/解锁用户帐户</span></a></li><li class="toc-nav-item toc-nav-level-4"><a class="toc-nav-link" href="#设置-mysql-用户密码重用策略"><span class="toc-nav-number">1.5.</span> <span class="toc-nav-text">设置 MySQL 用户密码重用策略</span></a></li></ol></li><li class="toc-nav-item toc-nav-level-3"><a class="toc-nav-link" href="#mysql-角色管理"><span class="toc-nav-number">2.</span> <span class="toc-nav-text">MySQL 角色管理</span></a><ol class="toc-nav-child"><li class="toc-nav-item toc-nav-level-4"><a class="toc-nav-link" href="#创建角色并授予用户角色权限"><span class="toc-nav-number">2.1.</span> <span class="toc-nav-text">创建角色并授予用户角色权限</span></a></li><li class="toc-nav-item toc-nav-level-4"><a class="toc-nav-link" href="#检查角色权限"><span class="toc-nav-number">2.2.</span> <span class="toc-nav-text">检查角色权限</span></a></li><li class="toc-nav-item toc-nav-level-4"><a class="toc-nav-link" href="#设置默认角色"><span class="toc-nav-number">2.3.</span> <span class="toc-nav-text">设置默认角色</span></a></li><li class="toc-nav-item toc-nav-level-4"><a class="toc-nav-link" href="#设置活动角色"><span class="toc-nav-number">2.4.</span> <span class="toc-nav-text">设置活动角色</span></a></li><li class="toc-nav-item toc-nav-level-4"><a class="toc-nav-link" href="#撤消角色或角色权限"><span class="toc-nav-number">2.5.</span> <span class="toc-nav-text">撤消角色或角色权限</span></a></li><li class="toc-nav-item toc-nav-level-4"><a class="toc-nav-link" href="#删除角色"><span class="toc-nav-number">2.6.</span> <span class="toc-nav-text">删除角色</span></a></li><li class="toc-nav-item toc-nav-level-4"><a class="toc-nav-link" href="#复制用户帐户权限到另一个用户"><span class="toc-nav-number">2.7.</span> <span class="toc-nav-text">复制用户帐户权限到另一个用户</span></a></li></ol></li><li class="toc-nav-item toc-nav-level-3"><a class="toc-nav-link" href="#参考文档"><span class="toc-nav-number">3.</span> <span class="toc-nav-text">参考文档</span></a></li></ol>
+        
+        </div>
+      </aside>
+    
+
+                
+            <!-- Sidebar Container -->
+            <div class="
+                col-lg-8 col-lg-offset-2
+                col-md-10 col-md-offset-1
+                sidebar-container">
+
+                <!-- Featured Tags -->
+                
+                <section>
+                    <!-- no hr -->
+                    <h5><a href="/tags/">FEATURED TAGS</a></h5>
+                    <div class="tags">
+                       
+                          <a class="tag" href="/tags/#Linux" title="Linux">Linux</a>
+                        
+                          <a class="tag" href="/tags/#MySQL" title="MySQL">MySQL</a>
+                        
+                    </div>
+                </section>
+                
+
+                <!-- Friends Blog -->
+                
+                <hr>
+                <h5>FRIENDS</h5>
+                <ul class="list-inline">
+
+                    
+                        <li><a href="http://www.mike.org.cn/" target="_blank">简单.生活</a></li>
+                    
+                        <li><a href="http://shang.qq.com/wpa/qunwpa?idkey=ea4c43493c2269428ac6ef6141de4b6d78e5ab2d41380ca4099b833b62884ee9" target="_blank">技术交流群</a></li>
+                    
+                        <li><a href="" target="_blank"></a></li>
+                    
+                        <li><a href="" target="_blank"></a></li>
+                    
+                </ul>
+                
+            </div>
+        </div>
+    </div>
+</article>
+
+
+
+
+
+
+    <!-- 来必力City版公共JS代码 start (一个网页只需插入一次) -->
+    <script type="text/javascript">
+       (function(d, s) {
+           var j, e = d.getElementsByTagName(s)[0];
+    
+           if (typeof LivereTower === 'function') { return; }
+    
+           j = d.createElement(s);
+           j.src = 'https://cdn-city.livere.com/js/embed.dist.js';
+           j.async = true;
+    
+           e.parentNode.insertBefore(j, e);
+       })(document, 'script');
+    </script>
+    <noscript>为正常使用来必力评论功能请激活JavaScript</noscript>
+    <!-- 来必力City版 公共JS代码 end -->
+
+
+
+<!-- async load function -->
+<script>
+    function async(u, c) {
+      var d = document, t = 'script',
+          o = d.createElement(t),
+          s = d.getElementsByTagName(t)[0];
+      o.src = u;
+      if (c) { o.addEventListener('load', function (e) { c(null, e); }, false); }
+      s.parentNode.insertBefore(o, s);
+    }
+</script>
+<!-- anchor-js, Doc:http://bryanbraun.github.io/anchorjs/ -->
+<script>
+    async("https://cdn.bootcss.com/anchor-js/1.1.1/anchor.min.js",function(){
+        anchors.options = {
+          visible: 'hover',
+          placement: 'left',
+          icon: 'ℬ'
+        };
+        anchors.add().remove('.intro-header h1').remove('.subheading').remove('.sidebar-container h5');
+    })
+</script>
+<style>
+    /* place left on bigger screen */
+    @media all and (min-width: 800px) {
+        .anchorjs-link{
+            position: absolute;
+            left: -0.75em;
+            font-size: 1.1em;
+            margin-top : -0.1em;
+        }
+    }
+</style>
+
+
+
+    <!-- Footer -->
+    <!-- Footer -->
+<footer>
+    <div class="container">
+        <div class="row">
+            <div class="col-lg-8 col-lg-offset-2 col-md-10 col-md-offset-1">
+                <ul class="list-inline text-center">
+                
+                    <li>
+                        <a href="/atom.xml">
+                            <span class="fa-stack fa-lg">
+                                <i class="fa fa-circle fa-stack-2x"></i>
+                                <i class="fa fa-rss fa-stack-1x fa-inverse"></i>
+                            </span>
+                        </a>
+                    </li>
+                
+                
+                
+                    <li>
+                        <a target="_blank" href="https://www.zhihu.com/people/80imike">
+                            <span class="fa-stack fa-lg">
+                                <i class="fa fa-circle fa-stack-2x"></i>
+                                <i class="fa  fa-stack-1x fa-inverse">知</i>
+                            </span>
+                        </a>
+                    </li>
+                
+
+                
+                    <li>
+                        <a target="_blank" href="http://weibo.com/2093524665">
+                            <span class="fa-stack fa-lg">
+                                <i class="fa fa-circle fa-stack-2x"></i>
+                                <i class="fa fa-weibo fa-stack-1x fa-inverse"></i>
+                            </span>
+                        </a>
+                    </li>
+                
+
+                
+
+                
+
+                
+
+                </ul>
+                <p class="copyright text-muted">
+                    Copyright &copy; Mike 2018 | Hosted by <a href="https://pages.coding.me" style="font-weight: bold">Coding Pages</a>
+                    <br>
+                    Theme by <a href="http://beantech.org">BeanTech</a> 
+                    <span style="display: inline-block; margin: 0 5px;">
+                        <i class="fa fa-heart"></i>
+                    </span> 
+                    re-Ported by <a href="http://www.huweihuang.com">胡伟煌</a> | 
+                    <iframe
+                        style="margin-left: 2px; margin-bottom:-5px;"
+                        frameborder="0" scrolling="0" width="91px" height="20px"
+                        src="https://ghbtns.com/github-btn.html?user=huweihuang&repo=hexo-theme-huweihuang&type=star&count=true" >
+                    </iframe>
+                </p>
+            </div>
+        </div>
+    </div>
+</footer>
+
+<!-- jQuery -->
+<script src="/js/jquery.min.js"></script>
+
+<!-- Bootstrap Core JavaScript -->
+<script src="/js/bootstrap.min.js"></script>
+
+<!-- Custom Theme JavaScript -->
+<script src="/js/hux-blog.min.js"></script>
+
+
+<!-- async load function -->
+<script>
+    function async(u, c) {
+      var d = document, t = 'script',
+          o = d.createElement(t),
+          s = d.getElementsByTagName(t)[0];
+      o.src = u;
+      if (c) { o.addEventListener('load', function (e) { c(null, e); }, false); }
+      s.parentNode.insertBefore(o, s);
+    }
+</script>
+
+<!-- 
+     Because of the native support for backtick-style fenced code blocks 
+     right within the Markdown is landed in Github Pages, 
+     From V1.6, There is no need for Highlight.js, 
+     so Huxblog drops it officially.
+
+     - https://github.com/blog/2100-github-pages-now-faster-and-simpler-with-jekyll-3-0  
+     - https://help.github.com/articles/creating-and-highlighting-code-blocks/    
+-->
+<!--
+    <script>
+        async("http://cdn.bootcss.com/highlight.js/8.6/highlight.min.js", function(){
+            hljs.initHighlightingOnLoad();
+        })
+    </script>
+    <link href="http://cdn.bootcss.com/highlight.js/8.6/styles/github.min.css" rel="stylesheet">
+-->
+
+
+<!-- jquery.tagcloud.js -->
+<script>
+    // only load tagcloud.js in tag.html
+    if($('#tag_cloud').length !== 0){
+        async("https://www.hi-linux.com/js/jquery.tagcloud.js",function(){
+            $.fn.tagcloud.defaults = {
+                //size: {start: 1, end: 1, unit: 'em'},
+                color: {start: '#bbbbee', end: '#0085a1'},
+            };
+            $('#tag_cloud a').tagcloud();
+        })
+    }
+</script>
+
+<!--fastClick.js -->
+<script>
+    async("https://cdn.bootcss.com/fastclick/1.0.6/fastclick.min.js", function(){
+        var $nav = document.querySelector("nav");
+        if($nav) FastClick.attach($nav);
+    })
+</script>
+
+
+<!-- Google Analytics -->
+
+
+
+
+<!-- Baidu Tongji -->
+
+
+
+
+
+
+	<a id="rocket" href="#top" class=""></a>
+	<script type="text/javascript" src="/js/totop.js?v=1.0.0" async=""></script>
+    <script type="text/javascript" src="/js/toc.js?v=1.0.0" async=""></script>
+<!-- Image to hack wechat -->
+<img src="https://www.hi-linux.com/img/icon_wechat.png" width="0" height="0" />
+<!-- Migrate from head to bottom, no longer block render and still work -->
+
+</body>
+
+</html>

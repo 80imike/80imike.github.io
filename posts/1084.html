@@ -1,0 +1,671 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<!-- Head tag -->
+<head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="google-site-verification" content="xBT4GhYoi5qRD5tr338pgPM5OWHHIDR6mNg1a3euekI" />
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="description" content="">
+    <meta name="keyword"  content="Linux,运维,Nginx,Zabbix,Centos,Ansible,MySQL,Python,Docker,ELK,Haproxy,Git,Nodejs,安全,技术">
+    <link rel="shortcut icon" href="/img/ironman-draw.png">
+    <!-- Place this tag in your head or just before your close body tag. -->
+    <script async defer src="https://buttons.github.io/buttons.js"></script>
+    <title>
+        
+          基于 Upsync 模块实现 Nginx 动态配置 - 运维之美
+        
+    </title>
+
+    <link rel="canonical" href="https://www.hi-linux.com/posts/1084.html">
+
+    <!-- Bootstrap Core CSS -->
+    <link rel="stylesheet" href="/css/bootstrap.min.css">
+
+    <!-- Custom CSS --> 
+    <link rel="stylesheet" href="/css/beantech.min.css">
+    
+    <!-- Pygments Highlight CSS -->
+    <link rel="stylesheet" href="/css/highlight.css">
+
+    <link rel="stylesheet" href="/css/widget.css">
+
+    <link rel="stylesheet" href="/css/rocket.css">
+
+    <link rel="stylesheet" href="/css/signature.css">
+
+    <link rel="stylesheet" href="/css/toc.css">
+
+    <!-- Custom Fonts -->
+    <!-- <link href="https://maxcdn.bootstrapcdn.com/font-awesome/4.3.0/css/font-awesome.min.css" rel="stylesheet" type="text/css"> -->
+    <!-- Hux change font-awesome CDN to qiniu -->
+    <link href="https://cdn.staticfile.org/font-awesome/4.5.0/css/font-awesome.min.css" rel="stylesheet" type="text/css">
+
+
+    <!-- Hux Delete, sad but pending in China
+    <link href='http://fonts.googleapis.com/css?family=Lora:400,700,400italic,700italic' rel='stylesheet' type='text/css'>
+    <link href='http://fonts.googleapis.com/css?family=Open+Sans:300italic,400italic,600italic,700italic,800italic,400,300,600,700,800' rel='stylesheet' type='text/
+    css'>
+    -->
+
+
+    <!-- HTML5 Shim and Respond.js IE8 support of HTML5 elements and media queries -->
+    <!-- WARNING: Respond.js doesn't work if you view the page via file:// -->
+    <!--[if lt IE 9]>
+        <script src="https://oss.maxcdn.com/libs/html5shiv/3.7.0/html5shiv.js"></script>
+        <script src="https://oss.maxcdn.com/libs/respond.js/1.4.2/respond.min.js"></script>
+    <![endif]-->
+
+    <!-- ga & ba script hoook -->
+    <script></script>
+</head>
+
+
+<!-- hack iOS CSS :active style -->
+<body ontouchstart="">
+	<!-- Modified by Yu-Hsuan Yen -->
+<!-- Post Header -->
+<style type="text/css">
+    header.intro-header{
+        
+            background-image: url('/img/header_img/article.jpg')
+            /*post*/
+        
+    }
+    
+</style>
+
+<header class="intro-header" >
+    <!-- Signature -->
+    <div id="signature">
+        <div class="container">
+            <div class="row">
+                <div class="col-lg-8 col-lg-offset-2 col-md-10 col-md-offset-1">
+                
+                    <div class="post-heading">
+                        <div class="tags">
+                            
+                              <a class="tag" href="/tags/#技巧" title="技巧">技巧</a>
+                            
+                              <a class="tag" href="/tags/#Nginx" title="Nginx">Nginx</a>
+                            
+                        </div>
+                        <h1>基于 Upsync 模块实现 Nginx 动态配置</h1>
+                        <h2 class="subheading"></h2>
+                        <span class="meta">
+                            Posted by Mike on
+                            2017-05-08
+                        </span>
+                    </div>
+                
+
+
+                </div>
+            </div>
+        </div>
+    </div>
+</header>
+
+	
+    <!-- Navigation -->
+<nav class="navbar navbar-default navbar-custom navbar-fixed-top">
+    <div class="container-fluid">
+        <!-- Brand and toggle get grouped for better mobile display -->
+        <div class="navbar-header page-scroll">
+            <button type="button" class="navbar-toggle">
+                <span class="sr-only">Toggle navigation</span>
+                <span class="icon-bar"></span>
+                <span class="icon-bar"></span>
+                <span class="icon-bar"></span>
+            </button>
+            <a class="navbar-brand" href="/">运维之美</a>
+        </div>
+
+        <!-- Collect the nav links, forms, and other content for toggling -->
+        <!-- Known Issue, found by Hux:
+            <nav>'s height woule be hold on by its content.
+            so, when navbar scale out, the <nav> will cover tags.
+            also mask any touch event of tags, unfortunately.
+        -->
+        <div id="huxblog_navbar">
+            <div class="navbar-collapse">
+                <ul class="nav navbar-nav navbar-right">
+                    <li>
+                        <a href="/">Home</a>
+                    </li>
+
+                    
+
+                        
+                    
+
+                        
+                    
+
+                        
+                        <li>
+                            <a href="/about/">About</a>
+                        </li>
+                        
+                    
+
+                        
+                        <li>
+                            <a href="/archive/">Archives</a>
+                        </li>
+                        
+                    
+
+                        
+                        <li>
+                            <a href="/tags/">Tags</a>
+                        </li>
+                        
+                    
+                    
+                </ul>
+            </div>
+        </div>
+        <!-- /.navbar-collapse -->
+    </div>
+    <!-- /.container -->
+</nav>
+<script>
+    // Drop Bootstarp low-performance Navbar
+    // Use customize navbar with high-quality material design animation
+    // in high-perf jank-free CSS3 implementation
+    var $body   = document.body;
+    var $toggle = document.querySelector('.navbar-toggle');
+    var $navbar = document.querySelector('#huxblog_navbar');
+    var $collapse = document.querySelector('.navbar-collapse');
+
+    $toggle.addEventListener('click', handleMagic)
+    function handleMagic(e){
+        if ($navbar.className.indexOf('in') > 0) {
+        // CLOSE
+            $navbar.className = " ";
+            // wait until animation end.
+            setTimeout(function(){
+                // prevent frequently toggle
+                if($navbar.className.indexOf('in') < 0) {
+                    $collapse.style.height = "0px"
+                }
+            },400)
+        }else{
+        // OPEN
+            $collapse.style.height = "auto"
+            $navbar.className += " in";
+        }
+    }
+</script>
+
+
+    <!-- Main Content -->
+    <!-- Modify by Yu-Hsuan Yen -->
+
+<!-- Post Content -->
+<article>
+    <div class="container">
+        <div class="row">
+
+            <!-- Post Container -->
+            <div class="
+                col-lg-8 col-lg-offset-2
+                col-md-10 col-md-offset-1
+                post-container">
+
+                <p>Upsync是新浪微博开源的基于Nginx实现动态配置的三方模块。<code>Nginx-Upsync-Module</code>的功能是拉取Consul的后端server的列表，并动态更新Nginx的路由信息。此模块不依赖于任何第三方模块。Consul作为Nginx的DB，利用Consul的KV服务，每个Nginx Work进程独立的去拉取各个upstream的配置，并更新各自的路由。</p>
+<h3 id="upsync模块工作原理">Upsync模块工作原理</h3>
+<p>在Nginx的设计中，每一个upstream维护了一张静态路由表，存储了backend的ip、port以及其他的meta信息。每次请求到达后，会依据location检索路由表，然后依据具体的调度算法(如round robin )选择一个backend转发请求。但这张路由表是静态的，如果变更后，则必须reload，经常reload的话这对SLA有较大影响。</p>
+<p>为了达到减少reload的目的，大多通过动态更新维护路由表来解决这个问题。通常路由表的维护有Push与Pull两种方式。</p>
+<a id="more"></a>
+<ul>
+<li>Push方案</li>
+</ul>
+<p>通过Nginx API向Nginx发出请求,操作简单、便利。</p>
+<p>架构图如下</p>
+<p><img src="http://mmbiz.qpic.cn/mmbiz/8XkvNnTiapOMKPbl0l2HpfVsN8n01PWVicBSiatic0X4QsVYXzQVIXicQR9eW12VgCkUWce26ib1xKNdmBdiaqxVTJaicQ/640?wx_fmt=jpeg&amp;tp=webp&amp;wxfrom=5&amp;wx_lazy=1" alt=""></p>
+<p>http api除了操作简单、方便，而且实时性好；缺点是有多台Nginx时，不同Nginx路由表的一致性难于保证，如果某一条注册失败，便会造成服务配置的不一致，容错复杂。另外扩容Nginx服务器，需要从其他的Nginx中同步路由表。</p>
+<ul>
+<li>Pull方案</li>
+</ul>
+<p>路由表中所有的backend信息(含meta)存储到Consul，所有的Nginx从Consul拉取相关信息。有变更则更新路由表，利用Consul解决一致性问题，同时利用Consul的wait机制解决实时性问题。利用Consul的index进行增量摘取，解决带宽占用问题。</p>
+<p>在Consul中，一个K/V对代表一个backend信息，增加一个即视作扩容，减少一个即为缩容。调整meta信息，如权重，也可以达到动态流量调整的目的。</p>
+<p>架构图如下：</p>
+<p><img src="http://mmbiz.qpic.cn/mmbiz/8XkvNnTiapOMKPbl0l2HpfVsN8n01PWVicuJccSbpYT1HKf0a3ZHCTV5coDa9NnKnsLW5kfhsEqIMg1H8qBmhCnw/640?wx_fmt=jpeg&amp;tp=webp&amp;wxfrom=5&amp;wx_lazy=1" alt=""></p>
+<ul>
+<li>基于动态路由的方案实现</li>
+</ul>
+<p>Upsync模块使用了第二种模式，通过拉取Consul的后端Server的列表，并动态更新Nginx的路由信息。Upsync模块工作流程图如下：</p>
+<p><img src="http://static.oschina.net/uploads/space/2016/0311/110607_oLSx_1774694.png" alt=""></p>
+<p>每个Work进程定时的去Consul拉取相应upstream的配置，若Consul发现对应upstream的值没有变化，便会hang住这个请求五分钟(默认值)。在这五分钟内对此upstream的任何操作，都会立刻返回给Nginx对相应路由进行更新。</p>
+<p>upstream变更后，除了更新Nginx的缓存路由信息，还会把本upstream的后端server列表dump到本地，保持本地server信息与consul的一致性。</p>
+<p>除了注册／注销后端的server到consul，会更新到Nginx的upstream路由信息外，对后端server属性的修改也会同步到nginx的upstream路由。</p>
+<p>Upsync模块支持修改的属性有：weight、max_fails、fail_timeout、down。</p>
+<ol>
+<li>修改server的权重可以动态的调整后端的流量。</li>
+<li>若想要临时移除server，可以把server的down属性置为1。</li>
+<li>若要恢复流量，可重新把down置为0。</li>
+</ol>
+<p>每个work进程各自拉取、更新各自的路由表，采用这种方式的原因：</p>
+<ol>
+<li>基于Nginx的进程模型，彼此间数据独立、互不干扰。</li>
+<li>若采用共享内存，需要提前预分配，灵活性可能受限制，而且还需要读写锁，对性能可能存在潜在的影响。</li>
+<li>若采用共享内存，进程间协调去拉取配置，会增加它的复杂性，拉取的稳定性也会受到影响。</li>
+</ol>
+<p>Upsync模块高可用性</p>
+<p>Nginx的后端列表更新依赖于Consul，但是不强依赖于它，具体表现为：</p>
+<ol>
+<li>即使中途Consul意外挂了，也不会影响Nginx的服务，Nginx会沿用最后一次更新的服务列表继续提供服务。</li>
+<li>若Consul重新启动提供服务，这个时候Nginx会继续去Consul探测，这个时候Consul的后端服务列表发生了变化，也会及时的更新到Nginx。</li>
+<li>work进程每次更新都会把后端列表dump到本地，目的是降低对Consul的依赖性，即使在consul不可用时，也可以Reload Nginx。</li>
+</ol>
+<p>Nginx启动流程图如下：</p>
+<p><img src="http://mmbiz.qpic.cn/mmbiz/8XkvNnTiapOMKPbl0l2HpfVsN8n01PWVicibg7gG18fsAMQ6bIOunFMvsXzNhhHHibSt8QyVaOCkfK2LiaunTCf4NrQ/640?wx_fmt=jpeg&amp;tp=webp&amp;wxfrom=5&amp;wx_lazy=1" alt=""></p>
+<p>Nginx启动时，master进程首先会解析本地的配置文件，解析完成功，接着进行一系列的初始化，之后便会开始work进程的初始化。work初始化时会去Consul拉取配置，进行work进程upstream路由信息的更新，若拉取成功，便直接更新，若拉取失败，便会打开配置的dump后端列表的文件，提取之前dump下来的server信息，进行upstream路由的更新，之后便开始正常的提供服务。</p>
+<p>每次去拉取Consul都会设置连接超时，由于Consul在无更新的情况下默认会hang五分钟，所以响应超时配置时间应大于五分钟。大于五分钟之后，Consul依旧没有返回，便直接做超时处理。</p>
+<h3 id="upsync模块安装">Upsync模块安装</h3>
+<h4 id="安装consul">安装Consul</h4>
+<blockquote>
+<p>Consul是HashiCorp公司推出的开源工具，用于实现分布式系统的服务发现与配置。</p>
+</blockquote>
+<p>Upsync最新版本是支持ectd，这里用ectd做为后端存储。有关consule的讲解后面单独来讲。如果你还没有etcd环境，可参考「<a href="https://www.hi-linux.com/posts/40915.html">etcd使用入门</a>」一文搭建一个。</p>
+<h4 id="安装配置nginx">安装配置Nginx</h4>
+<ul>
+<li>下载对应软件包</li>
+</ul>
+<p>这里使用的是Upsync最新版本，目前支持Nginx 1.9+。<code>nginx-upstream-check-module</code>是Tengine中的模块，主要用于upstream的健康检查。由于<code>nginx-upstream-check-module</code>最新版本只支持1.9.2，所以这里Nginx选用1.9.2。</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">$ cd /root</span><br><span class="line">$ wget &apos;http://nginx.org/download/nginx-1.9.2.tar.gz&apos;</span><br><span class="line">$ git clone https://github.com/weibocom/nginx-upsync-module</span><br><span class="line">$ git clone https://github.com/xiaokai-wang/nginx_upstream_check_module</span><br></pre></td></tr></table></figure>
+<ul>
+<li>编译安装Nginx</li>
+</ul>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">$ apt-get install libreadline-dev libncurses5-dev libpcre3-dev libssl-dev perl make build-essential</span><br><span class="line">$ tar xzvf nginx-1.9.2.tar.gz</span><br><span class="line">$ cd nginx-1.9.2</span><br><span class="line">$ patch -p0 &lt; ~/nginx_upstream_check_module/check_1.9.2+.patch</span><br><span class="line">$ ./configure --add-module=/root/nginx_upstream_check_module --add-module=/root/nginx-upsync-module</span><br><span class="line">$ make &amp;&amp; make install</span><br></pre></td></tr></table></figure>
+<ul>
+<li>配置Nginx</li>
+</ul>
+<p>Nginx会默认安装到<code>/usr/local/nginx</code>目录下。</p>
+<p>创建用户和相应目录</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">$ useradd -M nginx -s /sbin/nologin</span><br><span class="line">$ mkdir -p /var/log/nginx</span><br><span class="line">$ chown -R nginx.nginx /var/log/nginx</span><br><span class="line">$ mkdir /usr/local/nginx/conf/conf.d</span><br><span class="line">$ mkdir -p /usr/local/nginx/conf/servers</span><br></pre></td></tr></table></figure>
+<p>修改Nginx主配置文件</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br></pre></td><td class="code"><pre><span class="line"># 备份原配置文件</span><br><span class="line">$ cd /usr/local/nginx</span><br><span class="line">$ mv conf/nginx.conf conf/nginx.conf.bak</span><br><span class="line"></span><br><span class="line"># 修改配置</span><br><span class="line">$ vim /usr/local/nginx/conf/nginx.conf</span><br><span class="line"></span><br><span class="line">user  nginx;</span><br><span class="line">worker_processes  5;</span><br><span class="line"></span><br><span class="line">error_log  /var/log/nginx/error.log warn;</span><br><span class="line">pid        /var/run/nginx.pid;</span><br><span class="line"></span><br><span class="line">events &#123;</span><br><span class="line">    worker_connections  1024;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line">http &#123;</span><br><span class="line">    include       /usr/local/nginx/conf/mime.types;</span><br><span class="line">    default_type  application/octet-stream;</span><br><span class="line"></span><br><span class="line">    log_format  main  &apos;$remote_addr - $remote_user [$time_local] &quot;$request&quot; &apos;</span><br><span class="line">                      &apos;$status $body_bytes_sent &quot;$http_referer&quot; &apos;</span><br><span class="line">                      &apos;&quot;$http_user_agent&quot; &quot;$http_x_forwarded_for&quot;&apos;;</span><br><span class="line"></span><br><span class="line">    access_log  /var/log/nginx/access.log  main;</span><br><span class="line"></span><br><span class="line">    sendfile        on;</span><br><span class="line">    #tcp_nopush     on;</span><br><span class="line"></span><br><span class="line">    keepalive_timeout  65;</span><br><span class="line"></span><br><span class="line">    #gzip  on;</span><br><span class="line"></span><br><span class="line">    include /usr/local/nginx/conf/conf.d/*.conf;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>创建站点配置文件</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br></pre></td><td class="code"><pre><span class="line">$ vim /usr/local/nginx/conf/conf.d/site.conf</span><br><span class="line"></span><br><span class="line">upstream test &#123;</span><br><span class="line">  # fake server otherwise ngx_http_upstream will report error when startup</span><br><span class="line">  server 127.0.0.1:11111;</span><br><span class="line"></span><br><span class="line">  # all backend server will pull from consul when startup and will delete fake server</span><br><span class="line"></span><br><span class="line">  # 后端使用consul存储</span><br><span class="line">  # upsync 192.168.2.210:8500/v1/kv/upstreams/test upsync_timeout=6m upsync_interval=500ms upsync_type=consul strong_dependency=off;</span><br><span class="line"></span><br><span class="line"></span><br><span class="line">  # 后端使用etcd存储</span><br><span class="line">  upsync 192.168.2.210:2379/v2/keys/upstreams/test upsync_timeout=6m</span><br><span class="line"></span><br><span class="line">  upsync_interval=500ms upsync_type=etcd strong_dependency=off;</span><br><span class="line">  upsync_dump_path /usr/local/nginx/conf/servers/servers_test.conf;</span><br><span class="line"></span><br><span class="line">  #配置健康检查</span><br><span class="line">  check interval=1000 rise=2 fall=2 timeout=3000 type=http default_down=false;</span><br><span class="line">  check_http_send &quot;HEAD / HTTP/1.0\r\n\r\n&quot;;</span><br><span class="line">  check_http_expect_alive http_2xx http_3xx;</span><br><span class="line"></span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line">upstream bar &#123;</span><br><span class="line">  server 192.168.2.210:8080 weight=1 fail_timeout=10 max_fails=3;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line">server &#123;</span><br><span class="line">  listen 80;</span><br><span class="line"></span><br><span class="line">  location = / &#123;</span><br><span class="line">    proxy_pass http://test;</span><br><span class="line">  &#125;</span><br><span class="line"></span><br><span class="line">  location = /bar &#123;  </span><br><span class="line">    proxy_pass http://bar;</span><br><span class="line">  &#125;</span><br><span class="line"></span><br><span class="line">  location = /upstream_show &#123;</span><br><span class="line">    upstream_show;</span><br><span class="line">  &#125;</span><br><span class="line"></span><br><span class="line">  location = /upstream_status &#123;</span><br><span class="line">    check_status;</span><br><span class="line">    access_log off;</span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<ul>
+<li>创建Nginx Systemd服务</li>
+</ul>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br></pre></td><td class="code"><pre><span class="line">$ vi /lib/systemd/system/nginx.service</span><br><span class="line"></span><br><span class="line">[Unit]</span><br><span class="line">Description=The NGINX HTTP and reverse proxy server</span><br><span class="line">Documentation=http://nginx.org/en/docs/</span><br><span class="line">After=syslog.target network.target remote-fs.target nss-lookup.target</span><br><span class="line"></span><br><span class="line">[Service]</span><br><span class="line">Type=forking</span><br><span class="line">PIDFile=/var/run/nginx.pid</span><br><span class="line">ExecStartPre=/usr/local/nginx/sbin/nginx -t -c /usr/local/nginx/conf/nginx.conf</span><br><span class="line">ExecStart=/usr/local/nginx/sbin/nginx -c /usr/local/nginx/conf/nginx.conf</span><br><span class="line">ExecReload=/bin/kill -s HUP $MAINPID</span><br><span class="line">ExecStop=/bin/kill -s QUIT $MAINPID</span><br><span class="line">PrivateTmp=true</span><br><span class="line"></span><br><span class="line">[Install]</span><br><span class="line">WantedBy=multi-user.target</span><br></pre></td></tr></table></figure>
+<p>修改权限及加入开机启动</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">$ sudo chmod +x /lib/systemd/system/nginx.service</span><br><span class="line">$ sudo systemctl enable nginx.service</span><br></pre></td></tr></table></figure>
+<p>现在可以使用下面的指令来管理Nginx服务。</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">$ systemctl start nginx.service</span><br><span class="line">$ systemctl reload nginx.service</span><br><span class="line">$ systemctl restart nginx.service</span><br><span class="line">$ systemctl stop nginx.service</span><br></pre></td></tr></table></figure>
+<ul>
+<li>启动Nginx</li>
+</ul>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">$ systemctl start nginx.service</span><br></pre></td></tr></table></figure>
+<p>验证Nginx服务是否正常</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br></pre></td><td class="code"><pre><span class="line">$ systemctl status  nginx.service</span><br><span class="line">● nginx.service - The NGINX HTTP and reverse proxy server</span><br><span class="line">   Loaded: loaded (/lib/systemd/system/nginx.service; disabled; vendor preset: enabled)</span><br><span class="line">   Active: active (running) since Mon 2017-05-08 10:58:06 CST; 1min 6s ago</span><br><span class="line">     Docs: http://nginx.org/en/docs/</span><br><span class="line">  Process: 22966 ExecStart=/usr/local/nginx/sbin/nginx -c /usr/local/nginx/conf/nginx.conf (code=exited, status=0/SUCCESS)</span><br><span class="line">  Process: 22963 ExecStartPre=/usr/local/nginx/sbin/nginx -t -c /usr/local/nginx/conf/nginx.conf (code=exited, status=0/SUCCESS)</span><br><span class="line"> Main PID: 22971 (nginx)</span><br><span class="line">    Tasks: 6</span><br><span class="line">   Memory: 24.5M</span><br><span class="line">      CPU: 517ms</span><br><span class="line">   CGroup: /system.slice/nginx.service</span><br><span class="line">           ├─22971 nginx: master process /usr/local/nginx/sbin/nginx -c /usr/local/nginx/conf/nginx.con</span><br><span class="line">           ├─22972 nginx: worker process</span><br><span class="line">           ├─22973 nginx: worker process</span><br><span class="line">           ├─22974 nginx: worker process</span><br><span class="line">           ├─22975 nginx: worker process</span><br><span class="line">           └─22976 nginx: worker process</span><br><span class="line"></span><br><span class="line">May 08 10:58:06 dev-master-01 systemd[1]: Starting The NGINX HTTP and reverse proxy server...</span><br><span class="line">May 08 10:58:06 dev-master-01 nginx[22963]: nginx: the configuration file /usr/local/nginx/conf/nginx.conf syntax is ok</span><br><span class="line">May 08 10:58:06 dev-master-01 nginx[22963]: nginx: configuration file /usr/local/nginx/conf/nginx.conf test is successful</span><br><span class="line">May 08 10:58:06 dev-master-01 systemd[1]: Started The NGINX HTTP and reverse proxy server.</span><br></pre></td></tr></table></figure>
+<p>如果要单独查看Nginx服务日志，可以使用以下命令：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">$ journalctl -f -u nginx.service</span><br></pre></td></tr></table></figure>
+<h3 id="验证upsync模块">验证Upsync模块</h3>
+<h4 id="启动一个web服务">启动一个Web服务</h4>
+<p>这里在Nginx默认站点目录，用Python启动一个SimpleHTTPServer进行验证。</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">$ cd /usr/local/nginx/html</span><br><span class="line">$ python -m SimpleHTTPServer 8080</span><br></pre></td></tr></table></figure>
+<h4 id="后端存储增加数据">后端存储增加数据</h4>
+<ul>
+<li>后端存储使用etcd</li>
+</ul>
+<p>增加一个后端服务器</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">$ curl -X PUT http://192.168.2.210:2379/v2/keys/upstreams/test/192.168.2.210:8080</span><br></pre></td></tr></table></figure>
+<p>其它Upstream模块中其它属性的默认值为：<code>weight=1 max_fails=2 fail_timeout=10 down=0 backup=0;</code>。如果你要调整这些值，可以用以下命令格式进行提交：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">$ curl -X PUT -d value=&quot;&#123;\&quot;weight\&quot;:1, \&quot;max_fails\&quot;:2, \&quot;fail_timeout\&quot;:10&#125;&quot; http://$etcd_ip:$port/v2/keys/$dir1/$upstream_name/$backend_ip:$backend_port</span><br></pre></td></tr></table></figure>
+<p>删除一个后端服务器</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">$ curl -X DELETE http://192.168.2.210:2379/v2/keys/upstreams/test/192.168.2.210:8080</span><br></pre></td></tr></table></figure>
+<ul>
+<li>后端存储使用Consul</li>
+</ul>
+<p>增加一个后端服务器</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">$ curl -X PUT http://192.168.2.210:8500/v1/kv/upstreams/test/192.168.2.210:8080</span><br></pre></td></tr></table></figure>
+<p>删除一个后端服务器</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">$ curl -X DELETE http://192.168.2.210:8500/v1/kv/upstreams/test/192.168.2.210:8080</span><br></pre></td></tr></table></figure>
+<h4 id="测试站点是否正常访问">测试站点是否正常访问</h4>
+<ul>
+<li>访问站点</li>
+</ul>
+<p><img src="https://www.hi-linux.com/img/linux/upsync1.png" alt=""></p>
+<p>页面自动根据<code>proxy_pass http://test;</code>成功转到了后端服务器。</p>
+<ul>
+<li>访问upstream列表</li>
+</ul>
+<p><img src="https://www.hi-linux.com/img/linux/upsync2.png" alt=""></p>
+<ul>
+<li>访问upstream状态</li>
+</ul>
+<p><img src="https://www.hi-linux.com/img/linux/upsync3.png" alt=""></p>
+<ul>
+<li>查看添加的后端服务是否被dump到本地</li>
+</ul>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">$ cat /usr/local/nginx/conf/servers/servers_test.conf</span><br><span class="line">server 192.168.2.210:8080 weight=1 max_fails=2 fail_timeout=10s;</span><br></pre></td></tr></table></figure>
+<h3 id="参考文档">参考文档</h3>
+<p><a href="http://www.google.com" target="_blank" rel="noopener">http://www.google.com</a><br>
+<a href="http://t.cn/Ra2WfSR" target="_blank" rel="noopener">http://t.cn/Ra2WfSR</a><br>
+<a href="https://my.oschina.net/liucao/blog/470344" target="_blank" rel="noopener">https://my.oschina.net/liucao/blog/470344</a><br>
+<a href="http://blog.csdn.net/yueguanghaidao/article/details/52801043" target="_blank" rel="noopener">http://blog.csdn.net/yueguanghaidao/article/details/52801043</a><br>
+<a href="https://www.nginx.com/resources/wiki/start/topics/examples/systemd/" target="_blank" rel="noopener">https://www.nginx.com/resources/wiki/start/topics/examples/systemd/</a></p>
+
+                
+
+                <hr>
+                <!-- Pager -->
+                <ul class="pager">
+                    
+                        <li class="previous">
+                            <a href="/posts/6132.html" data-toggle="tooltip" data-placement="top" title="Consul 入门">&larr; Previous Post</a>
+                        </li>
+                    
+                    
+                        <li class="next">
+                            <a href="/posts/28459.html" data-toggle="tooltip" data-placement="top" title="推荐几款我喜欢的 Atom 插件">Next Post &rarr;</a>
+                        </li>
+                    
+                </ul>
+
+                <!-- duoshuo Share start -->
+                
+                <!-- 多说 Share end-->
+
+                <!-- 多说评论框 start -->
+                
+                <!-- 多说评论框 end -->
+
+                <!-- disqus comment start -->
+                
+                <!-- disqus comment end -->
+
+                
+                    <!-- disqus 评论框 start -->
+                    <div class="comment">
+                        <div id="lv-container" data-id="city" data-uid="MTAyMC8yNzg2My80NDQw"></div>
+                    </div>
+                    <!-- disqus 评论框 end -->
+                
+
+            </div>
+            
+            <!-- Tabe of Content -->
+            <!-- Table of Contents -->
+
+  
+    <style>
+      span.toc-nav-number{
+        display: none
+      }
+    </style>
+  
+    
+      <aside id="sidebar">
+        <div id="toc" class="toc-article">
+        <strong class="toc-title">Contents</strong>
+        
+          <ol class="toc-nav"><li class="toc-nav-item toc-nav-level-3"><a class="toc-nav-link" href="#upsync模块工作原理"><span class="toc-nav-number">1.</span> <span class="toc-nav-text">Upsync模块工作原理</span></a></li><li class="toc-nav-item toc-nav-level-3"><a class="toc-nav-link" href="#upsync模块安装"><span class="toc-nav-number">2.</span> <span class="toc-nav-text">Upsync模块安装</span></a><ol class="toc-nav-child"><li class="toc-nav-item toc-nav-level-4"><a class="toc-nav-link" href="#安装consul"><span class="toc-nav-number">2.1.</span> <span class="toc-nav-text">安装Consul</span></a></li><li class="toc-nav-item toc-nav-level-4"><a class="toc-nav-link" href="#安装配置nginx"><span class="toc-nav-number">2.2.</span> <span class="toc-nav-text">安装配置Nginx</span></a></li></ol></li><li class="toc-nav-item toc-nav-level-3"><a class="toc-nav-link" href="#验证upsync模块"><span class="toc-nav-number">3.</span> <span class="toc-nav-text">验证Upsync模块</span></a><ol class="toc-nav-child"><li class="toc-nav-item toc-nav-level-4"><a class="toc-nav-link" href="#启动一个web服务"><span class="toc-nav-number">3.1.</span> <span class="toc-nav-text">启动一个Web服务</span></a></li><li class="toc-nav-item toc-nav-level-4"><a class="toc-nav-link" href="#后端存储增加数据"><span class="toc-nav-number">3.2.</span> <span class="toc-nav-text">后端存储增加数据</span></a></li><li class="toc-nav-item toc-nav-level-4"><a class="toc-nav-link" href="#测试站点是否正常访问"><span class="toc-nav-number">3.3.</span> <span class="toc-nav-text">测试站点是否正常访问</span></a></li></ol></li><li class="toc-nav-item toc-nav-level-3"><a class="toc-nav-link" href="#参考文档"><span class="toc-nav-number">4.</span> <span class="toc-nav-text">参考文档</span></a></li></ol>
+        
+        </div>
+      </aside>
+    
+
+                
+            <!-- Sidebar Container -->
+            <div class="
+                col-lg-8 col-lg-offset-2
+                col-md-10 col-md-offset-1
+                sidebar-container">
+
+                <!-- Featured Tags -->
+                
+                <section>
+                    <!-- no hr -->
+                    <h5><a href="/tags/">FEATURED TAGS</a></h5>
+                    <div class="tags">
+                       
+                          <a class="tag" href="/tags/#技巧" title="技巧">技巧</a>
+                        
+                          <a class="tag" href="/tags/#Nginx" title="Nginx">Nginx</a>
+                        
+                    </div>
+                </section>
+                
+
+                <!-- Friends Blog -->
+                
+                <hr>
+                <h5>FRIENDS</h5>
+                <ul class="list-inline">
+
+                    
+                        <li><a href="http://www.mike.org.cn/" target="_blank">简单.生活</a></li>
+                    
+                        <li><a href="http://shang.qq.com/wpa/qunwpa?idkey=ea4c43493c2269428ac6ef6141de4b6d78e5ab2d41380ca4099b833b62884ee9" target="_blank">技术交流群</a></li>
+                    
+                        <li><a href="" target="_blank"></a></li>
+                    
+                        <li><a href="" target="_blank"></a></li>
+                    
+                </ul>
+                
+            </div>
+        </div>
+    </div>
+</article>
+
+
+
+
+
+
+    <!-- 来必力City版公共JS代码 start (一个网页只需插入一次) -->
+    <script type="text/javascript">
+       (function(d, s) {
+           var j, e = d.getElementsByTagName(s)[0];
+    
+           if (typeof LivereTower === 'function') { return; }
+    
+           j = d.createElement(s);
+           j.src = 'https://cdn-city.livere.com/js/embed.dist.js';
+           j.async = true;
+    
+           e.parentNode.insertBefore(j, e);
+       })(document, 'script');
+    </script>
+    <noscript>为正常使用来必力评论功能请激活JavaScript</noscript>
+    <!-- 来必力City版 公共JS代码 end -->
+
+
+
+<!-- async load function -->
+<script>
+    function async(u, c) {
+      var d = document, t = 'script',
+          o = d.createElement(t),
+          s = d.getElementsByTagName(t)[0];
+      o.src = u;
+      if (c) { o.addEventListener('load', function (e) { c(null, e); }, false); }
+      s.parentNode.insertBefore(o, s);
+    }
+</script>
+<!-- anchor-js, Doc:http://bryanbraun.github.io/anchorjs/ -->
+<script>
+    async("https://cdn.bootcss.com/anchor-js/1.1.1/anchor.min.js",function(){
+        anchors.options = {
+          visible: 'hover',
+          placement: 'left',
+          icon: 'ℬ'
+        };
+        anchors.add().remove('.intro-header h1').remove('.subheading').remove('.sidebar-container h5');
+    })
+</script>
+<style>
+    /* place left on bigger screen */
+    @media all and (min-width: 800px) {
+        .anchorjs-link{
+            position: absolute;
+            left: -0.75em;
+            font-size: 1.1em;
+            margin-top : -0.1em;
+        }
+    }
+</style>
+
+
+
+    <!-- Footer -->
+    <!-- Footer -->
+<footer>
+    <div class="container">
+        <div class="row">
+            <div class="col-lg-8 col-lg-offset-2 col-md-10 col-md-offset-1">
+                <ul class="list-inline text-center">
+                
+                    <li>
+                        <a href="/atom.xml">
+                            <span class="fa-stack fa-lg">
+                                <i class="fa fa-circle fa-stack-2x"></i>
+                                <i class="fa fa-rss fa-stack-1x fa-inverse"></i>
+                            </span>
+                        </a>
+                    </li>
+                
+                
+                
+                    <li>
+                        <a target="_blank" href="https://www.zhihu.com/people/80imike">
+                            <span class="fa-stack fa-lg">
+                                <i class="fa fa-circle fa-stack-2x"></i>
+                                <i class="fa  fa-stack-1x fa-inverse">知</i>
+                            </span>
+                        </a>
+                    </li>
+                
+
+                
+                    <li>
+                        <a target="_blank" href="http://weibo.com/2093524665">
+                            <span class="fa-stack fa-lg">
+                                <i class="fa fa-circle fa-stack-2x"></i>
+                                <i class="fa fa-weibo fa-stack-1x fa-inverse"></i>
+                            </span>
+                        </a>
+                    </li>
+                
+
+                
+
+                
+
+                
+
+                </ul>
+                <p class="copyright text-muted">
+                    Copyright &copy; Mike 2018 | Hosted by <a href="https://pages.coding.me" style="font-weight: bold">Coding Pages</a>
+                    <br>
+                    Theme by <a href="http://beantech.org">BeanTech</a> 
+                    <span style="display: inline-block; margin: 0 5px;">
+                        <i class="fa fa-heart"></i>
+                    </span> 
+                    re-Ported by <a href="http://www.huweihuang.com">胡伟煌</a> | 
+                    <iframe
+                        style="margin-left: 2px; margin-bottom:-5px;"
+                        frameborder="0" scrolling="0" width="91px" height="20px"
+                        src="https://ghbtns.com/github-btn.html?user=huweihuang&repo=hexo-theme-huweihuang&type=star&count=true" >
+                    </iframe>
+                </p>
+            </div>
+        </div>
+    </div>
+</footer>
+
+<!-- jQuery -->
+<script src="/js/jquery.min.js"></script>
+
+<!-- Bootstrap Core JavaScript -->
+<script src="/js/bootstrap.min.js"></script>
+
+<!-- Custom Theme JavaScript -->
+<script src="/js/hux-blog.min.js"></script>
+
+
+<!-- async load function -->
+<script>
+    function async(u, c) {
+      var d = document, t = 'script',
+          o = d.createElement(t),
+          s = d.getElementsByTagName(t)[0];
+      o.src = u;
+      if (c) { o.addEventListener('load', function (e) { c(null, e); }, false); }
+      s.parentNode.insertBefore(o, s);
+    }
+</script>
+
+<!-- 
+     Because of the native support for backtick-style fenced code blocks 
+     right within the Markdown is landed in Github Pages, 
+     From V1.6, There is no need for Highlight.js, 
+     so Huxblog drops it officially.
+
+     - https://github.com/blog/2100-github-pages-now-faster-and-simpler-with-jekyll-3-0  
+     - https://help.github.com/articles/creating-and-highlighting-code-blocks/    
+-->
+<!--
+    <script>
+        async("http://cdn.bootcss.com/highlight.js/8.6/highlight.min.js", function(){
+            hljs.initHighlightingOnLoad();
+        })
+    </script>
+    <link href="http://cdn.bootcss.com/highlight.js/8.6/styles/github.min.css" rel="stylesheet">
+-->
+
+
+<!-- jquery.tagcloud.js -->
+<script>
+    // only load tagcloud.js in tag.html
+    if($('#tag_cloud').length !== 0){
+        async("https://www.hi-linux.com/js/jquery.tagcloud.js",function(){
+            $.fn.tagcloud.defaults = {
+                //size: {start: 1, end: 1, unit: 'em'},
+                color: {start: '#bbbbee', end: '#0085a1'},
+            };
+            $('#tag_cloud a').tagcloud();
+        })
+    }
+</script>
+
+<!--fastClick.js -->
+<script>
+    async("https://cdn.bootcss.com/fastclick/1.0.6/fastclick.min.js", function(){
+        var $nav = document.querySelector("nav");
+        if($nav) FastClick.attach($nav);
+    })
+</script>
+
+
+<!-- Google Analytics -->
+
+
+
+
+<!-- Baidu Tongji -->
+
+
+
+
+
+
+	<a id="rocket" href="#top" class=""></a>
+	<script type="text/javascript" src="/js/totop.js?v=1.0.0" async=""></script>
+    <script type="text/javascript" src="/js/toc.js?v=1.0.0" async=""></script>
+<!-- Image to hack wechat -->
+<img src="https://www.hi-linux.com/img/icon_wechat.png" width="0" height="0" />
+<!-- Migrate from head to bottom, no longer block render and still work -->
+
+</body>
+
+</html>

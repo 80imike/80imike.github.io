@@ -1,0 +1,607 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<!-- Head tag -->
+<head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="google-site-verification" content="xBT4GhYoi5qRD5tr338pgPM5OWHHIDR6mNg1a3euekI" />
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="description" content="">
+    <meta name="keyword"  content="Linux,运维,Nginx,Zabbix,Centos,Ansible,MySQL,Python,Docker,ELK,Haproxy,Git,Nodejs,安全,技术">
+    <link rel="shortcut icon" href="/img/ironman-draw.png">
+    <!-- Place this tag in your head or just before your close body tag. -->
+    <script async defer src="https://buttons.github.io/buttons.js"></script>
+    <title>
+        
+          用 Portspoof 欺骗扫描 Port 的入侵者 - 运维之美
+        
+    </title>
+
+    <link rel="canonical" href="https://www.hi-linux.com/posts/42020.html">
+
+    <!-- Bootstrap Core CSS -->
+    <link rel="stylesheet" href="/css/bootstrap.min.css">
+
+    <!-- Custom CSS --> 
+    <link rel="stylesheet" href="/css/beantech.min.css">
+    
+    <!-- Pygments Highlight CSS -->
+    <link rel="stylesheet" href="/css/highlight.css">
+
+    <link rel="stylesheet" href="/css/widget.css">
+
+    <link rel="stylesheet" href="/css/rocket.css">
+
+    <link rel="stylesheet" href="/css/signature.css">
+
+    <link rel="stylesheet" href="/css/toc.css">
+
+    <!-- Custom Fonts -->
+    <!-- <link href="https://maxcdn.bootstrapcdn.com/font-awesome/4.3.0/css/font-awesome.min.css" rel="stylesheet" type="text/css"> -->
+    <!-- Hux change font-awesome CDN to qiniu -->
+    <link href="https://cdn.staticfile.org/font-awesome/4.5.0/css/font-awesome.min.css" rel="stylesheet" type="text/css">
+
+
+    <!-- Hux Delete, sad but pending in China
+    <link href='http://fonts.googleapis.com/css?family=Lora:400,700,400italic,700italic' rel='stylesheet' type='text/css'>
+    <link href='http://fonts.googleapis.com/css?family=Open+Sans:300italic,400italic,600italic,700italic,800italic,400,300,600,700,800' rel='stylesheet' type='text/
+    css'>
+    -->
+
+
+    <!-- HTML5 Shim and Respond.js IE8 support of HTML5 elements and media queries -->
+    <!-- WARNING: Respond.js doesn't work if you view the page via file:// -->
+    <!--[if lt IE 9]>
+        <script src="https://oss.maxcdn.com/libs/html5shiv/3.7.0/html5shiv.js"></script>
+        <script src="https://oss.maxcdn.com/libs/respond.js/1.4.2/respond.min.js"></script>
+    <![endif]-->
+
+    <!-- ga & ba script hoook -->
+    <script></script>
+</head>
+
+
+<!-- hack iOS CSS :active style -->
+<body ontouchstart="">
+	<!-- Modified by Yu-Hsuan Yen -->
+<!-- Post Header -->
+<style type="text/css">
+    header.intro-header{
+        
+            background-image: url('/img/header_img/article.jpg')
+            /*post*/
+        
+    }
+    
+</style>
+
+<header class="intro-header" >
+    <!-- Signature -->
+    <div id="signature">
+        <div class="container">
+            <div class="row">
+                <div class="col-lg-8 col-lg-offset-2 col-md-10 col-md-offset-1">
+                
+                    <div class="post-heading">
+                        <div class="tags">
+                            
+                              <a class="tag" href="/tags/#Linux" title="Linux">Linux</a>
+                            
+                              <a class="tag" href="/tags/#技巧" title="技巧">技巧</a>
+                            
+                              <a class="tag" href="/tags/#工具" title="工具">工具</a>
+                            
+                              <a class="tag" href="/tags/#Portspoof" title="Portspoof">Portspoof</a>
+                            
+                        </div>
+                        <h1>用 Portspoof 欺骗扫描 Port 的入侵者</h1>
+                        <h2 class="subheading"></h2>
+                        <span class="meta">
+                            Posted by Mike on
+                            2016-03-15
+                        </span>
+                    </div>
+                
+
+
+                </div>
+            </div>
+        </div>
+    </div>
+</header>
+
+	
+    <!-- Navigation -->
+<nav class="navbar navbar-default navbar-custom navbar-fixed-top">
+    <div class="container-fluid">
+        <!-- Brand and toggle get grouped for better mobile display -->
+        <div class="navbar-header page-scroll">
+            <button type="button" class="navbar-toggle">
+                <span class="sr-only">Toggle navigation</span>
+                <span class="icon-bar"></span>
+                <span class="icon-bar"></span>
+                <span class="icon-bar"></span>
+            </button>
+            <a class="navbar-brand" href="/">运维之美</a>
+        </div>
+
+        <!-- Collect the nav links, forms, and other content for toggling -->
+        <!-- Known Issue, found by Hux:
+            <nav>'s height woule be hold on by its content.
+            so, when navbar scale out, the <nav> will cover tags.
+            also mask any touch event of tags, unfortunately.
+        -->
+        <div id="huxblog_navbar">
+            <div class="navbar-collapse">
+                <ul class="nav navbar-nav navbar-right">
+                    <li>
+                        <a href="/">Home</a>
+                    </li>
+
+                    
+
+                        
+                    
+
+                        
+                    
+
+                        
+                        <li>
+                            <a href="/about/">About</a>
+                        </li>
+                        
+                    
+
+                        
+                        <li>
+                            <a href="/archive/">Archives</a>
+                        </li>
+                        
+                    
+
+                        
+                        <li>
+                            <a href="/tags/">Tags</a>
+                        </li>
+                        
+                    
+                    
+                </ul>
+            </div>
+        </div>
+        <!-- /.navbar-collapse -->
+    </div>
+    <!-- /.container -->
+</nav>
+<script>
+    // Drop Bootstarp low-performance Navbar
+    // Use customize navbar with high-quality material design animation
+    // in high-perf jank-free CSS3 implementation
+    var $body   = document.body;
+    var $toggle = document.querySelector('.navbar-toggle');
+    var $navbar = document.querySelector('#huxblog_navbar');
+    var $collapse = document.querySelector('.navbar-collapse');
+
+    $toggle.addEventListener('click', handleMagic)
+    function handleMagic(e){
+        if ($navbar.className.indexOf('in') > 0) {
+        // CLOSE
+            $navbar.className = " ";
+            // wait until animation end.
+            setTimeout(function(){
+                // prevent frequently toggle
+                if($navbar.className.indexOf('in') < 0) {
+                    $collapse.style.height = "0px"
+                }
+            },400)
+        }else{
+        // OPEN
+            $collapse.style.height = "auto"
+            $navbar.className += " in";
+        }
+    }
+</script>
+
+
+    <!-- Main Content -->
+    <!-- Modify by Yu-Hsuan Yen -->
+
+<!-- Post Content -->
+<article>
+    <div class="container">
+        <div class="row">
+
+            <!-- Post Container -->
+            <div class="
+                col-lg-8 col-lg-offset-2
+                col-md-10 col-md-offset-1
+                post-container">
+
+                <p>Portspoof程序旨在通过在原本封闭的端口上模拟仿真合法的服务签名，加强操作系统的安全性。它本来就是一个轻便、快速、便携、安全的附件，可以添加到任何防火墙系统或安全基础设施上。</p>
+<p>这款程序的基本目的就是，让端口扫描软件(Nmap/Unicornscan/等)进程运行缓慢，让输出结果非常难以解读，从而使攻击侦察阶段成为一项难度大又麻烦的任务。</p>
+<p>我发觉这个小程序背后的概念很有意思：不是用防火墙堵住所有端口，而是欺骗真实端口，因而让针对你的服务器/计算机运行端口扫描的那些家伙无功而返。</p>
+<p>Portspoof程序的主要目的是，通过攻击者对你系统进行侦察的过程中减缓攻击者攻击速度，并阻止攻击者保持低调的一系列技巧，加强操作系统的安全性。</p>
+<p>默认情况下，攻击者的侦察阶段应该很费时，而且很容易被你的入侵检测系统所发现。</p>
+<p>主动(进攻性)防御的艺术</p>
+<p>Portspoof还可以用作&quot;漏洞框架前端&quot;(Exploitation Framework Frontend)，这可以将你的系统变成一台反应迅即、具有攻击性的机器。实际上，这意味着你的服务器能够自动利用攻击者的工具和漏洞。这种方法纯粹基于主动(进攻性)防御理念。</p>
+<a id="more"></a>
+<h3 id="一-特点">一、特点</h3>
+<p>快速：多线程(默认情况下10个线程处理新的入站连接)。<br>
+轻便：所需的系统资源数量极少。<br>
+便携：可以在Linux和BSD(直到版本0.3)上运行。<br>
+灵活：你可以轻松使用防火墙规则，定义将被欺骗的端口。<br>
+对付流行的端口扫描工具很有效。<br>
+超过8000多个假签名可以骗倒端口扫描工具。<br>
+采用开源技术。</p>
+<h3 id="二-安装">二、安装</h3>
+<p>Portspoof是一款免费的软件，采用GNU GPL版本2许可证发行，它并不以任何软件库中程序包的方式出现，或者至少我还没有发现这种方式，所以想安装它，你就得从官方网站下载zip文件(<a href="https://github.com/drk1wi/portspoof/archive/master.zip" target="_blank" rel="noopener">https://github.com/drk1wi/portspoof/archive/master.zip</a>)，或者从Github(<a href="https://github.com/drk1wi/portspoof" target="_blank" rel="noopener">https://github.com/drk1wi/portspoof</a>)克隆源软件库，然后遵循下面这些简单的操作步骤：</p>
+<p>1.编译软件，进入到你解压缩/放置源文件的目录，然后运行这些命令：</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">wget https://github.com/drk1wi/portspoof/archive/master.zip -O master.zip</span><br><span class="line">unzip master.zip</span><br><span class="line"><span class="built_in">cd</span> portspoof-master</span><br><span class="line">./configure</span><br><span class="line">make</span><br><span class="line">make install</span><br></pre></td></tr></table></figure>
+<p>2.配置防火墙规则(portspoof预设端口为4444)</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">iptables -t nat -A PREROUTING -i eth0 -p tcp -m tcp --dport 1:65535 -j REDIRECT --to-ports 4444</span><br></pre></td></tr></table></figure>
+<blockquote>
+<p>注意：Portspoof默认情况下会侦听所有网络接口的tcp4444端口。这条防火墙规则会导致服务骗过端口1至端口65535。如果你想访问合法服务，就得将这些服务的端口排除在REDIRECT语句之外!</p>
+</blockquote>
+<ul>
+<li>如需开放22端口</li>
+</ul>
+<p>方法一</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">iptables -t nat -A PREROUTING -i eth0 -p tcp -m tcp ! --dport  22 -j REDIRECT --to-ports 4444</span><br></pre></td></tr></table></figure>
+<p>方法二</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">#开放系統服务端口</span></span><br><span class="line">iptables -t nat -A PREROUTING -p tcp -m multiport --dports 22,25,993,995 -j ACCEPT</span><br><span class="line"><span class="comment">#其它所有端口转向portspoof的4444端口</span></span><br><span class="line">iptables -t nat -A PREROUTING -p tcp --dport 1:65535 -j REDIRECT --to-ports 4444</span><br></pre></td></tr></table></figure>
+<blockquote>
+<p>注: 当封包走向系统真实服务的端口(tcp 22,25,993,995)符合第一条規則, 可被系统正常接受处理; 走向其他端口则会被转向到tcp 4444 端口由portspoof处理。</p>
+</blockquote>
+<ul>
+<li>安装包带了一个配置的例子，可以参考下</li>
+</ul>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br></pre></td><td class="code"><pre><span class="line">cat portspoof-master/system_files/iptables-config</span><br><span class="line"></span><br><span class="line"><span class="comment"># Generated by iptables-save v1.4.4 on Tue Apr 23 14:26:41 2013</span></span><br><span class="line">*nat</span><br><span class="line">:PREROUTING ACCEPT [5992:539002]</span><br><span class="line">:INPUT ACCEPT [347451:16935290]</span><br><span class="line">:OUTPUT ACCEPT [477:45868]</span><br><span class="line">:POSTROUTING ACCEPT [0:0]</span><br><span class="line"><span class="comment"># Portspoof everything except the sshd service</span></span><br><span class="line"><span class="comment"># Remember to change the iface name</span></span><br><span class="line">-A PREROUTING -i eth0 -p tcp -m tcp --dport 1:21 -j REDIRECT --to-ports 4444</span><br><span class="line">-A PREROUTING -i eth0 -p tcp -m tcp --dport 23:65535 -j REDIRECT --to-ports 4444</span><br><span class="line">COMMIT</span><br><span class="line"><span class="comment"># Completed on Tue Apr 23 14:26:42 2013</span></span><br><span class="line"><span class="comment"># Generated by iptables-save v1.4.4 on Tue Apr 23 14:26:42 2013</span></span><br><span class="line">*filter</span><br><span class="line">:INPUT ACCEPT [1931192:104113948]</span><br><span class="line">:FORWARD ACCEPT [0:0]</span><br><span class="line">:OUTPUT ACCEPT [1606583:151106362]</span><br><span class="line">-A FORWARD -j ACCEPT</span><br><span class="line">COMMIT</span><br><span class="line"><span class="comment"># Completed on Tue Apr 23 14:26:42 2013</span></span><br></pre></td></tr></table></figure>
+<h3 id="三-运行portspoof">三、运行Portspoof</h3>
+<ul>
+<li>后台方式运行(默认输出日志在/var/log/messages)</li>
+</ul>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">portspoof -D</span><br></pre></td></tr></table></figure>
+<ul>
+<li>自定义日志路径</li>
+</ul>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">portspoof -s /usr/<span class="built_in">local</span>/etc/portspoof_signatures -c /usr/<span class="built_in">local</span>/etc/portspoof.conf -l /var/<span class="built_in">log</span>/portspoof.log</span><br></pre></td></tr></table></figure>
+<blockquote>
+<p>注：自定义日志路径不能在后台运行，加了-D参数后，测试portspoof进程会自动退出。</p>
+</blockquote>
+<h3 id="四-将portspoof添加到你系统的启动脚本">四、将portspoof添加到你系统的启动脚本</h3>
+<p>安装包里提供了两个的init.d管理脚本，你可以在system_files目录中找到这个脚本。你可根据自己情况复制到/etc/init.d目录下,使用很简单，这里就不详述了。</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">ls portspoof-master/system_files/init.d/portspoof</span><br><span class="line">portspoof.sh  portspoof_simple.sh</span><br><span class="line"></span><br><span class="line">cp portspoof.sh /etc/init.d/</span><br></pre></td></tr></table></figure>
+<h3 id="五-测试">五、测试</h3>
+<p>1.本地测试</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br></pre></td><td class="code"><pre><span class="line">nmap -sV -v 192.168.34.160</span><br><span class="line"></span><br><span class="line">Starting Nmap 6.40 (http://nmap.org ) at 2014-05-07 11:47 CST</span><br><span class="line">Nmap scan report <span class="keyword">for</span> (192.168.34.160)</span><br><span class="line">Host is up (0.00012s latency).</span><br><span class="line">PORT      STATE SERVICE</span><br><span class="line">1/tcp     open  tcpmux</span><br><span class="line">3/tcp     open  compressnet</span><br><span class="line">4/tcp     open  unknown</span><br><span class="line">6/tcp     open  unknown</span><br><span class="line">7/tcp     open  <span class="built_in">echo</span></span><br><span class="line">9/tcp     open  discard</span><br><span class="line">13/tcp    open  daytime</span><br><span class="line">17/tcp    open  qotd</span><br><span class="line">19/tcp    open  chargen</span><br><span class="line">...</span><br><span class="line">146/tcp   open  iso-tp0</span><br><span class="line">161/tcp   open  snmp</span><br><span class="line">163/tcp   open  cmip-man</span><br><span class="line">179/tcp   open  bgp</span><br><span class="line">199/tcp   open  smux</span><br><span class="line">211/tcp   open  914c-g</span><br><span class="line">212/tcp   open  anet</span><br><span class="line">222/tcp   open  rsh-spx</span><br><span class="line">254/tcp   open  unknown</span><br><span class="line">...</span><br><span class="line">61532/tcp open  unknown</span><br><span class="line">61900/tcp open  unknown</span><br><span class="line">62078/tcp open  iphone-sync</span><br><span class="line">63331/tcp open  unknown</span><br><span class="line">64623/tcp open  unknown</span><br><span class="line">65389/tcp open  unknown</span><br><span class="line">MAC Address: 00:E0:81:DB:0C:29 (Tyan Computer)</span><br><span class="line"></span><br><span class="line">Nmap <span class="keyword">done</span>: 1 IP address (1 host up) scanned <span class="keyword">in</span> 0.28 seconds</span><br></pre></td></tr></table></figure>
+<p>2.在线演示</p>
+<p>你想不想根本不用安装就能试一下Portspoof?<br>
+检查一下：针对portspoof.org地址，运行你常用的端口扫描工具，看看结果：<code>nmap -sV -v portspoof.org</code>。</p>
+<h3 id="六-参考文档">六、参考文档</h3>
+<p><a href="http://www.google.com" target="_blank" rel="noopener">http://www.google.com</a><br>
+<a href="http://netsecurity.51cto.com/art/201310/413075.htm" target="_blank" rel="noopener">http://netsecurity.51cto.com/art/201310/413075.htm</a><br>
+<a href="http://blog.csdn.net/nixawk/article/details/25839481" target="_blank" rel="noopener">http://blog.csdn.net/nixawk/article/details/25839481</a><br>
+<a href="http://jamyy.us.to/blog/2013/12/5594.html" target="_blank" rel="noopener">http://jamyy.us.to/blog/2013/12/5594.html</a></p>
+
+                
+
+                <hr>
+                <!-- Pager -->
+                <ul class="pager">
+                    
+                        <li class="previous">
+                            <a href="/posts/21572.html" data-toggle="tooltip" data-placement="top" title="图解 HTTPS">&larr; Previous Post</a>
+                        </li>
+                    
+                    
+                        <li class="next">
+                            <a href="/posts/32955.html" data-toggle="tooltip" data-placement="top" title="Bash Shell 对目录內 PHP 做 Syntax check">Next Post &rarr;</a>
+                        </li>
+                    
+                </ul>
+
+                <!-- duoshuo Share start -->
+                
+                <!-- 多说 Share end-->
+
+                <!-- 多说评论框 start -->
+                
+                <!-- 多说评论框 end -->
+
+                <!-- disqus comment start -->
+                
+                <!-- disqus comment end -->
+
+                
+                    <!-- disqus 评论框 start -->
+                    <div class="comment">
+                        <div id="lv-container" data-id="city" data-uid="MTAyMC8yNzg2My80NDQw"></div>
+                    </div>
+                    <!-- disqus 评论框 end -->
+                
+
+            </div>
+            
+            <!-- Tabe of Content -->
+            <!-- Table of Contents -->
+
+  
+    <style>
+      span.toc-nav-number{
+        display: none
+      }
+    </style>
+  
+    
+      <aside id="sidebar">
+        <div id="toc" class="toc-article">
+        <strong class="toc-title">Contents</strong>
+        
+          <ol class="toc-nav"><li class="toc-nav-item toc-nav-level-3"><a class="toc-nav-link" href="#一-特点"><span class="toc-nav-number">1.</span> <span class="toc-nav-text">一、特点</span></a></li><li class="toc-nav-item toc-nav-level-3"><a class="toc-nav-link" href="#二-安装"><span class="toc-nav-number">2.</span> <span class="toc-nav-text">二、安装</span></a></li><li class="toc-nav-item toc-nav-level-3"><a class="toc-nav-link" href="#三-运行portspoof"><span class="toc-nav-number">3.</span> <span class="toc-nav-text">三、运行Portspoof</span></a></li><li class="toc-nav-item toc-nav-level-3"><a class="toc-nav-link" href="#四-将portspoof添加到你系统的启动脚本"><span class="toc-nav-number">4.</span> <span class="toc-nav-text">四、将portspoof添加到你系统的启动脚本</span></a></li><li class="toc-nav-item toc-nav-level-3"><a class="toc-nav-link" href="#五-测试"><span class="toc-nav-number">5.</span> <span class="toc-nav-text">五、测试</span></a></li><li class="toc-nav-item toc-nav-level-3"><a class="toc-nav-link" href="#六-参考文档"><span class="toc-nav-number">6.</span> <span class="toc-nav-text">六、参考文档</span></a></li></ol>
+        
+        </div>
+      </aside>
+    
+
+                
+            <!-- Sidebar Container -->
+            <div class="
+                col-lg-8 col-lg-offset-2
+                col-md-10 col-md-offset-1
+                sidebar-container">
+
+                <!-- Featured Tags -->
+                
+                <section>
+                    <!-- no hr -->
+                    <h5><a href="/tags/">FEATURED TAGS</a></h5>
+                    <div class="tags">
+                       
+                          <a class="tag" href="/tags/#Linux" title="Linux">Linux</a>
+                        
+                          <a class="tag" href="/tags/#技巧" title="技巧">技巧</a>
+                        
+                          <a class="tag" href="/tags/#工具" title="工具">工具</a>
+                        
+                          <a class="tag" href="/tags/#Portspoof" title="Portspoof">Portspoof</a>
+                        
+                    </div>
+                </section>
+                
+
+                <!-- Friends Blog -->
+                
+                <hr>
+                <h5>FRIENDS</h5>
+                <ul class="list-inline">
+
+                    
+                        <li><a href="http://www.mike.org.cn/" target="_blank">简单.生活</a></li>
+                    
+                        <li><a href="http://shang.qq.com/wpa/qunwpa?idkey=ea4c43493c2269428ac6ef6141de4b6d78e5ab2d41380ca4099b833b62884ee9" target="_blank">技术交流群</a></li>
+                    
+                        <li><a href="" target="_blank"></a></li>
+                    
+                        <li><a href="" target="_blank"></a></li>
+                    
+                </ul>
+                
+            </div>
+        </div>
+    </div>
+</article>
+
+
+
+
+
+
+    <!-- 来必力City版公共JS代码 start (一个网页只需插入一次) -->
+    <script type="text/javascript">
+       (function(d, s) {
+           var j, e = d.getElementsByTagName(s)[0];
+    
+           if (typeof LivereTower === 'function') { return; }
+    
+           j = d.createElement(s);
+           j.src = 'https://cdn-city.livere.com/js/embed.dist.js';
+           j.async = true;
+    
+           e.parentNode.insertBefore(j, e);
+       })(document, 'script');
+    </script>
+    <noscript>为正常使用来必力评论功能请激活JavaScript</noscript>
+    <!-- 来必力City版 公共JS代码 end -->
+
+
+
+<!-- async load function -->
+<script>
+    function async(u, c) {
+      var d = document, t = 'script',
+          o = d.createElement(t),
+          s = d.getElementsByTagName(t)[0];
+      o.src = u;
+      if (c) { o.addEventListener('load', function (e) { c(null, e); }, false); }
+      s.parentNode.insertBefore(o, s);
+    }
+</script>
+<!-- anchor-js, Doc:http://bryanbraun.github.io/anchorjs/ -->
+<script>
+    async("https://cdn.bootcss.com/anchor-js/1.1.1/anchor.min.js",function(){
+        anchors.options = {
+          visible: 'hover',
+          placement: 'left',
+          icon: 'ℬ'
+        };
+        anchors.add().remove('.intro-header h1').remove('.subheading').remove('.sidebar-container h5');
+    })
+</script>
+<style>
+    /* place left on bigger screen */
+    @media all and (min-width: 800px) {
+        .anchorjs-link{
+            position: absolute;
+            left: -0.75em;
+            font-size: 1.1em;
+            margin-top : -0.1em;
+        }
+    }
+</style>
+
+
+
+    <!-- Footer -->
+    <!-- Footer -->
+<footer>
+    <div class="container">
+        <div class="row">
+            <div class="col-lg-8 col-lg-offset-2 col-md-10 col-md-offset-1">
+                <ul class="list-inline text-center">
+                
+                    <li>
+                        <a href="/atom.xml">
+                            <span class="fa-stack fa-lg">
+                                <i class="fa fa-circle fa-stack-2x"></i>
+                                <i class="fa fa-rss fa-stack-1x fa-inverse"></i>
+                            </span>
+                        </a>
+                    </li>
+                
+                
+                
+                    <li>
+                        <a target="_blank" href="https://www.zhihu.com/people/80imike">
+                            <span class="fa-stack fa-lg">
+                                <i class="fa fa-circle fa-stack-2x"></i>
+                                <i class="fa  fa-stack-1x fa-inverse">知</i>
+                            </span>
+                        </a>
+                    </li>
+                
+
+                
+                    <li>
+                        <a target="_blank" href="http://weibo.com/2093524665">
+                            <span class="fa-stack fa-lg">
+                                <i class="fa fa-circle fa-stack-2x"></i>
+                                <i class="fa fa-weibo fa-stack-1x fa-inverse"></i>
+                            </span>
+                        </a>
+                    </li>
+                
+
+                
+
+                
+
+                
+
+                </ul>
+                <p class="copyright text-muted">
+                    Copyright &copy; Mike 2018 | Hosted by <a href="https://pages.coding.me" style="font-weight: bold">Coding Pages</a>
+                    <br>
+                    Theme by <a href="http://beantech.org">BeanTech</a> 
+                    <span style="display: inline-block; margin: 0 5px;">
+                        <i class="fa fa-heart"></i>
+                    </span> 
+                    re-Ported by <a href="http://www.huweihuang.com">胡伟煌</a> | 
+                    <iframe
+                        style="margin-left: 2px; margin-bottom:-5px;"
+                        frameborder="0" scrolling="0" width="91px" height="20px"
+                        src="https://ghbtns.com/github-btn.html?user=huweihuang&repo=hexo-theme-huweihuang&type=star&count=true" >
+                    </iframe>
+                </p>
+            </div>
+        </div>
+    </div>
+</footer>
+
+<!-- jQuery -->
+<script src="/js/jquery.min.js"></script>
+
+<!-- Bootstrap Core JavaScript -->
+<script src="/js/bootstrap.min.js"></script>
+
+<!-- Custom Theme JavaScript -->
+<script src="/js/hux-blog.min.js"></script>
+
+
+<!-- async load function -->
+<script>
+    function async(u, c) {
+      var d = document, t = 'script',
+          o = d.createElement(t),
+          s = d.getElementsByTagName(t)[0];
+      o.src = u;
+      if (c) { o.addEventListener('load', function (e) { c(null, e); }, false); }
+      s.parentNode.insertBefore(o, s);
+    }
+</script>
+
+<!-- 
+     Because of the native support for backtick-style fenced code blocks 
+     right within the Markdown is landed in Github Pages, 
+     From V1.6, There is no need for Highlight.js, 
+     so Huxblog drops it officially.
+
+     - https://github.com/blog/2100-github-pages-now-faster-and-simpler-with-jekyll-3-0  
+     - https://help.github.com/articles/creating-and-highlighting-code-blocks/    
+-->
+<!--
+    <script>
+        async("http://cdn.bootcss.com/highlight.js/8.6/highlight.min.js", function(){
+            hljs.initHighlightingOnLoad();
+        })
+    </script>
+    <link href="http://cdn.bootcss.com/highlight.js/8.6/styles/github.min.css" rel="stylesheet">
+-->
+
+
+<!-- jquery.tagcloud.js -->
+<script>
+    // only load tagcloud.js in tag.html
+    if($('#tag_cloud').length !== 0){
+        async("https://www.hi-linux.com/js/jquery.tagcloud.js",function(){
+            $.fn.tagcloud.defaults = {
+                //size: {start: 1, end: 1, unit: 'em'},
+                color: {start: '#bbbbee', end: '#0085a1'},
+            };
+            $('#tag_cloud a').tagcloud();
+        })
+    }
+</script>
+
+<!--fastClick.js -->
+<script>
+    async("https://cdn.bootcss.com/fastclick/1.0.6/fastclick.min.js", function(){
+        var $nav = document.querySelector("nav");
+        if($nav) FastClick.attach($nav);
+    })
+</script>
+
+
+<!-- Google Analytics -->
+
+
+
+
+<!-- Baidu Tongji -->
+
+
+
+
+
+
+	<a id="rocket" href="#top" class=""></a>
+	<script type="text/javascript" src="/js/totop.js?v=1.0.0" async=""></script>
+    <script type="text/javascript" src="/js/toc.js?v=1.0.0" async=""></script>
+<!-- Image to hack wechat -->
+<img src="https://www.hi-linux.com/img/icon_wechat.png" width="0" height="0" />
+<!-- Migrate from head to bottom, no longer block render and still work -->
+
+</body>
+
+</html>

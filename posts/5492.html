@@ -1,0 +1,649 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<!-- Head tag -->
+<head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="google-site-verification" content="xBT4GhYoi5qRD5tr338pgPM5OWHHIDR6mNg1a3euekI" />
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="description" content="">
+    <meta name="keyword"  content="Linux,运维,Nginx,Zabbix,Centos,Ansible,MySQL,Python,Docker,ELK,Haproxy,Git,Nodejs,安全,技术">
+    <link rel="shortcut icon" href="/img/ironman-draw.png">
+    <!-- Place this tag in your head or just before your close body tag. -->
+    <script async defer src="https://buttons.github.io/buttons.js"></script>
+    <title>
+        
+          Apache/Nginx 通过 UserAgent 屏蔽蜘蛛和采集 - 运维之美
+        
+    </title>
+
+    <link rel="canonical" href="https://www.hi-linux.com/posts/5492.html">
+
+    <!-- Bootstrap Core CSS -->
+    <link rel="stylesheet" href="/css/bootstrap.min.css">
+
+    <!-- Custom CSS --> 
+    <link rel="stylesheet" href="/css/beantech.min.css">
+    
+    <!-- Pygments Highlight CSS -->
+    <link rel="stylesheet" href="/css/highlight.css">
+
+    <link rel="stylesheet" href="/css/widget.css">
+
+    <link rel="stylesheet" href="/css/rocket.css">
+
+    <link rel="stylesheet" href="/css/signature.css">
+
+    <link rel="stylesheet" href="/css/toc.css">
+
+    <!-- Custom Fonts -->
+    <!-- <link href="https://maxcdn.bootstrapcdn.com/font-awesome/4.3.0/css/font-awesome.min.css" rel="stylesheet" type="text/css"> -->
+    <!-- Hux change font-awesome CDN to qiniu -->
+    <link href="https://cdn.staticfile.org/font-awesome/4.5.0/css/font-awesome.min.css" rel="stylesheet" type="text/css">
+
+
+    <!-- Hux Delete, sad but pending in China
+    <link href='http://fonts.googleapis.com/css?family=Lora:400,700,400italic,700italic' rel='stylesheet' type='text/css'>
+    <link href='http://fonts.googleapis.com/css?family=Open+Sans:300italic,400italic,600italic,700italic,800italic,400,300,600,700,800' rel='stylesheet' type='text/
+    css'>
+    -->
+
+
+    <!-- HTML5 Shim and Respond.js IE8 support of HTML5 elements and media queries -->
+    <!-- WARNING: Respond.js doesn't work if you view the page via file:// -->
+    <!--[if lt IE 9]>
+        <script src="https://oss.maxcdn.com/libs/html5shiv/3.7.0/html5shiv.js"></script>
+        <script src="https://oss.maxcdn.com/libs/respond.js/1.4.2/respond.min.js"></script>
+    <![endif]-->
+
+    <!-- ga & ba script hoook -->
+    <script></script>
+</head>
+
+
+<!-- hack iOS CSS :active style -->
+<body ontouchstart="">
+	<!-- Modified by Yu-Hsuan Yen -->
+<!-- Post Header -->
+<style type="text/css">
+    header.intro-header{
+        
+            background-image: url('/img/header_img/article.jpg')
+            /*post*/
+        
+    }
+    
+</style>
+
+<header class="intro-header" >
+    <!-- Signature -->
+    <div id="signature">
+        <div class="container">
+            <div class="row">
+                <div class="col-lg-8 col-lg-offset-2 col-md-10 col-md-offset-1">
+                
+                    <div class="post-heading">
+                        <div class="tags">
+                            
+                              <a class="tag" href="/tags/#Linux" title="Linux">Linux</a>
+                            
+                              <a class="tag" href="/tags/#Nginx" title="Nginx">Nginx</a>
+                            
+                              <a class="tag" href="/tags/#Apache" title="Apache">Apache</a>
+                            
+                        </div>
+                        <h1>Apache/Nginx 通过 UserAgent 屏蔽蜘蛛和采集</h1>
+                        <h2 class="subheading"></h2>
+                        <span class="meta">
+                            Posted by Mike on
+                            2016-07-19
+                        </span>
+                    </div>
+                
+
+
+                </div>
+            </div>
+        </div>
+    </div>
+</header>
+
+	
+    <!-- Navigation -->
+<nav class="navbar navbar-default navbar-custom navbar-fixed-top">
+    <div class="container-fluid">
+        <!-- Brand and toggle get grouped for better mobile display -->
+        <div class="navbar-header page-scroll">
+            <button type="button" class="navbar-toggle">
+                <span class="sr-only">Toggle navigation</span>
+                <span class="icon-bar"></span>
+                <span class="icon-bar"></span>
+                <span class="icon-bar"></span>
+            </button>
+            <a class="navbar-brand" href="/">运维之美</a>
+        </div>
+
+        <!-- Collect the nav links, forms, and other content for toggling -->
+        <!-- Known Issue, found by Hux:
+            <nav>'s height woule be hold on by its content.
+            so, when navbar scale out, the <nav> will cover tags.
+            also mask any touch event of tags, unfortunately.
+        -->
+        <div id="huxblog_navbar">
+            <div class="navbar-collapse">
+                <ul class="nav navbar-nav navbar-right">
+                    <li>
+                        <a href="/">Home</a>
+                    </li>
+
+                    
+
+                        
+                    
+
+                        
+                    
+
+                        
+                        <li>
+                            <a href="/about/">About</a>
+                        </li>
+                        
+                    
+
+                        
+                        <li>
+                            <a href="/archive/">Archives</a>
+                        </li>
+                        
+                    
+
+                        
+                        <li>
+                            <a href="/tags/">Tags</a>
+                        </li>
+                        
+                    
+                    
+                </ul>
+            </div>
+        </div>
+        <!-- /.navbar-collapse -->
+    </div>
+    <!-- /.container -->
+</nav>
+<script>
+    // Drop Bootstarp low-performance Navbar
+    // Use customize navbar with high-quality material design animation
+    // in high-perf jank-free CSS3 implementation
+    var $body   = document.body;
+    var $toggle = document.querySelector('.navbar-toggle');
+    var $navbar = document.querySelector('#huxblog_navbar');
+    var $collapse = document.querySelector('.navbar-collapse');
+
+    $toggle.addEventListener('click', handleMagic)
+    function handleMagic(e){
+        if ($navbar.className.indexOf('in') > 0) {
+        // CLOSE
+            $navbar.className = " ";
+            // wait until animation end.
+            setTimeout(function(){
+                // prevent frequently toggle
+                if($navbar.className.indexOf('in') < 0) {
+                    $collapse.style.height = "0px"
+                }
+            },400)
+        }else{
+        // OPEN
+            $collapse.style.height = "auto"
+            $navbar.className += " in";
+        }
+    }
+</script>
+
+
+    <!-- Main Content -->
+    <!-- Modify by Yu-Hsuan Yen -->
+
+<!-- Post Content -->
+<article>
+    <div class="container">
+        <div class="row">
+
+            <!-- Post Container -->
+            <div class="
+                col-lg-8 col-lg-offset-2
+                col-md-10 col-md-offset-1
+                post-container">
+
+                <p>正规的搜索引擎的蜘蛛爬行我们的网站对于网站来说是有利的，但垃圾爬虫我们就需要屏蔽掉它们的访问，因为它们有的是人为来采集我们网站内容的，有的是SEO以及其他工具索引我们的网站数据建库进行分析的。它们不仅对网站内容不利，而且对于网站服务器也是一种负担。</p>
+<p>即便bot支持,但实际情况是robots.txt 根本无法阻止那些垃圾蜘蛛的，好在垃圾爬虫基本上还是有一定特征的，比如可以根据UA分析。即可使用少量代码屏蔽掉。不过，如果UA伪造或UA变化等其他情况，可使用crontab对日志里面IP频率进行分析和屏蔽了。</p>
+<h3 id="apache">Apache</h3>
+<ul>
+<li>通过修改.htaccess文件</li>
+</ul>
+<p>修改网站目录下.htaccess文件，添加如下代码即可(二种代码任选其一)。</p>
+<p><strong>方法一</strong></p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">RewriteEngine On</span><br><span class="line">RewriteCond %&#123;HTTP_USER_AGENT&#125; (^$|FeedDemon|Indy Library|Alexa Toolbar|AskTbFXTV|AhrefsBot|CrawlDaddy|CoolpadWebkit|Java|Feedly|UniversalFeedParser|ApacheBench|Microsoft URL Control|Swiftbot|ZmEu|oBot|jaunty|Python-urllib|lightDeckReports Bot|YYSpider|DigExt|HttpClient|MJ12bot|heritrix|EasouSpider|Ezooms) [NC]</span><br><span class="line">RewriteRule ^(.*)$ - [F]</span><br></pre></td></tr></table></figure>
+<a id="more"></a>
+<p>**方法二 **</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">SetEnvIfNoCase ^User-Agent$ .*(FeedDemon|Indy Library|Alexa Toolbar|AskTbFXTV|AhrefsBot|CrawlDaddy|CoolpadWebkit|Java|Feedly|UniversalFeedParser|ApacheBench|Microsoft URL Control|Swiftbot|ZmEu|oBot|jaunty|Python-urllib|lightDeckReports Bot|YYSpider|DigExt|HttpClient|MJ12bot|heritrix|EasouSpider|Ezooms) BADBOT</span><br><span class="line">Order Allow,Deny</span><br><span class="line">Allow from all</span><br><span class="line">Deny from env=BADBOT</span><br></pre></td></tr></table></figure>
+<ul>
+<li>通过修改httpd.conf配置文件</li>
+</ul>
+<p>找到如下类似位置，根据以下代码新增/修改，然后重启Apache即可。</p>
+<p><strong>方法一</strong></p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line">DocumentRoot /var/www/html</span><br><span class="line">&lt;Directory &quot;/var/www/html&quot;&gt;</span><br><span class="line">SetEnvIfNoCase User-Agent &quot;.*(FeedDemon|Indy Library|Alexa Toolbar|AskTbFXTV|AhrefsBot|CrawlDaddy|CoolpadWebkit|Java|Feedly|UniversalFeedParser|ApacheBench|Microsoft URL Control|Swiftbot|ZmEu|oBot|jaunty|Python-urllib|lightDeckReports Bot|YYSpider|DigExt|HttpClient|MJ12bot|heritrix|EasouSpider|Ezooms)&quot; BADBOT</span><br><span class="line">        Order allow,deny</span><br><span class="line">        Allow from all</span><br><span class="line">        Deny from env=BADBOT</span><br><span class="line">&lt;/Directory&gt;</span><br></pre></td></tr></table></figure>
+<p><strong>方法二</strong></p>
+<p>根据UA,REFERER禁止爬虫，[G]返回410页面，[F]返回403页面。</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line">&lt;IfModule mod_rewrite.c&gt;</span><br><span class="line"> RewriteCond %&#123;HTTP_USER_AGENT&#125; (wget|curl|AhrefsBot|DotBot|MJ12bot|httrack|Findxbot|BLEXBot|WinHttpRequest|Go\s1.1\spackage\shttp|megaindex|BIDUBrowser|FunWebProducts|MSIE\s5|Add\sCatalog|SeznamBot|KomodiaBot|aiHitBot|MojeekBot|PhantomJS|SiteSucker|HTTrack|MegaIndex|BLEXBot|LinkpadBot|Findxbot|SEOkicks|OpenLinkProfiler|PhantomJS|Xenu|007ac9|sistrix|spbot|SiteExplorer|wotbox|ZumBot|ltx71|memoryBot|WBSearchBot|DomainAppender|Python|Aboundex|-crawler|WinHttpRequest|NerdyBot|ZmEu|xovibot) [NC,OR]</span><br><span class="line"> RewriteCond %&#123;HTTP_USER_AGENT&#125; ^$ [NC,OR] </span><br><span class="line"> RewriteCond %&#123;HTTP_USER_AGENT&#125; ^-$ [NC,OR]</span><br><span class="line"> RewriteCond %&#123;HTTP_REFERER&#125; .ru/$ [NC,OR]</span><br><span class="line"> RewriteCond %&#123;HTTP_REFERER&#125; (example.com) [NC]</span><br><span class="line"> RewriteRule .* - [G]</span><br><span class="line">&lt;/IfModule&gt;</span><br></pre></td></tr></table></figure>
+<h3 id="nginx">Nginx</h3>
+<p>进入到Nginx配置目录下(默认为/etc/nginx/conf.d目录)，将如下代码保存为agent_deny.conf</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br></pre></td><td class="code"><pre><span class="line">$ cd /etc/nginx/conf.d</span><br><span class="line">$ vi agent_deny.conf</span><br><span class="line"></span><br><span class="line"></span><br><span class="line">#禁止Scrapy等工具的抓取</span><br><span class="line">if ($http_user_agent ~* (Scrapy|Curl|HttpClient)) &#123;</span><br><span class="line">     return 403;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line">#禁止指定UA及UA为空的访问</span><br><span class="line">if ($http_user_agent ~* &quot;WinHttp|WebZIP|FetchURL|node-superagent|java/|FeedDemon|Jullo|JikeSpider|Indy Library|Alexa Toolbar|AskTbFXTV|AhrefsBot|CrawlDaddy|Java|Feedly|Apache-HttpAsyncClient|UniversalFeedParser|ApacheBench|Microsoft URL Control|Swiftbot|ZmEu|oBot|jaunty|Python-urllib|lightDeckReports Bot|YYSpider|DigExt|HttpClient|MJ12bot|heritrix|EasouSpider|Ezooms|BOT/0.1|YandexBot|FlightDeckReports|Linguee Bot|^$&quot; ) &#123;</span><br><span class="line">     return 403;             </span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line">#禁止非GET|HEAD|POST方式的抓取</span><br><span class="line">if ($request_method !~ ^(GET|HEAD|POST)$) &#123;</span><br><span class="line">    return 403;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>然后，在网站相关配置中的server段插入如下代码</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">include agent_deny.conf;</span><br></pre></td></tr></table></figure>
+<p>保存后，执行如下命令，平滑重启nginx即可</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">/etc/init.d/nginx reload</span><br></pre></td></tr></table></figure>
+<p>注：这里介绍的是通过判断UserAgent的方法进行限制，Nginx还可以通过<code>ngx_http_limit_conn_module</code>和<code>ngx_http_limit_req_module</code>模块来进行访问限制，在以后的文档中会进行这种方法的介绍。</p>
+<h3 id="php">PHP</h3>
+<p>将如下方法放到贴到网站入口文件index.php中的第一个<code>&lt;?php</code>之后即可</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br></pre></td><td class="code"><pre><span class="line">//获取UA信息</span><br><span class="line">$ua = $_SERVER[&apos;HTTP_USER_AGENT&apos;];</span><br><span class="line">//将恶意USER_AGENT存入数组</span><br><span class="line">$now_ua = array(&apos;FeedDemon &apos;,&apos;BOT/0.1 (BOT for JCE)&apos;,&apos;CrawlDaddy &apos;,&apos;Java&apos;,&apos;Feedly&apos;,&apos;UniversalFeedParser&apos;,&apos;ApacheBench&apos;,&apos;Swiftbot&apos;,&apos;ZmEu&apos;,&apos;Indy Library&apos;,&apos;oBot&apos;,&apos;jaunty&apos;,&apos;YandexBot&apos;,&apos;AhrefsBot&apos;,&apos;MJ12bot&apos;,&apos;WinHttp&apos;,&apos;EasouSpider&apos;,&apos;HttpClient&apos;,&apos;Microsoft URL Control&apos;,&apos;YYSpider&apos;,&apos;jaunty&apos;,&apos;Python-urllib&apos;,&apos;lightDeckReports Bot&apos;);</span><br><span class="line">//禁止空USER_AGENT，dedecms等主流采集程序都是空USER_AGENT，部分sql注入工具也是空USER_AGENT</span><br><span class="line">if(!$ua) &#123;</span><br><span class="line">header(&quot;Content-type: text/html; charset=utf-8&quot;);</span><br><span class="line">wp_die(&apos;请勿采集本站，因为采集的站长木有小JJ！&apos;);</span><br><span class="line">&#125;else&#123;</span><br><span class="line">    foreach($now_ua as $value )</span><br><span class="line">//判断是否是数组中存在的UA</span><br><span class="line">    if(eregi($value,$ua)) &#123;</span><br><span class="line">    header(&quot;Content-type: text/html; charset=utf-8&quot;);</span><br><span class="line">    wp_die(&apos;请勿采集本站，因为采集的站长木有小JJ！&apos;);</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<h3 id="附录ua收集">附录：UA收集</h3>
+<h4 id="常见搜索引擎爬虫的user-agent">常见搜索引擎爬虫的User-Agent</h4>
+<p>百度爬虫</p>
+<ul>
+<li>Baiduspider+(+http://www.baidu.com/search/spider.htm”)</li>
+</ul>
+<p>Google爬虫</p>
+<ul>
+<li>Mozilla/5.0 (compatible; Googlebot/2.1; +http://www.google.com/bot.html)</li>
+<li>Googlebot/2.1 (+http://www.googlebot.com/bot.html)</li>
+<li>Googlebot/2.1 (+http://www.google.com/bot.html)</li>
+</ul>
+<p>雅虎爬虫(分别是雅虎中国和美国总部的爬虫)</p>
+<ul>
+<li>Mozilla/5.0 (compatible; Yahoo! Slurp China; <a href="http://misc.yahoo.com.cn/help.html%E2%80%9D" target="_blank" rel="noopener">http://misc.yahoo.com.cn/help.html”</a>)</li>
+<li>Mozilla/5.0 (compatible; Yahoo! Slurp; <a href="http://help.yahoo.com/help/us/ysearch/slurp%E2%80%9D" target="_blank" rel="noopener">http://help.yahoo.com/help/us/ysearch/slurp”</a>)</li>
+</ul>
+<p>新浪爱问爬虫</p>
+<ul>
+<li>iaskspider/2.0(+http://iask.com/help/help_index.html”)</li>
+<li>Mozilla/5.0 (compatible; iaskspider/1.0; MSIE 6.0)</li>
+</ul>
+<p>搜狗爬虫</p>
+<ul>
+<li>Sogou web spider/3.0(+http://www.sogou.com/docs/help/webmasters.htm#07″)</li>
+<li>Sogou Push Spider/3.0(+http://www.sogou.com/docs/help/webmasters.htm#07″)</li>
+</ul>
+<p>网易爬虫</p>
+<ul>
+<li>Mozilla/5.0 (compatible; YodaoBot/1.0; <a href="http://www.yodao.com/help/webmaster/spider/%E2%80%9D;" target="_blank" rel="noopener">http://www.yodao.com/help/webmaster/spider/”;</a> )</li>
+</ul>
+<p>MSN爬虫</p>
+<ul>
+<li>msnbot/1.0 (+http://search.msn.com/msnbot.htm”)</li>
+</ul>
+<h4 id="网络上常见的垃圾ua列表">网络上常见的垃圾UA列表</h4>
+<p>内容采集</p>
+<ul>
+<li>FeedDemon</li>
+<li>Java                  内容采集</li>
+<li>Jullo                 内容采集</li>
+<li>Feedly                内容采集</li>
+<li>UniversalFeedParser   内容采集</li>
+</ul>
+<p>SQL注入</p>
+<ul>
+<li>BOT/0.1 (BOT for JCE)</li>
+<li>CrawlDaddy</li>
+</ul>
+<p>无用爬虫</p>
+<ul>
+<li>EasouSpider</li>
+<li>Swiftbot</li>
+<li>YandexBot</li>
+<li>AhrefsBot</li>
+<li>jikeSpider</li>
+<li>MJ12bot</li>
+<li>YYSpider</li>
+<li>oBot</li>
+</ul>
+<p>CC攻击器</p>
+<ul>
+<li>ApacheBench</li>
+<li>WinHttp</li>
+</ul>
+<p>TCP攻击</p>
+<ul>
+<li>HttpClient</li>
+</ul>
+<p>扫描</p>
+<ul>
+<li>Microsoft URL Control</li>
+<li>ZmEu phpmyadmin</li>
+<li>jaunty</li>
+</ul>
+<h3 id="参考文档">参考文档</h3>
+<p><a href="http://www.google.com" target="_blank" rel="noopener">http://www.google.com</a><br>
+<a href="http://zhangge.net/4458.html" target="_blank" rel="noopener">http://zhangge.net/4458.html</a><br>
+<a href="https://seonoco.com/apache-nginx-shielded-spider-and-collection" target="_blank" rel="noopener">https://seonoco.com/apache-nginx-shielded-spider-and-collection</a></p>
+
+                
+
+                <hr>
+                <!-- Pager -->
+                <ul class="pager">
+                    
+                        <li class="previous">
+                            <a href="/posts/23118.html" data-toggle="tooltip" data-placement="top" title="使用 Mosh 来优化 SSH 连接">&larr; Previous Post</a>
+                        </li>
+                    
+                    
+                        <li class="next">
+                            <a href="/posts/49609.html" data-toggle="tooltip" data-placement="top" title="MySQL 5.6 密码强度审计插件使用说明">Next Post &rarr;</a>
+                        </li>
+                    
+                </ul>
+
+                <!-- duoshuo Share start -->
+                
+                <!-- 多说 Share end-->
+
+                <!-- 多说评论框 start -->
+                
+                <!-- 多说评论框 end -->
+
+                <!-- disqus comment start -->
+                
+                <!-- disqus comment end -->
+
+                
+                    <!-- disqus 评论框 start -->
+                    <div class="comment">
+                        <div id="lv-container" data-id="city" data-uid="MTAyMC8yNzg2My80NDQw"></div>
+                    </div>
+                    <!-- disqus 评论框 end -->
+                
+
+            </div>
+            
+            <!-- Tabe of Content -->
+            <!-- Table of Contents -->
+
+  
+    <style>
+      span.toc-nav-number{
+        display: none
+      }
+    </style>
+  
+    
+      <aside id="sidebar">
+        <div id="toc" class="toc-article">
+        <strong class="toc-title">Contents</strong>
+        
+          <ol class="toc-nav"><li class="toc-nav-item toc-nav-level-3"><a class="toc-nav-link" href="#apache"><span class="toc-nav-number">1.</span> <span class="toc-nav-text">Apache</span></a></li><li class="toc-nav-item toc-nav-level-3"><a class="toc-nav-link" href="#nginx"><span class="toc-nav-number">2.</span> <span class="toc-nav-text">Nginx</span></a></li><li class="toc-nav-item toc-nav-level-3"><a class="toc-nav-link" href="#php"><span class="toc-nav-number">3.</span> <span class="toc-nav-text">PHP</span></a></li><li class="toc-nav-item toc-nav-level-3"><a class="toc-nav-link" href="#附录ua收集"><span class="toc-nav-number">4.</span> <span class="toc-nav-text">附录：UA收集</span></a><ol class="toc-nav-child"><li class="toc-nav-item toc-nav-level-4"><a class="toc-nav-link" href="#常见搜索引擎爬虫的user-agent"><span class="toc-nav-number">4.1.</span> <span class="toc-nav-text">常见搜索引擎爬虫的User-Agent</span></a></li><li class="toc-nav-item toc-nav-level-4"><a class="toc-nav-link" href="#网络上常见的垃圾ua列表"><span class="toc-nav-number">4.2.</span> <span class="toc-nav-text">网络上常见的垃圾UA列表</span></a></li></ol></li><li class="toc-nav-item toc-nav-level-3"><a class="toc-nav-link" href="#参考文档"><span class="toc-nav-number">5.</span> <span class="toc-nav-text">参考文档</span></a></li></ol>
+        
+        </div>
+      </aside>
+    
+
+                
+            <!-- Sidebar Container -->
+            <div class="
+                col-lg-8 col-lg-offset-2
+                col-md-10 col-md-offset-1
+                sidebar-container">
+
+                <!-- Featured Tags -->
+                
+                <section>
+                    <!-- no hr -->
+                    <h5><a href="/tags/">FEATURED TAGS</a></h5>
+                    <div class="tags">
+                       
+                          <a class="tag" href="/tags/#Linux" title="Linux">Linux</a>
+                        
+                          <a class="tag" href="/tags/#Nginx" title="Nginx">Nginx</a>
+                        
+                          <a class="tag" href="/tags/#Apache" title="Apache">Apache</a>
+                        
+                    </div>
+                </section>
+                
+
+                <!-- Friends Blog -->
+                
+                <hr>
+                <h5>FRIENDS</h5>
+                <ul class="list-inline">
+
+                    
+                        <li><a href="http://www.mike.org.cn/" target="_blank">简单.生活</a></li>
+                    
+                        <li><a href="http://shang.qq.com/wpa/qunwpa?idkey=ea4c43493c2269428ac6ef6141de4b6d78e5ab2d41380ca4099b833b62884ee9" target="_blank">技术交流群</a></li>
+                    
+                        <li><a href="" target="_blank"></a></li>
+                    
+                        <li><a href="" target="_blank"></a></li>
+                    
+                </ul>
+                
+            </div>
+        </div>
+    </div>
+</article>
+
+
+
+
+
+
+    <!-- 来必力City版公共JS代码 start (一个网页只需插入一次) -->
+    <script type="text/javascript">
+       (function(d, s) {
+           var j, e = d.getElementsByTagName(s)[0];
+    
+           if (typeof LivereTower === 'function') { return; }
+    
+           j = d.createElement(s);
+           j.src = 'https://cdn-city.livere.com/js/embed.dist.js';
+           j.async = true;
+    
+           e.parentNode.insertBefore(j, e);
+       })(document, 'script');
+    </script>
+    <noscript>为正常使用来必力评论功能请激活JavaScript</noscript>
+    <!-- 来必力City版 公共JS代码 end -->
+
+
+
+<!-- async load function -->
+<script>
+    function async(u, c) {
+      var d = document, t = 'script',
+          o = d.createElement(t),
+          s = d.getElementsByTagName(t)[0];
+      o.src = u;
+      if (c) { o.addEventListener('load', function (e) { c(null, e); }, false); }
+      s.parentNode.insertBefore(o, s);
+    }
+</script>
+<!-- anchor-js, Doc:http://bryanbraun.github.io/anchorjs/ -->
+<script>
+    async("https://cdn.bootcss.com/anchor-js/1.1.1/anchor.min.js",function(){
+        anchors.options = {
+          visible: 'hover',
+          placement: 'left',
+          icon: 'ℬ'
+        };
+        anchors.add().remove('.intro-header h1').remove('.subheading').remove('.sidebar-container h5');
+    })
+</script>
+<style>
+    /* place left on bigger screen */
+    @media all and (min-width: 800px) {
+        .anchorjs-link{
+            position: absolute;
+            left: -0.75em;
+            font-size: 1.1em;
+            margin-top : -0.1em;
+        }
+    }
+</style>
+
+
+
+    <!-- Footer -->
+    <!-- Footer -->
+<footer>
+    <div class="container">
+        <div class="row">
+            <div class="col-lg-8 col-lg-offset-2 col-md-10 col-md-offset-1">
+                <ul class="list-inline text-center">
+                
+                    <li>
+                        <a href="/atom.xml">
+                            <span class="fa-stack fa-lg">
+                                <i class="fa fa-circle fa-stack-2x"></i>
+                                <i class="fa fa-rss fa-stack-1x fa-inverse"></i>
+                            </span>
+                        </a>
+                    </li>
+                
+                
+                
+                    <li>
+                        <a target="_blank" href="https://www.zhihu.com/people/80imike">
+                            <span class="fa-stack fa-lg">
+                                <i class="fa fa-circle fa-stack-2x"></i>
+                                <i class="fa  fa-stack-1x fa-inverse">知</i>
+                            </span>
+                        </a>
+                    </li>
+                
+
+                
+                    <li>
+                        <a target="_blank" href="http://weibo.com/2093524665">
+                            <span class="fa-stack fa-lg">
+                                <i class="fa fa-circle fa-stack-2x"></i>
+                                <i class="fa fa-weibo fa-stack-1x fa-inverse"></i>
+                            </span>
+                        </a>
+                    </li>
+                
+
+                
+
+                
+
+                
+
+                </ul>
+                <p class="copyright text-muted">
+                    Copyright &copy; Mike 2018 | Hosted by <a href="https://pages.coding.me" style="font-weight: bold">Coding Pages</a>
+                    <br>
+                    Theme by <a href="http://beantech.org">BeanTech</a> 
+                    <span style="display: inline-block; margin: 0 5px;">
+                        <i class="fa fa-heart"></i>
+                    </span> 
+                    re-Ported by <a href="http://www.huweihuang.com">胡伟煌</a> | 
+                    <iframe
+                        style="margin-left: 2px; margin-bottom:-5px;"
+                        frameborder="0" scrolling="0" width="91px" height="20px"
+                        src="https://ghbtns.com/github-btn.html?user=huweihuang&repo=hexo-theme-huweihuang&type=star&count=true" >
+                    </iframe>
+                </p>
+            </div>
+        </div>
+    </div>
+</footer>
+
+<!-- jQuery -->
+<script src="/js/jquery.min.js"></script>
+
+<!-- Bootstrap Core JavaScript -->
+<script src="/js/bootstrap.min.js"></script>
+
+<!-- Custom Theme JavaScript -->
+<script src="/js/hux-blog.min.js"></script>
+
+
+<!-- async load function -->
+<script>
+    function async(u, c) {
+      var d = document, t = 'script',
+          o = d.createElement(t),
+          s = d.getElementsByTagName(t)[0];
+      o.src = u;
+      if (c) { o.addEventListener('load', function (e) { c(null, e); }, false); }
+      s.parentNode.insertBefore(o, s);
+    }
+</script>
+
+<!-- 
+     Because of the native support for backtick-style fenced code blocks 
+     right within the Markdown is landed in Github Pages, 
+     From V1.6, There is no need for Highlight.js, 
+     so Huxblog drops it officially.
+
+     - https://github.com/blog/2100-github-pages-now-faster-and-simpler-with-jekyll-3-0  
+     - https://help.github.com/articles/creating-and-highlighting-code-blocks/    
+-->
+<!--
+    <script>
+        async("http://cdn.bootcss.com/highlight.js/8.6/highlight.min.js", function(){
+            hljs.initHighlightingOnLoad();
+        })
+    </script>
+    <link href="http://cdn.bootcss.com/highlight.js/8.6/styles/github.min.css" rel="stylesheet">
+-->
+
+
+<!-- jquery.tagcloud.js -->
+<script>
+    // only load tagcloud.js in tag.html
+    if($('#tag_cloud').length !== 0){
+        async("https://www.hi-linux.com/js/jquery.tagcloud.js",function(){
+            $.fn.tagcloud.defaults = {
+                //size: {start: 1, end: 1, unit: 'em'},
+                color: {start: '#bbbbee', end: '#0085a1'},
+            };
+            $('#tag_cloud a').tagcloud();
+        })
+    }
+</script>
+
+<!--fastClick.js -->
+<script>
+    async("https://cdn.bootcss.com/fastclick/1.0.6/fastclick.min.js", function(){
+        var $nav = document.querySelector("nav");
+        if($nav) FastClick.attach($nav);
+    })
+</script>
+
+
+<!-- Google Analytics -->
+
+
+
+
+<!-- Baidu Tongji -->
+
+
+
+
+
+
+	<a id="rocket" href="#top" class=""></a>
+	<script type="text/javascript" src="/js/totop.js?v=1.0.0" async=""></script>
+    <script type="text/javascript" src="/js/toc.js?v=1.0.0" async=""></script>
+<!-- Image to hack wechat -->
+<img src="https://www.hi-linux.com/img/icon_wechat.png" width="0" height="0" />
+<!-- Migrate from head to bottom, no longer block render and still work -->
+
+</body>
+
+</html>
