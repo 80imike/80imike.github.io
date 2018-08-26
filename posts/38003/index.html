@@ -1,0 +1,634 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<!-- Head tag -->
+<head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="google-site-verification" content="xBT4GhYoi5qRD5tr338pgPM5OWHHIDR6mNg1a3euekI" />
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="description" content="">
+    <meta name="keyword"  content="Linux,运维,Nginx,Zabbix,Centos,Ansible,MySQL,Python,Docker,ELK,Haproxy,Git,Nodejs,安全,技术">
+    <link rel="shortcut icon" href="/img/ironman-draw.png">
+    <!-- Place this tag in your head or just before your close body tag. -->
+    <script async defer src="https://buttons.github.io/buttons.js"></script>
+    <title>
+        
+          Nginx Unit 入门教程 - 运维之美
+        
+    </title>
+
+    <link rel="canonical" href="http://www.hi-linux.com/posts/38003/">
+
+    <!-- Bootstrap Core CSS -->
+    <link rel="stylesheet" href="/css/bootstrap.min.css">
+
+    <!-- Custom CSS --> 
+    <link rel="stylesheet" href="/css/beantech.min.css">
+    
+    <!-- Pygments Highlight CSS -->
+    <link rel="stylesheet" href="/css/highlight.css">
+
+    <link rel="stylesheet" href="/css/widget.css">
+
+    <link rel="stylesheet" href="/css/rocket.css">
+
+    <link rel="stylesheet" href="/css/signature.css">
+
+    <link rel="stylesheet" href="/css/toc.css">
+
+    <!-- Custom Fonts -->
+    <!-- <link href="https://maxcdn.bootstrapcdn.com/font-awesome/4.3.0/css/font-awesome.min.css" rel="stylesheet" type="text/css"> -->
+    <!-- Hux change font-awesome CDN to qiniu -->
+    <link href="https://cdn.staticfile.org/font-awesome/4.5.0/css/font-awesome.min.css" rel="stylesheet" type="text/css">
+
+
+    <!-- Hux Delete, sad but pending in China
+    <link href='http://fonts.googleapis.com/css?family=Lora:400,700,400italic,700italic' rel='stylesheet' type='text/css'>
+    <link href='http://fonts.googleapis.com/css?family=Open+Sans:300italic,400italic,600italic,700italic,800italic,400,300,600,700,800' rel='stylesheet' type='text/
+    css'>
+    -->
+
+
+    <!-- HTML5 Shim and Respond.js IE8 support of HTML5 elements and media queries -->
+    <!-- WARNING: Respond.js doesn't work if you view the page via file:// -->
+    <!--[if lt IE 9]>
+        <script src="https://oss.maxcdn.com/libs/html5shiv/3.7.0/html5shiv.js"></script>
+        <script src="https://oss.maxcdn.com/libs/respond.js/1.4.2/respond.min.js"></script>
+    <![endif]-->
+
+    <!-- ga & ba script hoook -->
+    <script></script>
+</head>
+
+
+<!-- hack iOS CSS :active style -->
+<body ontouchstart="">
+	<!-- Modified by Yu-Hsuan Yen -->
+<!-- Post Header -->
+<style type="text/css">
+    header.intro-header{
+        
+            background-image: url('/img/header_img/article.jpg')
+            /*post*/
+        
+    }
+    
+</style>
+
+<header class="intro-header" >
+    <!-- Signature -->
+    <div id="signature">
+        <div class="container">
+            <div class="row">
+                <div class="col-lg-8 col-lg-offset-2 col-md-10 col-md-offset-1">
+                
+                    <div class="post-heading">
+                        <div class="tags">
+                            
+                              <a class="tag" href="/tags/#Linux" title="Linux">Linux</a>
+                            
+                              <a class="tag" href="/tags/#Nginx" title="Nginx">Nginx</a>
+                            
+                        </div>
+                        <h1>Nginx Unit 入门教程</h1>
+                        <h2 class="subheading"></h2>
+                        <span class="meta">
+                            Posted by Mike on
+                            2018-05-30
+                        </span>
+                    </div>
+                
+
+
+                </div>
+            </div>
+        </div>
+    </div>
+</header>
+
+	
+    <!-- Navigation -->
+<nav class="navbar navbar-default navbar-custom navbar-fixed-top">
+    <div class="container-fluid">
+        <!-- Brand and toggle get grouped for better mobile display -->
+        <div class="navbar-header page-scroll">
+            <button type="button" class="navbar-toggle">
+                <span class="sr-only">Toggle navigation</span>
+                <span class="icon-bar"></span>
+                <span class="icon-bar"></span>
+                <span class="icon-bar"></span>
+            </button>
+            <a class="navbar-brand" href="/">运维之美</a>
+        </div>
+
+        <!-- Collect the nav links, forms, and other content for toggling -->
+        <!-- Known Issue, found by Hux:
+            <nav>'s height woule be hold on by its content.
+            so, when navbar scale out, the <nav> will cover tags.
+            also mask any touch event of tags, unfortunately.
+        -->
+        <div id="huxblog_navbar">
+            <div class="navbar-collapse">
+                <ul class="nav navbar-nav navbar-right">
+                    <li>
+                        <a href="/">Home</a>
+                    </li>
+
+                    
+
+                        
+                    
+
+                        
+                    
+
+                        
+                        <li>
+                            <a href="/archive/">Archives</a>
+                        </li>
+                        
+                    
+
+                        
+                        <li>
+                            <a href="/about/">About</a>
+                        </li>
+                        
+                    
+
+                        
+                        <li>
+                            <a href="/tags/">Tags</a>
+                        </li>
+                        
+                    
+                    
+                </ul>
+            </div>
+        </div>
+        <!-- /.navbar-collapse -->
+    </div>
+    <!-- /.container -->
+</nav>
+<script>
+    // Drop Bootstarp low-performance Navbar
+    // Use customize navbar with high-quality material design animation
+    // in high-perf jank-free CSS3 implementation
+    var $body   = document.body;
+    var $toggle = document.querySelector('.navbar-toggle');
+    var $navbar = document.querySelector('#huxblog_navbar');
+    var $collapse = document.querySelector('.navbar-collapse');
+
+    $toggle.addEventListener('click', handleMagic)
+    function handleMagic(e){
+        if ($navbar.className.indexOf('in') > 0) {
+        // CLOSE
+            $navbar.className = " ";
+            // wait until animation end.
+            setTimeout(function(){
+                // prevent frequently toggle
+                if($navbar.className.indexOf('in') < 0) {
+                    $collapse.style.height = "0px"
+                }
+            },400)
+        }else{
+        // OPEN
+            $collapse.style.height = "auto"
+            $navbar.className += " in";
+        }
+    }
+</script>
+
+
+    <!-- Main Content -->
+    <!-- Modify by Yu-Hsuan Yen -->
+
+<!-- Post Content -->
+<article>
+    <div class="container">
+        <div class="row">
+
+            <!-- Post Container -->
+            <div class="
+                col-lg-8 col-lg-offset-2
+                col-md-10 col-md-offset-1
+                post-container">
+
+                <p>在「<a href="https://mp.weixin.qq.com/s?__biz=MzI3MTI2NzkxMA==&amp;mid=2247485889&amp;idx=1&amp;sn=59e2b7a643db49d36471521bc86615e4&amp;chksm=eac528e8ddb2a1fe469a1474ca48fe896c3a5cd2dc192c91b7e2a97bbdde6b4475fa059060e2#rd" target="_blank" rel="noopener">Nginx 发布支持动态配置的开源 Web 服务器 Nginx Unit</a>」 一文中我们对 Nginx Unit 的基本特性做了一个介绍。</p>
+<p>今天我们用一个典型的 PHP 应用 WordPress 为例，来介绍下如何在 Nginx Unit 下部署一个应用。</p>
+<h3 id="架构概述">架构概述</h3>
+<p>WordPress 是一个相当标准的三层 Web 应用程序，它包括必须由 PHP 处理器执行的 PHP 脚本以及必须由 Web 服务器交付的静态文件。下图为一个简单的 WordPress 应用程序的架构：</p>
+<p><img src="https://www.hi-linux.com/img/linux/nginx-unit-wp-01.png" alt=""></p>
+<a id="more"></a>
+<p>本文系统基础环境以 Ubuntu 16.04 为例，如果你使用的是其它发行版本也基本类似，这里就不展开讲解了。</p>
+<h3 id="安装-mysql">安装 MySQL</h3>
+<p>WordPress 安装的关键要素之一就是存储用户帐户和站点数据的数据库，这里我们使用 MySQL 。</p>
+<ul>
+<li>安装和配置 MySQL</li>
+</ul>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">$ sudo apt-get install mysql-server</span><br></pre></td></tr></table></figure>
+<p>输入新的 MySQL 的 root 用户的密码：</p>
+<p><img src="https://www.hi-linux.com/img/linux/nginx-unit-wp-02.png" alt=""></p>
+<ul>
+<li>运行 MySQL 配置工具</li>
+</ul>
+<p>如果你要对 MySQL 进行更细致的配置，可以使用 <code>mysql_secure_installation</code> 工具进行：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br></pre></td><td class="code"><pre><span class="line">$ sudo mysql_secure_installation</span><br><span class="line">VALIDATE PASSWORD PLUGIN can be used to test passwords and improve security. It</span><br><span class="line">checks the strength of password and allows the users to set only those passwords</span><br><span class="line">which are secure enough. Would you like to setup VALIDATE PASSWORD plugin?</span><br><span class="line"></span><br><span class="line">Press y|Y for Yes, any other key for No:</span><br><span class="line"></span><br><span class="line">Using existing password for root.</span><br><span class="line">Change the password for root ? ((Press y|Y for Yes, any other key for No) :</span><br><span class="line"></span><br><span class="line">By default, a MySQL installation has an anonymous user, allowing anyone to log</span><br><span class="line">into MySQL without having to have a user account created for them. This is</span><br><span class="line">intended only for testing, and to make the installation go a bit smoother.</span><br><span class="line">You should remove them before moving into a production environment.</span><br><span class="line"></span><br><span class="line">Remove anonymous users? (Press y|Y for Yes, any other key for No) :</span><br><span class="line"></span><br><span class="line">Normally, root should only be allowed to connect from &apos;localhost&apos;. This ensures</span><br><span class="line">that someone cannot guess at the root password from the network.</span><br><span class="line"></span><br><span class="line">Disallow root login remotely? (Press y|Y for Yes, any other key for No) :</span><br><span class="line"></span><br><span class="line">By default, MySQL comes with a database named &apos;test&apos; that anyone can access. This</span><br><span class="line">is also intended only for testing, and should be removed before moving into a</span><br><span class="line">production environment.</span><br><span class="line"></span><br><span class="line">Remove test database and access to it? (Press y|Y for Yes, any other key for No) :</span><br><span class="line"></span><br><span class="line">Reloading the privilege tables will ensure that all changes made so far will take</span><br><span class="line">effect immediately.</span><br><span class="line"></span><br><span class="line">Reload privilege tables now? (Press y|Y for Yes, any other key for No) :</span><br><span class="line"></span><br><span class="line">All done!</span><br></pre></td></tr></table></figure>
+<ul>
+<li>使用 MySQL 的 root 帐户登录</li>
+</ul>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"># 密码为上面你安装时设置的值</span><br><span class="line">$ sudo mysql -u root -p</span><br></pre></td></tr></table></figure>
+<ul>
+<li>创建一个名为 wordpress 的数据库和用于连接 wordpress 的数据库的用户</li>
+</ul>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">mysql&gt; CREATE DATABASE wordpress;</span><br><span class="line">mysql&gt; CREATE USER wordpress@localhost IDENTIFIED BY &apos;000000&apos;;</span><br><span class="line">mysql&gt; GRANT ALL PRIVILEGES ON wordpress.* TO wordpress@localhost;</span><br><span class="line">mysql&gt; FLUSH PRIVILEGES;</span><br><span class="line">mysql&gt; Exit;</span><br></pre></td></tr></table></figure>
+<blockquote>
+<p>这里创建的用于连接数据的用户名为：wordpress，密码为：000000</p>
+</blockquote>
+<h3 id="安装-wordpress">安装 WordPress</h3>
+<ul>
+<li>安装 WordPress</li>
+</ul>
+<p>我们这里计划把 WordPress 安装到 <code>/var/www/</code> 目录下，WordPress 为 PHP 应用，开箱即用。</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">$ cd /var/www/</span><br><span class="line">$ sudo wget http://wordpress.org/latest.tar.gz</span><br><span class="line">$ sudo tar xzvf latest.tar.gz</span><br></pre></td></tr></table></figure>
+<ul>
+<li>配置 WordPress</li>
+</ul>
+<p>生成一份 WordPress 的配置文件：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">$ cd /var/www/wordpress</span><br><span class="line">$ sudo cp wp-config-sample.php wp-config.php</span><br></pre></td></tr></table></figure>
+<p>为了加强安全性，使用 WordPress 的 salt 函数来随机生成新的密钥：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line">$ curl -s https://api.wordpress.org/secret-key/1.1/salt/</span><br><span class="line">define(&apos;AUTH_KEY&apos;,         &apos;=wL.&#125;,W*rMaA1Pwv!+_qV:4kH.0DLt4XHBYO/$$faan6SdW9f@)-vcol^L@NNgtQ&apos;);</span><br><span class="line">define(&apos;SECURE_AUTH_KEY&apos;,  &apos;`7$#&#123;&gt;c, /-#&#123;iM_[C[/6&#123;zf1TBOL`DZw/.T)A74&amp;[&gt;3G8z#ls1//SN.vf]=L3&lt;o&apos;);</span><br><span class="line">define(&apos;LOGGED_IN_KEY&apos;,    &apos;%)bNF#NIM@Z&amp;W5vosd&lt;!&gt;n]Ja;|I5+Xd!XgizvND|u!^nKmwG:&#125;GPL&amp;//yE4;tRw&apos;);</span><br><span class="line">define(&apos;NONCE_KEY&apos;,        &apos;+:O%5A=Y-K&#125;&amp;4]&#125;g(.1+5)eQ_hVys3~/cj?9SRf_0;mq&amp;@-=gs&lt;x@XGhzV39uDs9&apos;);</span><br><span class="line">define(&apos;AUTH_SALT&apos;,        &apos;3]5-)?dDY%VtL((|83GAN H3glV,&#125;#M=q&lt;31qPnYG`H- azd|iEEIb[qzscHm?=7&apos;);</span><br><span class="line">define(&apos;SECURE_AUTH_SALT&apos;, &apos;(W8i U(:YpP&#123;+m.)qsG|~vOle)_-:0Nb#(!82xxzB!W/Nw3]L4,i].0q_+4jWFi-&apos;);</span><br><span class="line">define(&apos;LOGGED_IN_SALT&apos;,   &apos;T+fp7X.IcPgSEcZZAbVC&#125;q!~QvLg7S0b-L=+[+.9&gt;f?;2S%*Wt|3aS[-g-i|&#123;.RQ&apos;);</span><br><span class="line">define(&apos;NONCE_SALT&apos;,       &apos;|k~[:t^Mq+]+2c/ux4*.1I6AZJyeM-.G%x!~@oesVRQ9@|/3wn2k+y3%;R24B -4&apos;);</span><br></pre></td></tr></table></figure>
+<p>编辑配置文件，修改数据库连接信息和安全密钥：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br></pre></td><td class="code"><pre><span class="line">$ sudo vim wp-config.php</span><br><span class="line"></span><br><span class="line"># 修改连接数据库的名称、用户名和密码</span><br><span class="line"></span><br><span class="line">// ** MySQL settings - You can get this info from your web host ** //</span><br><span class="line">/** The name of the database for WordPress */</span><br><span class="line">define(&apos;DB_NAME&apos;, &apos;wordpress&apos;);</span><br><span class="line"></span><br><span class="line">/** MySQL database username */</span><br><span class="line">define(&apos;DB_USER&apos;, &apos;wordpress&apos;);</span><br><span class="line"></span><br><span class="line">/** MySQL database password */</span><br><span class="line">define(&apos;DB_PASSWORD&apos;, &apos;000000&apos;);</span><br><span class="line"></span><br><span class="line"># 修改以下内容为之前产生安全密钥</span><br><span class="line"></span><br><span class="line">define(&apos;AUTH_KEY&apos;,         &apos;=wL.&#125;,W*rMaA1Pwv!+_qV:4kH.0DLt4XHBYO/$$faan6SdW9f@)-vcol^L@NNgtQ&apos;);</span><br><span class="line">define(&apos;SECURE_AUTH_KEY&apos;,  &apos;`7$#&#123;&gt;c, /-#&#123;iM_[C[/6&#123;zf1TBOL`DZw/.T)A74&amp;[&gt;3G8z#ls1//SN.vf]=L3&lt;o&apos;);</span><br><span class="line">define(&apos;LOGGED_IN_KEY&apos;,    &apos;%)bNF#NIM@Z&amp;W5vosd&lt;!&gt;n]Ja;|I5+Xd!XgizvND|u!^nKmwG:&#125;GPL&amp;//yE4;tRw&apos;);</span><br><span class="line">define(&apos;NONCE_KEY&apos;,        &apos;+:O%5A=Y-K&#125;&amp;4]&#125;g(.1+5)eQ_hVys3~/cj?9SRf_0;mq&amp;@-=gs&lt;x@XGhzV39uDs9&apos;);</span><br><span class="line">define(&apos;AUTH_SALT&apos;,        &apos;3]5-)?dDY%VtL((|83GAN H3glV,&#125;#M=q&lt;31qPnYG`H- azd|iEEIb[qzscHm?=7&apos;);</span><br><span class="line">define(&apos;SECURE_AUTH_SALT&apos;, &apos;(W8i U(:YpP&#123;+m.)qsG|~vOle)_-:0Nb#(!82xxzB!W/Nw3]L4,i].0q_+4jWFi-&apos;);</span><br><span class="line">define(&apos;LOGGED_IN_SALT&apos;,   &apos;T+fp7X.IcPgSEcZZAbVC&#125;q!~QvLg7S0b-L=+[+.9&gt;f?;2S%*Wt|3aS[-g-i|&#123;.RQ&apos;);</span><br><span class="line">define(&apos;NONCE_SALT&apos;,       &apos;|k~[:t^Mq+]+2c/ux4*.1I6AZJyeM-.G%x!~@oesVRQ9@|/3wn2k+y3%;R24B -4&apos;);</span><br></pre></td></tr></table></figure>
+<p>修改 WordPress 的文件及目录权限：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">$ sudo chown -R www-data:www-data /var/www/wordpress</span><br><span class="line">$ sudo find /var/www/wordpress -type d -exec chmod g+s &#123;&#125; \;</span><br><span class="line">$ sudo chmod g+w /var/www/wordpress/wp-content</span><br><span class="line">$ sudo chmod -R g+w /var/www/wordpress/wp-content/themes</span><br><span class="line">$ sudo chmod -R g+w /var/www/wordpress/wp-content/plugins</span><br></pre></td></tr></table></figure>
+<blockquote>
+<p>这里使用的是 www-data 用户，这个用户是要在后面配置到 Nginx Unit 的应用配置文件里的 。</p>
+</blockquote>
+<h3 id="安装-php">安装 PHP</h3>
+<p>安装 WordPress 需要的 PHP 环境和相关 PHP 扩展，这里我们安装比较新的 PHP 7.0 版本：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">$ sudo apt-get install -y php7.0 php7.0-common php7.0-mbstring php7.0-gd php7.0-intl php7.0-xml php7.0-mysql php7.0-mcrypt</span><br></pre></td></tr></table></figure>
+<h3 id="安装-nginx-unit">安装 Nginx Unit</h3>
+<p>Nginx Unit 支持多种安装方式，这里我们通过预编译包来安装。</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line"># 导入验证 Nginx 仓库的签名密钥</span><br><span class="line">$ sudo curl -C - https://nginx.org/keys/nginx_signing.key | sudo apt-key add -</span><br><span class="line"></span><br><span class="line"># 增加 Nginx Unit 仓库源</span><br><span class="line">$ sudo cat &gt;&gt; /etc/apt/sources.list.d/nginx-unit.list &lt;&lt; EOF</span><br><span class="line">deb https://packages.nginx.org/unit/ubuntu/ $(lsb_release -sc) unit</span><br><span class="line">deb-src https://packages.nginx.org/unit/ubuntu/ $(lsb_release -sc) unit</span><br><span class="line">EOF</span><br><span class="line"></span><br><span class="line"># 安装 Nginx Unit</span><br><span class="line">$ sudo apt-get update</span><br><span class="line">$ sudo apt-get install unit</span><br></pre></td></tr></table></figure>
+<p>安装 Nginx Unit 的扩展模块</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">$ sudo apt-get install unit-php</span><br></pre></td></tr></table></figure>
+<blockquote>
+<p>这里只安装了 PHP 模块，Nginx Unit 支持的模块还有很多，比如：unit-python2.7、 unit-python3.5、 unit-go、 unit-perl、 unit-ruby等。</p>
+</blockquote>
+<p>验证 Nginx Unit 和 PHP 是否正常工作</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">$ sudo service unit restart</span><br><span class="line">$ sudo service unit loadconfig /usr/share/doc/unit-php/examples/unit.config</span><br><span class="line">$ curl http://localhost:8300/</span><br></pre></td></tr></table></figure>
+<blockquote>
+<p>如果出现 phpinfo 页面的原始 HTML 代码，则表示 Nginx Unit 安装正确。</p>
+</blockquote>
+<h3 id="配置-nginx-unit">配置 Nginx Unit</h3>
+<p>为 WordPress 创建一个 Nginx Unit 的应用配置文件，该应用配置文件仅用作 Nginx Unit 动态加载用。</p>
+<p>此配置文件会创建两个 Nginx Unit 应用程序，每一个应用程序对应一个 URL 方案，两个 URL 分别对应的是 WordPress Web 页面和 WordPress 的后台管理面板。</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br></pre></td><td class="code"><pre><span class="line">$ sudo vim /var/www/wordpress/wordpress.config</span><br><span class="line"></span><br><span class="line">&#123;</span><br><span class="line">    &quot;listeners&quot;: &#123;</span><br><span class="line">        &quot;127.0.0.1:8090&quot;: &#123;</span><br><span class="line">            &quot;application&quot;: &quot;script_index_php&quot;</span><br><span class="line">        &#125;,</span><br><span class="line">        &quot;127.0.0.1:8091&quot;: &#123;</span><br><span class="line">            &quot;application&quot;: &quot;direct_php&quot;</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;,</span><br><span class="line"></span><br><span class="line">    &quot;applications&quot;: &#123;</span><br><span class="line">        &quot;script_index_php&quot;: &#123;</span><br><span class="line">            &quot;type&quot;: &quot;php&quot;,</span><br><span class="line">            &quot;processes&quot;: &#123;</span><br><span class="line">                &quot;max&quot;: 20,</span><br><span class="line">                &quot;spare&quot;: 5</span><br><span class="line">            &#125;,</span><br><span class="line">            &quot;user&quot;: &quot;www-data&quot;,</span><br><span class="line">            &quot;group&quot;: &quot;www-data&quot;,</span><br><span class="line">            &quot;root&quot;: &quot;/var/www/wordpress&quot;,</span><br><span class="line">            &quot;script&quot;: &quot;index.php&quot;</span><br><span class="line">        &#125;,</span><br><span class="line">        &quot;direct_php&quot;: &#123;</span><br><span class="line">            &quot;type&quot;: &quot;php&quot;,</span><br><span class="line">            &quot;processes&quot;: &#123;</span><br><span class="line">                &quot;max&quot;: 5,</span><br><span class="line">                &quot;spare&quot;: 0</span><br><span class="line">            &#125;,</span><br><span class="line">            &quot;user&quot;: &quot;www-data&quot;,</span><br><span class="line">            &quot;group&quot;: &quot;www-data&quot;,</span><br><span class="line">            &quot;root&quot;: &quot;/var/www/wordpress&quot;,</span><br><span class="line">            &quot;index&quot;: &quot;index.php&quot;</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>通过 curl 向 Nginx Unit 提交配置文件</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">$ curl -X PUT -d @/var/www/wordpress/wordpress.config --unix-socket /run/control.unit.sock http://localhost/config</span><br><span class="line">&#123;</span><br><span class="line">	&quot;success&quot;: &quot;Reconfiguration done.&quot;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>这里只介绍了最基本的 API 用法，实际上基于 Nginx Unit API 可以完成很多工作，具体参考 <a href="https://unit.nginx.org/configuration/" target="_blank" rel="noopener">NGINX Unit 官方文档</a>。</p>
+<h3 id="通过-nginx-整合-nginx-unit">通过 Nginx 整合 Nginx Unit</h3>
+<p>把 Nginx 和 Nginx Unit 整合到一起，可以实现动静分离。让 Nginx 处理所有的静态资源请求，而与 PHP 相关的动态请求都转由 Nginx Unit 来处理。</p>
+<ul>
+<li>安装 Nginx</li>
+</ul>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line"># 导入验证 Nginx 仓库的签名密钥</span><br><span class="line">$ sudo curl -C - https://nginx.org/keys/nginx_signing.key | sudo apt-key add -</span><br><span class="line"></span><br><span class="line"># 增加 Nginx 仓库源</span><br><span class="line">$ sudo cat &gt;&gt; /etc/apt/sources.list.d/nginx.list &lt;&lt; EOF</span><br><span class="line">deb https://nginx.org/packages/mainline/ubuntu/ $(lsb_release -sc) nginx</span><br><span class="line">deb-src https://nginx.org/packages/mainline/ubuntu/ $(lsb_release -sc) nginx</span><br><span class="line">EOF</span><br><span class="line"></span><br><span class="line"># 安装 Nginx</span><br><span class="line">$ sudo apt-get update</span><br><span class="line">$ sudo apt-get install nginx</span><br></pre></td></tr></table></figure>
+<p>验证 Nginx 是否正常工作</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">$ sudo service nginx restart</span><br><span class="line">$ curl http://localhost</span><br></pre></td></tr></table></figure>
+<blockquote>
+<p>如果出现 Nginx 默认页面的原始 HTML 代码，则表示 Nginx 安装正确。</p>
+</blockquote>
+<ul>
+<li>配置 Nginx</li>
+</ul>
+<p>首先对默认配置文件做一个备份：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">$ cd /etc/nginx/conf.d/</span><br><span class="line">$ sudo mv default.conf default.conf.bak</span><br></pre></td></tr></table></figure>
+<p>其次建立一个新的默认配置文件：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br></pre></td><td class="code"><pre><span class="line">$ sudo vim /etc/nginx/conf.d/default.conf</span><br><span class="line"></span><br><span class="line">upstream index_php_upstream &#123;</span><br><span class="line">    server 127.0.0.1:8090; # NGINX Unit backend address for index.php with</span><br><span class="line">                           # &apos;script&apos; parameter</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line">upstream direct_php_upstream &#123;</span><br><span class="line">    server 127.0.0.1:8091; # NGINX Unit backend address for generic PHP file handling</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line">server &#123;</span><br><span class="line">    listen      80;</span><br><span class="line">    server_name localhost;</span><br><span class="line">    root        /var/www/wordpress/;</span><br><span class="line"></span><br><span class="line">    location / &#123;</span><br><span class="line">        try_files $uri @index_php;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    location @index_php &#123;</span><br><span class="line">        proxy_pass       http://index_php_upstream;</span><br><span class="line">        proxy_set_header Host $host;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    location /wp-admin &#123;</span><br><span class="line">        index index.php;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    location ~* \.php$ &#123;</span><br><span class="line">        try_files        $uri =404;</span><br><span class="line">        proxy_pass       http://direct_php_upstream;</span><br><span class="line">        proxy_set_header Host $host;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>最后验证并加载配置文件：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">$ sudo nginx -t</span><br><span class="line">nginx: the configuration file /etc/nginx/nginx.conf syntax is ok</span><br><span class="line">nginx: configuration file /etc/nginx/nginx.conf test is successful</span><br><span class="line"></span><br><span class="line">$ sudo nginx -s reload</span><br></pre></td></tr></table></figure>
+<p>如果一切正常，在浏览器中访问主机 IP 就会出现 WordPress 的安装页面。</p>
+<p><img src="https://www.hi-linux.com/img/linux/nginx-unit-wp-03.png" alt=""></p>
+<h3 id="参考文档">参考文档</h3>
+<p><a href="https://www.google.com" target="_blank" rel="noopener">https://www.google.com</a><br>
+<a href="http://t.cn/R3k71cq" target="_blank" rel="noopener">http://t.cn/R3k71cq</a><br>
+<a href="http://t.cn/R3kLoXD" target="_blank" rel="noopener">http://t.cn/R3kLoXD</a></p>
+
+                
+
+                <hr>
+                <!-- Pager -->
+                <ul class="pager">
+                    
+                        <li class="previous">
+                            <a href="/posts/19779/" data-toggle="tooltip" data-placement="top" title="推荐一个命令行下交互式 Docker 容器管理工具 Dry">&larr; Previous Post</a>
+                        </li>
+                    
+                    
+                        <li class="next">
+                            <a href="/posts/23259/" data-toggle="tooltip" data-placement="top" title="初识 Kata Containers">Next Post &rarr;</a>
+                        </li>
+                    
+                </ul>
+
+                <!-- duoshuo Share start -->
+                
+                <!-- 多说 Share end-->
+
+                <!-- 多说评论框 start -->
+                
+                <!-- 多说评论框 end -->
+
+                <!-- disqus comment start -->
+                
+                <!-- disqus comment end -->
+
+                
+                    <!-- disqus 评论框 start -->
+                    <div class="comment">
+                        <div id="lv-container" data-id="city" data-uid="MTAyMC8yNzg2My80NDQw"></div>
+                    </div>
+                    <!-- disqus 评论框 end -->
+                
+
+            </div>
+            
+            <!-- Tabe of Content -->
+            <!-- Table of Contents -->
+
+  
+    <style>
+      span.toc-nav-number{
+        display: none
+      }
+    </style>
+  
+    
+      <aside id="sidebar">
+        <div id="toc" class="toc-article">
+        <strong class="toc-title">Contents</strong>
+        
+          <ol class="toc-nav"><li class="toc-nav-item toc-nav-level-3"><a class="toc-nav-link" href="#架构概述"><span class="toc-nav-number">1.</span> <span class="toc-nav-text">架构概述</span></a></li><li class="toc-nav-item toc-nav-level-3"><a class="toc-nav-link" href="#安装-mysql"><span class="toc-nav-number">2.</span> <span class="toc-nav-text">安装 MySQL</span></a></li><li class="toc-nav-item toc-nav-level-3"><a class="toc-nav-link" href="#安装-wordpress"><span class="toc-nav-number">3.</span> <span class="toc-nav-text">安装 WordPress</span></a></li><li class="toc-nav-item toc-nav-level-3"><a class="toc-nav-link" href="#安装-php"><span class="toc-nav-number">4.</span> <span class="toc-nav-text">安装 PHP</span></a></li><li class="toc-nav-item toc-nav-level-3"><a class="toc-nav-link" href="#安装-nginx-unit"><span class="toc-nav-number">5.</span> <span class="toc-nav-text">安装 Nginx Unit</span></a></li><li class="toc-nav-item toc-nav-level-3"><a class="toc-nav-link" href="#配置-nginx-unit"><span class="toc-nav-number">6.</span> <span class="toc-nav-text">配置 Nginx Unit</span></a></li><li class="toc-nav-item toc-nav-level-3"><a class="toc-nav-link" href="#通过-nginx-整合-nginx-unit"><span class="toc-nav-number">7.</span> <span class="toc-nav-text">通过 Nginx 整合 Nginx Unit</span></a></li><li class="toc-nav-item toc-nav-level-3"><a class="toc-nav-link" href="#参考文档"><span class="toc-nav-number">8.</span> <span class="toc-nav-text">参考文档</span></a></li></ol>
+        
+        </div>
+      </aside>
+    
+
+                
+            <!-- Sidebar Container -->
+            <div class="
+                col-lg-8 col-lg-offset-2
+                col-md-10 col-md-offset-1
+                sidebar-container">
+
+                <!-- Featured Tags -->
+                
+                <section>
+                    <!-- no hr -->
+                    <h5><a href="/tags/">FEATURED TAGS</a></h5>
+                    <div class="tags">
+                       
+                          <a class="tag" href="/tags/#Linux" title="Linux">Linux</a>
+                        
+                          <a class="tag" href="/tags/#Nginx" title="Nginx">Nginx</a>
+                        
+                    </div>
+                </section>
+                
+
+                <!-- Friends Blog -->
+                
+                <hr>
+                <h5>FRIENDS</h5>
+                <ul class="list-inline">
+
+                    
+                        <li><a href="http://www.mike.org.cn/" target="_blank">简单.生活</a></li>
+                    
+                        <li><a href="http://shang.qq.com/wpa/qunwpa?idkey=ea4c43493c2269428ac6ef6141de4b6d78e5ab2d41380ca4099b833b62884ee9" target="_blank">技术交流群</a></li>
+                    
+                        <li><a href="" target="_blank"></a></li>
+                    
+                        <li><a href="" target="_blank"></a></li>
+                    
+                </ul>
+                
+            </div>
+        </div>
+    </div>
+</article>
+
+
+
+
+
+
+    <!-- 来必力City版公共JS代码 start (一个网页只需插入一次) -->
+    <script type="text/javascript">
+       (function(d, s) {
+           var j, e = d.getElementsByTagName(s)[0];
+    
+           if (typeof LivereTower === 'function') { return; }
+    
+           j = d.createElement(s);
+           j.src = 'https://cdn-city.livere.com/js/embed.dist.js';
+           j.async = true;
+    
+           e.parentNode.insertBefore(j, e);
+       })(document, 'script');
+    </script>
+    <noscript>为正常使用来必力评论功能请激活JavaScript</noscript>
+    <!-- 来必力City版 公共JS代码 end -->
+
+
+
+<!-- async load function -->
+<script>
+    function async(u, c) {
+      var d = document, t = 'script',
+          o = d.createElement(t),
+          s = d.getElementsByTagName(t)[0];
+      o.src = u;
+      if (c) { o.addEventListener('load', function (e) { c(null, e); }, false); }
+      s.parentNode.insertBefore(o, s);
+    }
+</script>
+<!-- anchor-js, Doc:http://bryanbraun.github.io/anchorjs/ -->
+<script>
+    async("https://cdn.bootcss.com/anchor-js/1.1.1/anchor.min.js",function(){
+        anchors.options = {
+          visible: 'hover',
+          placement: 'left',
+          icon: 'ℬ'
+        };
+        anchors.add().remove('.intro-header h1').remove('.subheading').remove('.sidebar-container h5');
+    })
+</script>
+<style>
+    /* place left on bigger screen */
+    @media all and (min-width: 800px) {
+        .anchorjs-link{
+            position: absolute;
+            left: -0.75em;
+            font-size: 1.1em;
+            margin-top : -0.1em;
+        }
+    }
+</style>
+
+
+
+    <!-- Footer -->
+    <!-- Footer -->
+<footer>
+    <div class="container">
+        <div class="row">
+            <div class="col-lg-8 col-lg-offset-2 col-md-10 col-md-offset-1">
+                <ul class="list-inline text-center">
+                
+                    <li>
+                        <a href="/atom.xml">
+                            <span class="fa-stack fa-lg">
+                                <i class="fa fa-circle fa-stack-2x"></i>
+                                <i class="fa fa-rss fa-stack-1x fa-inverse"></i>
+                            </span>
+                        </a>
+                    </li>
+                
+                
+                
+                    <li>
+                        <a target="_blank" href="https://www.zhihu.com/people/80imike">
+                            <span class="fa-stack fa-lg">
+                                <i class="fa fa-circle fa-stack-2x"></i>
+                                <i class="fa  fa-stack-1x fa-inverse">知</i>
+                            </span>
+                        </a>
+                    </li>
+                
+
+                
+                    <li>
+                        <a target="_blank" href="http://weibo.com/2093524665">
+                            <span class="fa-stack fa-lg">
+                                <i class="fa fa-circle fa-stack-2x"></i>
+                                <i class="fa fa-weibo fa-stack-1x fa-inverse"></i>
+                            </span>
+                        </a>
+                    </li>
+                
+
+                
+
+                
+
+                
+
+                </ul>
+                <p class="copyright text-muted">
+                    Copyright &copy; Mike 2018 | Hosted by <a href="https://pages.coding.me" style="font-weight: bold">Coding Pages</a>
+                    <br>
+                    Theme by <a href="http://beantech.org">BeanTech</a> 
+                    <span style="display: inline-block; margin: 0 5px;">
+                        <i class="fa fa-heart"></i>
+                    </span> 
+                    re-Ported by <a href="http://www.huweihuang.com">胡伟煌</a> | 
+                    <iframe
+                        style="margin-left: 2px; margin-bottom:-5px;"
+                        frameborder="0" scrolling="0" width="91px" height="20px"
+                        src="https://ghbtns.com/github-btn.html?user=huweihuang&repo=hexo-theme-huweihuang&type=star&count=true" >
+                    </iframe>
+                </p>
+            </div>
+        </div>
+    </div>
+</footer>
+
+<!-- jQuery -->
+<script src="/js/jquery.min.js"></script>
+
+<!-- Bootstrap Core JavaScript -->
+<script src="/js/bootstrap.min.js"></script>
+
+<!-- Custom Theme JavaScript -->
+<script src="/js/hux-blog.min.js"></script>
+
+
+<!-- async load function -->
+<script>
+    function async(u, c) {
+      var d = document, t = 'script',
+          o = d.createElement(t),
+          s = d.getElementsByTagName(t)[0];
+      o.src = u;
+      if (c) { o.addEventListener('load', function (e) { c(null, e); }, false); }
+      s.parentNode.insertBefore(o, s);
+    }
+</script>
+
+<!-- 
+     Because of the native support for backtick-style fenced code blocks 
+     right within the Markdown is landed in Github Pages, 
+     From V1.6, There is no need for Highlight.js, 
+     so Huxblog drops it officially.
+
+     - https://github.com/blog/2100-github-pages-now-faster-and-simpler-with-jekyll-3-0  
+     - https://help.github.com/articles/creating-and-highlighting-code-blocks/    
+-->
+<!--
+    <script>
+        async("http://cdn.bootcss.com/highlight.js/8.6/highlight.min.js", function(){
+            hljs.initHighlightingOnLoad();
+        })
+    </script>
+    <link href="http://cdn.bootcss.com/highlight.js/8.6/styles/github.min.css" rel="stylesheet">
+-->
+
+
+<!-- jquery.tagcloud.js -->
+<script>
+    // only load tagcloud.js in tag.html
+    if($('#tag_cloud').length !== 0){
+        async("http://www.hi-linux.com/js/jquery.tagcloud.js",function(){
+            $.fn.tagcloud.defaults = {
+                //size: {start: 1, end: 1, unit: 'em'},
+                color: {start: '#bbbbee', end: '#0085a1'},
+            };
+            $('#tag_cloud a').tagcloud();
+        })
+    }
+</script>
+
+<!--fastClick.js -->
+<script>
+    async("https://cdn.bootcss.com/fastclick/1.0.6/fastclick.min.js", function(){
+        var $nav = document.querySelector("nav");
+        if($nav) FastClick.attach($nav);
+    })
+</script>
+
+
+<!-- Google Analytics -->
+
+
+
+
+<!-- Baidu Tongji -->
+
+
+
+
+
+
+	<a id="rocket" href="#top" class=""></a>
+	<script type="text/javascript" src="/js/totop.js?v=1.0.0" async=""></script>
+    <script type="text/javascript" src="/js/toc.js?v=1.0.0" async=""></script>
+<!-- Image to hack wechat -->
+<img src="http://www.hi-linux.com/img/icon_wechat.png" width="0" height="0" />
+<!-- Migrate from head to bottom, no longer block render and still work -->
+
+</body>
+
+</html>

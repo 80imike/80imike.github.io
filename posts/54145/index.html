@@ -1,0 +1,592 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<!-- Head tag -->
+<head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="google-site-verification" content="xBT4GhYoi5qRD5tr338pgPM5OWHHIDR6mNg1a3euekI" />
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="description" content="">
+    <meta name="keyword"  content="Linux,运维,Nginx,Zabbix,Centos,Ansible,MySQL,Python,Docker,ELK,Haproxy,Git,Nodejs,安全,技术">
+    <link rel="shortcut icon" href="/img/ironman-draw.png">
+    <!-- Place this tag in your head or just before your close body tag. -->
+    <script async defer src="https://buttons.github.io/buttons.js"></script>
+    <title>
+        
+          Apache Mesos 入门 - 运维之美
+        
+    </title>
+
+    <link rel="canonical" href="http://www.hi-linux.com/posts/54145/">
+
+    <!-- Bootstrap Core CSS -->
+    <link rel="stylesheet" href="/css/bootstrap.min.css">
+
+    <!-- Custom CSS --> 
+    <link rel="stylesheet" href="/css/beantech.min.css">
+    
+    <!-- Pygments Highlight CSS -->
+    <link rel="stylesheet" href="/css/highlight.css">
+
+    <link rel="stylesheet" href="/css/widget.css">
+
+    <link rel="stylesheet" href="/css/rocket.css">
+
+    <link rel="stylesheet" href="/css/signature.css">
+
+    <link rel="stylesheet" href="/css/toc.css">
+
+    <!-- Custom Fonts -->
+    <!-- <link href="https://maxcdn.bootstrapcdn.com/font-awesome/4.3.0/css/font-awesome.min.css" rel="stylesheet" type="text/css"> -->
+    <!-- Hux change font-awesome CDN to qiniu -->
+    <link href="https://cdn.staticfile.org/font-awesome/4.5.0/css/font-awesome.min.css" rel="stylesheet" type="text/css">
+
+
+    <!-- Hux Delete, sad but pending in China
+    <link href='http://fonts.googleapis.com/css?family=Lora:400,700,400italic,700italic' rel='stylesheet' type='text/css'>
+    <link href='http://fonts.googleapis.com/css?family=Open+Sans:300italic,400italic,600italic,700italic,800italic,400,300,600,700,800' rel='stylesheet' type='text/
+    css'>
+    -->
+
+
+    <!-- HTML5 Shim and Respond.js IE8 support of HTML5 elements and media queries -->
+    <!-- WARNING: Respond.js doesn't work if you view the page via file:// -->
+    <!--[if lt IE 9]>
+        <script src="https://oss.maxcdn.com/libs/html5shiv/3.7.0/html5shiv.js"></script>
+        <script src="https://oss.maxcdn.com/libs/respond.js/1.4.2/respond.min.js"></script>
+    <![endif]-->
+
+    <!-- ga & ba script hoook -->
+    <script></script>
+</head>
+
+
+<!-- hack iOS CSS :active style -->
+<body ontouchstart="">
+	<!-- Modified by Yu-Hsuan Yen -->
+<!-- Post Header -->
+<style type="text/css">
+    header.intro-header{
+        
+            background-image: url('/img/header_img/article.jpg')
+            /*post*/
+        
+    }
+    
+</style>
+
+<header class="intro-header" >
+    <!-- Signature -->
+    <div id="signature">
+        <div class="container">
+            <div class="row">
+                <div class="col-lg-8 col-lg-offset-2 col-md-10 col-md-offset-1">
+                
+                    <div class="post-heading">
+                        <div class="tags">
+                            
+                              <a class="tag" href="/tags/#Docker" title="Docker">Docker</a>
+                            
+                              <a class="tag" href="/tags/#Mesos" title="Mesos">Mesos</a>
+                            
+                        </div>
+                        <h1>Apache Mesos 入门</h1>
+                        <h2 class="subheading"></h2>
+                        <span class="meta">
+                            Posted by Mike on
+                            2017-04-28
+                        </span>
+                    </div>
+                
+
+
+                </div>
+            </div>
+        </div>
+    </div>
+</header>
+
+	
+    <!-- Navigation -->
+<nav class="navbar navbar-default navbar-custom navbar-fixed-top">
+    <div class="container-fluid">
+        <!-- Brand and toggle get grouped for better mobile display -->
+        <div class="navbar-header page-scroll">
+            <button type="button" class="navbar-toggle">
+                <span class="sr-only">Toggle navigation</span>
+                <span class="icon-bar"></span>
+                <span class="icon-bar"></span>
+                <span class="icon-bar"></span>
+            </button>
+            <a class="navbar-brand" href="/">运维之美</a>
+        </div>
+
+        <!-- Collect the nav links, forms, and other content for toggling -->
+        <!-- Known Issue, found by Hux:
+            <nav>'s height woule be hold on by its content.
+            so, when navbar scale out, the <nav> will cover tags.
+            also mask any touch event of tags, unfortunately.
+        -->
+        <div id="huxblog_navbar">
+            <div class="navbar-collapse">
+                <ul class="nav navbar-nav navbar-right">
+                    <li>
+                        <a href="/">Home</a>
+                    </li>
+
+                    
+
+                        
+                    
+
+                        
+                    
+
+                        
+                        <li>
+                            <a href="/archive/">Archives</a>
+                        </li>
+                        
+                    
+
+                        
+                        <li>
+                            <a href="/about/">About</a>
+                        </li>
+                        
+                    
+
+                        
+                        <li>
+                            <a href="/tags/">Tags</a>
+                        </li>
+                        
+                    
+                    
+                </ul>
+            </div>
+        </div>
+        <!-- /.navbar-collapse -->
+    </div>
+    <!-- /.container -->
+</nav>
+<script>
+    // Drop Bootstarp low-performance Navbar
+    // Use customize navbar with high-quality material design animation
+    // in high-perf jank-free CSS3 implementation
+    var $body   = document.body;
+    var $toggle = document.querySelector('.navbar-toggle');
+    var $navbar = document.querySelector('#huxblog_navbar');
+    var $collapse = document.querySelector('.navbar-collapse');
+
+    $toggle.addEventListener('click', handleMagic)
+    function handleMagic(e){
+        if ($navbar.className.indexOf('in') > 0) {
+        // CLOSE
+            $navbar.className = " ";
+            // wait until animation end.
+            setTimeout(function(){
+                // prevent frequently toggle
+                if($navbar.className.indexOf('in') < 0) {
+                    $collapse.style.height = "0px"
+                }
+            },400)
+        }else{
+        // OPEN
+            $collapse.style.height = "auto"
+            $navbar.className += " in";
+        }
+    }
+</script>
+
+
+    <!-- Main Content -->
+    <!-- Modify by Yu-Hsuan Yen -->
+
+<!-- Post Content -->
+<article>
+    <div class="container">
+        <div class="row">
+
+            <!-- Post Container -->
+            <div class="
+                col-lg-8 col-lg-offset-2
+                col-md-10 col-md-offset-1
+                post-container">
+
+                <p>Apache Mesos诞生于UC Berkeley的一个研究项目，现已成为Apache Incubator中的项目。Apache Mesos把自己定位成一个数据中心操作系统，它能管理上万台的从机。Framework相当于这个操作系统的应用程序，每当应用程序需要执行，Framework就会在Mesos中选择一台有合适资源(cpu、内存等)的从机来运行。</p>
+<p>Apache Mesos使用ZooKeeper实现容错复制，使用Linux Containers来隔离任务，支持多种资源计划分配。Apache Mesos应用场景非常广泛。今天我们先来学习下Mesos的基本架构原理。</p>
+<a id="more"></a>
+<h3 id="apache-mesos中的基本术语解释">Apache Mesos中的基本术语解释</h3>
+<ul>
+<li>Mesos-Master：主要负责管理各个Framework和Slave，并将Slave上的资源分配给各个Framework。</li>
+<li>Mesos-Slave：负责管理本节点上的各个Mesos-Task，比如：为各个executor分配资源。</li>
+<li>Framework：计算框架，如：Hadoop、Spark、Kafaka、ElasticSerach等，通过MesosSchedulerDiver接入Mesos。</li>
+<li>Executor：执行器，就是安装到每个机器节点的软件。用于启动计算框架中的Task。这里就是利用Docker的容器来担任执行器的角色。具有启动销毁快，隔离性高，环境一致等特点。</li>
+</ul>
+<h3 id="apache-mesos总体架构">Apache Mesos总体架构</h3>
+<p>Apache Mesos架构示意图</p>
+<p><img src="https://www.hi-linux.com/img/linux/mesos1.jpg" alt=""></p>
+<p>Apache Mesos由四个组件组成，分别是Mesos-Master，Mesos-Slave，Framework和Executor。</p>
+<ul>
+<li>
+<p>Mesos-Master是整个系统的核心，负责管理接入Mesos的各个framework(由frameworks_manager管理)和Slave(由slaves_manager管理)，并将slave上的资源按照某种策略分配给framework(由独立插拔模块Allocator管理)。</p>
+</li>
+<li>
+<p>Mesos-Slave负责接受并执行来自Mesos-master的命令、管理节点上的mesos-task，并为各个task分配资源。Mesos-Slave将自己的资源量发送给Mesos-Master，由Mesos-Master中的Allocator模块决定将资源分配给哪个framework，当前考虑的资源有CPU和内存两种，也就是说，Mesos-Slave会将CPU个数的内存量发送给Mesos-Master，而用户提交作业时需要指定每个任务需要的CPU个数和内存。这样当任务运行时，Mesos-Slave会将任务放到包含固定资源Linux container中运行，以达到资源隔离的效果。很明显，Master存在单点故障问题，为此Mesos采用了Zookeeper解决该问题。</p>
+</li>
+<li>
+<p>Framework是指外部的计算框架，如果Hadoop、Mesos、Marathon等，这些计算框架可通过注册的方式接入Mesos，以便Mesos进行统一管理和资源分配。Mesos要求可接入的框架必须有一个调度模块，该调度器负责框架内部的任务调度。当一个Framework想要接入Mesos时，需要修改自己的调度器，以便向Mesos注册，并获取Mesos分配给自己的资源，这样再由自己的调度器将这些资源分配给框架中的任务。也就是说，整个Mesos系统采用了双层调度框架：第一层,由Mesos将资源分配给框架。第二层,框架自己的调度器将资源分配给自己内部的任务。当前Mesos支持三中语言编写的调度器，分别是<code>C++</code>、<code>Java</code>、<code>Python</code>。为了向各种调度器提供统一的接入方式，Mesos内部采用C++实现了一个MesosSchedulerDriver(调度驱动器)，Framework的调度器可调用该driver中的接口与Mesos-Master交互，完成一系列功能(如注册，资源分配等。)</p>
+</li>
+<li>
+<p>Executor主要用于启动框架内部的Task。由于不同的框架，启动Task的接口或者方式不同，当一个新的框架要接入Mesos时，需要编写一个Executor，告诉Mesos如何启动该框架中的task。为了向各种框架提供统一的执行器编写方式，Mesos内部采用C++实现了一个MesosExecutorDiver(执行器驱动器)，Framework可通过该驱动器的相关接口告诉Mesos启动Task的方式。</p>
+</li>
+</ul>
+<p>官方提供的一个资源分配的例子</p>
+<p><img src="https://www.hi-linux.com/img/linux/mesos2.jpg" alt=""></p>
+<ul>
+<li>Slave1向Master报告，有4个CPU和4GB内存可用。</li>
+<li>Master发送一个Resource Offer给Framework1来描述Slave1有多少可用资源。</li>
+<li>FrameWork1中的FW Scheduler会答复Master，我有两个Task需要运行在Slave1，一个Task需要2个CPU，1GB内存，另外一个Task需要1个CPU，2GB内存。</li>
+<li>最后，Master发送这些Tasks给Slave1。然后Slave1还有1个CPU和1GB内存没有使用，所以分配模块可以把这些资源提供给Framework2。</li>
+</ul>
+<p>这个例子可以看出来，Mesos的核心工作其实很少，资源管理和分配以及Task转发。调度由Framework实现，Task的定义以及具体执行也由Framework实现，Mesos的资源分配粒度是按Task的，但由于Executor执行Task可能在同一个进程中实现，所以资源限制只是一种流控的机制，并不能实际的控制到Task这个粒度。</p>
+<h3 id="mesos和kubernetes比较">Mesos和Kubernetes比较</h3>
+<p>Mesos和Kubernetes虽然都借鉴了Borg的思想，终极目标类似，但解决方案是不同的。</p>
+<ul>
+<li>
+<p>Mesos有点像联邦制，承认各邦(Framework)的主权，但各邦让渡一部分公用的机制出来由Mesos来实现，最大化的共享资源，提高资源利用率，Framework和Mesos是相对独立的关系。</p>
+</li>
+<li>
+<p>Kubernetes有点像单一制，搭建一个通用的平台，尽量提供全面的能力(网络，磁盘，内存，cpu)，制定一个集群应用的定义标准。任何复杂的应用都可以按照该标准定义并以最小的变更成本在上面部署运行，主要的变更需求也是因为想享受Kubernetes的动态伸缩能力带来的。</p>
+</li>
+<li>
+<p>Mesos是基于两阶段调度的集群管理器。基于其两阶段调度特性，用户需要能够使用Mesos的Mesos框架(比如Marathon，Aurora，Singularity)，才能够像Kubernetes调度器那样工作。高度简化来说，Mesos用来管理集群资源，并且向其提供高层级的能接受这些资源来启动任务的框架。Mesos作为数据中心管理系统，适用于任何开发框架和应用。</p>
+</li>
+<li>
+<p>Kubernetes是基于Borg理念而设计的容器集群管理器。Google的集群管理器没有两阶段调度的概念，而针对容器的集群管理具有轻量化、模块化、便捷等特点；除了两阶段调度，Mesos和Kubernetes还有很多区别，比如它们的依赖（Zookeeper、Etcd等等）以及使用方式等等。</p>
+</li>
+</ul>
+<p>值得一提的是，Mesos正在接受Kubernetes的理念，你可以在Mesos集群上搭建Kubernetes并部署Kubernets应用。Kubernetes on Mesos正是这样一个项目：<a href="https://kubernetes.io/docs/getting-started-guides/mesos/" target="_blank" rel="noopener">https://kubernetes.io/docs/getting-started-guides/mesos/</a></p>
+<h3 id="参考文档">参考文档</h3>
+<p><a href="http://www.google.com" target="_blank" rel="noopener">http://www.google.com</a><br>
+<a href="http://jolestar.com/mesos-architecture/" target="_blank" rel="noopener">http://jolestar.com/mesos-architecture/</a><br>
+<a href="http://dongxicheng.org/apache-mesos/meso-architecture/" target="_blank" rel="noopener">http://dongxicheng.org/apache-mesos/meso-architecture/</a></p>
+
+                
+
+                <hr>
+                <!-- Pager -->
+                <ul class="pager">
+                    
+                        <li class="previous">
+                            <a href="/posts/41986/" data-toggle="tooltip" data-placement="top" title="MySQL 正式发布高可用架构 MySQL InnoDB Cluster">&larr; Previous Post</a>
+                        </li>
+                    
+                    
+                        <li class="next">
+                            <a href="/posts/40904/" data-toggle="tooltip" data-placement="top" title="通过 MacVLAN 实现 Docker 跨宿主机互联">Next Post &rarr;</a>
+                        </li>
+                    
+                </ul>
+
+                <!-- duoshuo Share start -->
+                
+                <!-- 多说 Share end-->
+
+                <!-- 多说评论框 start -->
+                
+                <!-- 多说评论框 end -->
+
+                <!-- disqus comment start -->
+                
+                <!-- disqus comment end -->
+
+                
+                    <!-- disqus 评论框 start -->
+                    <div class="comment">
+                        <div id="lv-container" data-id="city" data-uid="MTAyMC8yNzg2My80NDQw"></div>
+                    </div>
+                    <!-- disqus 评论框 end -->
+                
+
+            </div>
+            
+            <!-- Tabe of Content -->
+            <!-- Table of Contents -->
+
+  
+    <style>
+      span.toc-nav-number{
+        display: none
+      }
+    </style>
+  
+    
+      <aside id="sidebar">
+        <div id="toc" class="toc-article">
+        <strong class="toc-title">Contents</strong>
+        
+          <ol class="toc-nav"><li class="toc-nav-item toc-nav-level-3"><a class="toc-nav-link" href="#apache-mesos中的基本术语解释"><span class="toc-nav-number">1.</span> <span class="toc-nav-text">Apache Mesos中的基本术语解释</span></a></li><li class="toc-nav-item toc-nav-level-3"><a class="toc-nav-link" href="#apache-mesos总体架构"><span class="toc-nav-number">2.</span> <span class="toc-nav-text">Apache Mesos总体架构</span></a></li><li class="toc-nav-item toc-nav-level-3"><a class="toc-nav-link" href="#mesos和kubernetes比较"><span class="toc-nav-number">3.</span> <span class="toc-nav-text">Mesos和Kubernetes比较</span></a></li><li class="toc-nav-item toc-nav-level-3"><a class="toc-nav-link" href="#参考文档"><span class="toc-nav-number">4.</span> <span class="toc-nav-text">参考文档</span></a></li></ol>
+        
+        </div>
+      </aside>
+    
+
+                
+            <!-- Sidebar Container -->
+            <div class="
+                col-lg-8 col-lg-offset-2
+                col-md-10 col-md-offset-1
+                sidebar-container">
+
+                <!-- Featured Tags -->
+                
+                <section>
+                    <!-- no hr -->
+                    <h5><a href="/tags/">FEATURED TAGS</a></h5>
+                    <div class="tags">
+                       
+                          <a class="tag" href="/tags/#Docker" title="Docker">Docker</a>
+                        
+                          <a class="tag" href="/tags/#Mesos" title="Mesos">Mesos</a>
+                        
+                    </div>
+                </section>
+                
+
+                <!-- Friends Blog -->
+                
+                <hr>
+                <h5>FRIENDS</h5>
+                <ul class="list-inline">
+
+                    
+                        <li><a href="http://www.mike.org.cn/" target="_blank">简单.生活</a></li>
+                    
+                        <li><a href="http://shang.qq.com/wpa/qunwpa?idkey=ea4c43493c2269428ac6ef6141de4b6d78e5ab2d41380ca4099b833b62884ee9" target="_blank">技术交流群</a></li>
+                    
+                        <li><a href="" target="_blank"></a></li>
+                    
+                        <li><a href="" target="_blank"></a></li>
+                    
+                </ul>
+                
+            </div>
+        </div>
+    </div>
+</article>
+
+
+
+
+
+
+    <!-- 来必力City版公共JS代码 start (一个网页只需插入一次) -->
+    <script type="text/javascript">
+       (function(d, s) {
+           var j, e = d.getElementsByTagName(s)[0];
+    
+           if (typeof LivereTower === 'function') { return; }
+    
+           j = d.createElement(s);
+           j.src = 'https://cdn-city.livere.com/js/embed.dist.js';
+           j.async = true;
+    
+           e.parentNode.insertBefore(j, e);
+       })(document, 'script');
+    </script>
+    <noscript>为正常使用来必力评论功能请激活JavaScript</noscript>
+    <!-- 来必力City版 公共JS代码 end -->
+
+
+
+<!-- async load function -->
+<script>
+    function async(u, c) {
+      var d = document, t = 'script',
+          o = d.createElement(t),
+          s = d.getElementsByTagName(t)[0];
+      o.src = u;
+      if (c) { o.addEventListener('load', function (e) { c(null, e); }, false); }
+      s.parentNode.insertBefore(o, s);
+    }
+</script>
+<!-- anchor-js, Doc:http://bryanbraun.github.io/anchorjs/ -->
+<script>
+    async("https://cdn.bootcss.com/anchor-js/1.1.1/anchor.min.js",function(){
+        anchors.options = {
+          visible: 'hover',
+          placement: 'left',
+          icon: 'ℬ'
+        };
+        anchors.add().remove('.intro-header h1').remove('.subheading').remove('.sidebar-container h5');
+    })
+</script>
+<style>
+    /* place left on bigger screen */
+    @media all and (min-width: 800px) {
+        .anchorjs-link{
+            position: absolute;
+            left: -0.75em;
+            font-size: 1.1em;
+            margin-top : -0.1em;
+        }
+    }
+</style>
+
+
+
+    <!-- Footer -->
+    <!-- Footer -->
+<footer>
+    <div class="container">
+        <div class="row">
+            <div class="col-lg-8 col-lg-offset-2 col-md-10 col-md-offset-1">
+                <ul class="list-inline text-center">
+                
+                    <li>
+                        <a href="/atom.xml">
+                            <span class="fa-stack fa-lg">
+                                <i class="fa fa-circle fa-stack-2x"></i>
+                                <i class="fa fa-rss fa-stack-1x fa-inverse"></i>
+                            </span>
+                        </a>
+                    </li>
+                
+                
+                
+                    <li>
+                        <a target="_blank" href="https://www.zhihu.com/people/80imike">
+                            <span class="fa-stack fa-lg">
+                                <i class="fa fa-circle fa-stack-2x"></i>
+                                <i class="fa  fa-stack-1x fa-inverse">知</i>
+                            </span>
+                        </a>
+                    </li>
+                
+
+                
+                    <li>
+                        <a target="_blank" href="http://weibo.com/2093524665">
+                            <span class="fa-stack fa-lg">
+                                <i class="fa fa-circle fa-stack-2x"></i>
+                                <i class="fa fa-weibo fa-stack-1x fa-inverse"></i>
+                            </span>
+                        </a>
+                    </li>
+                
+
+                
+
+                
+
+                
+
+                </ul>
+                <p class="copyright text-muted">
+                    Copyright &copy; Mike 2018 | Hosted by <a href="https://pages.coding.me" style="font-weight: bold">Coding Pages</a>
+                    <br>
+                    Theme by <a href="http://beantech.org">BeanTech</a> 
+                    <span style="display: inline-block; margin: 0 5px;">
+                        <i class="fa fa-heart"></i>
+                    </span> 
+                    re-Ported by <a href="http://www.huweihuang.com">胡伟煌</a> | 
+                    <iframe
+                        style="margin-left: 2px; margin-bottom:-5px;"
+                        frameborder="0" scrolling="0" width="91px" height="20px"
+                        src="https://ghbtns.com/github-btn.html?user=huweihuang&repo=hexo-theme-huweihuang&type=star&count=true" >
+                    </iframe>
+                </p>
+            </div>
+        </div>
+    </div>
+</footer>
+
+<!-- jQuery -->
+<script src="/js/jquery.min.js"></script>
+
+<!-- Bootstrap Core JavaScript -->
+<script src="/js/bootstrap.min.js"></script>
+
+<!-- Custom Theme JavaScript -->
+<script src="/js/hux-blog.min.js"></script>
+
+
+<!-- async load function -->
+<script>
+    function async(u, c) {
+      var d = document, t = 'script',
+          o = d.createElement(t),
+          s = d.getElementsByTagName(t)[0];
+      o.src = u;
+      if (c) { o.addEventListener('load', function (e) { c(null, e); }, false); }
+      s.parentNode.insertBefore(o, s);
+    }
+</script>
+
+<!-- 
+     Because of the native support for backtick-style fenced code blocks 
+     right within the Markdown is landed in Github Pages, 
+     From V1.6, There is no need for Highlight.js, 
+     so Huxblog drops it officially.
+
+     - https://github.com/blog/2100-github-pages-now-faster-and-simpler-with-jekyll-3-0  
+     - https://help.github.com/articles/creating-and-highlighting-code-blocks/    
+-->
+<!--
+    <script>
+        async("http://cdn.bootcss.com/highlight.js/8.6/highlight.min.js", function(){
+            hljs.initHighlightingOnLoad();
+        })
+    </script>
+    <link href="http://cdn.bootcss.com/highlight.js/8.6/styles/github.min.css" rel="stylesheet">
+-->
+
+
+<!-- jquery.tagcloud.js -->
+<script>
+    // only load tagcloud.js in tag.html
+    if($('#tag_cloud').length !== 0){
+        async("http://www.hi-linux.com/js/jquery.tagcloud.js",function(){
+            $.fn.tagcloud.defaults = {
+                //size: {start: 1, end: 1, unit: 'em'},
+                color: {start: '#bbbbee', end: '#0085a1'},
+            };
+            $('#tag_cloud a').tagcloud();
+        })
+    }
+</script>
+
+<!--fastClick.js -->
+<script>
+    async("https://cdn.bootcss.com/fastclick/1.0.6/fastclick.min.js", function(){
+        var $nav = document.querySelector("nav");
+        if($nav) FastClick.attach($nav);
+    })
+</script>
+
+
+<!-- Google Analytics -->
+
+
+
+
+<!-- Baidu Tongji -->
+
+
+
+
+
+
+	<a id="rocket" href="#top" class=""></a>
+	<script type="text/javascript" src="/js/totop.js?v=1.0.0" async=""></script>
+    <script type="text/javascript" src="/js/toc.js?v=1.0.0" async=""></script>
+<!-- Image to hack wechat -->
+<img src="http://www.hi-linux.com/img/icon_wechat.png" width="0" height="0" />
+<!-- Migrate from head to bottom, no longer block render and still work -->
+
+</body>
+
+</html>

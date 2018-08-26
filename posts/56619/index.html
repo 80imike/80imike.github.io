@@ -1,0 +1,724 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<!-- Head tag -->
+<head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="google-site-verification" content="xBT4GhYoi5qRD5tr338pgPM5OWHHIDR6mNg1a3euekI" />
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="description" content="">
+    <meta name="keyword"  content="Linux,运维,Nginx,Zabbix,Centos,Ansible,MySQL,Python,Docker,ELK,Haproxy,Git,Nodejs,安全,技术">
+    <link rel="shortcut icon" href="/img/ironman-draw.png">
+    <!-- Place this tag in your head or just before your close body tag. -->
+    <script async defer src="https://buttons.github.io/buttons.js"></script>
+    <title>
+        
+          浅析从外部访问 Kubernetes 集群中应用的几种方式 - 运维之美
+        
+    </title>
+
+    <link rel="canonical" href="http://www.hi-linux.com/posts/56619/">
+
+    <!-- Bootstrap Core CSS -->
+    <link rel="stylesheet" href="/css/bootstrap.min.css">
+
+    <!-- Custom CSS --> 
+    <link rel="stylesheet" href="/css/beantech.min.css">
+    
+    <!-- Pygments Highlight CSS -->
+    <link rel="stylesheet" href="/css/highlight.css">
+
+    <link rel="stylesheet" href="/css/widget.css">
+
+    <link rel="stylesheet" href="/css/rocket.css">
+
+    <link rel="stylesheet" href="/css/signature.css">
+
+    <link rel="stylesheet" href="/css/toc.css">
+
+    <!-- Custom Fonts -->
+    <!-- <link href="https://maxcdn.bootstrapcdn.com/font-awesome/4.3.0/css/font-awesome.min.css" rel="stylesheet" type="text/css"> -->
+    <!-- Hux change font-awesome CDN to qiniu -->
+    <link href="https://cdn.staticfile.org/font-awesome/4.5.0/css/font-awesome.min.css" rel="stylesheet" type="text/css">
+
+
+    <!-- Hux Delete, sad but pending in China
+    <link href='http://fonts.googleapis.com/css?family=Lora:400,700,400italic,700italic' rel='stylesheet' type='text/css'>
+    <link href='http://fonts.googleapis.com/css?family=Open+Sans:300italic,400italic,600italic,700italic,800italic,400,300,600,700,800' rel='stylesheet' type='text/
+    css'>
+    -->
+
+
+    <!-- HTML5 Shim and Respond.js IE8 support of HTML5 elements and media queries -->
+    <!-- WARNING: Respond.js doesn't work if you view the page via file:// -->
+    <!--[if lt IE 9]>
+        <script src="https://oss.maxcdn.com/libs/html5shiv/3.7.0/html5shiv.js"></script>
+        <script src="https://oss.maxcdn.com/libs/respond.js/1.4.2/respond.min.js"></script>
+    <![endif]-->
+
+    <!-- ga & ba script hoook -->
+    <script></script>
+</head>
+
+
+<!-- hack iOS CSS :active style -->
+<body ontouchstart="">
+	<!-- Modified by Yu-Hsuan Yen -->
+<!-- Post Header -->
+<style type="text/css">
+    header.intro-header{
+        
+            background-image: url('/img/header_img/article.jpg')
+            /*post*/
+        
+    }
+    
+</style>
+
+<header class="intro-header" >
+    <!-- Signature -->
+    <div id="signature">
+        <div class="container">
+            <div class="row">
+                <div class="col-lg-8 col-lg-offset-2 col-md-10 col-md-offset-1">
+                
+                    <div class="post-heading">
+                        <div class="tags">
+                            
+                              <a class="tag" href="/tags/#Linux" title="Linux">Linux</a>
+                            
+                              <a class="tag" href="/tags/#Kubernetes" title="Kubernetes">Kubernetes</a>
+                            
+                        </div>
+                        <h1>浅析从外部访问 Kubernetes 集群中应用的几种方式</h1>
+                        <h2 class="subheading"></h2>
+                        <span class="meta">
+                            Posted by Mike on
+                            2018-07-20
+                        </span>
+                    </div>
+                
+
+
+                </div>
+            </div>
+        </div>
+    </div>
+</header>
+
+	
+    <!-- Navigation -->
+<nav class="navbar navbar-default navbar-custom navbar-fixed-top">
+    <div class="container-fluid">
+        <!-- Brand and toggle get grouped for better mobile display -->
+        <div class="navbar-header page-scroll">
+            <button type="button" class="navbar-toggle">
+                <span class="sr-only">Toggle navigation</span>
+                <span class="icon-bar"></span>
+                <span class="icon-bar"></span>
+                <span class="icon-bar"></span>
+            </button>
+            <a class="navbar-brand" href="/">运维之美</a>
+        </div>
+
+        <!-- Collect the nav links, forms, and other content for toggling -->
+        <!-- Known Issue, found by Hux:
+            <nav>'s height woule be hold on by its content.
+            so, when navbar scale out, the <nav> will cover tags.
+            also mask any touch event of tags, unfortunately.
+        -->
+        <div id="huxblog_navbar">
+            <div class="navbar-collapse">
+                <ul class="nav navbar-nav navbar-right">
+                    <li>
+                        <a href="/">Home</a>
+                    </li>
+
+                    
+
+                        
+                    
+
+                        
+                    
+
+                        
+                        <li>
+                            <a href="/archive/">Archives</a>
+                        </li>
+                        
+                    
+
+                        
+                        <li>
+                            <a href="/about/">About</a>
+                        </li>
+                        
+                    
+
+                        
+                        <li>
+                            <a href="/tags/">Tags</a>
+                        </li>
+                        
+                    
+                    
+                </ul>
+            </div>
+        </div>
+        <!-- /.navbar-collapse -->
+    </div>
+    <!-- /.container -->
+</nav>
+<script>
+    // Drop Bootstarp low-performance Navbar
+    // Use customize navbar with high-quality material design animation
+    // in high-perf jank-free CSS3 implementation
+    var $body   = document.body;
+    var $toggle = document.querySelector('.navbar-toggle');
+    var $navbar = document.querySelector('#huxblog_navbar');
+    var $collapse = document.querySelector('.navbar-collapse');
+
+    $toggle.addEventListener('click', handleMagic)
+    function handleMagic(e){
+        if ($navbar.className.indexOf('in') > 0) {
+        // CLOSE
+            $navbar.className = " ";
+            // wait until animation end.
+            setTimeout(function(){
+                // prevent frequently toggle
+                if($navbar.className.indexOf('in') < 0) {
+                    $collapse.style.height = "0px"
+                }
+            },400)
+        }else{
+        // OPEN
+            $collapse.style.height = "auto"
+            $navbar.className += " in";
+        }
+    }
+</script>
+
+
+    <!-- Main Content -->
+    <!-- Modify by Yu-Hsuan Yen -->
+
+<!-- Post Content -->
+<article>
+    <div class="container">
+        <div class="row">
+
+            <!-- Post Container -->
+            <div class="
+                col-lg-8 col-lg-offset-2
+                col-md-10 col-md-offset-1
+                post-container">
+
+                <p>一般情况下，Kubernetes 的 Cluster Network 是属于私有网络，只能在 Cluster Network 内部才能访问部署的应用。那么如何才能将 Kubernetes 集群中的应用暴露到外部网络，为外部用户提供服务呢？本文就来讲一讲从外部网络访问 Kubernetes Cluster 中 Pod 和 Serivce 的几种常用的实现方式。</p>
+<h3 id="pod-和-service-的关系">Pod 和 Service 的关系</h3>
+<p>我们首先来了解一下 Kubernetes 中的 Pod 和 Service 的概念以及两者间的关系。</p>
+<p>Pod (容器组)，英文中 Pod 是豆荚的意思。从名字的含义可以看出，Pod 是一组有依赖关系的容器。Pod 是 Kubernetes 集群中最基本的资源对象，每个 Pod 由一个或多个业务容器和一个根容器 (Pause 容器) 组成。</p>
+<p>Kubernetes 为每个 Pod 分配了唯一的 IP（即：Pod IP），Pod 里的多个容器共享这个 IP。Pod 内的容器除了 IP，还共享相同的网络命名空间、端口、存储卷等，也就是说这些容器之间能通过 Localhost 来通信。Pod 包含的容器都会运行在同一个节点上，也可以同时启动多个相同的 Pod 用于 Failover 或者 Load balance。</p>
+<p>Pod 的生命周期是短暂的，Kubernetes 会根据应用的配置对 Pod 进行创建、销毁并根据监控指标进行伸缩扩容。Kubernetes 在创建 Pod 时可以选择集群中的任何一台空闲的节点上进行，因此其网络地址是不固定的。由于 Pod 的这一特点，一般不建议直接通过 Pod 的地址去访问应用。</p>
+<p>为了解决访问 Pod 不方便直接访问的问题，Kubernetes 采用了 Service 对 Pod 进行封装。Service 是对后端提供服务的一组 Pod 的抽象，Service 会绑定到一个固定的虚拟 IP上。该虚拟 IP 只在 Kubernetes Cluster 中可见，但其实该虚拟 IP 并不对应一个虚拟或者物理设备，而只是 IPtables 中的规则，然后再通过 IPtables 将服务请求路由到后端的 Pod 中。通过这种方式，可以确保服务消费者可以稳定地访问 Pod 提供的服务，而不用关心 Pod 的创建、删除、迁移等变化以及如何用一组 Pod 来进行负载均衡。</p>
+<a id="more"></a>
+<p>实现 Service 这一功能的关键是由 Kubernetes 中的 Kube-Proxy 来完成的。Kube-Proxy 运行在每个节点上，监听 API Server 中服务对象的变化，再通过管理 IPtables 来实现网络的转发。Kube-Proxy 目前支持三种模式：UserSpace、IPtables、IPVS。下面我们来说说这几种模式的异同：</p>
+<ul>
+<li>UserSpace</li>
+</ul>
+<p>UserSpace 是让 Kube-Proxy 在用户空间监听一个端口，所有的 Service 都转发到这个端口，然后 Kube-Proxy 在内部应用层对其进行转发。</p>
+<p><img src="https://www.hi-linux.com/img/linux/k8s-svc1.png" alt=""></p>
+<p>Kube-Proxy 会为每个 Service 随机监听一个端口 (Proxy Port)，并增加一条 IPtables 规则。从客户端到 ClusterIP:Port 的报文都会被重定向到 Proxy Port，Kube-Proxy 收到报文后，通过 Round Robin (轮询) 或者 Session Affinity（会话亲和力，即同一 Client IP 都走同一链路给同一 Pod 服务）分发给对应的 Pod。</p>
+<p>这种方式最大的缺点显然就是 UserSpace 会造成所有报文都走一遍用户态，造成整体性能下降，这种方在 Kubernetes 1.2 以后已经不再使用了。</p>
+<ul>
+<li>IPtables</li>
+</ul>
+<p>IPtables 方式完全由 IPtables 来实现，这种方式直接使用 IPtables 来做用户态入口，而真正提供服务的是内核的 Netilter。Kube-Proxy 只作为 Controller，这也是目前默认的方式。</p>
+<p>Kube-Proxy 的 IPtables 方式也是支持 Round Robin 和 Session Affinity 特性。</p>
+<p><img src="https://www.hi-linux.com/img/linux/k8s-svc2.png" alt=""></p>
+<p>Kube-Proxy 监听 Kubernetes Master 增加和删除 Service 以及 Endpoint 的消息。对于每一个 Service，Kube Proxy 创建相应的 IPtables 规则，并将发送到 Service Cluster IP 的流量转发到 Service 后端提供服务的 Pod 的相应端口上。</p>
+<blockquote>
+<p>注：虽然可以通过 Service 的 Cluster IP 和服务端口访问到后端 Pod 提供的服务，但该 Cluster IP 是 Ping 不通的。其原因是 Cluster IP 只是 IPtables 中的规则，并不对应到一个任何网络设备。IPVS 模式的 Cluster IP 是可以 Ping 通的。</p>
+</blockquote>
+<ul>
+<li>IPVS</li>
+</ul>
+<p>Kubernetes 从 1.8 开始增加了 IPVS 支持，IPVS 相对 IPtables 效率会更高一些。使用 IPVS 模式需要在运行 Kube-Proxy 的节点上安装 <code>ipvsadm</code>、<code>ipset</code> 工具包和加载 <code>ip_vs</code> 内核模块。</p>
+<p>当 Kube-Proxy 以 IPVS 代理模式启动时，Kube-Proxy 将验证节点上是否安装了 IPVS 模块，如果未安装，则 Kube-Proxy 将回退到 IPtables 代理模式。</p>
+<p><img src="https://www.hi-linux.com/img/linux/k8s-svc3.png" alt=""></p>
+<p>这种模式，Kube-Proxy 会监视 Kubernetes Service 对象 和 Endpoints，调用 Netlink 接口以相应地创建 IPVS 规则并定期与 Kubernetes Service 对象 和 Endpoints 对象同步 IPVS 规则，以确保 IPVS 状态与期望一致。访问服务时，流量将被重定向到其中一个后端 Pod。</p>
+<p>与 IPtables 类似，IPVS 基于 Netfilter 的 Hook 功能，但使用哈希表作为底层数据结构并在内核空间中工作。这意味着 IPVS 可以更快地重定向流量，并且在同步代理规则时具有更好的性能。此外，IPVS 为负载均衡算法提供了更多选项，例如：rr (轮询调度)、lc (最小连接数)、dh (目标哈希)、sh (源哈希)、sed (最短期望延迟)、nq(不排队调度)等。</p>
+<blockquote>
+<p>注：IPVS 是 LVS 项目的一部分，是一款运行在 Linux Kernel 当中的 4 层负载均衡器，性能异常优秀。使用调优后的内核，可以轻松处理每秒 10 万次以上的转发请求。目前在中大型互联网项目中，IPVS 被广泛的用于承接网站入口处的流量。</p>
+</blockquote>
+<p>了解完 Pod 和 Service 的基本概念后，我们就来具体讲一讲从外部网络访问 Kubernetes Cluster 中 Pod 和 Serivce 的几种常见的实现方式。目前主要包括如下几种：</p>
+<ul>
+<li>hostNetwork</li>
+<li>hostPort</li>
+<li>ClusterIP</li>
+<li>NodePort</li>
+<li>LoadBalancer</li>
+<li>Ingress</li>
+</ul>
+<h3 id="通过-pod-暴露">通过 Pod 暴露</h3>
+<h4 id="hostnetwork-true">hostNetwork: true</h4>
+<p>这是一种直接定义 Pod 网络的方式。</p>
+<p>如果在 Pod 中使用 <code>hostNetwork:true</code> 配置的话，在这种 Pod 中运行的应用程序可以直接看到启动 Pod 主机的网络接口。在主机的所有网络接口上都可以访问到该应用程序，以下是使用主机网络的 Pod 的示例定义：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line">apiVersion: v1</span><br><span class="line">kind: Pod</span><br><span class="line">metadata:</span><br><span class="line">  name: nginx-hostnetwork</span><br><span class="line">spec:</span><br><span class="line">  hostNetwork: true</span><br><span class="line">  containers:</span><br><span class="line">    - name: nginx-hostnetwork</span><br><span class="line">      image: nginx:1.7.9</span><br></pre></td></tr></table></figure>
+<p>部署该 Pod：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">$ kubectl create  -f nginx-hostnetwork.yml</span><br><span class="line">pod &quot;nginx-hostnetwork&quot; created</span><br></pre></td></tr></table></figure>
+<p>访问该 Pod 所在主机的 80 端口：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line">$ curl http://$HOST_IP:80</span><br><span class="line">......</span><br><span class="line">&lt;title&gt;Welcome to nginx!&lt;/title&gt;</span><br><span class="line">&lt;body&gt;</span><br><span class="line">&lt;h1&gt;Welcome to nginx!&lt;/h1&gt;</span><br><span class="line">&lt;p&gt;If you see this page, the nginx web server is successfully installed and</span><br><span class="line">working. Further configuration is required.&lt;/p&gt;</span><br><span class="line">......</span><br></pre></td></tr></table></figure>
+<p>将看到 Nginx 默认的欢迎页面，说明可以正常访问。</p>
+<p>注意：每次启动这个 Pod 的时候都可能被调度到不同的节点上，这样所有外部访问 Pod 所在节点主机的 IP 也就是不固定的，而且调度 Pod 的时候还需要考虑是否与宿主机上的端口冲突，因此一般情况下除非您知道需要某个特定应用占用特定宿主机上的特定端口时才使用 <code>hostNetwork: true</code> 的方式。</p>
+<p>这种 Pod 的网络模式有一个用处就是可以将网络插件包装在 Pod 中，然后部署在每个宿主机上，这样该 Pod 就可以控制该宿主机上的所有网络。</p>
+<h4 id="hostport">hostPort</h4>
+<p>这也是一种直接定义 Pod 网络的方式。</p>
+<p><code>hostPort</code> 是直接将容器的端口与所调度的节点上的端口路由，这样用户就可以通过宿主机的IP加上 <code>&lt;hostPort&gt;</code> 来访问 Pod 了，如: <code>&lt;hostIP&gt;:&lt;hostPort&gt;</code>。</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line">apiVersion: v1</span><br><span class="line">kind: Pod</span><br><span class="line">metadata:</span><br><span class="line">  name: nginx-hostport</span><br><span class="line">spec:</span><br><span class="line">  containers:</span><br><span class="line">    - name: nginx-hostport</span><br><span class="line">      image: nginx:1.7.9</span><br><span class="line">      ports:</span><br><span class="line">        - containerPort: 80</span><br><span class="line">          hostPort: 8088</span><br></pre></td></tr></table></figure>
+<p>部署该 Pod：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">$ kubectl create  -f nginx-hostport.yml</span><br><span class="line">pod &quot;nginx-hostport&quot; created</span><br></pre></td></tr></table></figure>
+<p>访问该 Pod 所在主机的 8088 端口：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line">$ curl http://$HOST_IP:8088</span><br><span class="line">......</span><br><span class="line">&lt;title&gt;Welcome to nginx!&lt;/title&gt;</span><br><span class="line">&lt;body&gt;</span><br><span class="line">&lt;h1&gt;Welcome to nginx!&lt;/h1&gt;</span><br><span class="line">&lt;p&gt;If you see this page, the nginx web server is successfully installed and</span><br><span class="line">working. Further configuration is required.&lt;/p&gt;</span><br><span class="line">......</span><br></pre></td></tr></table></figure>
+<p>将看到 Nginx 默认的欢迎页面，说明可以正常访问。</p>
+<p>这种方式和 <code>hostNetwork: true</code> 有同一个缺点，因为 Pod 重新调度的时候该 Pod 被调度到的宿主机可能会变动，这样 <code>&lt;hostIP&gt;</code> 就变化了，用户必须自己维护一个 Pod 与所在宿主机的对应关系。</p>
+<p>这种网络方式可以用来做 <code>Ingress Controller</code>，外部流量都需要通过 Kubenretes 节点宿主机的 80 和 443 端口。</p>
+<h4 id="port-forward">Port Forward</h4>
+<p>这是一种通过 <code>kubectl port-forward</code> 指令来实现数据转发的方法。<code>kubectl port-forward</code> 命令可以为 Pod 设置端口转发，通过在本机指定监听端口，访问这些端口的请求将会被转发到 Pod 的容器中对应的端口上。</p>
+<p>首先，我们来看下 Kubernetes Port Forward 这种方式的工作机制：</p>
+<p><img src="https://www.hi-linux.com/img/linux/k8s-svc4.png" alt=""></p>
+<p>使用 Kubectl 创建 Port Forward 后，Kubectl 会主动监听指定的本地端口。</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">$ kubectl port-forward pod-name local-port:container-port</span><br></pre></td></tr></table></figure>
+<p>当向 Local-Port 建立端口连接并向该端口发送数据时，数据流向会经过以下步骤：</p>
+<ul>
+<li>数据发往 Kubctl 监听的 Local-Port。</li>
+<li>Kubectl 通过 SPDY 协议将数据发送给 ApiServer。</li>
+<li>ApiServer 与目标节点的 Kubelet 建立连接，并通过 SPDY 协议将数据发送到目标 Pod 的端口上。</li>
+<li>目标节点的 Kubelet 收到数据后，通过 PIPE（STDIN、STDOUT）与 Socat 通信。</li>
+<li>Socat 将 STDIN 的数据发送给 Pod 内部指定的容器端口，并将返回的数据写入到 STDOUT。</li>
+<li>STDOUT 的数据由 Kubelet 接收并按照相反的路径发送回去。</li>
+</ul>
+<blockquote>
+<p>注：SPDY 协议将来可能会被替换为 HTTP/2。</p>
+</blockquote>
+<p>接下来，我们用一个实例来演示如何将本地端口转发到 Pod 中的端口，这里以一个运行了 Nginx 的 Pod 为例：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">$ kubectl get pods</span><br><span class="line">NAME                        READY     STATUS    RESTARTS   AGE</span><br><span class="line">nginx                       1/1       Running   2          9d</span><br></pre></td></tr></table></figure>
+<p>验证 Nginx 服务器监听的端口：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">$ kubectl get pods nginx --template=&apos;&#123;&#123;(index (index .spec.containers 0).ports 0).containerPort&#125;&#125;&#123;&#123;&quot;\n&quot;&#125;&#125;&apos;</span><br><span class="line">80</span><br></pre></td></tr></table></figure>
+<p>将节点上的 8900 端口转发到 Nginx Pod 的 80 端口：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"># 执行 Kubectl port-forward 命令的时候需要指定 Pod 名称和端口转发规则。</span><br><span class="line">$ kubectl port-forward nginx 8900:80</span><br><span class="line">Forwarding from 127.0.0.1:8900 -&gt; 80</span><br><span class="line">Forwarding from [::1]:8900 -&gt; 80</span><br></pre></td></tr></table></figure>
+<blockquote>
+<p>注：需要在所有 Kubernetes 节点上都需要安装 Socat，关于 Socat 更详细介绍可参考：「<a href="https://mp.weixin.qq.com/s?__biz=MzI3MTI2NzkxMA==&amp;mid=2247485897&amp;idx=1&amp;sn=555846ff170ac7799dde353271c06f98&amp;chksm=eac528e0ddb2a1f674ca4f9e99325fbccf26589a76b43594558eeb83ef5f65b64f84a116974c&amp;mpshare=1&amp;scene=23&amp;srcid=0719C3Onveftz5JQH2g6NLTO%23rd" target="_blank" rel="noopener">Socat 入门教程</a>」 。</p>
+</blockquote>
+<p>验证转发是否成功：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line">$ curl http://127.0.0.1:8900</span><br><span class="line">......</span><br><span class="line">&lt;title&gt;Welcome to nginx!&lt;/title&gt;</span><br><span class="line">&lt;body&gt;</span><br><span class="line">&lt;h1&gt;Welcome to nginx!&lt;/h1&gt;</span><br><span class="line">&lt;p&gt;If you see this page, the nginx web server is successfully installed and</span><br><span class="line">working. Further configuration is required.&lt;/p&gt;</span><br><span class="line">......</span><br></pre></td></tr></table></figure>
+<p>由于这种类型的转发端口是绑定在本地的，这种方式也仅适用于调试服务。</p>
+<h3 id="通过-service-暴露">通过 Service 暴露</h3>
+<p>Service 的类型 ( ServiceType ) 决定了 Service 如何对外提供服务。根据类型不同服务可以只在 Kubernetes Cluster 中可见，也可以暴露到 Cluster 外部。Service 目前有三种类型：ClusterIP、NodePort 和 LoadBalancer。</p>
+<p><img src="https://www.hi-linux.com/img/linux/k8s-svc5.png" alt=""></p>
+<p>Service 中常见的三种端口的含义：</p>
+<ul>
+<li>port</li>
+</ul>
+<p>Service 暴露在 Cluster IP 上的端口，也就是虚拟 IP 要绑定的端口。port 是提供给集群内部客户访问 Service 的入口。</p>
+<ul>
+<li>nodePort</li>
+</ul>
+<p>nodePort 是 Kubernetes 提供给集群外部客户访问 Service 的入口。</p>
+<ul>
+<li>targetPort</li>
+</ul>
+<p>targetPort 是 Pod 里容器的端口，从 port 和 nodePort 上进入的数据最终会经过 Kube-Proxy 流入到后端 Pod 里容器的端口。如果 targetPort 没有被显式声明，那么会默认转发到 Service 接受请求的端口（和 port 端口的值一样）。</p>
+<p>总的来说，port 和 nodePort 都是 Service 的端口，前者暴露给集群内客户访问服务，后者暴露给集群外客户访问服务。从这两个端口到来的数据都需要经过反向代理 Kube-Proxy 流入后端 Pod 里容器的端口，从而到达 Pod 上的容器内。</p>
+<h4 id="clusterip">ClusterIP</h4>
+<p>ClusterIP 是 Service 的缺省类型，这种类型的服务会自动分配一个只能在集群内部可以访问的虚拟 IP，即：ClusterIP。ClusterIP 为你提供一个集群内部其它应用程序可以访问的服务，外部无法访问。ClusterIP 服务的 YAML 类似这样：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line">apiVersion: v1</span><br><span class="line">kind: Service</span><br><span class="line">metadata:  </span><br><span class="line">  name: my-nginx</span><br><span class="line">selector:    </span><br><span class="line">  app: my-nginx</span><br><span class="line">spec:</span><br><span class="line">  type: ClusterIP</span><br><span class="line">  ports:  </span><br><span class="line">  - name: http</span><br><span class="line">    port: 80</span><br><span class="line">    targetPort: 80</span><br><span class="line">    protocol: TCP</span><br></pre></td></tr></table></figure>
+<p>虽然我们从集群外部不能直接访问一个 ClusterIP 服务，但是你可以使用 Kubernetes Proxy API 来访问它。</p>
+<p>Kubernetes Proxy API 是一种特殊的 API，Kube-APIServer 只是代理这类 API 的 HTTP 请求，然后将请求转发到某个节点上的 Kubelet 进程监听的端口上。最后实际是由该端口上的 REST API 响应请求。</p>
+<p><img src="https://www.hi-linux.com/img/linux/k8s-svc6.png" alt=""></p>
+<p>在 Master 节点上创建 Kubernetes API 的代理服务：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">$ kubectl proxy --port=8080</span><br></pre></td></tr></table></figure>
+<p><code>kubectl proxy</code> 默认是监听在 127.0.0.1 上的，如果你需要对外提供访问，可使用一些基本的安全机制。</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">$ kubectl proxy --port=8080 --address=192.168.100.211 --accept-hosts=&apos;^192\.168\.100\.*&apos;</span><br></pre></td></tr></table></figure>
+<p>如果需要更多的命令使用帮助，可以使用 <code>kubectl help proxy</code>。</p>
+<p>现在，你可以使用 Kubernetes Proxy API 进行访问。比如：需要访问一个服务，可以使用 <code>/api/v1/namespaces/&lt;NAMESPACE&gt;/services/&lt;SERVICE-NAME&gt;/proxy/</code>。</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br></pre></td><td class="code"><pre><span class="line"># 适用于 Kubernetes 1.10</span><br><span class="line"></span><br><span class="line">$ kubectl get svc</span><br><span class="line">NAME         TYPE        CLUSTER-IP       EXTERNAL-IP   PORT(S)       AGE</span><br><span class="line">kubernetes   ClusterIP   10.254.0.1       &lt;none&gt;        443/TCP       10d</span><br><span class="line">my-nginx     ClusterIP   10.254.154.119   &lt;none&gt;        80/TCP        8d</span><br><span class="line"></span><br><span class="line">$ curl http://192.168.100.211:8080/api/v1/namespaces/default/services/my-nginx/proxy/</span><br><span class="line">......</span><br><span class="line">&lt;title&gt;Welcome to nginx!&lt;/title&gt;</span><br><span class="line">&lt;/head&gt;</span><br><span class="line">&lt;body&gt;</span><br><span class="line">&lt;h1&gt;Welcome to nginx!&lt;/h1&gt;</span><br><span class="line">&lt;p&gt;If you see this page, the nginx web server is successfully installed and</span><br><span class="line">working. Further configuration is required.&lt;/p&gt;</span><br><span class="line">......</span><br></pre></td></tr></table></figure>
+<p>如果你需要直接访问一个 Pod，可以使用 <code>/api/v1/namespaces/&lt;NAMESPACE&gt;/pods/&lt;POD-NAME&gt;/proxy/</code>。</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br></pre></td><td class="code"><pre><span class="line"># 适用于 Kubernetes 1.10</span><br><span class="line"></span><br><span class="line">$ kubectl get pod</span><br><span class="line">NAME                        READY     STATUS    RESTARTS   AGE</span><br><span class="line">my-nginx-86555897f9-5p9c2   1/1       Running   2          8d</span><br><span class="line">my-nginx-86555897f9-ws674   1/1       Running   6          8d</span><br><span class="line"></span><br><span class="line">$ curl http://192.168.100.211:8080/api/v1/namespaces/default/pods/my-nginx-86555897f9-ws674/proxy/</span><br><span class="line"></span><br><span class="line">......</span><br><span class="line">&lt;title&gt;Welcome to nginx!&lt;/title&gt;</span><br><span class="line"></span><br><span class="line">&lt;h1&gt;Welcome to nginx!&lt;/h1&gt;</span><br><span class="line">&lt;p&gt;If you see this page, the nginx web server is successfully installed and</span><br><span class="line">working. Further configuration is required.&lt;/p&gt;</span><br><span class="line">......</span><br></pre></td></tr></table></figure>
+<p>由于访问 Kubernetes Proxy API 要求使用已授权用户运行 kubectl ，因此不应该使用此方法将你的服务公开到公网上或将其用于生产，这种方法主要还是用于调试服务。</p>
+<h4 id="nodeport">NodePort</h4>
+<p>NodePort 在 Kubenretes 里是一个广泛应用的服务暴露方式。基于 ClusterIP 提供的功能，为 Service 在 Kubernetes 集群的每个节点上绑定一个端口，即 NodePort。集群外部可基于任何一个 <code>NodeIP:NodePort</code> 的形式来访问 Service。Service 在每个节点的 NodePort 端口上都是可用的。</p>
+<p><img src="https://www.hi-linux.com/img/linux/k8s-svc7.png" alt=""></p>
+<p>NodePort 服务与默认的 ClusterIP 服务在 YAML 定义上有两点区别：首先，type 是 NodePort。其次还有一个称为 nodePort 的参数用来指定在节点上打开哪个端口。 如果你不指定这个端口，它会选择一个随机端口。</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line">apiVersion: v1</span><br><span class="line">kind: Pod</span><br><span class="line">metadata:</span><br><span class="line">  name: my-nginx</span><br><span class="line">  labels:</span><br><span class="line">    name: my-nginx</span><br><span class="line">spec:</span><br><span class="line">  containers:</span><br><span class="line">    - name: my-nginx</span><br><span class="line">      image: nginx:1.7.9</span><br><span class="line">      ports:</span><br><span class="line">        - containerPort: 80</span><br></pre></td></tr></table></figure>
+<p><code>nodePort</code> 值的默认范围是 30000-32767，这个值是可以在 API Server 的配置文件中用 <code>--service-node-port-range</code> 来自定义。</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line">kind: Service</span><br><span class="line">apiVersion: v1</span><br><span class="line">metadata:</span><br><span class="line">  name: my-nginx</span><br><span class="line">spec:</span><br><span class="line">  type: NodePort</span><br><span class="line">  ports:</span><br><span class="line">    - port: 80</span><br><span class="line">      targetPort: 80</span><br><span class="line">      nodePort: 31000</span><br><span class="line">  selector:</span><br><span class="line">    name: my-nginx</span><br></pre></td></tr></table></figure>
+<p>NodePort 类型的服务会在所有的 Kubenretes 节点（运行有 Kube-Proxy 的节点）上统一暴露出一个端口对外提供服务，这样集群外就可以使用 Kubernetes 任意一个节点的 IP 加上指定端口（这里定义的是：31000）访问该服务了。Kube-Proxy 会自动将流量以 Round-Robin 的方式转发给该 Service 的每一个 Pod。</p>
+<p>NodePort 类型的服务并不影响原来虚拟 IP 的访问方式，内部节点依然可以通过 <code>VIP:Port</code> 的方式进行访问。NodePort 这种服务暴露方式也存在一些不足：</p>
+<ul>
+<li>节点上的每个端口只能有一个服务。</li>
+<li>如果节点 IP 地址发生更改，则需要相应机制处理该问题。</li>
+</ul>
+<p>基于以上原因，NodePort 比较适用的场景为演示程序或临时应用，不建议在生产环境中使用这种方法对外暴露服务。</p>
+<h4 id="loadbalancer">LoadBalancer</h4>
+<p>LoadBalancer 是基于 NodePort 和云服务供应商提供的外部负载均衡器，通过这个外部负载均衡器将外部请求转发到各个 <code>NodeIP:NodePort</code> 以实现对外暴露服务。</p>
+<p><img src="https://www.hi-linux.com/img/linux/k8s-svc8.png" alt=""></p>
+<p><code>LoadBalancer</code> 只能在 Service 上定义。LoadBalancer 是一些特定公有云提供的负载均衡器，需要特定的云服务商支持。比如：AWS、Azure、OpenStack 和 GCE (Google Container Engine) 。</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line">kind: Service</span><br><span class="line">apiVersion: v1</span><br><span class="line">metadata:</span><br><span class="line">  name: my-nginx</span><br><span class="line">spec:</span><br><span class="line">  type: LoadBalancer</span><br><span class="line">  ports:</span><br><span class="line">    - port: 80</span><br><span class="line">  selector:</span><br><span class="line">    name: my-nginx</span><br></pre></td></tr></table></figure>
+<p>查看服务：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">$ kubectl get svc my-nginx</span><br><span class="line">NAME       CLUSTER-IP     EXTERNAL-IP     PORT(S)          AGE</span><br><span class="line">my-nginx   10.97.121.42   10.13.242.236   8086:30051/TCP   39s</span><br></pre></td></tr></table></figure>
+<p>集群内部可以使用 ClusterIP 加端口来访问服务，如：10.97.121.42:8086。</p>
+<p>外部可以用以下两种方式访问该服务：</p>
+<ul>
+<li>使用任一节点的 IP 加 30051 端口访问该服务。</li>
+<li>使用 <code>EXTERNAL-IP</code> 来访问，这是一个 VIP，是云供应商提供的负载均衡器 IP，如：10.13.242.236:8086。</li>
+</ul>
+<p>LoadBalancer 这种方式最大的不足就是每个暴露的服务需要使用一个公有云提供的负载均衡器 IP，这可能会付出比较大的成本代价。</p>
+<p>从上面几种 Service 的类型的结论来看，目前 Service 提供的负载均衡功能在使用上有以下限制：</p>
+<ul>
+<li>只提供 4 层负载均衡，不支持 7 层负载均衡功能，比如：不能按需要的匹配规则自定义转发请求。</li>
+<li>使用 NodePort 类型的 Service，需要在集群外部部署一个外部的负载均衡器。</li>
+<li>使用 LoadBalancer 类型的 Service，Kubernetes 必须运行在特定的云服务上。</li>
+</ul>
+<h3 id="通过-ingress-暴露">通过 Ingress 暴露</h3>
+<p>与 Service 不同，Ingress 实际上不是一种服务。相反，它位于多个服务之前，充当集群中的智能路由器或入口点。</p>
+<p><code>Ingress</code> 是自 Kubernetes 1.1 版本后引入的资源类型。Ingress 支持将 Service 暴露到 Kubernetes 集群外，同时可以自定义 Service 的访问策略。Ingress 能够把 Service 配置成外网能够访问的 URL，也支持提供按域名访问的虚拟主机功能。例如，通过负载均衡器实现不同的二级域名到不同 Service 的访问。</p>
+<p><img src="https://www.hi-linux.com/img/linux/k8s-svc9.png" alt=""></p>
+<p>实际上 <code>Ingress</code> 只是一个统称，其由 <code>Ingress</code> 和 <code>Ingress Controller</code> 两部分组成。<code>Ingress</code> 用作将原来需要手动配置的规则抽象成一个 Ingress 对象，使用 YAML 格式的文件来创建和管理。<code>Ingress Controller</code> 用作通过与 Kubernetes API 交互，动态的去感知集群中 Ingress 规则变化。</p>
+<p>使用 <code>Ingress</code> 前必须要先部署 <code>Ingress Controller</code>，<code>Ingress Controller</code> 是以一种插件的形式提供。<code>Ingress Controller</code> 通常是部署在 Kubernetes 之上的 Docker 容器，<code>Ingress Controller</code> 的 Docker 镜像里包含一个像 Nginx 或 HAProxy 的负载均衡器和一个 <code>Ingress Controller</code>。<code>Ingress Controller</code> 会从 Kubernetes 接收所需的 <code>Ingress</code> 配置，然后动态生成一个 Nginx 或 HAProxy 配置文件，并重新启动负载均衡器进程以使更改生效。换句话说，<code>Ingress Controller</code> 是由 Kubernetes 管理的负载均衡器。</p>
+<blockquote>
+<p>注：无论使用何种负载均衡软件（ 比如：Nginx、HAProxy、Traefik等）来实现 Ingress Controller，官方都将其统称为 Ingress Controller。</p>
+</blockquote>
+<p>Kubernetes Ingress 提供了负载均衡器的典型特性：HTTP 路由、粘性会话、SSL 终止、SSL直通、TCP 和 UDP 负载平衡等。</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br></pre></td><td class="code"><pre><span class="line">apiVersion: extensions/v1beta1</span><br><span class="line">kind: Ingress</span><br><span class="line">metadata:</span><br><span class="line">  name: nginx-ingress</span><br><span class="line">spec:</span><br><span class="line">  backend:</span><br><span class="line">    serviceName: my-nginx-other</span><br><span class="line">    servicePort: 8080</span><br><span class="line">  rules:</span><br><span class="line">  - host: foo.mydomain.com</span><br><span class="line">    http:</span><br><span class="line">      paths:</span><br><span class="line">      - backend:</span><br><span class="line">          serviceName: my-nginx-foo</span><br><span class="line">          servicePort: 8080</span><br><span class="line">  - host: mydomain.com</span><br><span class="line">    http:</span><br><span class="line">      paths:</span><br><span class="line">      - path: /bar/*</span><br><span class="line">        backend:</span><br><span class="line">          serviceName: my-nginx-bar</span><br><span class="line">          servicePort: 8080</span><br></pre></td></tr></table></figure>
+<p>外部可通过 <code>foo.yourdomain.com</code> 或者 <code>mydomain.com/bar/</code> 两个不同 URL 来访问对应的后端服务，然后 <code>Ingress Controller</code> 直接将流量转发给后端 Pod，不需再经过 Kube-Proxy 的转发，这种方式比 LoadBalancer 更高效。</p>
+<p>总的来说 Ingress 是一个非常灵活和越来越得到厂商支持的服务暴露方式，包括：Nginx、HAProxy、Traefik、还有各种 Service Mesh，而其它服务暴露方式更适用于服务调试、特殊应用的部署。</p>
+<h3 id="参考文档">参考文档</h3>
+<p><a href="http://www.google.com" target="_blank" rel="noopener">http://www.google.com</a><br>
+<a href="http://t.cn/RdskHHt" target="_blank" rel="noopener">http://t.cn/RdskHHt</a><br>
+<a href="http://t.cn/RdskYv5" target="_blank" rel="noopener">http://t.cn/RdskYv5</a><br>
+<a href="http://t.cn/Rg5BG4h" target="_blank" rel="noopener">http://t.cn/Rg5BG4h</a><br>
+<a href="http://t.cn/R6CD4ak" target="_blank" rel="noopener">http://t.cn/R6CD4ak</a><br>
+<a href="http://t.cn/Rgcurto" target="_blank" rel="noopener">http://t.cn/Rgcurto</a><br>
+<a href="http://t.cn/RgcdjDw" target="_blank" rel="noopener">http://t.cn/RgcdjDw</a><br>
+<a href="http://t.cn/RgMWBpo" target="_blank" rel="noopener">http://t.cn/RgMWBpo</a><br>
+<a href="http://t.cn/RgMWFM1" target="_blank" rel="noopener">http://t.cn/RgMWFM1</a><br>
+<a href="http://t.cn/RgC3uk8" target="_blank" rel="noopener">http://t.cn/RgC3uk8</a></p>
+
+                
+
+                <hr>
+                <!-- Pager -->
+                <ul class="pager">
+                    
+                        <li class="previous">
+                            <a href="/posts/57498/" data-toggle="tooltip" data-placement="top" title="如何 10 步 Docker 化一个应用">&larr; Previous Post</a>
+                        </li>
+                    
+                    
+                        <li class="next">
+                            <a href="/posts/48037/" data-toggle="tooltip" data-placement="top" title="图解 Kubernetes 架构">Next Post &rarr;</a>
+                        </li>
+                    
+                </ul>
+
+                <!-- duoshuo Share start -->
+                
+                <!-- 多说 Share end-->
+
+                <!-- 多说评论框 start -->
+                
+                <!-- 多说评论框 end -->
+
+                <!-- disqus comment start -->
+                
+                <!-- disqus comment end -->
+
+                
+                    <!-- disqus 评论框 start -->
+                    <div class="comment">
+                        <div id="lv-container" data-id="city" data-uid="MTAyMC8yNzg2My80NDQw"></div>
+                    </div>
+                    <!-- disqus 评论框 end -->
+                
+
+            </div>
+            
+            <!-- Tabe of Content -->
+            <!-- Table of Contents -->
+
+  
+    <style>
+      span.toc-nav-number{
+        display: none
+      }
+    </style>
+  
+    
+      <aside id="sidebar">
+        <div id="toc" class="toc-article">
+        <strong class="toc-title">Contents</strong>
+        
+          <ol class="toc-nav"><li class="toc-nav-item toc-nav-level-3"><a class="toc-nav-link" href="#pod-和-service-的关系"><span class="toc-nav-number">1.</span> <span class="toc-nav-text">Pod 和 Service 的关系</span></a></li><li class="toc-nav-item toc-nav-level-3"><a class="toc-nav-link" href="#通过-pod-暴露"><span class="toc-nav-number">2.</span> <span class="toc-nav-text">通过 Pod 暴露</span></a><ol class="toc-nav-child"><li class="toc-nav-item toc-nav-level-4"><a class="toc-nav-link" href="#hostnetwork-true"><span class="toc-nav-number">2.1.</span> <span class="toc-nav-text">hostNetwork: true</span></a></li><li class="toc-nav-item toc-nav-level-4"><a class="toc-nav-link" href="#hostport"><span class="toc-nav-number">2.2.</span> <span class="toc-nav-text">hostPort</span></a></li><li class="toc-nav-item toc-nav-level-4"><a class="toc-nav-link" href="#port-forward"><span class="toc-nav-number">2.3.</span> <span class="toc-nav-text">Port Forward</span></a></li></ol></li><li class="toc-nav-item toc-nav-level-3"><a class="toc-nav-link" href="#通过-service-暴露"><span class="toc-nav-number">3.</span> <span class="toc-nav-text">通过 Service 暴露</span></a><ol class="toc-nav-child"><li class="toc-nav-item toc-nav-level-4"><a class="toc-nav-link" href="#clusterip"><span class="toc-nav-number">3.1.</span> <span class="toc-nav-text">ClusterIP</span></a></li><li class="toc-nav-item toc-nav-level-4"><a class="toc-nav-link" href="#nodeport"><span class="toc-nav-number">3.2.</span> <span class="toc-nav-text">NodePort</span></a></li><li class="toc-nav-item toc-nav-level-4"><a class="toc-nav-link" href="#loadbalancer"><span class="toc-nav-number">3.3.</span> <span class="toc-nav-text">LoadBalancer</span></a></li></ol></li><li class="toc-nav-item toc-nav-level-3"><a class="toc-nav-link" href="#通过-ingress-暴露"><span class="toc-nav-number">4.</span> <span class="toc-nav-text">通过 Ingress 暴露</span></a></li><li class="toc-nav-item toc-nav-level-3"><a class="toc-nav-link" href="#参考文档"><span class="toc-nav-number">5.</span> <span class="toc-nav-text">参考文档</span></a></li></ol>
+        
+        </div>
+      </aside>
+    
+
+                
+            <!-- Sidebar Container -->
+            <div class="
+                col-lg-8 col-lg-offset-2
+                col-md-10 col-md-offset-1
+                sidebar-container">
+
+                <!-- Featured Tags -->
+                
+                <section>
+                    <!-- no hr -->
+                    <h5><a href="/tags/">FEATURED TAGS</a></h5>
+                    <div class="tags">
+                       
+                          <a class="tag" href="/tags/#Linux" title="Linux">Linux</a>
+                        
+                          <a class="tag" href="/tags/#Kubernetes" title="Kubernetes">Kubernetes</a>
+                        
+                    </div>
+                </section>
+                
+
+                <!-- Friends Blog -->
+                
+                <hr>
+                <h5>FRIENDS</h5>
+                <ul class="list-inline">
+
+                    
+                        <li><a href="http://www.mike.org.cn/" target="_blank">简单.生活</a></li>
+                    
+                        <li><a href="http://shang.qq.com/wpa/qunwpa?idkey=ea4c43493c2269428ac6ef6141de4b6d78e5ab2d41380ca4099b833b62884ee9" target="_blank">技术交流群</a></li>
+                    
+                        <li><a href="" target="_blank"></a></li>
+                    
+                        <li><a href="" target="_blank"></a></li>
+                    
+                </ul>
+                
+            </div>
+        </div>
+    </div>
+</article>
+
+
+
+
+
+
+    <!-- 来必力City版公共JS代码 start (一个网页只需插入一次) -->
+    <script type="text/javascript">
+       (function(d, s) {
+           var j, e = d.getElementsByTagName(s)[0];
+    
+           if (typeof LivereTower === 'function') { return; }
+    
+           j = d.createElement(s);
+           j.src = 'https://cdn-city.livere.com/js/embed.dist.js';
+           j.async = true;
+    
+           e.parentNode.insertBefore(j, e);
+       })(document, 'script');
+    </script>
+    <noscript>为正常使用来必力评论功能请激活JavaScript</noscript>
+    <!-- 来必力City版 公共JS代码 end -->
+
+
+
+<!-- async load function -->
+<script>
+    function async(u, c) {
+      var d = document, t = 'script',
+          o = d.createElement(t),
+          s = d.getElementsByTagName(t)[0];
+      o.src = u;
+      if (c) { o.addEventListener('load', function (e) { c(null, e); }, false); }
+      s.parentNode.insertBefore(o, s);
+    }
+</script>
+<!-- anchor-js, Doc:http://bryanbraun.github.io/anchorjs/ -->
+<script>
+    async("https://cdn.bootcss.com/anchor-js/1.1.1/anchor.min.js",function(){
+        anchors.options = {
+          visible: 'hover',
+          placement: 'left',
+          icon: 'ℬ'
+        };
+        anchors.add().remove('.intro-header h1').remove('.subheading').remove('.sidebar-container h5');
+    })
+</script>
+<style>
+    /* place left on bigger screen */
+    @media all and (min-width: 800px) {
+        .anchorjs-link{
+            position: absolute;
+            left: -0.75em;
+            font-size: 1.1em;
+            margin-top : -0.1em;
+        }
+    }
+</style>
+
+
+
+    <!-- Footer -->
+    <!-- Footer -->
+<footer>
+    <div class="container">
+        <div class="row">
+            <div class="col-lg-8 col-lg-offset-2 col-md-10 col-md-offset-1">
+                <ul class="list-inline text-center">
+                
+                    <li>
+                        <a href="/atom.xml">
+                            <span class="fa-stack fa-lg">
+                                <i class="fa fa-circle fa-stack-2x"></i>
+                                <i class="fa fa-rss fa-stack-1x fa-inverse"></i>
+                            </span>
+                        </a>
+                    </li>
+                
+                
+                
+                    <li>
+                        <a target="_blank" href="https://www.zhihu.com/people/80imike">
+                            <span class="fa-stack fa-lg">
+                                <i class="fa fa-circle fa-stack-2x"></i>
+                                <i class="fa  fa-stack-1x fa-inverse">知</i>
+                            </span>
+                        </a>
+                    </li>
+                
+
+                
+                    <li>
+                        <a target="_blank" href="http://weibo.com/2093524665">
+                            <span class="fa-stack fa-lg">
+                                <i class="fa fa-circle fa-stack-2x"></i>
+                                <i class="fa fa-weibo fa-stack-1x fa-inverse"></i>
+                            </span>
+                        </a>
+                    </li>
+                
+
+                
+
+                
+
+                
+
+                </ul>
+                <p class="copyright text-muted">
+                    Copyright &copy; Mike 2018 | Hosted by <a href="https://pages.coding.me" style="font-weight: bold">Coding Pages</a>
+                    <br>
+                    Theme by <a href="http://beantech.org">BeanTech</a> 
+                    <span style="display: inline-block; margin: 0 5px;">
+                        <i class="fa fa-heart"></i>
+                    </span> 
+                    re-Ported by <a href="http://www.huweihuang.com">胡伟煌</a> | 
+                    <iframe
+                        style="margin-left: 2px; margin-bottom:-5px;"
+                        frameborder="0" scrolling="0" width="91px" height="20px"
+                        src="https://ghbtns.com/github-btn.html?user=huweihuang&repo=hexo-theme-huweihuang&type=star&count=true" >
+                    </iframe>
+                </p>
+            </div>
+        </div>
+    </div>
+</footer>
+
+<!-- jQuery -->
+<script src="/js/jquery.min.js"></script>
+
+<!-- Bootstrap Core JavaScript -->
+<script src="/js/bootstrap.min.js"></script>
+
+<!-- Custom Theme JavaScript -->
+<script src="/js/hux-blog.min.js"></script>
+
+
+<!-- async load function -->
+<script>
+    function async(u, c) {
+      var d = document, t = 'script',
+          o = d.createElement(t),
+          s = d.getElementsByTagName(t)[0];
+      o.src = u;
+      if (c) { o.addEventListener('load', function (e) { c(null, e); }, false); }
+      s.parentNode.insertBefore(o, s);
+    }
+</script>
+
+<!-- 
+     Because of the native support for backtick-style fenced code blocks 
+     right within the Markdown is landed in Github Pages, 
+     From V1.6, There is no need for Highlight.js, 
+     so Huxblog drops it officially.
+
+     - https://github.com/blog/2100-github-pages-now-faster-and-simpler-with-jekyll-3-0  
+     - https://help.github.com/articles/creating-and-highlighting-code-blocks/    
+-->
+<!--
+    <script>
+        async("http://cdn.bootcss.com/highlight.js/8.6/highlight.min.js", function(){
+            hljs.initHighlightingOnLoad();
+        })
+    </script>
+    <link href="http://cdn.bootcss.com/highlight.js/8.6/styles/github.min.css" rel="stylesheet">
+-->
+
+
+<!-- jquery.tagcloud.js -->
+<script>
+    // only load tagcloud.js in tag.html
+    if($('#tag_cloud').length !== 0){
+        async("http://www.hi-linux.com/js/jquery.tagcloud.js",function(){
+            $.fn.tagcloud.defaults = {
+                //size: {start: 1, end: 1, unit: 'em'},
+                color: {start: '#bbbbee', end: '#0085a1'},
+            };
+            $('#tag_cloud a').tagcloud();
+        })
+    }
+</script>
+
+<!--fastClick.js -->
+<script>
+    async("https://cdn.bootcss.com/fastclick/1.0.6/fastclick.min.js", function(){
+        var $nav = document.querySelector("nav");
+        if($nav) FastClick.attach($nav);
+    })
+</script>
+
+
+<!-- Google Analytics -->
+
+
+
+
+<!-- Baidu Tongji -->
+
+
+
+
+
+
+	<a id="rocket" href="#top" class=""></a>
+	<script type="text/javascript" src="/js/totop.js?v=1.0.0" async=""></script>
+    <script type="text/javascript" src="/js/toc.js?v=1.0.0" async=""></script>
+<!-- Image to hack wechat -->
+<img src="http://www.hi-linux.com/img/icon_wechat.png" width="0" height="0" />
+<!-- Migrate from head to bottom, no longer block render and still work -->
+
+</body>
+
+</html>

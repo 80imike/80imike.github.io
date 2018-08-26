@@ -1,0 +1,839 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<!-- Head tag -->
+<head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="google-site-verification" content="xBT4GhYoi5qRD5tr338pgPM5OWHHIDR6mNg1a3euekI" />
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="description" content="">
+    <meta name="keyword"  content="Linux,运维,Nginx,Zabbix,Centos,Ansible,MySQL,Python,Docker,ELK,Haproxy,Git,Nodejs,安全,技术">
+    <link rel="shortcut icon" href="/img/ironman-draw.png">
+    <!-- Place this tag in your head or just before your close body tag. -->
+    <script async defer src="https://buttons.github.io/buttons.js"></script>
+    <title>
+        
+          Docker 1.13 新增功能 - 运维之美
+        
+    </title>
+
+    <link rel="canonical" href="http://www.hi-linux.com/posts/17101/">
+
+    <!-- Bootstrap Core CSS -->
+    <link rel="stylesheet" href="/css/bootstrap.min.css">
+
+    <!-- Custom CSS --> 
+    <link rel="stylesheet" href="/css/beantech.min.css">
+    
+    <!-- Pygments Highlight CSS -->
+    <link rel="stylesheet" href="/css/highlight.css">
+
+    <link rel="stylesheet" href="/css/widget.css">
+
+    <link rel="stylesheet" href="/css/rocket.css">
+
+    <link rel="stylesheet" href="/css/signature.css">
+
+    <link rel="stylesheet" href="/css/toc.css">
+
+    <!-- Custom Fonts -->
+    <!-- <link href="https://maxcdn.bootstrapcdn.com/font-awesome/4.3.0/css/font-awesome.min.css" rel="stylesheet" type="text/css"> -->
+    <!-- Hux change font-awesome CDN to qiniu -->
+    <link href="https://cdn.staticfile.org/font-awesome/4.5.0/css/font-awesome.min.css" rel="stylesheet" type="text/css">
+
+
+    <!-- Hux Delete, sad but pending in China
+    <link href='http://fonts.googleapis.com/css?family=Lora:400,700,400italic,700italic' rel='stylesheet' type='text/css'>
+    <link href='http://fonts.googleapis.com/css?family=Open+Sans:300italic,400italic,600italic,700italic,800italic,400,300,600,700,800' rel='stylesheet' type='text/
+    css'>
+    -->
+
+
+    <!-- HTML5 Shim and Respond.js IE8 support of HTML5 elements and media queries -->
+    <!-- WARNING: Respond.js doesn't work if you view the page via file:// -->
+    <!--[if lt IE 9]>
+        <script src="https://oss.maxcdn.com/libs/html5shiv/3.7.0/html5shiv.js"></script>
+        <script src="https://oss.maxcdn.com/libs/respond.js/1.4.2/respond.min.js"></script>
+    <![endif]-->
+
+    <!-- ga & ba script hoook -->
+    <script></script>
+</head>
+
+
+<!-- hack iOS CSS :active style -->
+<body ontouchstart="">
+	<!-- Modified by Yu-Hsuan Yen -->
+<!-- Post Header -->
+<style type="text/css">
+    header.intro-header{
+        
+            background-image: url('/img/header_img/article.jpg')
+            /*post*/
+        
+    }
+    
+</style>
+
+<header class="intro-header" >
+    <!-- Signature -->
+    <div id="signature">
+        <div class="container">
+            <div class="row">
+                <div class="col-lg-8 col-lg-offset-2 col-md-10 col-md-offset-1">
+                
+                    <div class="post-heading">
+                        <div class="tags">
+                            
+                              <a class="tag" href="/tags/#Linux" title="Linux">Linux</a>
+                            
+                              <a class="tag" href="/tags/#Docker" title="Docker">Docker</a>
+                            
+                        </div>
+                        <h1>Docker 1.13 新增功能</h1>
+                        <h2 class="subheading"></h2>
+                        <span class="meta">
+                            Posted by Mike on
+                            2017-01-23
+                        </span>
+                    </div>
+                
+
+
+                </div>
+            </div>
+        </div>
+    </div>
+</header>
+
+	
+    <!-- Navigation -->
+<nav class="navbar navbar-default navbar-custom navbar-fixed-top">
+    <div class="container-fluid">
+        <!-- Brand and toggle get grouped for better mobile display -->
+        <div class="navbar-header page-scroll">
+            <button type="button" class="navbar-toggle">
+                <span class="sr-only">Toggle navigation</span>
+                <span class="icon-bar"></span>
+                <span class="icon-bar"></span>
+                <span class="icon-bar"></span>
+            </button>
+            <a class="navbar-brand" href="/">运维之美</a>
+        </div>
+
+        <!-- Collect the nav links, forms, and other content for toggling -->
+        <!-- Known Issue, found by Hux:
+            <nav>'s height woule be hold on by its content.
+            so, when navbar scale out, the <nav> will cover tags.
+            also mask any touch event of tags, unfortunately.
+        -->
+        <div id="huxblog_navbar">
+            <div class="navbar-collapse">
+                <ul class="nav navbar-nav navbar-right">
+                    <li>
+                        <a href="/">Home</a>
+                    </li>
+
+                    
+
+                        
+                    
+
+                        
+                    
+
+                        
+                        <li>
+                            <a href="/archive/">Archives</a>
+                        </li>
+                        
+                    
+
+                        
+                        <li>
+                            <a href="/about/">About</a>
+                        </li>
+                        
+                    
+
+                        
+                        <li>
+                            <a href="/tags/">Tags</a>
+                        </li>
+                        
+                    
+                    
+                </ul>
+            </div>
+        </div>
+        <!-- /.navbar-collapse -->
+    </div>
+    <!-- /.container -->
+</nav>
+<script>
+    // Drop Bootstarp low-performance Navbar
+    // Use customize navbar with high-quality material design animation
+    // in high-perf jank-free CSS3 implementation
+    var $body   = document.body;
+    var $toggle = document.querySelector('.navbar-toggle');
+    var $navbar = document.querySelector('#huxblog_navbar');
+    var $collapse = document.querySelector('.navbar-collapse');
+
+    $toggle.addEventListener('click', handleMagic)
+    function handleMagic(e){
+        if ($navbar.className.indexOf('in') > 0) {
+        // CLOSE
+            $navbar.className = " ";
+            // wait until animation end.
+            setTimeout(function(){
+                // prevent frequently toggle
+                if($navbar.className.indexOf('in') < 0) {
+                    $collapse.style.height = "0px"
+                }
+            },400)
+        }else{
+        // OPEN
+            $collapse.style.height = "auto"
+            $navbar.className += " in";
+        }
+    }
+</script>
+
+
+    <!-- Main Content -->
+    <!-- Modify by Yu-Hsuan Yen -->
+
+<!-- Post Content -->
+<article>
+    <div class="container">
+        <div class="row">
+
+            <!-- Post Container -->
+            <div class="
+                col-lg-8 col-lg-offset-2
+                col-md-10 col-md-offset-1
+                post-container">
+
+                <p>原文出处：<a href="http://blog.lab99.org/post/docker-2016-11-14-what-is-new-in-docker-1-13.html" target="_blank" rel="noopener">http://blog.lab99.org/post/docker-2016-11-14-what-is-new-in-docker-1-13.html</a></p>
+<h1 id="前言">前言</h1>
+<p><em>2017年1月19日更新</em></p>
+<p><code>Docker 1.13</code> 在 2017 年 1 月 18 日发布了。从 2016 年 7 月 29 日发布 <code>1.12</code> 发布以来，已经过去 5 个多月了，对于活跃的 Docker 社区来说，已经很久了，让我们看看都 <code>1.13</code> 都新增了什么内容吧。</p>
+<p><code>1.13</code> 有<a href="https://github.com/docker/docker/milestone/56" target="_blank" rel="noopener">一千四百多个 issue/pull request</a>，五千多个 commits，是 Docker 历史上最高的发布版本。这并不是一个简单的小版本变化，里面有大量的更新。</p>
+<p>在发布之后，可以直接安装最新版本。在一个新的 Ubuntu / CentOS 系统中直接执行：</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">curl -fsSL https://get.docker.com/ | sh -s -- --mirror AzureChinaCloud</span><br></pre></td></tr></table></figure>
+<a id="more"></a>
+<h2 id="top-10-新增功能">Top 10 新增功能</h2>
+<ul>
+<li>1、正式支持服务栈 <code>docker stack</code></li>
+<li>2、正式支持插件：<code>docker plugin</code></li>
+<li>3、添加在 Swarm 集群环境下对密码、密钥管理的 <code>secret</code> 管理服务：<code>docker secret</code></li>
+<li>4、增加 <code>docker system</code> 命令</li>
+<li>5、可以直接使用 <code>docker-compose.yml</code> 进行服务部署</li>
+<li>6、添加 <code>docker service</code> 滚动升级出故障后回滚的功能</li>
+<li>7、增加强制再发布选项 <code>docker service update --force</code></li>
+<li>8、允许 <code>docker service create</code> 映射宿主端口，而不是边界负载均衡网络端口</li>
+<li>9、允许 <code>docker run</code> 连入指定的 swarm mode 的 <code>overlay</code> 网络</li>
+<li>10、解决中国 <code>GFW</code> 墙掉 <code>docker-engine</code> <code>apt</code>/<code>yum</code> 源的问题</li>
+</ul>
+<p>让我们来详细解读一下 <a href="https://github.com/docker/docker/releases/tag/v1.13.0" target="_blank" rel="noopener"><code>1.13.0</code> 新增功能</a> 吧。</p>
+<h1 id="docker-镜像构建">Docker 镜像构建</h1>
+<h2 id="从已有镜像取得缓存">从已有镜像取得缓存</h2>
+<p><a href="https://github.com/docker/docker/pull/26839" target="_blank" rel="noopener">https://github.com/docker/docker/pull/26839</a></p>
+<p>我们都知道使用 <code>Dockerfile</code> 构建镜像的时候，会充分利用分层存储的特性进行缓存，之前构建过的层，如果没有变化，那么会直接使用缓存的内容，避免没有意义的重复构建。不过使用缓存的前提条件是曾经在本地构建过这个镜像。这在 CI 进行集群构建时是一个比较麻烦的问题，因为构建任务可能会被分配到不同的机器上，而该机器没有构建过该镜像，因此缓存总是用不上，因此大量的时间浪费在了重复构建已经构建过的层上了。</p>
+<p>在 <code>1.13</code> 中，为 <code>docker build</code> 增加了一个新的参数 <code>--cache-from</code>，利用镜像中的 History 来判断该层是否和之前的镜像一致，从而避免重复构建。</p>
+<p>比如我们先下载获取作为缓存的镜像：</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line">$ docker pull mongo:3.2</span><br><span class="line">3.2: Pulling from library/mongo</span><br><span class="line">386a066cd84a: Pull complete</span><br><span class="line">524267bc200a: Pull complete</span><br><span class="line">476d61c7c43a: Pull complete</span><br><span class="line">0750d0e28b90: Pull complete</span><br><span class="line">4bedd83d0855: Pull complete</span><br><span class="line">b3b5d21a0eda: Pull complete</span><br><span class="line">7354b6c26240: Pull complete</span><br><span class="line">db792d386b51: Pull complete</span><br><span class="line">a867bd77950c: Pull complete</span><br><span class="line">Digest: sha256:532a19da83ee0e4e2a2ec6bc4212fc4af26357c040675d5c2629a4e4c4563cef</span><br><span class="line">Status: Downloaded newer image <span class="keyword">for</span> mongo:3.2</span><br></pre></td></tr></table></figure>
+<p>然后我们使用更新后的 <code>Dockerfile</code> 构建镜像时，如果加上 <code>--cache-from mongo:3.2</code> 后，会发现如果是已经在 <code>mongo:3.2</code> 中存在并没有修改的层，就会用 <code>mongo:3.2</code> 中的该层做缓存。</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br></pre></td><td class="code"><pre><span class="line">$ docker build --cache-from mongo:3.2 -t mongo:3.2.1 .</span><br><span class="line">Sending build context to Docker daemon 4.608 kB</span><br><span class="line">Step 1/18 : FROM debian:jessie</span><br><span class="line"> ---&gt; 73e72bf822ca</span><br><span class="line">Step 2/18 : RUN groupadd -r mongodb &amp;&amp; useradd -r -g mongodb mongodb</span><br><span class="line"> ---&gt; Using cache</span><br><span class="line"> ---&gt; 0f6297900a5e</span><br><span class="line">Step 3/18 : RUN apt-get update 	&amp;&amp; apt-get install -y --no-install-recommends 		numactl 	&amp;&amp; rm -rf /var/lib/apt/lists/*</span><br><span class="line"> ---&gt; Using cache</span><br><span class="line"> ---&gt; a465f2e906fc</span><br><span class="line">Step 4/18 : ENV GOSU_VERSION 1.7</span><br><span class="line"> ---&gt; Using cache</span><br><span class="line"> ---&gt; d448ddca2126</span><br><span class="line">...</span><br></pre></td></tr></table></figure>
+<h2 id="压扁squash镜像实验阶段">压扁(<code>squash</code>)镜像（实验阶段）</h2>
+<p><a href="https://github.com/docker/docker/pull/22641" target="_blank" rel="noopener">https://github.com/docker/docker/pull/22641</a></p>
+<p>对于总是把 <code>Dockerfile</code> 当做 <code>bash</code> 文件来用的人，会发现很快由于太多的 <code>RUN</code> 导致镜像有特别多的层，镜像超级臃肿，而且甚至会碰到超出最大层数限制的问题。这些人往往不从自身找问题，反而去寻找旁门左道，比如导出镜像做一些特殊处理，合并为一层，然后再导入等等，这种做法是很错误的，除了导致构建缓存失败外，还导致 <code>docker history</code> 丢失，导致镜像变为黑箱镜像。其实正确的做法是遵循 <code>Dockerfile</code> 最佳实践，应该把多个命令合并为一个 <code>RUN</code>，每一个 <code>RUN</code> 要精心设计，确保安装构建最后进行清理。这样才可以降低镜像体积，以及最大化的利用构建缓存。</p>
+<p>在 Docker 1.13 中，为了应对这群用户，实验性的提供了一个 <code>--squash</code> 参数给 <code>docker build</code>，其功能就是如上所说，将 <code>Dockerfile</code> 中所有的操作，压缩为一层。不过，与旁门左道不同，它保留了 <code>docker history</code>。</p>
+<p>比如如下的 <code>Dockerfile</code>：</p>
+<figure class="highlight dockerfile"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">FROM</span> busybox</span><br><span class="line"><span class="keyword">RUN</span><span class="bash"> <span class="built_in">echo</span> hello &gt; /hello</span></span><br><span class="line"><span class="bash">RUN <span class="built_in">echo</span> world &gt;&gt; /hello</span></span><br><span class="line"><span class="bash">RUN touch remove_me /remove_me</span></span><br><span class="line"><span class="bash">ENV HELLO world</span></span><br><span class="line"><span class="bash">RUN rm /remove_me</span></span><br></pre></td></tr></table></figure>
+<p>如果我们正常的构建的话，比如 <code>docker build -t my-not-squash .</code>，其 <code>history</code> 是这样子的：</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line">$ docker <span class="built_in">history</span> my-not-squash</span><br><span class="line">IMAGE               CREATED              CREATED BY                                      SIZE                COMMENT</span><br><span class="line">305297a526e2        About a minute ago   /bin/sh -c rm /remove_me                        0 B</span><br><span class="line">60b8e896d443        About a minute ago   /bin/sh -c <span class="comment">#(nop)  ENV HELLO=world              0 B</span></span><br><span class="line">a21f3c75b6b0        About a minute ago   /bin/sh -c touch remove_me /remove_me           0 B</span><br><span class="line">038bca5b58cb        About a minute ago   /bin/sh -c <span class="built_in">echo</span> world &gt;&gt; /hello                 12 B</span><br><span class="line">f81b1006f556        About a minute ago   /bin/sh -c <span class="built_in">echo</span> hello &gt; /hello                  6 B</span><br><span class="line">e02e811dd08f        5 weeks ago          /bin/sh -c <span class="comment">#(nop)  CMD ["sh"]                   0 B</span></span><br><span class="line">&lt;missing&gt;           5 weeks ago          /bin/sh -c <span class="comment">#(nop) ADD file:ced3aa7577c8f97...   1.09 MB</span></span><br></pre></td></tr></table></figure>
+<p>而如果我们用 <code>--squash</code> 构建：</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">docker build -t mysquash --squash .</span><br></pre></td></tr></table></figure>
+<p>其 <code>history</code> 则是这样子：</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line">$ docker <span class="built_in">history</span> mysquash</span><br><span class="line">IMAGE               CREATED             CREATED BY                                      SIZE                COMMENT</span><br><span class="line">a557e397ff56        15 seconds ago                                                      12 B                merge sha256:305297a526e218e77f1b4b273442f8ac6283e2907e6513ff36e9048aa130dea6 to sha256:e02e811dd08fd49e7f6032625495118e63f597eb150403d02e3238af1df240ba</span><br><span class="line">&lt;missing&gt;           15 seconds ago      /bin/sh -c rm /remove_me                        0 B</span><br><span class="line">&lt;missing&gt;           15 seconds ago      /bin/sh -c <span class="comment">#(nop)  ENV HELLO=world              0 B</span></span><br><span class="line">&lt;missing&gt;           15 seconds ago      /bin/sh -c touch remove_me /remove_me           0 B</span><br><span class="line">&lt;missing&gt;           16 seconds ago      /bin/sh -c <span class="built_in">echo</span> world &gt;&gt; /hello                 0 B</span><br><span class="line">&lt;missing&gt;           16 seconds ago      /bin/sh -c <span class="built_in">echo</span> hello &gt; /hello                  0 B</span><br><span class="line">&lt;missing&gt;           5 weeks ago         /bin/sh -c <span class="comment">#(nop)  CMD ["sh"]                   0 B</span></span><br><span class="line">&lt;missing&gt;           5 weeks ago         /bin/sh -c <span class="comment">#(nop) ADD file:ced3aa7577c8f97...   1.09 MB</span></span><br></pre></td></tr></table></figure>
+<p>我们可以注意到，所有层的层ID都 <code>&lt;missing&gt;</code> 了，并且多了一层 <code>merge</code>。</p>
+<p><strong>要注意，这并不是解决懒惰的办法，撰写 Dockerfile 的时候，依旧需要遵循最佳实践，不要试图用这种办法去压缩镜像。</strong></p>
+<h2 id="构建镜像时支持用-network-指定网络">构建镜像时支持用 <code>--network</code> 指定网络</h2>
+<p><a href="https://github.com/docker/docker/pull/27702" target="_blank" rel="noopener">https://github.com/docker/docker/pull/27702</a><br>
+<a href="https://github.com/docker/docker/issues/10324" target="_blank" rel="noopener">https://github.com/docker/docker/issues/10324</a></p>
+<p>在一些网络环境中，我们可能需要定制 <code>/etc/hosts</code> 文件来提供特定的主机和 IP 地址映射关系，无论是应对 GFW，还是公司内部 Git 服务器，都有可能有这种需求，这个时候构建时修改 <code>/etc/hosts</code> 是一个比较麻烦的事情。使用内部 DNS 虽然是一种解决办法，但是这将是全引擎范围的，而且并非所有环境都会有内部 DNS。更好地做法是使用宿主网络进行构建。另外，有的时候，或许这个构建所需 Git 服务器位于容器内网络，我们需要指定某个 <code>overlay</code> 网络来给镜像构建所需。</p>
+<p>在 <code>1.13</code> 中，为 <code>docker build</code> 提供了 <code>--network</code> 参数，可以指定构建时的网络。</p>
+<p>比如，我们有一个 <code>Dockerfile</code> 内容为：</p>
+<figure class="highlight dockerfile"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">FROM</span> ubuntu</span><br><span class="line"><span class="keyword">RUN</span><span class="bash"> cat /etc/hosts</span></span><br></pre></td></tr></table></figure>
+<p>内容很简单，就是看看构建时的 <code>/etc/hosts</code> 的内容是什么。假设我们宿主的 <code>/etc/hosts</code> 中包含了一条 <code>1.2.3.4</code> 到 <code>example.com</code> 的映射关系。</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">1.2.3.4  example.com</span><br></pre></td></tr></table></figure>
+<p>如果我们如同以往，使用默认网络进行构建。那么结果会是这样：</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br></pre></td><td class="code"><pre><span class="line">$ docker build --no-cache -t build-network .</span><br><span class="line">Sending build context to Docker daemon 2.048 kB</span><br><span class="line">Step 1/2 : FROM ubuntu</span><br><span class="line"> ---&gt; 104bec311bcd</span><br><span class="line">Step 2/2 : RUN cat /etc/hosts</span><br><span class="line"> ---&gt; Running <span class="keyword">in</span> 42f0c014500f</span><br><span class="line">127.0.0.1	localhost</span><br><span class="line">::1	localhost ip6-localhost ip6-loopback</span><br><span class="line">fe00::0	ip6-localnet</span><br><span class="line">ff00::0	ip6-mcastprefix</span><br><span class="line">ff02::1	ip6-allnodes</span><br><span class="line">ff02::2	ip6-allrouters</span><br><span class="line">172.17.0.2	2866979c4d77</span><br><span class="line"> ---&gt; 5f0b3dd56a32</span><br><span class="line">Removing intermediate container 42f0c014500f</span><br><span class="line">Successfully built 5f0b3dd56a32</span><br></pre></td></tr></table></figure>
+<p>可以注意到，这次构建所看到的是容器默认网络的 <code>/etc/hosts</code>，其内没有宿主上添加的条目 <code>1.2.3.4 example.com</code>。</p>
+<p>然后我们使用 <code>docker build --network=host</code> 来使用宿主网络构建：</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br></pre></td><td class="code"><pre><span class="line">$ docker build --no-cache -t build-network --network=host .</span><br><span class="line">Sending build context to Docker daemon 2.048 kB</span><br><span class="line">Step 1/2 : FROM ubuntu</span><br><span class="line"> ---&gt; 104bec311bcd</span><br><span class="line">Step 2/2 : RUN cat /etc/hosts</span><br><span class="line"> ---&gt; Running <span class="keyword">in</span> b990c4e55424</span><br><span class="line"><span class="comment"># Your system has configured 'manage_etc_hosts' as True.</span></span><br><span class="line"><span class="comment"># As a result, if you wish for changes to this file to persist</span></span><br><span class="line"><span class="comment"># then you will need to either</span></span><br><span class="line"><span class="comment"># a.) make changes to the master file in /etc/cloud/templates/hosts.tmpl</span></span><br><span class="line"><span class="comment"># b.) change or remove the value of 'manage_etc_hosts' in</span></span><br><span class="line"><span class="comment">#     /etc/cloud/cloud.cfg or cloud-config from user-data</span></span><br><span class="line"><span class="comment">#</span></span><br><span class="line">127.0.1.1 d1.localdomain d1</span><br><span class="line">127.0.0.1 localhost</span><br><span class="line"></span><br><span class="line"><span class="comment"># The following lines are desirable for IPv6 capable hosts</span></span><br><span class="line">::1 ip6-localhost ip6-loopback</span><br><span class="line">fe00::0 ip6-localnet</span><br><span class="line">ff00::0 ip6-mcastprefix</span><br><span class="line">ff02::1 ip6-allnodes</span><br><span class="line">ff02::2 ip6-allrouters</span><br><span class="line">ff02::3 ip6-allhosts</span><br><span class="line"></span><br><span class="line">1.2.3.4  example.com</span><br><span class="line"></span><br><span class="line"> ---&gt; 63ef6cb93316</span><br><span class="line">Removing intermediate container b990c4e55424</span><br><span class="line">Successfully built 63ef6cb93316</span><br></pre></td></tr></table></figure>
+<p>这次由于使用了 <code>--network=host</code> 参数，于是使用的是宿主的网络命名空间，因此 <code>/etc/hosts</code> 也是宿主的内容。我们可以在其中看到 <code>1.2.3.4 example.com</code> 条目。</p>
+<h2 id="开始允许-docker-build-中定义-dockerfile-未使用的参数arg">开始允许 <code>docker build</code> 中定义 <code>Dockerfile</code> 未使用的参数（ARG）</h2>
+<p><a href="https://github.com/docker/docker/pull/27412" target="_blank" rel="noopener">https://github.com/docker/docker/pull/27412</a></p>
+<p>我们都知道镜像构建时可以用 <code>--build-arg</code> 来定义参数，这样 <code>Dockerfile</code> 就会使用这个参数的值来进行构建。这对于 CI/CD 系统很重要，我们可以使用一套 <code>Dockerfile</code> 来构建不同条件下的镜像。</p>
+<p>但在 <code>1.13</code> 以前，这里有个问题，在 CI 系统中，我们有时希望用一套构建命令、脚本，通过给入不同的 <code>Dockerfile</code> 来构建不同的镜像，而 <code>--build-arg</code> 的目的是定义一些有可能会用到的全局变量，但是如果有的 <code>Dockerfile</code> 中没用这个变量，那么构建就会失败。<a href="https://github.com/docker/docker/issues/26249" target="_blank" rel="noopener">#26249</a></p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br></pre></td><td class="code"><pre><span class="line">$ cat Dockerfile</span><br><span class="line">FROM ubuntu</span><br><span class="line">RUN env</span><br><span class="line">$ docker build -t myapp --build-arg VERSION=1.2.3 --no-cache .</span><br><span class="line">Sending build context to Docker daemon 2.048 kB</span><br><span class="line">Step 1 : FROM ubuntu</span><br><span class="line"> ---&gt; 104bec311bcd</span><br><span class="line">Step 2 : RUN env</span><br><span class="line"> ---&gt; Running <span class="keyword">in</span> 81f4ba452a49</span><br><span class="line">HOSTNAME=2866979c4d77</span><br><span class="line">HOME=/root</span><br><span class="line">PATH=/usr/<span class="built_in">local</span>/sbin:/usr/<span class="built_in">local</span>/bin:/usr/sbin:/usr/bin:/sbin:/bin</span><br><span class="line">PWD=/</span><br><span class="line"> ---&gt; f78b4696a1ca</span><br><span class="line">Removing intermediate container 81f4ba452a49</span><br><span class="line">One or more build-args [VERSION] were not consumed, failing build.</span><br></pre></td></tr></table></figure>
+<p>其背后的思想是，如果 <code>--build-arg</code> 指定了，但是没用，那么很可能是因为拼写错误、或者忘记了应该使用这个变量而出现的问题。最初 <code>docker build</code> 对于这类情况的处理，是直接报错退出，构建失败。</p>
+<p>但是在上面的 CI 的案例中，<code>--build-arg</code> 只是定义一些<strong>可能</strong>用到的环境变量，并不强制使用，这种情况下，如果因为 <code>Dockerfile</code> 没有使用可能用到的变量就报错就有些过了。因此在 <code>1.13</code> 中，将其<strong>降为警告</strong>，并不终止构建，只是提醒用户有些变量未使用。</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br></pre></td><td class="code"><pre><span class="line">$ docker build --no-cache -t myapp --build-arg VERSION=1.2.3 .</span><br><span class="line">Sending build context to Docker daemon 2.048 kB</span><br><span class="line">Step 1/2 : FROM ubuntu</span><br><span class="line"> ---&gt; 104bec311bcd</span><br><span class="line">Step 2/2 : RUN env</span><br><span class="line"> ---&gt; Running <span class="keyword">in</span> bb5e605cb4d0</span><br><span class="line">HOSTNAME=2866979c4d77</span><br><span class="line">HOME=/root</span><br><span class="line">PATH=/usr/<span class="built_in">local</span>/sbin:/usr/<span class="built_in">local</span>/bin:/usr/sbin:/usr/bin:/sbin:/bin</span><br><span class="line">PWD=/</span><br><span class="line"> ---&gt; 97207d784048</span><br><span class="line">Removing intermediate container bb5e605cb4d0</span><br><span class="line">[Warning] One or more build-args [VERSION] were not consumed</span><br><span class="line">Successfully built 97207d784048</span><br></pre></td></tr></table></figure>
+<h1 id="安装">安装</h1>
+<h2 id="解决-gfw-影响-docker-安装问题">解决 <code>GFW</code> 影响 <code>Docker</code> 安装问题</h2>
+<p><a href="https://github.com/docker/docker/pull/27005" target="_blank" rel="noopener">https://github.com/docker/docker/pull/27005</a></p>
+<p>官方的 <code>apt</code>/<code>yum</code> 源使用的是 <code>AWS</code> 的服务，并且为了确保安全使用了 <code>HTTPS</code>，因此伟大的墙很乐于干扰大家使用。没办法的情况下，各个云服务商纷纷建立自己官方源镜像，阿里云、DaoCloud、Azura 等等，并且自己做了个修订版的 <code>https://get.docker.com</code> 的脚本来进行安装。</p>
+<p>现在这个发生改变了，官方的 <code>https://get.docker.com</code> 将支持 <code>--mirror</code> 参数，你可以用这个参数指定国内镜像源，目前支持微软的 Azure 云，（<a href="https://github.com/docker/docker/pull/28858" target="_blank" rel="noopener">或阿里云？（更新：由于阿里云镜像源不支持 HTTPS，所以不会支持阿里云）</a>）。使用方法如下，将原来官网安装命令：</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">curl -sSL https://get.docker.com/ | sh</span><br></pre></td></tr></table></figure>
+<p>替换为：</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">curl -sSL https://get.docker.com/ | sh -s -- --mirror AzureChinaCloud</span><br></pre></td></tr></table></figure>
+<h2 id="增加更多的系统支持">增加更多的系统支持</h2>
+<p>在这次发布中，增加了 <a href="https://github.com/docker/docker/pull/27993" target="_blank" rel="noopener"><code>Ubuntu 16.10</code> 的安装包</a>，而且对 <code>Ubuntu</code> 系统增加了 <a href="https://github.com/docker/docker/pull/23438" target="_blank" rel="noopener"><code>PPC64LE</code></a> 和 <a href="https://github.com/docker/docker/pull/26104" target="_blank" rel="noopener"><code>s390x</code></a> 构架的安装包。此外，还正式支持了 <a href="https://github.com/docker/docker/pull/24116" target="_blank" rel="noopener"><code>VMWare Photon OS</code> 系统</a>的 <code>RPM</code> 安装包，以及在 <code>https://get.docker.com</code> 的支持。并且支持了 <a href="https://github.com/docker/docker/pull/28222" target="_blank" rel="noopener"><code>Fedora 25</code></a>，甚至开始支持 <a href="https://github.com/docker/docker/pull/27625" target="_blank" rel="noopener"><code>arm64</code></a>。同时也由于一些系统生命周期的结束，而被移除支持，比如 <code>Ubuntu 15.10</code>、<code>Fedora 22</code> 都不在支持了。</p>
+<h1 id="网络">网络</h1>
+<h2 id="允许-docker-run-连入指定的-swarm-mode-的网络">允许 <code>docker run</code> 连入指定的 <code>swarm mode</code> 的网络</h2>
+<p><a href="https://github.com/docker/docker/pull/25962" target="_blank" rel="noopener">https://github.com/docker/docker/pull/25962</a></p>
+<p>在 Docker 1.12 发布新的 Swarm Mode 之后，很多人都问过这样的问题，怎么才能让 <code>docker run</code> 的容器连入 Swarm Mode 服务的 <code>overlay</code> 网络中去？答案是不可以，因为 <code>swarm</code> 的 <code>overlay</code> 网络是为了 <code>swarm mode service</code> 准备的，相对更健壮，而直接使用 <code>docker run</code>，会破坏了这里面的安全模型。</p>
+<p>但是由于大家需求很多，于是提供了一种折衷的办法。1.13 允许建立网络的时候，设定该网络为 <code>attachable</code>，允许之后的 <code>docker run</code> 的容器连接到该网络上。</p>
+<p>我们创建一个默认的、不允许之后 <code>attach</code> 的网络：</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">$ docker network create -d overlay mynet1</span><br><span class="line">xmgoco2vfrtp0ggc5r0p5z4mg</span><br></pre></td></tr></table></figure>
+<p>然后再创建一个允许 <code>attach</code> 的网络，这里会使用 1.13 新加入的 <code>--attachable</code> 参数：</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">$ docker network create -d overlay --attachable mynet2</span><br><span class="line">yvcyhoc6ni0436jux9azc4cjt</span><br></pre></td></tr></table></figure>
+<p>然后我们启动一个 <code>web</code> 服务，连入这两个网络：</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">$ docker service create \</span><br><span class="line">    --name web \</span><br><span class="line">    --network mynet1 \</span><br><span class="line">    --network mynet2 \</span><br><span class="line">    nginx</span><br><span class="line">vv91wd7166y80lbl833rugl2z</span><br></pre></td></tr></table></figure>
+<p>现在我们用 <code>docker run</code> 启动一个容器连入第一个网络：</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">$ docker run -it --rm --network mynet1 busybox</span><br><span class="line">docker: Error response from daemon: Could not attach to network mynet1: rpc error: code = 7 desc = network mynet1 not manually attachable.</span><br></pre></td></tr></table></figure>
+<p>由于 <code>mynet1</code> 不允许手动 <code>attach</code> 所以这里报错了。</p>
+<p>在 1.12 的情况下，会报告该网络无法给 <code>docker run</code> 使用：</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">docker: Error response from daemon: swarm-scoped network (mynet1) is not compatible with `docker create` or `docker run`. This network can only be used by a docker service.</span><br><span class="line">See <span class="string">'docker run --help'</span>.</span><br></pre></td></tr></table></figure>
+<p><strong>不过，<code>--attachable</code> 实际上是将网络的安全模型打开了一个缺口，因此这不是默认设置，而且并不推荐使用。用户在使用这个选项建立网络的时候，一定要知道自己在做什么。</strong></p>
+<h2 id="允许-docker-service-create-映射宿主端口而不是边界负载均衡网络端口">允许 <code>docker service create</code> 映射宿主端口，而不是边界负载均衡网络端口</h2>
+<p><a href="https://github.com/docker/docker/pull/27917" target="_blank" rel="noopener">https://github.com/docker/docker/pull/27917</a><br>
+<a href="https://github.com/docker/docker/pull/28943" target="_blank" rel="noopener">https://github.com/docker/docker/pull/28943</a></p>
+<p><code>docker service create</code> 中的 <code>--publish</code> 格式有进一步的变化。（在 1.13 的 RC 期间，曾经去掉 <code>--publish</code>，改为 <code>--port</code>，经过讨论后，决定保持一致性，继续使用 <code>--publish</code>，不使用新的 <code>--port</code> 选项。）</p>
+<p>在 1.12 中，<code>docker service create</code> 允许使用参数 <code>--publish 80:80</code> 这类形式映射<strong>边界(ingress)网络</strong>的端口，这样的映射会享受边界负载均衡，以及 routing mesh。</p>
+<p>从 1.13 开始，增加另一种映射模式，被称为 <code>host</code> 模式，也就是说，用这种模式映射的端口，只会映射于容器所运行的主机上。这就和一代 Swarm 中一样了。虽然失去了边界负载均衡，但是确定了映射点，在有的时候这种情况是需要的。</p>
+<p>现在 <code>--publish</code> 的新的参数形式和 <code>--mount</code> 差不多。参数值为 <code>,</code> 逗号分隔的键值对，键值间以 <code>=</code> 等号分隔。目前支持 4 项内容：</p>
+<ul>
+<li><code>protocol</code>： 支持 <code>tcp</code> 或者 <code>udp</code></li>
+<li><code>mode</code>： 支持 <code>ingress</code> 或者 <code>host</code></li>
+<li><code>target</code>： 容器的端口号</li>
+<li><code>published</code>： 映射到宿主的端口号</li>
+</ul>
+<p>比如，与 <code>-p 8080:80</code> 等效的 <code>--publish</code> 新格式选项为：</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">--publish protocol=tcp,mode=ingress,published=8080,target=80</span><br></pre></td></tr></table></figure>
+<p>当然我们可以继续使用 <code>-p 8080:80</code>，但是新的选项格式增加了更多的可能。比如，使用 1.13 开始加入的 <code>host</code> 映射模式：</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">ubuntu@d1:~$ docker service create --name web \</span><br><span class="line">    --publish mode=host,published=80,target=80 \</span><br><span class="line">    nginx</span><br></pre></td></tr></table></figure>
+<p>运行成功后，查看一下服务容器运行的节点：</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line">ubuntu@d1:~$ docker node ls</span><br><span class="line">ID                           HOSTNAME  STATUS  AVAILABILITY  MANAGER STATUS</span><br><span class="line">ntjybj51u6zp44akeawuf3i05    d2        Ready   Active</span><br><span class="line">tp7icvjzvxla2n18j3nztgjz6    d3        Ready   Active</span><br><span class="line">vyf3mgcj3uonrnh5xxquasp38 *  d1        Ready   Active        Leader</span><br><span class="line">ubuntu@d1:~$ docker service ps web</span><br><span class="line">ID            NAME    IMAGE         NODE  DESIRED STATE  CURRENT STATE          ERROR  PORTS</span><br><span class="line">5tij5sjvfpsf  web.1   nginx:latest  d3    Running        Running 5 minutes ago         *:80-&gt;80/tcp</span><br></pre></td></tr></table></figure>
+<p>我们可以看到，集群有3个节点，而服务就一个副本，跑到了 <code>d3</code> 上。如果这是以前的使用边界负载均衡的网络 <code>ingress</code> 的话，那么我们访问任意节点的 <code>80</code> 端口都会看到页面。</p>
+<p>但是，<code>host</code> 模式不同，它只映射容器所在宿主的端口。因此，如果我们 <code>curl d1</code> 的话，应该什么看不到网页，而 <code>curl d3</code> 的话就会看到页面：</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">root@d1:~$ curl localhost</span><br><span class="line">curl: (7) Failed to connect to localhost port 80: Connection refused</span><br></pre></td></tr></table></figure>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">root@d3:~$ curl localhost</span><br><span class="line">&lt;!DOCTYPE html&gt;</span><br><span class="line">&lt;html&gt;</span><br><span class="line">&lt;head&gt;</span><br><span class="line">&lt;title&gt;Welcome to nginx!&lt;/title&gt;</span><br><span class="line">...</span><br></pre></td></tr></table></figure>
+<h2 id="iptables-的转发规则将默认拒绝"><code>iptables</code> 的转发规则将默认拒绝</h2>
+<p><a href="https://github.com/docker/docker/pull/28257" target="_blank" rel="noopener">https://github.com/docker/docker/pull/28257</a></p>
+<p>从默认 <code>FORWARD</code> 改为 <code>DROP</code>，从而避免<a href="https://github.com/docker/docker/issues/14041" target="_blank" rel="noopener">容器外露的安全问题</a>。</p>
+<h2 id="在-docker-network-inspect-里显示连入的节点">在 <code>docker network inspect</code> 里显示连入的节点</h2>
+<p>我们都是知道，在 <code>swarm mode</code> 中创建的 <code>overlay</code> 网络，并不是一下子就在集群中的每个节点上 <code>docker network ls</code> 就可以看到这个网络，这完全没有必要。只有当使用该网络的容器调度到某个节点上后，才会将该节点连入此 <code>overlay</code> 网络。在网络排障过程中，经常会有这种需求，需要得知现在连入该 <code>overlay</code> 网络中的节点到底有哪些，这在 <code>1.13</code> 之前不容易做到。</p>
+<p>从 <code>1.13</code> 开始，<code>docker network inspect</code> 将显示连接到了这个网络的节点（宿主）有哪些。</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br></pre></td><td class="code"><pre><span class="line">$ docker network inspect mynet</span><br><span class="line">[</span><br><span class="line">   &#123;</span><br><span class="line">       <span class="string">"Name"</span>: <span class="string">"mynet"</span>,</span><br><span class="line">       <span class="string">"Id"</span>: <span class="string">"jjpnbdh8vu4onjojskntd2jhh"</span>,</span><br><span class="line">       <span class="string">"Created"</span>: <span class="string">"2017-01-18T00:00:31.742146058Z"</span>,</span><br><span class="line">       <span class="string">"Scope"</span>: <span class="string">"swarm"</span>,</span><br><span class="line">       <span class="string">"Driver"</span>: <span class="string">"overlay"</span>,</span><br><span class="line">       <span class="string">"EnableIPv6"</span>: <span class="literal">false</span>,</span><br><span class="line">       <span class="string">"IPAM"</span>: &#123;</span><br><span class="line">           <span class="string">"Driver"</span>: <span class="string">"default"</span>,</span><br><span class="line">           <span class="string">"Options"</span>: null,</span><br><span class="line">           <span class="string">"Config"</span>: [</span><br><span class="line">               &#123;</span><br><span class="line">                   <span class="string">"Subnet"</span>: <span class="string">"10.0.0.0/24"</span>,</span><br><span class="line">                   <span class="string">"Gateway"</span>: <span class="string">"10.0.0.1"</span></span><br><span class="line">               &#125;</span><br><span class="line">           ]</span><br><span class="line">       &#125;,</span><br><span class="line">       <span class="string">"Internal"</span>: <span class="literal">false</span>,</span><br><span class="line">       <span class="string">"Attachable"</span>: <span class="literal">false</span>,</span><br><span class="line">       <span class="string">"Containers"</span>: &#123;</span><br><span class="line">           <span class="string">"3cafea27c53de34724e46d4fe83c9e60311b628b82e9be66d8d2e0812669d575"</span>: &#123;</span><br><span class="line">               <span class="string">"Name"</span>: <span class="string">"myapp.2.qz2hs1eqq3ikx59ydh0w7u1g4"</span>,</span><br><span class="line">               <span class="string">"EndpointID"</span>: <span class="string">"0e26b08254e851b7b238215cec07acdd8b0b68dc4671f55235e203a0c260522f"</span>,</span><br><span class="line">               <span class="string">"MacAddress"</span>: <span class="string">"02:42:0a:00:00:04"</span>,</span><br><span class="line">               <span class="string">"IPv4Address"</span>: <span class="string">"10.0.0.4/24"</span>,</span><br><span class="line">               <span class="string">"IPv6Address"</span>: <span class="string">""</span></span><br><span class="line">           &#125;</span><br><span class="line">       &#125;,</span><br><span class="line">       <span class="string">"Options"</span>: &#123;</span><br><span class="line">           <span class="string">"com.docker.network.driver.overlay.vxlanid_list"</span>: <span class="string">"4097"</span></span><br><span class="line">       &#125;,</span><br><span class="line">       <span class="string">"Labels"</span>: &#123;&#125;,</span><br><span class="line">       <span class="string">"Peers"</span>: [</span><br><span class="line">           &#123;</span><br><span class="line">               <span class="string">"Name"</span>: <span class="string">"d1-23348b84b134"</span>,</span><br><span class="line">               <span class="string">"IP"</span>: <span class="string">"138.197.213.116"</span></span><br><span class="line">           &#125;,</span><br><span class="line">           &#123;</span><br><span class="line">               <span class="string">"Name"</span>: <span class="string">"d2-8964dea9e75c"</span>,</span><br><span class="line">               <span class="string">"IP"</span>: <span class="string">"138.197.221.47"</span></span><br><span class="line">           &#125;</span><br><span class="line">       ]</span><br><span class="line">   &#125;</span><br><span class="line">]</span><br></pre></td></tr></table></figure>
+<p>从上面的例子可以看出，一共有两个宿主连入了这个 <code>mynet</code> 的 <code>overlay</code> 网络，分别为 <code>138.197.213.116</code> 和 <code>138.197.221.47</code>。</p>
+<h2 id="允许-service-vip-可以被-ping">允许 <code>service</code> <code>VIP</code> 可以被 <code>ping</code></h2>
+<p><a href="https://github.com/docker/docker/pull/28019" target="_blank" rel="noopener">https://github.com/docker/docker/pull/28019</a></p>
+<p>在 1.12 的二代 Swarm 排障过程中，常见的一个问题就是<a href="https://github.com/docker/docker/issues/25497" target="_blank" rel="noopener">跨节点的服务 VIP 不可以 <code>ping</code></a>，所以很多时候很多时候搞不懂是 <code>overlay</code> 网络不通呢？还是服务没起来？还是服务发现有问题？这个问题在 1.13 解决了，VIP 可以随便 <code>ping</code>，跨宿主也没关系。</p>
+<h1 id="插件">插件</h1>
+<h2 id="插件功能正式启用">插件功能正式启用</h2>
+<p><a href="https://github.com/docker/docker/pull/28226" target="_blank" rel="noopener">https://github.com/docker/docker/pull/28226</a></p>
+<p>在 1.12 引入了插件概念后，作为试验特性得到了很多关注。包括 <a href="https://store.docker.com/" target="_blank" rel="noopener">Docker Store</a> 开始准备上线，以及第三方的插件的开发。现在 1.13 插件作为正式功能提供了。</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br></pre></td><td class="code"><pre><span class="line">$ docker plugin</span><br><span class="line"></span><br><span class="line">Usage:	docker plugin COMMAND</span><br><span class="line"></span><br><span class="line">Manage plugins</span><br><span class="line"></span><br><span class="line">Options:</span><br><span class="line">      --<span class="built_in">help</span>   Print usage</span><br><span class="line"></span><br><span class="line">Commands:</span><br><span class="line">  create      Create a plugin from a rootfs and config</span><br><span class="line">  <span class="built_in">disable</span>     Disable a plugin</span><br><span class="line">  <span class="built_in">enable</span>      Enable a plugin</span><br><span class="line">  inspect     Display detailed information on one or more plugins</span><br><span class="line">  install     Install a plugin</span><br><span class="line">  ls          List plugins</span><br><span class="line">  push        Push a plugin to a registry</span><br><span class="line">  rm          Remove one or more plugins</span><br><span class="line">  <span class="built_in">set</span>         Change settings <span class="keyword">for</span> a plugin</span><br><span class="line"></span><br><span class="line">Run <span class="string">'docker plugin COMMAND --help'</span> <span class="keyword">for</span> more information on a <span class="built_in">command</span>.</span><br></pre></td></tr></table></figure>
+<p>相比于 1.12 的试验版本而言，最重要的是增加了 <code>docker plugin create</code> 命令，可以指定一个包含有 <code>config.json</code> 文件和 <code>rootfs</code> 目录的目录来创建插件。</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line">$ ls -ls /home/pluginDir</span><br><span class="line"></span><br><span class="line">4 -rw-r--r--  1 root root 431 Nov  7 01:40 config.json</span><br><span class="line">0 drwxr-xr-x 19 root root 420 Nov  7 01:40 rootfs</span><br><span class="line"></span><br><span class="line">$ docker plugin create plugin /home/pluginDir</span><br><span class="line">plugin</span><br><span class="line"></span><br><span class="line">$ docker plugin ls</span><br><span class="line">ID                  NAME                TAG                 DESCRIPTION                  ENABLED</span><br><span class="line">672d8144ec02        plugin              latest              A sample plugin <span class="keyword">for</span> Docker   <span class="literal">false</span></span><br></pre></td></tr></table></figure>
+<h1 id="命令行">命令行</h1>
+<h2 id="checkpoint-功能试验功能"><code>checkpoint</code> 功能（试验功能）</h2>
+<p><a href="https://github.com/docker/docker/pull/22049" target="_blank" rel="noopener">https://github.com/docker/docker/pull/22049</a></p>
+<p><code>checkpoint</code> 功能可以将运行中的容器状态冻结并保存为文件，并在将来可以从文件加载恢复此时的运行状态。</p>
+<h3 id="准备工作">准备工作</h3>
+<p>目前它所依赖的是 <code>criu</code> 这个工具，因此在 Linux 上需要先安装这个工具。（目前尚无法在 Docker for Mac 中使用 <a href="https://github.com/docker/for-mac/issues/1059" target="_blank" rel="noopener">docker/for-mac#1059</a>)</p>
+<p>如果未安装 <code>criu</code> 则会出现如下报错：</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">Error response from daemon: Cannot checkpoint container myapp1: rpc error: code = 2 desc = <span class="built_in">exit</span> status 1: <span class="string">"Unable to execute CRIU command: criu\n"</span></span><br></pre></td></tr></table></figure>
+<p>对于 Ubuntu 系统，可以执行下面的命令安装 <code>criu</code>：</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">$ sudo apt-get install -y criu</span><br></pre></td></tr></table></figure>
+<blockquote>
+<p>由于这个是试验功能，因此需要在 <code>docker.service</code> 中 <code>ExecStart=</code> 这行后面添加 <code>--experimental</code> 选项。其它试验功能也需如此配置。</p>
+</blockquote>
+<p>然后不要忘了 <code>systemctl daemon-reload</code> 和 <code>systemctl restart docker</code>。</p>
+<h3 id="创建-checkpoint-及恢复">创建 Checkpoint 及恢复</h3>
+<p>执行 <code>docker checkpoint create</code> 就可以为容器创建 <code>checkpoint</code>。</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">$ docker checkpoint create myapp1 checkpoint1</span><br><span class="line">checkpoint1</span><br></pre></td></tr></table></figure>
+<p>可以为一个容器创建多个 <code>checkpoint</code>，每个起不同的名字就是了。</p>
+<p>然后可以用 <code>docker checkpoint ls</code> 来列出已经创建的 <code>checkpoint</code>：</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">$ docker checkpoint ls myapp1</span><br><span class="line">CHECKPOINT NAME</span><br><span class="line">checkpoint1</span><br></pre></td></tr></table></figure>
+<p><em>如果不加 <code>--leave-running</code> 参数的话，容器就会在创建完 <code>checkpoint</code> 就会被停止运行。</em></p>
+<p>然后我们可以通过 <code>docker start --checkpoint</code> 来从某个 <code>checkpoint</code> 恢复运行：</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">$ docker start --checkpoint checkpoint1 myapp1</span><br></pre></td></tr></table></figure>
+<p>容器就会从 <code>checkpoint1</code> 这个点恢复并继续运行。</p>
+<p>备份时可以用 <code>--checkpoint-dir</code> 指定具体的保存 <code>checkpoint</code> 的目录：</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">$ docker checkpoint create --checkpoint-dir <span class="variable">$PWD</span>/backup --leave-running myapp1 checkpoint1</span><br><span class="line">checkpoint1</span><br></pre></td></tr></table></figure>
+<p>然后我们可以在 <code>backup</code> 中看到实际保存的文件内容：</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br></pre></td><td class="code"><pre><span class="line">$ tree backup/</span><br><span class="line">backup/</span><br><span class="line">└── checkpoint1</span><br><span class="line">   ├── cgroup.img</span><br><span class="line">   ├── config.json</span><br><span class="line">   ├── core-1.img</span><br><span class="line">   ├── core-54.img</span><br><span class="line">   ├── criu.work</span><br><span class="line">   │   ├── dump.log</span><br><span class="line">   │   └── stats-dump</span><br><span class="line">   ├── descriptors.json</span><br><span class="line">   ├── fdinfo-2.img</span><br><span class="line">   ├── fdinfo-3.img</span><br><span class="line">   ├── fs-1.img</span><br><span class="line">   ├── fs-54.img</span><br><span class="line">   ├── ids-1.img</span><br><span class="line">   ├── ids-54.img</span><br><span class="line">   ├── inventory.img</span><br><span class="line">   ├── ip6tables-9.img</span><br><span class="line">   ├── ipcns-var-10.img</span><br><span class="line">   ├── iptables-9.img</span><br><span class="line">   ├── mm-1.img</span><br><span class="line">   ├── mm-54.img</span><br><span class="line">   ├── mountpoints-12.img</span><br><span class="line">   ├── pagemap-1.img</span><br><span class="line">   ├── pagemap-54.img</span><br><span class="line">   ├── pages-1.img</span><br><span class="line">   ├── pages-2.img</span><br><span class="line">   ├── pipes-data.img</span><br><span class="line">   ├── pipes.img</span><br><span class="line">   ├── pstree.img</span><br><span class="line">   ├── reg-files.img</span><br><span class="line">   ├── seccomp.img</span><br><span class="line">   ├── sigacts-1.img</span><br><span class="line">   ├── sigacts-54.img</span><br><span class="line">   ├── tmpfs-dev-46.tar.gz.img</span><br><span class="line">   ├── tmpfs-dev-49.tar.gz.img</span><br><span class="line">   ├── tmpfs-dev-50.tar.gz.img</span><br><span class="line">   ├── unixsk.img</span><br><span class="line">   └── utsns-11.img</span><br></pre></td></tr></table></figure>
+<h2 id="docker-stats-终于可以显示容器名了"><code>docker stats</code> 终于可以显示容器名了</h2>
+<p><a href="https://github.com/docker/docker/pull/27797" target="_blank" rel="noopener">https://github.com/docker/docker/pull/27797</a><br>
+<a href="https://github.com/docker/docker/pull/24987" target="_blank" rel="noopener">https://github.com/docker/docker/pull/24987</a></p>
+<p><code>docker stats</code> 可以显示容器的资源占用情况，用来分析不同容器的开销很有帮助。不过一直以来有个很讨厌的问题，<code>docker stats</code> 不显示容器名：</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">$ docker stats</span><br><span class="line">CONTAINER           CPU %               MEM USAGE / LIMIT       MEM %               NET I/O             BLOCK I/O           PIDS</span><br><span class="line">e8cb2945b156        0.00%               1.434 MiB / 488.4 MiB   0.29%               1.3 kB / 648 B      12.3 kB / 0 B       2</span><br><span class="line">61aada055db8        0.00%               3.598 MiB / 488.4 MiB   0.74%               1.3 kB / 1.3 kB     2.29 MB / 0 B       2</span><br></pre></td></tr></table></figure>
+<p>这让人根本没办法知道到底谁是谁。于是有各种<a href="https://github.com/docker/docker/issues/20973" target="_blank" rel="noopener">变通的办法</a>，比如：</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">$ docker stats $(docker ps --format=&#123;&#123;.Names&#125;&#125;)</span><br></pre></td></tr></table></figure>
+<p>但是这个列表是静态的，容器增加、删除都得重新运行这个命令。</p>
+<p>从 <code>1.13</code> 开始，虽然依旧默认没有容器名，但是增加了 <code>--format</code> 参数可以自己设计输出格式：</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">$ docker stats --format <span class="string">'table &#123;&#123;.Name&#125;&#125;\t&#123;&#123;.CPUPerc&#125;&#125;\t&#123;&#123;.MemUsage&#125;&#125;\t&#123;&#123;.MemPerc&#125;&#125;\t&#123;&#123;.NetIO&#125;&#125;\t&#123;&#123;.BlockIO&#125;&#125;\t&#123;&#123;.PIDs&#125;&#125;'</span></span><br><span class="line">NAME                               CPU %               MEM USAGE / LIMIT       MEM %               NET I/O             BLOCK I/O           PIDS</span><br><span class="line">app2.1.5tij5sjvfpsft2lctxh8m8trn   0.00%               1.434 MiB / 488.4 MiB   0.29%               1.3 kB / 648 B      12.3 kB / 0 B       2</span><br><span class="line">app1.1.mjmb8b0f0w5sy2v41jth3v9s4   0.00%               3.598 MiB / 488.4 MiB   0.74%               1.3 kB / 1.3 kB     2.29 MB / 0 B       2</span><br></pre></td></tr></table></figure>
+<h2 id="给-docker-ps-增加-is-task-过滤器">给 <code>docker ps</code> 增加 <code>is-task</code> 过滤器</h2>
+<p><a href="https://github.com/docker/docker/pull/24411" target="_blank" rel="noopener">https://github.com/docker/docker/pull/24411</a></p>
+<p>开始使用 Swarm Mode 后，经常碰到的一个问题就是，<code>docker ps</code> 所看到的这些容器到底哪些是服务容器？哪些是 <code>docker run</code> 跑起来的单独的容器？</p>
+<p>从 <code>1.13</code> 开始，增加了 <code>is-task</code> 过滤器，以区分普通容器和 Swarm Mode 的服务容器：</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">docker ps -f <span class="string">'is-task=true'</span></span><br><span class="line">CONTAINER ID        IMAGE                                                                           COMMAND                  CREATED             STATUS              PORTS               NAMES</span><br><span class="line">cdf0d35db1d3        nginx@sha256:33ff28a2763feccc1e1071a97960b7fef714d6e17e2d0ff573b74825d0049303   <span class="string">"nginx -g 'daemon ..."</span>   44 seconds ago      Up 44 seconds       80/tcp, 443/tcp     myservice.1.6rdwhkb84j6ioyqlvk6h6bql8</span><br></pre></td></tr></table></figure>
+<h2 id="再也不会出现客户端和服务端不同版本导致的错误了">再也不会出现客户端和服务端不同版本导致的错误了</h2>
+<p><a href="https://github.com/docker/docker/pull/27745" target="_blank" rel="noopener">https://github.com/docker/docker/pull/27745</a></p>
+<p>在以前，docker 客户端和服务端必须版本一致，否则就会报 <code>Client and server don't have the same version</code> 这类错误。后来增加了 <code>DOCKER_API_VERSION</code> 环境变量，在客户端高于服务端版本时，可以通过这个环境变量指定服务端 API 版本，从而避免这类错误。</p>
+<p>从 <code>1.13</code> 开始，将进行一些版本判断来进行处理，从而不会因为版本不一致而报错了。</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br></pre></td><td class="code"><pre><span class="line">$ docker version</span><br><span class="line">Client:</span><br><span class="line"> Version:      1.13.0-dev</span><br><span class="line"> API version:  1.24 (downgraded from 1.25)</span><br><span class="line"> Go version:   go1.7.3</span><br><span class="line"> Git commit:   ec3a34b</span><br><span class="line"> Built:        Wed Oct 26 00:54:51 2016</span><br><span class="line"> OS/Arch:      linux/amd64</span><br><span class="line"></span><br><span class="line">Server:</span><br><span class="line"> Version:      1.12.2</span><br><span class="line"> API version:  1.24</span><br><span class="line"> Go version:   go1.6.3</span><br><span class="line"> Git commit:   bb80604</span><br><span class="line"> Built:        Tue Oct 11 17:00:50 2016</span><br><span class="line"> OS/Arch:      linux/amd64</span><br><span class="line"> Experimental: <span class="literal">false</span></span><br></pre></td></tr></table></figure>
+<h2 id="docker-inspect-将可以查看任何-docker-对象"><code>docker inspect</code> 将可以查看任何 docker 对象</h2>
+<p><a href="https://github.com/docker/docker/pull/23614" target="_blank" rel="noopener">https://github.com/docker/docker/pull/23614</a></p>
+<p>我们应该很熟悉 <code>docker inspect</code>，我们经常用它查看镜像、容器。从 <code>1.13</code> 开始，这将变的更高级，可以查看任何 Docker 对象。从网络、task、service、volume到之前的镜像、容器等等。</p>
+<p>比如，我们用 <code>docker service ps</code> 列出了服务对应的 <code>task</code> 列表，得到 <code>task id</code> 后，我们可以直接 <code>docker inspect</code> 这个 <code>task id</code>。</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br></pre></td><td class="code"><pre><span class="line">$ docker service ps myservice</span><br><span class="line">ID            NAME         IMAGE         NODE  DESIRED STATE  CURRENT STATE           ERROR  PORTS</span><br><span class="line">6rdwhkb84j6i  myservice.1  nginx:latest  d1    Running        Running 13 minutes ago</span><br><span class="line">$ docker inspect 6rdwhkb84j6i</span><br><span class="line">[</span><br><span class="line">    &#123;</span><br><span class="line">        <span class="string">"ID"</span>: <span class="string">"6rdwhkb84j6ioyqlvk6h6bql8"</span>,</span><br><span class="line">        <span class="string">"Version"</span>: &#123;</span><br><span class="line">            <span class="string">"Index"</span>: 17</span><br><span class="line">        &#125;,</span><br><span class="line">        <span class="string">"CreatedAt"</span>: <span class="string">"2017-01-18T14:40:40.959516063Z"</span>,</span><br><span class="line">        <span class="string">"UpdatedAt"</span>: <span class="string">"2017-01-18T14:40:52.302378995Z"</span>,</span><br><span class="line">        <span class="string">"Spec"</span>: &#123;</span><br><span class="line">            <span class="string">"ContainerSpec"</span>: &#123;</span><br><span class="line">                <span class="string">"Image"</span>: <span class="string">"nginx:latest@sha256:33ff28a2763feccc1e1071a97960b7fef714d6e17e2d0ff573b74825d0049303"</span>,</span><br><span class="line">                <span class="string">"DNSConfig"</span>: &#123;&#125;</span><br><span class="line">            &#125;,</span><br><span class="line">            <span class="string">"Resources"</span>: &#123;</span><br><span class="line">                <span class="string">"Limits"</span>: &#123;&#125;,</span><br><span class="line">                <span class="string">"Reservations"</span>: &#123;&#125;</span><br><span class="line">            &#125;,</span><br><span class="line">            <span class="string">"RestartPolicy"</span>: &#123;</span><br><span class="line">                <span class="string">"Condition"</span>: <span class="string">"any"</span>,</span><br><span class="line">                <span class="string">"MaxAttempts"</span>: 0</span><br><span class="line">            &#125;,</span><br><span class="line">            <span class="string">"Placement"</span>: &#123;&#125;,</span><br><span class="line">            <span class="string">"ForceUpdate"</span>: 0</span><br><span class="line">        &#125;,</span><br><span class="line">        <span class="string">"ServiceID"</span>: <span class="string">"u7bidaojbndhrsgyj29unv4wg"</span>,</span><br><span class="line">        <span class="string">"Slot"</span>: 1,</span><br><span class="line">        <span class="string">"NodeID"</span>: <span class="string">"5s5nvnif1i4frentwidiu97mn"</span>,</span><br><span class="line">        <span class="string">"Status"</span>: &#123;</span><br><span class="line">            <span class="string">"Timestamp"</span>: <span class="string">"2017-01-18T14:40:52.252715087Z"</span>,</span><br><span class="line">            <span class="string">"State"</span>: <span class="string">"running"</span>,</span><br><span class="line">            <span class="string">"Message"</span>: <span class="string">"started"</span>,</span><br><span class="line">            <span class="string">"ContainerStatus"</span>: &#123;</span><br><span class="line">                <span class="string">"ContainerID"</span>: <span class="string">"cdf0d35db1d37266af56b59dd8c3cd54de46442987e25e6fd25d38da1da7e459"</span>,</span><br><span class="line">                <span class="string">"PID"</span>: 6563</span><br><span class="line">            &#125;,</span><br><span class="line">            <span class="string">"PortStatus"</span>: &#123;&#125;</span><br><span class="line">        &#125;,</span><br><span class="line">        <span class="string">"DesiredState"</span>: <span class="string">"running"</span></span><br><span class="line">    &#125;</span><br><span class="line">]</span><br></pre></td></tr></table></figure>
+<h1 id="运行时">运行时</h1>
+<h2 id="不在分别构建试验可执行文件直接使用-experimental-参数">不在分别构建试验可执行文件，直接使用 <code>--experimental</code> 参数</h2>
+<p><a href="https://github.com/docker/docker/pull/27223" target="_blank" rel="noopener">https://github.com/docker/docker/pull/27223</a></p>
+<p>以前我们如果希望测试当前试验功能，必须添加试验分支源，重装 <code>docker</code>。这给测试试验分支带来了困难。现在变得简单了，不在分为两组可执行文件构建，合并为一个。如果需要测试试验功能，直接在 <code>dockerd</code> 后添加 <code>--experimental</code> 即可。</p>
+<h2 id="在-overlay2-存储驱动使用于-xfs-时可以添加磁盘配额">在 <code>overlay2</code> 存储驱动使用于 <code>xfs</code> 时可以添加磁盘配额</h2>
+<p><a href="https://github.com/docker/docker/pull/24771" target="_blank" rel="noopener">https://github.com/docker/docker/pull/24771</a></p>
+<p>在 1.13 之前，只有块设备文件系统驱动（如 <code>devicemapper</code>, <code>xfs</code>, <code>zfs</code>等）支持磁盘配额能力，而所有 <code>Union FS</code> 的驱动，都不支持配额。现在针对使用 <code>XFS</code> 为后端的 <code>overlay2</code> 驱动支持了磁盘配额，理论上同样的方式可以在将来移植到 <code>AUFS</code>。</p>
+<h2 id="增加-docker-system-命令">增加 <code>docker system</code> 命令</h2>
+<p><a href="https://github.com/docker/docker/pull/26108" target="_blank" rel="noopener">https://github.com/docker/docker/pull/26108</a><br>
+<a href="https://github.com/docker/docker/pull/27525" target="_blank" rel="noopener">https://github.com/docker/docker/pull/27525</a></p>
+<p>很多人在以前搞不懂自己的镜像到底占了多少空间、容器占了多少空间，卷占了多少空间。怎么删除不用的东西以释放资源。从 1.13 开始，Docker 提供了一组 <code>system</code> 命令来帮助系统管理上的问题。</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br></pre></td><td class="code"><pre><span class="line">$ docker system</span><br><span class="line"></span><br><span class="line">Usage:	docker system COMMAND</span><br><span class="line"></span><br><span class="line">Manage Docker</span><br><span class="line"></span><br><span class="line">Options:</span><br><span class="line">     --<span class="built_in">help</span>   Print usage</span><br><span class="line"></span><br><span class="line">Commands:</span><br><span class="line"> df          Show docker disk usage</span><br><span class="line"> events      Get real time events from the server</span><br><span class="line"> info        Display system-wide information</span><br><span class="line"> prune       Remove unused data</span><br><span class="line"></span><br><span class="line">Run <span class="string">'docker system COMMAND --help'</span> <span class="keyword">for</span> more information on a <span class="built_in">command</span>.</span><br></pre></td></tr></table></figure>
+<p><code>docker system df</code> 是显示磁盘使用情况：</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">$ docker system df</span><br><span class="line">TYPE                TOTAL               ACTIVE              SIZE                RECLAIMABLE</span><br><span class="line">Images              3                   3                   700.3 MB            123 MB (17%)</span><br><span class="line">Containers          3                   3                   15 B                0 B (0%)</span><br><span class="line">Local Volumes       1                   1                   219.4 MB            0 B (0%)</span><br></pre></td></tr></table></figure>
+<p>显示的列表中列出了镜像、容器、本地卷所占用的磁盘空间，以及可能回收的磁盘空间。比如，我们看到镜像有 123MB 的空间可以回收，从 1.13 开始，<code>docker</code> 提供了一组 <code>prune</code> 命令，分别是：</p>
+<ul>
+<li><code>docker image prune</code>：删除无用的镜像</li>
+<li><code>docker container prune</code>：删除无用的容器</li>
+<li><code>docker volume prune</code>：删除无用的卷</li>
+<li><code>docker network prune</code>：删除无用的网络</li>
+<li><code>docker system prune</code>：删除无用的镜像、容器、卷、网络</li>
+</ul>
+<p>还记得之前删除这些资源所用的 <code>docker rmi $(docker images -f dangling=true -aq)</code> 这种命令么？现在可以简单地 <code>docker image prune</code> 即可删除。</p>
+<p>此外，从上面已经可以看到，从 1.13 开始，命令都开始归类于各个子命令了。之前默认的 <code>docker info</code>，<code>docker ps</code>，<code>docker rm</code>，<code>docker run</code> 都开始归类于对应的 <code>docker image</code>, <code>docker container</code>, <code>docker system</code> 下了。目前之前的命令依旧可以使用，会继续保持一段时间。但是从 1.13 开始，推荐使用各个子命令的版本了。</p>
+<h2 id="提升-overlay2-的优先级">提升 <code>overlay2</code> 的优先级</h2>
+<p><a href="https://github.com/docker/docker/pull/27932" target="_blank" rel="noopener">https://github.com/docker/docker/pull/27932</a></p>
+<p>由于 <code>overlay2</code> 在 4.+ 内核的系统上趋于稳定，因此将其优先级提到 <code>devicemapper</code> 之上（优先级最高的依旧是 <code>aufs</code>）</p>
+<h2 id="docker-exec-t-自动添加-term-环境变量"><code>docker exec -t</code> 自动添加 TERM 环境变量</h2>
+<p><a href="https://github.com/docker/docker/pull/26461" target="_blank" rel="noopener">https://github.com/docker/docker/pull/26461</a></p>
+<p>对于在容器中使用 <code>vi</code>、<code>htop</code> 之类工具的人来说是比较方便的。之前由于默认没有定义 <code>TERM</code>，这些需要终端页面布局的程序执行可能会不正常。比如：</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">$ htop</span><br><span class="line">Error opening terminal: unknown.</span><br></pre></td></tr></table></figure>
+<p>现在直接为 <code>docker exec -t</code> 选项添加了继承自当前的 <code>TERM</code> 变量，可以让这类工具可以正常使用。</p>
+<h2 id="windows-内置的运行-windows-程序的-docker-on-windows-的改进">Windows 内置的运行 Windows 程序的 Docker on Windows 的改进</h2>
+<ul>
+<li><a href="https://github.com/docker/docker/pull/28415" target="_blank" rel="noopener">#28415</a>：支持 <code>Dockerfile</code> 中的 <code>USER</code> 了；</li>
+<li><a href="https://github.com/docker/docker/pull/25736" target="_blank" rel="noopener">#25736</a>：支持 <code>syslog</code> 日志系统；</li>
+<li><a href="https://github.com/docker/docker/pull/28189" target="_blank" rel="noopener">#28189</a>：支持 <code>fluentd</code> 日志系统；</li>
+<li><a href="https://github.com/docker/docker/pull/28182" target="_blank" rel="noopener">#28182</a>：终于支持 <code>overlay</code> 网络了；</li>
+<li><a href="https://github.com/docker/docker/pull/22208" target="_blank" rel="noopener">#22208</a>：支持自定义网络指定静态IP了；</li>
+<li><a href="https://github.com/docker/docker/pull/23391" target="_blank" rel="noopener">#23391</a>：支持存储层驱动的磁盘配额；</li>
+<li><a href="https://github.com/docker/docker/pull/25737" target="_blank" rel="noopener">#25737</a>：终于可以用 <code>docker stats</code> 了；</li>
+<li><a href="https://github.com/docker/docker/pull/25891" target="_blank" rel="noopener">#25891</a>：终于可以用 <code>docker top</code> 了；</li>
+<li><a href="https://github.com/docker/docker/pull/27838" target="_blank" rel="noopener">#27838</a>：Windows 终于可以用 Swarm Mode 跑集群了；</li>
+</ul>
+<h1 id="swarm-mode">Swarm Mode</h1>
+<h2 id="正式支持-docker-stack">正式支持 <code>docker stack</code></h2>
+<p>1.12 中引入了二代 Swarm，也就是 Swarm Mode。由于基础理念变化很大，因此先行实现比较基本的服务(<code>service</code>)，但是针对应用/服务栈(<code>stack</code>)没有成熟，只是试行使用 <code>.DAB</code> 文件进行集群部署。但是 <code>DAB</code> 是 <code>JSON</code> 文件，而且撰写较为复杂。相对大家已经习惯的 <code>docker-compose.yml</code> 却无法在 <code>docker stack</code> 中直接使用。只可以用 <code>docker-compose bundle</code> 命令将 <code>docker-compose.yml</code> 转换为 <code>.dab</code> 文件，然后才能拿到集群部署，而且很多功能用不了。</p>
+<p>从 1.13 开始，将允许直接使用 <code>docker-compose.yml</code> 文件来进行部署（<a href="https://github.com/docker/docker/pull/27998" target="_blank" rel="noopener">#27998</a>），大大方便了习惯了 <code>docker compose</code> 的用户。不过需要注意的是，由于理念的演化，原有的 <code>docker-compose.yml</code> <code>v2</code> 格式无法使用，必须使用 <code>v3</code> 格式。</p>
+<p>幸运的是 <code>v3</code> 和 <code>v2</code> 格式差距不大。</p>
+<ul>
+<li>将一些过时的东西去掉，如 <code>volumes_from</code>，需要共享数据用命名卷；</li>
+<li>去除 <code>volume_driver</code>，这种服务全局的东西没有必要，直接针对每个卷使用 <code>volume</code> 键下的 <code>driver</code> 即可；</li>
+<li>将 <code>cpu_shares</code>, <code>cpu_quota</code>, <code>cpuset</code>, <code>mem_limit</code>, <code>memswap_limit</code> 移到 <code>deploy</code> 下的 <code>resources</code> 下进行管控，毕竟这是部署资源控制的部分。</li>
+</ul>
+<p>具体差异可以看官方文档：<a href="https://github.com/docker/docker.github.io/blob/vnext-compose/compose/compose-file.md#upgrading" target="_blank" rel="noopener">https://github.com/docker/docker.github.io/blob/vnext-compose/compose/compose-file.md#upgrading</a></p>
+<p>用<a href="https://coding.net/u/twang2218/p/docker-lnmp/git" target="_blank" rel="noopener">我的 LNMP 的示例</a>为例子，显然第一行的 <code>version: '2'</code> 需要换成 <code>version: '3'</code> 😏。</p>
+<p>然后，服务里的 <code>build</code> 显然用不了了。那么改成 <code>v3</code> 格式，就应该是：</p>
+<figure class="highlight yaml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br></pre></td><td class="code"><pre><span class="line"><span class="attr">version:</span> <span class="string">'3'</span></span><br><span class="line"><span class="attr">services:</span></span><br><span class="line"><span class="attr">    nginx:</span></span><br><span class="line"><span class="attr">        image:</span> <span class="string">"twang2218/lnmp-nginx:v1.2"</span></span><br><span class="line"><span class="attr">        ports:</span></span><br><span class="line"><span class="bullet">            -</span> <span class="string">"80:80"</span></span><br><span class="line"><span class="attr">        networks:</span></span><br><span class="line"><span class="bullet">            -</span> <span class="string">frontend</span></span><br><span class="line"><span class="attr">        deploy:</span></span><br><span class="line"><span class="attr">            replicas:</span> <span class="number">2</span></span><br><span class="line"><span class="attr">        depends_on:</span></span><br><span class="line"><span class="bullet">            -</span> <span class="string">php</span></span><br><span class="line"><span class="attr">    php:</span></span><br><span class="line"><span class="attr">        image:</span> <span class="string">"twang2218/lnmp-php:v1.2"</span></span><br><span class="line"><span class="attr">        networks:</span></span><br><span class="line"><span class="bullet">            -</span> <span class="string">frontend</span></span><br><span class="line"><span class="bullet">            -</span> <span class="string">backend</span></span><br><span class="line"><span class="attr">        environment:</span></span><br><span class="line"><span class="attr">            MYSQL_PASSWORD:</span> <span class="string">Passw0rd</span></span><br><span class="line"><span class="attr">        deploy:</span></span><br><span class="line"><span class="attr">            replicas:</span> <span class="number">4</span></span><br><span class="line"><span class="attr">        depends_on:</span></span><br><span class="line"><span class="bullet">            -</span> <span class="string">mysql</span></span><br><span class="line"><span class="attr">    mysql:</span></span><br><span class="line"><span class="attr">        image:</span> <span class="attr">mysql:5.7</span></span><br><span class="line"><span class="attr">        volumes:</span></span><br><span class="line"><span class="attr">            - mysql-data:</span><span class="string">/var/lib/mysql</span></span><br><span class="line"><span class="attr">        environment:</span></span><br><span class="line"><span class="attr">            TZ:</span> <span class="string">'Asia/Shanghai'</span></span><br><span class="line"><span class="attr">            MYSQL_ROOT_PASSWORD:</span> <span class="string">Passw0rd</span></span><br><span class="line"><span class="attr">        command:</span> <span class="string">['mysqld',</span> <span class="string">'--character-set-server=utf8'</span><span class="string">]</span></span><br><span class="line"><span class="attr">        networks:</span></span><br><span class="line"><span class="bullet">            -</span> <span class="string">backend</span></span><br><span class="line"><span class="attr">volumes:</span></span><br><span class="line"><span class="attr">    mysql-data:</span></span><br><span class="line"><span class="attr">networks:</span></span><br><span class="line"><span class="attr">    frontend:</span></span><br><span class="line"><span class="attr">    backend:</span></span><br></pre></td></tr></table></figure>
+<p>可以注意到，在 <code>nginx</code> 和 <code>php</code> 这两个服务中，增加了之前没有的 <code>deploy</code> 配置：</p>
+<figure class="highlight yml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="attr">deploy:</span></span><br><span class="line"><span class="attr">    replicas:</span> <span class="number">4</span></span><br></pre></td></tr></table></figure>
+<p>这是 <code>v3</code> 新增的部署相关的内容，在这里我指定了集群部署的副本数量。还有其他参数可以配置，具体请参考官方文档:</p>
+<p><a href="https://github.com/docker/docker.github.io/blob/vnext-compose/compose/compose-file.md#deploy" target="_blank" rel="noopener">https://github.com/docker/docker.github.io/blob/vnext-compose/compose/compose-file.md#deploy</a></p>
+<p>如果在 swarm 环境部署该服务栈的话，使用命令：</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line">$ docker stack deploy --compose-file docker-compose.yml lnmp</span><br><span class="line">Creating network lnmp_frontend</span><br><span class="line">Creating network lnmp_backend</span><br><span class="line">Creating network lnmp_default</span><br><span class="line">Creating service lnmp_mysql</span><br><span class="line">Creating service lnmp_nginx</span><br><span class="line">Creating service lnmp_php</span><br></pre></td></tr></table></figure>
+<p>然后可以用 <code>docker stack ls</code> 或 <code>docker stack ps</code> 来查看服务栈状态：</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line">$ docker stack ls</span><br><span class="line">NAME  SERVICES</span><br><span class="line">lnmp  3</span><br><span class="line">$ docker stack ps lnmp -f <span class="string">'desired-state=Running'</span></span><br><span class="line">ID            NAME          IMAGE                      NODE  DESIRED STATE  CURRENT STATE               ERROR  PORTS</span><br><span class="line">1x6qiieam21p  lnmp_mysql.1  mysql:5.7                  d1    Running        Running 52 seconds ago</span><br><span class="line">7irrc6v9xnbo  lnmp_nginx.1  twang2218/lnmp-nginx:v1.2  d1    Running        Running about a minute ago</span><br><span class="line">2bq2kjm6xacn  lnmp_php.1    twang2218/lnmp-php:v1.2    d1    Running        Running about a minute ago</span><br><span class="line">edp0ed1k6u9w  lnmp_nginx.2  twang2218/lnmp-nginx:v1.2  d1    Running        Running 58 seconds ago</span><br><span class="line">1hlmkgtpf1pa  lnmp_php.2    twang2218/lnmp-php:v1.2    d2    Running        Running about a minute ago</span><br><span class="line">0xjjyu3tyewp  lnmp_php.3    twang2218/lnmp-php:v1.2    d2    Running        Running about a minute ago</span><br><span class="line">e9lgn25kyepx  lnmp_php.4    twang2218/lnmp-php:v1.2    d1    Running        Running about a minute ago</span><br></pre></td></tr></table></figure>
+<p>可以看到，由于配置文件中的 <code>replicas</code> 项目，自动部署了 2 个 <code>nginx</code> 服务容器副本，和 4 个 <code>php</code> 服务容器副本。</p>
+<p>由于默认使用的就是 <code>ingress</code> 边界负载均衡网络映射的 <code>80</code> 端口，因此我们可以访问任意节点来查看页面，享受二代 Swarm 给我们带来的好处。</p>
+<p>删掉 <code>stack</code>，只需要简单地 <code>docker stack rm lnmp</code> 即可。不过需要注意的是，所有的命名卷不会被删除 (<a href="https://github.com/docker/docker/issues/29158" target="_blank" rel="noopener">#29158</a>)，如需删除，需要手动的去各个容器所在节点去 <code>docker volume rm</code> 卷。</p>
+<h2 id="添加-secret-管理">添加 <code>secret</code> 管理</h2>
+<p><a href="https://github.com/docker/docker/pull/27794" target="_blank" rel="noopener">https://github.com/docker/docker/pull/27794</a></p>
+<p>从 1.13 开始，Docker 提供了集群环境的 <code>secret</code> 管理机制，从而可以更好地在集群环境中管理密码、密钥等敏感信息。</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br></pre></td><td class="code"><pre><span class="line">docker secret --<span class="built_in">help</span></span><br><span class="line"></span><br><span class="line">Usage:	docker secret COMMAND</span><br><span class="line"></span><br><span class="line">Manage Docker secrets</span><br><span class="line"></span><br><span class="line">Options:</span><br><span class="line">     --<span class="built_in">help</span>   Print usage</span><br><span class="line"></span><br><span class="line">Commands:</span><br><span class="line"> create      Create a secret using stdin as content</span><br><span class="line"> inspect     Inspect a secret</span><br><span class="line"> ls          List secrets</span><br><span class="line"> rm          Remove a secret</span><br><span class="line"></span><br><span class="line">Run <span class="string">'docker secret COMMAND --help'</span> <span class="keyword">for</span> more information on a <span class="built_in">command</span>.</span><br></pre></td></tr></table></figure>
+<p><code>docker secret create</code> 从标准输入读取信息，并且存入指定名称：</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">$ <span class="built_in">echo</span> <span class="string">"MySuperSecretPassword"</span> | docker secret create mysql_password</span><br></pre></td></tr></table></figure>
+<p>在将来启动服务的时候，就可以通过 <code>--secret</code> 选项来指定需要使用哪些 <code>secret</code>。</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">$  docker service create --name privateweb --secret mysql_password nginx</span><br></pre></td></tr></table></figure>
+<p>所指定的 <code>secret</code> 会以文件形式挂载于 <code>/var/run/secrets/</code> 目录下：</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">root@d5cec6381df8:/<span class="comment"># ls -al /var/run/secrets/</span></span><br><span class="line">total 8</span><br><span class="line">drwxrwxrwt 2 root root   60 Dec  6 03:16 .</span><br><span class="line">drwxr-xr-x 4 root root 4096 Dec  6 03:16 ..</span><br><span class="line">-r--r--r-- 1 root root   22 Dec  6 03:16 mysql_password</span><br></pre></td></tr></table></figure>
+<p><code>secret</code> 的权限是 <code>444</code> 因此容器中的非 <code>root</code> 用户也可以访问其内容，读取所需的密码或者密钥，这对于非 root 用户启动的服务很重要。</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">root@d5cec6381df8:/<span class="comment"># cat /var/run/secrets/mysql_password</span></span><br><span class="line">MySuperSecretPassword</span><br></pre></td></tr></table></figure>
+<h2 id="添加负载均衡和dns记录对新增的健康检查的支持">添加负载均衡和DNS记录对新增的健康检查的支持</h2>
+<p><a href="https://github.com/docker/docker/pull/27279" target="_blank" rel="noopener">https://github.com/docker/docker/pull/27279</a></p>
+<p>Docker 1.10 开始引入了 DNS 服务发现，然后在 1.11 进一步支持了 DNS 负载均衡，1.12 开始引入了 VIP 负载均衡。而 1.12 同时还提供了 <code>HEALTHCHECK</code> 容器健康检查的能力。但是服务发现和健康检查这两个功能在 1.12 时并没有结合起来。因此可能会出现，容器启动过程中，负载均衡就已经将流量开始导流给这个容器了，从而导致升级过程中部分服务会访问失败。</p>
+<p>在 1.13 开始，将利用 <code>Dockerfile</code> 中定义的健康检查功能，来检查容器健康情况。如果容器尚未处于健康状况，所有的负载均衡以及 DNS 服务发现将不会把流量转发给这个新启动的容器，它们会一直等到容器确实已经可以提供服务时，再更新负载均衡以及服务发现。</p>
+<h2 id="添加滚动升级回滚的功能">添加滚动升级回滚的功能</h2>
+<p><a href="https://github.com/docker/docker/pull/26421" target="_blank" rel="noopener">https://github.com/docker/docker/pull/26421</a></p>
+<p>当 Docker 1.12 提供了 Swarm Mode 的滚动升级后，大家都很兴奋，内置的滚动升级让持续发布变得更为轻松。1.12 提供了当服务升级出现故障时，超过重试次数则停止升级的功能，这也很方便，避免让错误的应用替代现有正常服务。但是有一个问题虽然提出，但并未能在 1.12 解决，就是出故障后回滚的问题。当发生故障后，如何让服务回滚到之前的版本？难道是再发布一个更新，不过更新的是旧版本么？那么旧版本到底是哪个版本？这些问题在自动化处理的时候，是一些比较麻烦的问题。</p>
+<p>在 1.13 里，开始支持 <code>docker service update --rollback</code> 功能，当发生故障停止后，可以由管理员执行该命令将服务回滚到之前的版本：</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">$ docker service update \</span><br><span class="line">  --rollback \</span><br><span class="line">  --update-delay 0s \</span><br><span class="line">  my_web</span><br></pre></td></tr></table></figure>
+<h2 id="补充了一些-docker-service-create-所缺失的参数">补充了一些 <code>docker service create</code> 所缺失的参数</h2>
+<p>从 <code>Docker 1.12</code> 发布 <code>Swarm Mode</code> 开始，<code>docker service create</code> 在某种程度上成为了新的 <code>docker run</code>，但是相对于 <code>docker run</code> 的定制参数而言，<code>docker service create</code> 要显得单薄的多。当然，由于 <code>docker service create</code> 是面向集群环境，因此不可能把 <code>docker run</code> 上所有的参数都照搬过来，需要一一甄别，有的需要重新实现，有的需要重新设计。在 <code>Docker 1.13</code>，伴随着新增的一些参数，还有不少这类参数也被添加回来了。</p>
+<ul>
+<li><a href="https://github.com/docker/docker/pull/24844" target="_blank" rel="noopener">#24844</a>：添加 <code>--env-file</code></li>
+<li><a href="https://github.com/docker/docker/pull/25317" target="_blank" rel="noopener">#25317</a>：添加 <code>--group</code></li>
+<li><a href="https://github.com/docker/docker/pull/27369" target="_blank" rel="noopener">#27369</a>：添加 <code>--no-health-check</code>, <code>--health-*</code></li>
+<li><a href="https://github.com/docker/docker/pull/27567" target="_blank" rel="noopener">#27567</a>：添加 <code>--dns</code>, <code>--dns-opt</code>, <code>--dns-search</code></li>
+<li><a href="https://github.com/docker/docker/pull/27857" target="_blank" rel="noopener">#27857</a>：添加 <code>--hostname</code></li>
+<li><a href="https://github.com/docker/docker/pull/28031" target="_blank" rel="noopener">#28031</a>：添加 <code>--host</code></li>
+<li><a href="https://github.com/docker/docker/pull/28076" target="_blank" rel="noopener">#28076</a>：添加 <code>--tty</code></li>
+</ul>
+<h2 id="添加命令-docker-service-logs-以查看服务日志试验功能">添加命令 <code>docker service logs</code> 以查看服务日志（试验功能）</h2>
+<p><a href="https://github.com/docker/docker/pull/28089" target="_blank" rel="noopener">https://github.com/docker/docker/pull/28089</a></p>
+<p>Swarm Mode 启动服务还有一个麻烦的问题就是查看日志很麻烦。在 <code>docker-compose</code> 中，可以直接 <code>docker-compose logs &lt;服务名&gt;</code> 即可查看日志，即使服务是跑在不同节点上，甚至是多个服务副本。但是 <code>docker service</code> 不支持 <code>logs</code> 命令。因此，现在查看日志比较麻烦，需要 <code>docker service ps</code> 查看各个容器都在哪些节点上，然后再一个个进去先 <code>docker ps</code> 找到容器 ID，然后在 <code>docker logs &lt;容器ID&gt;</code> 查看具体日志。非常繁琐。</p>
+<p>从 1.13 开始，实验性的提供了 <code>docker service logs</code> 命令，用以达到类似的功能。不过这是试验功能，因此必须在启用试验模式后(<code>dockerd --experimental</code>)，才可以使用。</p>
+<h2 id="增加强制再发布选项-docker-service-update-force">增加强制再发布选项 <code>docker service update --force</code></h2>
+<p><a href="https://github.com/docker/docker/pull/27596" target="_blank" rel="noopener">https://github.com/docker/docker/pull/27596</a></p>
+<p>在生产环境使用 <code>docker swarm mode</code> 的过程中，很可能会碰到这样的问题，当一个节点挂掉了，修复重启该节点后，发现原来该节点跑的服务被调度到了别的节点上。这是正常的，swarm manager 的介入保证了服务的可用性。可是节点恢复后，除非运行新的服务，或者某个别的节点挂掉，否则这个新修复的节点就一直闲着，因为服务副本数满足需求，所以 swarm manager 不会介入重新调度。</p>
+<p>这个问题在集群扩容后，问题就更加明显，新扩容的节点，最初都是空闲的。在 1.12 唯一的解决办法就是我们改点儿什么东西，从而触发 swarm 的升级行为。但是这显然不是好办法。</p>
+<p>在 1.13，引入了 <code>docker service update --force</code> 功能，可以在服务未发生改变时，强制触发再发布的流程，也就是强制重新 <code>pull</code> 该镜像、停止容器，重新调度运行容器。这样会让由于各种维护导致的集群负载不平衡的情况得到缓解，再次平衡集群。由于这是 <code>docker service update</code> 命令，因此也会遵循所指定的 <code>--update-parallelism</code> 和 <code>--update-delay</code> 的设置，进行滚动更新。</p>
+<h1 id="废弃">废弃</h1>
+<ul>
+<li>废弃 <code>docker daemon</code> 命令，用 <code>dockerd</code> 取代。其实 1.12 已经换了</li>
+<li>移除对 Ubuntu 15.10、Fedora 22 的支持，因为这两个都 EOL 了。</li>
+<li>废弃 <code>Dockerfile</code> 中的 <code>MAINTAINER</code> 指令，如果需要可以用 <code>LABEL maintainer=&lt;...&gt;</code> 代替</li>
+</ul>
+
+                
+
+                <hr>
+                <!-- Pager -->
+                <ul class="pager">
+                    
+                        <li class="previous">
+                            <a href="/posts/11850/" data-toggle="tooltip" data-placement="top" title="GitHub 加速最佳实践">&larr; Previous Post</a>
+                        </li>
+                    
+                    
+                        <li class="next">
+                            <a href="/posts/14346/" data-toggle="tooltip" data-placement="top" title="利用 SSH 的用户配置文件 Config 管理 SSH 会话">Next Post &rarr;</a>
+                        </li>
+                    
+                </ul>
+
+                <!-- duoshuo Share start -->
+                
+                <!-- 多说 Share end-->
+
+                <!-- 多说评论框 start -->
+                
+                <!-- 多说评论框 end -->
+
+                <!-- disqus comment start -->
+                
+                <!-- disqus comment end -->
+
+                
+                    <!-- disqus 评论框 start -->
+                    <div class="comment">
+                        <div id="lv-container" data-id="city" data-uid="MTAyMC8yNzg2My80NDQw"></div>
+                    </div>
+                    <!-- disqus 评论框 end -->
+                
+
+            </div>
+            
+            <!-- Tabe of Content -->
+            <!-- Table of Contents -->
+
+  
+    <style>
+      span.toc-nav-number{
+        display: none
+      }
+    </style>
+  
+    
+      <aside id="sidebar">
+        <div id="toc" class="toc-article">
+        <strong class="toc-title">Contents</strong>
+        
+          <ol class="toc-nav"><li class="toc-nav-item toc-nav-level-1"><a class="toc-nav-link" href="#前言"><span class="toc-nav-number">1.</span> <span class="toc-nav-text">前言</span></a><ol class="toc-nav-child"><li class="toc-nav-item toc-nav-level-2"><a class="toc-nav-link" href="#top-10-新增功能"><span class="toc-nav-number">1.1.</span> <span class="toc-nav-text">Top 10 新增功能</span></a></li></ol></li><li class="toc-nav-item toc-nav-level-1"><a class="toc-nav-link" href="#docker-镜像构建"><span class="toc-nav-number">2.</span> <span class="toc-nav-text">Docker 镜像构建</span></a><ol class="toc-nav-child"><li class="toc-nav-item toc-nav-level-2"><a class="toc-nav-link" href="#从已有镜像取得缓存"><span class="toc-nav-number">2.1.</span> <span class="toc-nav-text">从已有镜像取得缓存</span></a></li><li class="toc-nav-item toc-nav-level-2"><a class="toc-nav-link" href="#压扁squash镜像实验阶段"><span class="toc-nav-number">2.2.</span> <span class="toc-nav-text">压扁(squash)镜像（实验阶段）</span></a></li><li class="toc-nav-item toc-nav-level-2"><a class="toc-nav-link" href="#构建镜像时支持用-network-指定网络"><span class="toc-nav-number">2.3.</span> <span class="toc-nav-text">构建镜像时支持用 --network 指定网络</span></a></li><li class="toc-nav-item toc-nav-level-2"><a class="toc-nav-link" href="#开始允许-docker-build-中定义-dockerfile-未使用的参数arg"><span class="toc-nav-number">2.4.</span> <span class="toc-nav-text">开始允许 docker build 中定义 Dockerfile 未使用的参数（ARG）</span></a></li></ol></li><li class="toc-nav-item toc-nav-level-1"><a class="toc-nav-link" href="#安装"><span class="toc-nav-number">3.</span> <span class="toc-nav-text">安装</span></a><ol class="toc-nav-child"><li class="toc-nav-item toc-nav-level-2"><a class="toc-nav-link" href="#解决-gfw-影响-docker-安装问题"><span class="toc-nav-number">3.1.</span> <span class="toc-nav-text">解决 GFW 影响 Docker 安装问题</span></a></li><li class="toc-nav-item toc-nav-level-2"><a class="toc-nav-link" href="#增加更多的系统支持"><span class="toc-nav-number">3.2.</span> <span class="toc-nav-text">增加更多的系统支持</span></a></li></ol></li><li class="toc-nav-item toc-nav-level-1"><a class="toc-nav-link" href="#网络"><span class="toc-nav-number">4.</span> <span class="toc-nav-text">网络</span></a><ol class="toc-nav-child"><li class="toc-nav-item toc-nav-level-2"><a class="toc-nav-link" href="#允许-docker-run-连入指定的-swarm-mode-的网络"><span class="toc-nav-number">4.1.</span> <span class="toc-nav-text">允许 docker run 连入指定的 swarm mode 的网络</span></a></li><li class="toc-nav-item toc-nav-level-2"><a class="toc-nav-link" href="#允许-docker-service-create-映射宿主端口而不是边界负载均衡网络端口"><span class="toc-nav-number">4.2.</span> <span class="toc-nav-text">允许 docker service create 映射宿主端口，而不是边界负载均衡网络端口</span></a></li><li class="toc-nav-item toc-nav-level-2"><a class="toc-nav-link" href="#iptables-的转发规则将默认拒绝"><span class="toc-nav-number">4.3.</span> <span class="toc-nav-text">iptables 的转发规则将默认拒绝</span></a></li><li class="toc-nav-item toc-nav-level-2"><a class="toc-nav-link" href="#在-docker-network-inspect-里显示连入的节点"><span class="toc-nav-number">4.4.</span> <span class="toc-nav-text">在 docker network inspect 里显示连入的节点</span></a></li><li class="toc-nav-item toc-nav-level-2"><a class="toc-nav-link" href="#允许-service-vip-可以被-ping"><span class="toc-nav-number">4.5.</span> <span class="toc-nav-text">允许 service VIP 可以被 ping</span></a></li></ol></li><li class="toc-nav-item toc-nav-level-1"><a class="toc-nav-link" href="#插件"><span class="toc-nav-number">5.</span> <span class="toc-nav-text">插件</span></a><ol class="toc-nav-child"><li class="toc-nav-item toc-nav-level-2"><a class="toc-nav-link" href="#插件功能正式启用"><span class="toc-nav-number">5.1.</span> <span class="toc-nav-text">插件功能正式启用</span></a></li></ol></li><li class="toc-nav-item toc-nav-level-1"><a class="toc-nav-link" href="#命令行"><span class="toc-nav-number">6.</span> <span class="toc-nav-text">命令行</span></a><ol class="toc-nav-child"><li class="toc-nav-item toc-nav-level-2"><a class="toc-nav-link" href="#checkpoint-功能试验功能"><span class="toc-nav-number">6.1.</span> <span class="toc-nav-text">checkpoint 功能（试验功能）</span></a><ol class="toc-nav-child"><li class="toc-nav-item toc-nav-level-3"><a class="toc-nav-link" href="#准备工作"><span class="toc-nav-number">6.1.1.</span> <span class="toc-nav-text">准备工作</span></a></li><li class="toc-nav-item toc-nav-level-3"><a class="toc-nav-link" href="#创建-checkpoint-及恢复"><span class="toc-nav-number">6.1.2.</span> <span class="toc-nav-text">创建 Checkpoint 及恢复</span></a></li></ol></li><li class="toc-nav-item toc-nav-level-2"><a class="toc-nav-link" href="#docker-stats-终于可以显示容器名了"><span class="toc-nav-number">6.2.</span> <span class="toc-nav-text">docker stats 终于可以显示容器名了</span></a></li><li class="toc-nav-item toc-nav-level-2"><a class="toc-nav-link" href="#给-docker-ps-增加-is-task-过滤器"><span class="toc-nav-number">6.3.</span> <span class="toc-nav-text">给 docker ps 增加 is-task 过滤器</span></a></li><li class="toc-nav-item toc-nav-level-2"><a class="toc-nav-link" href="#再也不会出现客户端和服务端不同版本导致的错误了"><span class="toc-nav-number">6.4.</span> <span class="toc-nav-text">再也不会出现客户端和服务端不同版本导致的错误了</span></a></li><li class="toc-nav-item toc-nav-level-2"><a class="toc-nav-link" href="#docker-inspect-将可以查看任何-docker-对象"><span class="toc-nav-number">6.5.</span> <span class="toc-nav-text">docker inspect 将可以查看任何 docker 对象</span></a></li></ol></li><li class="toc-nav-item toc-nav-level-1"><a class="toc-nav-link" href="#运行时"><span class="toc-nav-number">7.</span> <span class="toc-nav-text">运行时</span></a><ol class="toc-nav-child"><li class="toc-nav-item toc-nav-level-2"><a class="toc-nav-link" href="#不在分别构建试验可执行文件直接使用-experimental-参数"><span class="toc-nav-number">7.1.</span> <span class="toc-nav-text">不在分别构建试验可执行文件，直接使用 --experimental 参数</span></a></li><li class="toc-nav-item toc-nav-level-2"><a class="toc-nav-link" href="#在-overlay2-存储驱动使用于-xfs-时可以添加磁盘配额"><span class="toc-nav-number">7.2.</span> <span class="toc-nav-text">在 overlay2 存储驱动使用于 xfs 时可以添加磁盘配额</span></a></li><li class="toc-nav-item toc-nav-level-2"><a class="toc-nav-link" href="#增加-docker-system-命令"><span class="toc-nav-number">7.3.</span> <span class="toc-nav-text">增加 docker system 命令</span></a></li><li class="toc-nav-item toc-nav-level-2"><a class="toc-nav-link" href="#提升-overlay2-的优先级"><span class="toc-nav-number">7.4.</span> <span class="toc-nav-text">提升 overlay2 的优先级</span></a></li><li class="toc-nav-item toc-nav-level-2"><a class="toc-nav-link" href="#docker-exec-t-自动添加-term-环境变量"><span class="toc-nav-number">7.5.</span> <span class="toc-nav-text">docker exec -t 自动添加 TERM 环境变量</span></a></li><li class="toc-nav-item toc-nav-level-2"><a class="toc-nav-link" href="#windows-内置的运行-windows-程序的-docker-on-windows-的改进"><span class="toc-nav-number">7.6.</span> <span class="toc-nav-text">Windows 内置的运行 Windows 程序的 Docker on Windows 的改进</span></a></li></ol></li><li class="toc-nav-item toc-nav-level-1"><a class="toc-nav-link" href="#swarm-mode"><span class="toc-nav-number">8.</span> <span class="toc-nav-text">Swarm Mode</span></a><ol class="toc-nav-child"><li class="toc-nav-item toc-nav-level-2"><a class="toc-nav-link" href="#正式支持-docker-stack"><span class="toc-nav-number">8.1.</span> <span class="toc-nav-text">正式支持 docker stack</span></a></li><li class="toc-nav-item toc-nav-level-2"><a class="toc-nav-link" href="#添加-secret-管理"><span class="toc-nav-number">8.2.</span> <span class="toc-nav-text">添加 secret 管理</span></a></li><li class="toc-nav-item toc-nav-level-2"><a class="toc-nav-link" href="#添加负载均衡和dns记录对新增的健康检查的支持"><span class="toc-nav-number">8.3.</span> <span class="toc-nav-text">添加负载均衡和DNS记录对新增的健康检查的支持</span></a></li><li class="toc-nav-item toc-nav-level-2"><a class="toc-nav-link" href="#添加滚动升级回滚的功能"><span class="toc-nav-number">8.4.</span> <span class="toc-nav-text">添加滚动升级回滚的功能</span></a></li><li class="toc-nav-item toc-nav-level-2"><a class="toc-nav-link" href="#补充了一些-docker-service-create-所缺失的参数"><span class="toc-nav-number">8.5.</span> <span class="toc-nav-text">补充了一些 docker service create 所缺失的参数</span></a></li><li class="toc-nav-item toc-nav-level-2"><a class="toc-nav-link" href="#添加命令-docker-service-logs-以查看服务日志试验功能"><span class="toc-nav-number">8.6.</span> <span class="toc-nav-text">添加命令 docker service logs 以查看服务日志（试验功能）</span></a></li><li class="toc-nav-item toc-nav-level-2"><a class="toc-nav-link" href="#增加强制再发布选项-docker-service-update-force"><span class="toc-nav-number">8.7.</span> <span class="toc-nav-text">增加强制再发布选项 docker service update --force</span></a></li></ol></li><li class="toc-nav-item toc-nav-level-1"><a class="toc-nav-link" href="#废弃"><span class="toc-nav-number">9.</span> <span class="toc-nav-text">废弃</span></a></li></ol>
+        
+        </div>
+      </aside>
+    
+
+                
+            <!-- Sidebar Container -->
+            <div class="
+                col-lg-8 col-lg-offset-2
+                col-md-10 col-md-offset-1
+                sidebar-container">
+
+                <!-- Featured Tags -->
+                
+                <section>
+                    <!-- no hr -->
+                    <h5><a href="/tags/">FEATURED TAGS</a></h5>
+                    <div class="tags">
+                       
+                          <a class="tag" href="/tags/#Linux" title="Linux">Linux</a>
+                        
+                          <a class="tag" href="/tags/#Docker" title="Docker">Docker</a>
+                        
+                    </div>
+                </section>
+                
+
+                <!-- Friends Blog -->
+                
+                <hr>
+                <h5>FRIENDS</h5>
+                <ul class="list-inline">
+
+                    
+                        <li><a href="http://www.mike.org.cn/" target="_blank">简单.生活</a></li>
+                    
+                        <li><a href="http://shang.qq.com/wpa/qunwpa?idkey=ea4c43493c2269428ac6ef6141de4b6d78e5ab2d41380ca4099b833b62884ee9" target="_blank">技术交流群</a></li>
+                    
+                        <li><a href="" target="_blank"></a></li>
+                    
+                        <li><a href="" target="_blank"></a></li>
+                    
+                </ul>
+                
+            </div>
+        </div>
+    </div>
+</article>
+
+
+
+
+
+
+    <!-- 来必力City版公共JS代码 start (一个网页只需插入一次) -->
+    <script type="text/javascript">
+       (function(d, s) {
+           var j, e = d.getElementsByTagName(s)[0];
+    
+           if (typeof LivereTower === 'function') { return; }
+    
+           j = d.createElement(s);
+           j.src = 'https://cdn-city.livere.com/js/embed.dist.js';
+           j.async = true;
+    
+           e.parentNode.insertBefore(j, e);
+       })(document, 'script');
+    </script>
+    <noscript>为正常使用来必力评论功能请激活JavaScript</noscript>
+    <!-- 来必力City版 公共JS代码 end -->
+
+
+
+<!-- async load function -->
+<script>
+    function async(u, c) {
+      var d = document, t = 'script',
+          o = d.createElement(t),
+          s = d.getElementsByTagName(t)[0];
+      o.src = u;
+      if (c) { o.addEventListener('load', function (e) { c(null, e); }, false); }
+      s.parentNode.insertBefore(o, s);
+    }
+</script>
+<!-- anchor-js, Doc:http://bryanbraun.github.io/anchorjs/ -->
+<script>
+    async("https://cdn.bootcss.com/anchor-js/1.1.1/anchor.min.js",function(){
+        anchors.options = {
+          visible: 'hover',
+          placement: 'left',
+          icon: 'ℬ'
+        };
+        anchors.add().remove('.intro-header h1').remove('.subheading').remove('.sidebar-container h5');
+    })
+</script>
+<style>
+    /* place left on bigger screen */
+    @media all and (min-width: 800px) {
+        .anchorjs-link{
+            position: absolute;
+            left: -0.75em;
+            font-size: 1.1em;
+            margin-top : -0.1em;
+        }
+    }
+</style>
+
+
+
+    <!-- Footer -->
+    <!-- Footer -->
+<footer>
+    <div class="container">
+        <div class="row">
+            <div class="col-lg-8 col-lg-offset-2 col-md-10 col-md-offset-1">
+                <ul class="list-inline text-center">
+                
+                    <li>
+                        <a href="/atom.xml">
+                            <span class="fa-stack fa-lg">
+                                <i class="fa fa-circle fa-stack-2x"></i>
+                                <i class="fa fa-rss fa-stack-1x fa-inverse"></i>
+                            </span>
+                        </a>
+                    </li>
+                
+                
+                
+                    <li>
+                        <a target="_blank" href="https://www.zhihu.com/people/80imike">
+                            <span class="fa-stack fa-lg">
+                                <i class="fa fa-circle fa-stack-2x"></i>
+                                <i class="fa  fa-stack-1x fa-inverse">知</i>
+                            </span>
+                        </a>
+                    </li>
+                
+
+                
+                    <li>
+                        <a target="_blank" href="http://weibo.com/2093524665">
+                            <span class="fa-stack fa-lg">
+                                <i class="fa fa-circle fa-stack-2x"></i>
+                                <i class="fa fa-weibo fa-stack-1x fa-inverse"></i>
+                            </span>
+                        </a>
+                    </li>
+                
+
+                
+
+                
+
+                
+
+                </ul>
+                <p class="copyright text-muted">
+                    Copyright &copy; Mike 2018 | Hosted by <a href="https://pages.coding.me" style="font-weight: bold">Coding Pages</a>
+                    <br>
+                    Theme by <a href="http://beantech.org">BeanTech</a> 
+                    <span style="display: inline-block; margin: 0 5px;">
+                        <i class="fa fa-heart"></i>
+                    </span> 
+                    re-Ported by <a href="http://www.huweihuang.com">胡伟煌</a> | 
+                    <iframe
+                        style="margin-left: 2px; margin-bottom:-5px;"
+                        frameborder="0" scrolling="0" width="91px" height="20px"
+                        src="https://ghbtns.com/github-btn.html?user=huweihuang&repo=hexo-theme-huweihuang&type=star&count=true" >
+                    </iframe>
+                </p>
+            </div>
+        </div>
+    </div>
+</footer>
+
+<!-- jQuery -->
+<script src="/js/jquery.min.js"></script>
+
+<!-- Bootstrap Core JavaScript -->
+<script src="/js/bootstrap.min.js"></script>
+
+<!-- Custom Theme JavaScript -->
+<script src="/js/hux-blog.min.js"></script>
+
+
+<!-- async load function -->
+<script>
+    function async(u, c) {
+      var d = document, t = 'script',
+          o = d.createElement(t),
+          s = d.getElementsByTagName(t)[0];
+      o.src = u;
+      if (c) { o.addEventListener('load', function (e) { c(null, e); }, false); }
+      s.parentNode.insertBefore(o, s);
+    }
+</script>
+
+<!-- 
+     Because of the native support for backtick-style fenced code blocks 
+     right within the Markdown is landed in Github Pages, 
+     From V1.6, There is no need for Highlight.js, 
+     so Huxblog drops it officially.
+
+     - https://github.com/blog/2100-github-pages-now-faster-and-simpler-with-jekyll-3-0  
+     - https://help.github.com/articles/creating-and-highlighting-code-blocks/    
+-->
+<!--
+    <script>
+        async("http://cdn.bootcss.com/highlight.js/8.6/highlight.min.js", function(){
+            hljs.initHighlightingOnLoad();
+        })
+    </script>
+    <link href="http://cdn.bootcss.com/highlight.js/8.6/styles/github.min.css" rel="stylesheet">
+-->
+
+
+<!-- jquery.tagcloud.js -->
+<script>
+    // only load tagcloud.js in tag.html
+    if($('#tag_cloud').length !== 0){
+        async("http://www.hi-linux.com/js/jquery.tagcloud.js",function(){
+            $.fn.tagcloud.defaults = {
+                //size: {start: 1, end: 1, unit: 'em'},
+                color: {start: '#bbbbee', end: '#0085a1'},
+            };
+            $('#tag_cloud a').tagcloud();
+        })
+    }
+</script>
+
+<!--fastClick.js -->
+<script>
+    async("https://cdn.bootcss.com/fastclick/1.0.6/fastclick.min.js", function(){
+        var $nav = document.querySelector("nav");
+        if($nav) FastClick.attach($nav);
+    })
+</script>
+
+
+<!-- Google Analytics -->
+
+
+
+
+<!-- Baidu Tongji -->
+
+
+
+
+
+
+	<a id="rocket" href="#top" class=""></a>
+	<script type="text/javascript" src="/js/totop.js?v=1.0.0" async=""></script>
+    <script type="text/javascript" src="/js/toc.js?v=1.0.0" async=""></script>
+<!-- Image to hack wechat -->
+<img src="http://www.hi-linux.com/img/icon_wechat.png" width="0" height="0" />
+<!-- Migrate from head to bottom, no longer block render and still work -->
+
+</body>
+
+</html>

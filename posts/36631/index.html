@@ -1,0 +1,866 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<!-- Head tag -->
+<head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="google-site-verification" content="xBT4GhYoi5qRD5tr338pgPM5OWHHIDR6mNg1a3euekI" />
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="description" content="">
+    <meta name="keyword"  content="Linux,运维,Nginx,Zabbix,Centos,Ansible,MySQL,Python,Docker,ELK,Haproxy,Git,Nodejs,安全,技术">
+    <link rel="shortcut icon" href="/img/ironman-draw.png">
+    <!-- Place this tag in your head or just before your close body tag. -->
+    <script async defer src="https://buttons.github.io/buttons.js"></script>
+    <title>
+        
+          Redis Sentinel 集群部署 - 运维之美
+        
+    </title>
+
+    <link rel="canonical" href="http://www.hi-linux.com/posts/36631/">
+
+    <!-- Bootstrap Core CSS -->
+    <link rel="stylesheet" href="/css/bootstrap.min.css">
+
+    <!-- Custom CSS --> 
+    <link rel="stylesheet" href="/css/beantech.min.css">
+    
+    <!-- Pygments Highlight CSS -->
+    <link rel="stylesheet" href="/css/highlight.css">
+
+    <link rel="stylesheet" href="/css/widget.css">
+
+    <link rel="stylesheet" href="/css/rocket.css">
+
+    <link rel="stylesheet" href="/css/signature.css">
+
+    <link rel="stylesheet" href="/css/toc.css">
+
+    <!-- Custom Fonts -->
+    <!-- <link href="https://maxcdn.bootstrapcdn.com/font-awesome/4.3.0/css/font-awesome.min.css" rel="stylesheet" type="text/css"> -->
+    <!-- Hux change font-awesome CDN to qiniu -->
+    <link href="https://cdn.staticfile.org/font-awesome/4.5.0/css/font-awesome.min.css" rel="stylesheet" type="text/css">
+
+
+    <!-- Hux Delete, sad but pending in China
+    <link href='http://fonts.googleapis.com/css?family=Lora:400,700,400italic,700italic' rel='stylesheet' type='text/css'>
+    <link href='http://fonts.googleapis.com/css?family=Open+Sans:300italic,400italic,600italic,700italic,800italic,400,300,600,700,800' rel='stylesheet' type='text/
+    css'>
+    -->
+
+
+    <!-- HTML5 Shim and Respond.js IE8 support of HTML5 elements and media queries -->
+    <!-- WARNING: Respond.js doesn't work if you view the page via file:// -->
+    <!--[if lt IE 9]>
+        <script src="https://oss.maxcdn.com/libs/html5shiv/3.7.0/html5shiv.js"></script>
+        <script src="https://oss.maxcdn.com/libs/respond.js/1.4.2/respond.min.js"></script>
+    <![endif]-->
+
+    <!-- ga & ba script hoook -->
+    <script></script>
+</head>
+
+
+<!-- hack iOS CSS :active style -->
+<body ontouchstart="">
+	<!-- Modified by Yu-Hsuan Yen -->
+<!-- Post Header -->
+<style type="text/css">
+    header.intro-header{
+        
+            background-image: url('/img/header_img/article.jpg')
+            /*post*/
+        
+    }
+    
+</style>
+
+<header class="intro-header" >
+    <!-- Signature -->
+    <div id="signature">
+        <div class="container">
+            <div class="row">
+                <div class="col-lg-8 col-lg-offset-2 col-md-10 col-md-offset-1">
+                
+                    <div class="post-heading">
+                        <div class="tags">
+                            
+                              <a class="tag" href="/tags/#Linux" title="Linux">Linux</a>
+                            
+                              <a class="tag" href="/tags/#Redis" title="Redis">Redis</a>
+                            
+                        </div>
+                        <h1>Redis Sentinel 集群部署</h1>
+                        <h2 class="subheading"></h2>
+                        <span class="meta">
+                            Posted by Mike on
+                            2017-06-20
+                        </span>
+                    </div>
+                
+
+
+                </div>
+            </div>
+        </div>
+    </div>
+</header>
+
+	
+    <!-- Navigation -->
+<nav class="navbar navbar-default navbar-custom navbar-fixed-top">
+    <div class="container-fluid">
+        <!-- Brand and toggle get grouped for better mobile display -->
+        <div class="navbar-header page-scroll">
+            <button type="button" class="navbar-toggle">
+                <span class="sr-only">Toggle navigation</span>
+                <span class="icon-bar"></span>
+                <span class="icon-bar"></span>
+                <span class="icon-bar"></span>
+            </button>
+            <a class="navbar-brand" href="/">运维之美</a>
+        </div>
+
+        <!-- Collect the nav links, forms, and other content for toggling -->
+        <!-- Known Issue, found by Hux:
+            <nav>'s height woule be hold on by its content.
+            so, when navbar scale out, the <nav> will cover tags.
+            also mask any touch event of tags, unfortunately.
+        -->
+        <div id="huxblog_navbar">
+            <div class="navbar-collapse">
+                <ul class="nav navbar-nav navbar-right">
+                    <li>
+                        <a href="/">Home</a>
+                    </li>
+
+                    
+
+                        
+                    
+
+                        
+                    
+
+                        
+                        <li>
+                            <a href="/archive/">Archives</a>
+                        </li>
+                        
+                    
+
+                        
+                        <li>
+                            <a href="/about/">About</a>
+                        </li>
+                        
+                    
+
+                        
+                        <li>
+                            <a href="/tags/">Tags</a>
+                        </li>
+                        
+                    
+                    
+                </ul>
+            </div>
+        </div>
+        <!-- /.navbar-collapse -->
+    </div>
+    <!-- /.container -->
+</nav>
+<script>
+    // Drop Bootstarp low-performance Navbar
+    // Use customize navbar with high-quality material design animation
+    // in high-perf jank-free CSS3 implementation
+    var $body   = document.body;
+    var $toggle = document.querySelector('.navbar-toggle');
+    var $navbar = document.querySelector('#huxblog_navbar');
+    var $collapse = document.querySelector('.navbar-collapse');
+
+    $toggle.addEventListener('click', handleMagic)
+    function handleMagic(e){
+        if ($navbar.className.indexOf('in') > 0) {
+        // CLOSE
+            $navbar.className = " ";
+            // wait until animation end.
+            setTimeout(function(){
+                // prevent frequently toggle
+                if($navbar.className.indexOf('in') < 0) {
+                    $collapse.style.height = "0px"
+                }
+            },400)
+        }else{
+        // OPEN
+            $collapse.style.height = "auto"
+            $navbar.className += " in";
+        }
+    }
+</script>
+
+
+    <!-- Main Content -->
+    <!-- Modify by Yu-Hsuan Yen -->
+
+<!-- Post Content -->
+<article>
+    <div class="container">
+        <div class="row">
+
+            <!-- Post Container -->
+            <div class="
+                col-lg-8 col-lg-offset-2
+                col-md-10 col-md-offset-1
+                post-container">
+
+                <h3 id="什么是redis-sentinel">什么是Redis Sentinel</h3>
+<p>Redis Sentinel是用来实现Redis高可用的一套解决方案。Redis Sentinel由两个部分组成：由一个或者多个Sentinel实例组成Sentinel系统；由一个主Redis服务器(Master Redis)和多个从Redis服务器(Slave Redis)组成主从备份的Redis系统。</p>
+<p>Sentinel系统本身是一个分布式的系统，它的作用是监视Redis服务器，在Master Redis下线时，自动将某个Slave Redis提升为新的主服务器。Redis系统由Master Redis处理客户端的命令请求，Slave Redis作为主服务器的备份而存在。</p>
+<a id="more"></a>
+<p><strong>Redis Sentinel主要作用</strong></p>
+<ul>
+<li>
+<p>监控(Monitoring)：Sentinel 会不断地检查你的主服务器和从服务器是否运作正常。</p>
+</li>
+<li>
+<p>提醒(Notification)：当被监控的某个Redis服务器出现问题时， Sentinel可以通过API向管理员或者其他应用程序发送通知。</p>
+</li>
+<li>
+<p>自动故障迁移(Automatic failover)：当一个主服务器不能正常工作时， Sentinel会开始一次自动故障迁移操作，它会将失效主服务器的其中一个从服务器升级为新的主服务器，并让失效主服务器的其他从服务器改为复制新的主服务器；当客户端试图连接失效的主服务器时，集群也会向客户端返回新主服务器的地址，使得集群可以使用新主服务器代替失效服务器。</p>
+</li>
+</ul>
+<p><strong>Redis Sentinel系统架构图</strong></p>
+<p><img src="https://www.hi-linux.com/img/linux/sentine3.png" alt=""></p>
+<p><img src="https://www.hi-linux.com/img/linux/sentine4.png" alt=""></p>
+<p>Sentinel的原理并不复杂:</p>
+<ul>
+<li>
+<p>启动N个Sentinel实例，这些Sentinel实例会去监控你指定的Redis Master/Slaves。</p>
+</li>
+<li>
+<p>当Redis Master节点挂掉后，Sentinel实例通过ping检测失败发现这种情况就认为该节点进入 SDOWN状态，也就是检测的Sentinel实例主观地(Subjectively)认为该Redis Master节点挂掉。</p>
+</li>
+<li>
+<p>当一定数目(Quorum参数设定的Sentinel实例都认为该Master挂掉的情况下，该节点将转换进入ODOWN状态，也就是客观地(Objectively)挂掉的状态。</p>
+</li>
+<li>
+<p>接下来Sentinel实例之间发起选举，选择其中一个Sentinel实例发起failover过程：从Slave中选择一台作为新的Master，让其它Slave从新的Master复制数据，并通过Pub/Sub发布事件。</p>
+</li>
+<li>
+<p>使用者客户端从任意Sentinel实例获取Redis配置信息，并监听(可选)Sentinel发出的事件： SDOWN, ODOWN以及failover等，并做相应主从切换，Sentinel还扮演了服务发现的角色。</p>
+</li>
+<li>
+<p>Sentinel的Leader选举采用的是Raft协议。</p>
+</li>
+</ul>
+<h3 id="构建redis-sentinel集群">构建Redis Sentinel集群</h3>
+<p><strong>Redis Sentinel环境准备</strong></p>
+<table>
+<thead>
+<tr>
+<th>主机名</th>
+<th>IP</th>
+<th>端口号</th>
+<th>角色</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>dev-master-01</td>
+<td>192.168.2.210</td>
+<td>6379/26379</td>
+<td>Redis Master/Sentinel</td>
+</tr>
+<tr>
+<td>dev-node-01</td>
+<td>192.168.2.211</td>
+<td>6379/26379</td>
+<td>Redis Master/Sentinel</td>
+</tr>
+<tr>
+<td>dev-node-02</td>
+<td>192.168.2.212</td>
+<td>6379/26379</td>
+<td>Redis Master/Sentinel</td>
+</tr>
+</tbody>
+</table>
+<p>一个一主多从的Redis系统中，可以使用多个Sentinel进行监控任务以保证系统足够稳健。此时，不仅Sentinel会同时监控主数据库和从数据库，Sentinel之间也会相互监控。在这里，建议大家Sentinel至少部署三个，并且使用奇数个Sentinel。</p>
+<h4 id="安装redis和sentinel">安装Redis和Sentinel</h4>
+<p>在三台服务器上分别安装Redis和Sentinel。需要注意的是，如果要给Redis设置密码，需要在三个Redis的配置文件中设置相同的密码。</p>
+<p>安装的Redis版本必须在2.8版本以上。</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">$ apt-get install redis-server redis-sentinel</span><br></pre></td></tr></table></figure>
+<h4 id="配置redis和sentinel">配置Redis和Sentinel</h4>
+<p><strong>配置Redis</strong></p>
+<p>三台Redis主机配置类似，只是初次配置时角色不同。这里以主机<code>dev-master-01</code>为例，其它两台按实际情况修改就行了。</p>
+<p>Redis默认会绑定到<code>127.0.0.1</code>，这里要在多台机器间通信，我们将它绑定到主机IP上。</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">$ vim /etc/redis/redis.conf</span><br><span class="line">bind 192.168.2.210</span><br></pre></td></tr></table></figure>
+<p>如果要给Redis设置密码，需要在三个Redis的配置文件中设置相同的密码。</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">$ vim /etc/redis/redis.conf</span><br><span class="line">requirepass &quot;000000&quot;</span><br></pre></td></tr></table></figure>
+<p>设置主从复制</p>
+<p>在两个Slave Redis的配置文件中声明所从属的主数据库。</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">$ vim /etc/redis/redis.conf</span><br><span class="line">slaveof 192.168.2.210 6379</span><br></pre></td></tr></table></figure>
+<p>这里需要注意一点：当一个Master配置需要密码才能连接时，客户端和Slave在连接时都需要提供密码。Master通过<code>requirepass</code>设置自身的密码，不提供密码无法连接到这个Master。Slave通过<code>masterauth</code>来设置访问Master时的密码。</p>
+<p>Sentinel可以切换主从数据库，主数据库可能会变成从数据库，所以三台机器上都需要同时设置<code>requirepass</code>和<code>masterauth</code>配置项。</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">$ vim /etc/redis/redis.conf</span><br><span class="line">requirepass &quot;000000&quot;</span><br><span class="line">masterauth &quot;000000&quot;</span><br></pre></td></tr></table></figure>
+<p><strong>配置Sentinel</strong></p>
+<p>redis-sentinel软件包中默认包含了一个名为<code>sentinel.conf</code>的文件，默认在<code>/etc/redis/sentinel.conf</code>。这里以主机<code>dev-master-01</code>为例，其它两台配置类似，按实际情况修改就行了。</p>
+<p>运行一个Sentinel所需的最少配置如下所示：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line">$ vim /etc/redis/sentinel.conf</span><br><span class="line"></span><br><span class="line">daemonize yes</span><br><span class="line">port 26379</span><br><span class="line">bind 192.168.2.210</span><br><span class="line">sentinel monitor redis-master 192.168.2.210 6379 2</span><br><span class="line">sentinel down-after-milliseconds redis-master 5000</span><br><span class="line">sentinel failover-timeout redis-master 180000</span><br><span class="line">sentinel parallel-syncs redis-master 2</span><br><span class="line">sentinel auth-pass redis-master 000000</span><br><span class="line">sentinel notification-script redis-master /etc/redis/notify.sh</span><br><span class="line">sentinel client-reconfig-script mymaster /etc/redis/failover.sh</span><br><span class="line">logfile /var/log/redis/redis-sentinel.log</span><br></pre></td></tr></table></figure>
+<p>以上配置项说明：</p>
+<ul>
+<li><code>daemonize yes</code></li>
+</ul>
+<p>以后台进程模式运行。</p>
+<ul>
+<li><code>port 26379</code></li>
+</ul>
+<p>Sentinel实例之间的通讯端口，该端口号默认为26379。</p>
+<ul>
+<li><code>bind 192.168.2.210</code></li>
+</ul>
+<p>Sentinel默认会绑定到<code>127.0.0.1</code>，这里要在多台机器间通信，我们将它绑定到主机IP上。</p>
+<ul>
+<li><code>sentinel monitor redis-master 192.168.2.210 6379 2</code></li>
+</ul>
+<p>Sentinel去监视一个名为redis-master的主服务器，这个主服务器的IP地址为192.168.2.210 ，端口号为6379。将这个主服务器判断为失效至少需要2个Sentinel同意，一般设置为N/2+1(N为Sentinel总数)。只要同意Sentinel的数量不达标，自动故障迁移就不会执行。</p>
+<p>不过要注意，无论你设置要多少个Sentinel同意才能判断一个服务器失效， 一个Sentinel都需要获得系统中多数Sentinel的支持，才能发起一次自动故障迁移，并预留一个给定的配置纪元。(configuration Epoch ，一个配置纪元就是一个新主服务器配置的版本号)。</p>
+<ul>
+<li><code>sentinel down-after-milliseconds redis-master 5000</code></li>
+</ul>
+<p><code>down-after-milliseconds</code>选项指定了Sentinel认为服务器已经断线所需的毫秒数。如果服务器在给定的毫秒数之内，没有返回Sentinel发送的PING命令的回复，或者返回一个错误，那么Sentinel将这个服务器标记为主观下线(subjectively down，简称SDOWN)。</p>
+<p>不过只有一个Sentinel将服务器标记为主观下线并不一定会引起服务器的自动故障迁移，只有在足够数量的Sentinel都将一个服务器标记为主观下线之后，服务器才会被标记为客观下线(objectively down，简称ODOWN)， 这时自动故障迁移才会执行。将服务器标记为客观下线所需的Sentinel数量由对主服务器的配置(sentinel monitor <quorum>参数)决定。</quorum></p>
+<ul>
+<li><code>sentinel failover-timeout redis-master 180000</code></li>
+</ul>
+<p>如果在多少毫秒内没有把宕掉的那台Master恢复，那Sentinel认为这是一次真正的宕机。在下一次选取时排除该宕掉的Master作为可用的节点，然后等待一定的设定值的毫秒数后再来探测该节点是否恢复，如果恢复就把它作为一台Slave加入Sentinel监测节点群，并在下一次切换时为他分配一个&quot;选取号&quot;。</p>
+<ul>
+<li><code>sentinel parallel-syncs redis-master 2</code></li>
+</ul>
+<p><code>parallel-syncs</code>选项指定了在执行故障转移时，最多可以有多少个从服务器同时对新的主服务器进行同步。这个数字越小，完成故障转移所需的时间就越长。</p>
+<p>如果从服务器被设置为允许使用过期数据集(<code>slave-serve-stale-data</code>选项)， 那么你可能不希望所有从服务器都在同一时间向新的主服务器发送同步请求。因为尽管复制过程的绝大部分步骤都不会阻塞从服务器，但从服务器在载入主服务器发来的RDB文件时，仍然会造成从服务器在一段时间内不能处理命令请求。</p>
+<p>如果全部从服务器一起对新的主服务器进行同步，那么就可能会造成所有从服务器在短时间内全部不可用的情况出现。你可以通过将这个值设为1来保证每次只有一个从服务器处于不能处理命令请求的状态。</p>
+<ul>
+<li><code>sentinel auth-pass redis-master 000000</code></li>
+</ul>
+<p>当Master设置了密码时，Sentinel连接Master和Slave时需要通过设置参数<code>auth-pass</code>配置相应密码。</p>
+<ul>
+<li><code>sentinel notification-script redis-master /etc/redis/notify.sh</code></li>
+</ul>
+<p>指定Sentinel检测到该监控的Redis实例failover时调用的报警脚本。脚本被允许执行的最大时间为60秒，超过这个时间脚本会被kill。该配置项可选，但线上系统建议配置。这里的通知脚本简单的记录一下failover事件。</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"># 创建通知脚本</span><br><span class="line">$ vim /etc/redis/notify.sh</span><br><span class="line"></span><br><span class="line">#! /bin/bash</span><br><span class="line"></span><br><span class="line">echo &quot;master failovered at `date`&quot; &gt; /var/log/redis/redis_issues.log</span><br></pre></td></tr></table></figure>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"># 给脚本增加执行权限</span><br><span class="line">$ chmod +x /etc/redis/notify.sh</span><br></pre></td></tr></table></figure>
+<ul>
+<li><code>sentinel client-reconfig-script redis-master /etc/redis/failover.sh</code></li>
+</ul>
+<p>指定Sentinel failover之后重配置客户端时执行的脚本，该配置项可选，但线上系统建议配置。</p>
+<ul>
+<li><code>logfile /var/log/redis/redis-sentinel.log</code></li>
+</ul>
+<p>日志文件所在位置，默认在/var/log/redis/redis-sentinel.log。</p>
+<h4 id="运行sentinel">运行Sentinel</h4>
+<p>配置完Redis和Sentinel之后，按顺序启动各个角色。启动顺序如下：<code>Master-&gt;Slave-&gt;Sentinel</code>，要确保按照这个顺序依次启动。</p>
+<ul>
+<li>启动Redis</li>
+</ul>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">$ systemctl start redis</span><br></pre></td></tr></table></figure>
+<ul>
+<li>启动Sentinel</li>
+</ul>
+<p>运行Sentinel有两种方式：</p>
+<p>虽然Redis Sentinel有单独的软件安装包，但实际上它只是一个运行在特殊模式下的Redis实例。当前Redis Stable版已经自带了redis-sentinel这个工具。你可以在启动一个普通Redis实例时通过给定<code>--sentinel</code>选项来启动Redis Sentinel。</p>
+<p>第一种：用单独的可执行文件redis-sentinel</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">$ redis-sentinel /etc/redis/sentinel.conf</span><br></pre></td></tr></table></figure>
+<p>第二种：使用redis-server的–sentinel选项</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">$ redis-server /etc/redis/sentinel.conf --sentinel</span><br></pre></td></tr></table></figure>
+<p>以上两种方式，都必须指定一个Sentinel的配置文件sentinel.conf。需要确保配置文件是可写的，因为Sentinel会往配置文件里添加很多信息作为状态持久化，这是为了重启等情况下可以正确地恢复 Sentinel的状态。</p>
+<p>当配置文件无法写入时，Sentinel会启动失败。Sentinel默认监听26379端口，所以运行前必须确定该端口没有被别的进程占用。</p>
+<p>我们这里用<code>redis-sentinel</code>方式来启动：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">$ systemctl start redis-sentinel</span><br></pre></td></tr></table></figure>
+<ul>
+<li>测试Sentinel</li>
+</ul>
+<p>启动成功后可以通过redis客户端工具查看当前Sentinel的信息，终端输入：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line">$ redis-cli -p 26379 -h 192.168.2.210 INFO Sentinel</span><br><span class="line"># Sentinel</span><br><span class="line">sentinel_masters:1</span><br><span class="line">sentinel_tilt:0</span><br><span class="line">sentinel_running_scripts:2</span><br><span class="line">sentinel_scripts_queue_length:1</span><br><span class="line">master0:name=redis-master,status=ok,address=192.168.2.210:6379,slaves=2,sentinels=1</span><br></pre></td></tr></table></figure>
+<p>Sentinel启动后会输出类似的日志：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line">$ tail -f /var/log/redis/redis-sentinel.log</span><br><span class="line"></span><br><span class="line">6207:X 06 Jun 10:40:05.904 # Sentinel runid is 2b2446b24a2bd01b9f54a6b2ca4f945a3480dd7e</span><br><span class="line">6207:X 06 Jun 10:40:05.904 # +monitor master redis-master 192.168.2.210 6379 quorum 2</span><br><span class="line">6207:X 06 Jun 10:40:05.910 * +slave slave 192.168.2.211:6379 192.168.2.211 6379 @ redis-master 192.168.2.210 6379</span><br><span class="line">6207:X 06 Jun 10:40:05.915 * +slave slave 192.168.2.212:6379 192.168.2.212 6379 @ redis-master 192.168.2.210 6379</span><br><span class="line">6207:X 06 Jun 12:01:33.098 * +sentinel sentinel 192.168.2.211:26379 192.168.2.211 26379 @ redis-master 192.168.2.210 6379</span><br><span class="line">6207:X 06 Jun 12:02:07.922 * +sentinel sentinel 192.168.2.212:26379 192.168.2.212 26379 @ redis-master 192.168.2.210 637968.2.212:6379 192.168.2.212 6379 @ redis-master 192.168.2.210 6379</span><br></pre></td></tr></table></figure>
+<p>输出的结果表示开始监控redis-master集群，并输出集群的基本信息。<code>+slave</code>和<code>+sentinel</code>分别代表成功发现了从数据库和其他Sentinel。</p>
+<ul>
+<li>查看sentinel.conf</li>
+</ul>
+<p>重新打开sentinel.conf文件，发现Sentinel自动生成了一些信息，记录了监控过程中的状态变化。</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line">$ cat /etc/redis/sentinel.conf</span><br><span class="line"># Generated by CONFIG REWRITE</span><br><span class="line">maxclients 4064</span><br><span class="line">sentinel leader-epoch redis-master 0</span><br><span class="line">sentinel known-slave redis-master 192.168.2.212 6379</span><br><span class="line">sentinel known-slave redis-master 192.168.2.211 6379</span><br><span class="line">sentinel current-epoch 0</span><br></pre></td></tr></table></figure>
+<ul>
+<li>查看Sentinel监控的主从服务器</li>
+</ul>
+<p>列出所有被监视的主服务器，以及这些主服务器的当前状态。</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br></pre></td><td class="code"><pre><span class="line">$ redis-cli  -p 26379 -h 192.168.2.210</span><br><span class="line">192.168.2.210:26379&gt; sentinel master redis-master</span><br><span class="line"> 1) &quot;name&quot;</span><br><span class="line"> 2) &quot;redis-master&quot;</span><br><span class="line"> 3) &quot;ip&quot;</span><br><span class="line"> 4) &quot;192.168.2.210&quot;</span><br><span class="line"> 5) &quot;port&quot;</span><br><span class="line"> 6) &quot;6379&quot;</span><br><span class="line"> 7) &quot;runid&quot;</span><br><span class="line"> 8) &quot;02d88a6105ce3277745c1fc65b695887f165f302&quot;</span><br><span class="line"> 9) &quot;flags&quot;</span><br><span class="line">10) &quot;master&quot;</span><br><span class="line">11) &quot;pending-commands&quot;</span><br><span class="line">12) &quot;0&quot;</span><br><span class="line">13) &quot;last-ping-sent&quot;</span><br><span class="line">14) &quot;0&quot;</span><br><span class="line">15) &quot;last-ok-ping-reply&quot;</span><br><span class="line">16) &quot;1096&quot;</span><br><span class="line">17) &quot;last-ping-reply&quot;</span><br><span class="line">18) &quot;1096&quot;</span><br><span class="line">19) &quot;down-after-milliseconds&quot;</span><br><span class="line">20) &quot;5000&quot;</span><br><span class="line">21) &quot;info-refresh&quot;</span><br><span class="line">22) &quot;4732&quot;</span><br><span class="line">23) &quot;role-reported&quot;</span><br><span class="line">24) &quot;master&quot;</span><br><span class="line">25) &quot;role-reported-time&quot;</span><br><span class="line">26) &quot;667578&quot;</span><br><span class="line">27) &quot;config-epoch&quot;</span><br><span class="line">28) &quot;0&quot;</span><br><span class="line">29) &quot;num-slaves&quot;</span><br><span class="line">30) &quot;2&quot;</span><br><span class="line">31) &quot;num-other-sentinels&quot;</span><br><span class="line">32) &quot;0&quot;</span><br><span class="line">33) &quot;quorum&quot;</span><br><span class="line">34) &quot;2&quot;</span><br><span class="line">35) &quot;failover-timeout&quot;</span><br><span class="line">36) &quot;180000&quot;</span><br><span class="line">37) &quot;parallel-syncs&quot;</span><br><span class="line">38) &quot;2&quot;</span><br><span class="line">39) &quot;notification-script&quot;</span><br><span class="line">40) &quot;/etc/redis/notify.sh&quot;</span><br></pre></td></tr></table></figure>
+<h4 id="sentinel验证">Sentinel验证</h4>
+<p><strong>测试Failover</strong></p>
+<p>我们让dev-master-01主机上的redis-master主动休眠30秒来观察failover过程：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">$ redis-cli -p 6379 -h 192.168.2.210 -a 000000 DEBUG sleep 30</span><br></pre></td></tr></table></figure>
+<p>我们可以看到每个Sentinel进程都监控到Master挂掉，从sdown状态进入odown，然后选举了一个leader来进行failover，最终<code>192.168.2.212</code>成为新的Master， Sentinel的日志输出：</p>
+<p><img src="https://www.hi-linux.com/img/linux/sentine1.png" alt=""></p>
+<p><strong>日志的几个主要事件</strong></p>
+<p>在Redis Master角色上主要有以下几个事件：</p>
+<ul>
+<li>
+<p><code>+sdown master redis-master 192.168.2.210 6379</code>，发现Master检测失败，主观认为该节点挂掉，进入sdown状态。</p>
+</li>
+<li>
+<p><code>+odown master redis-master 192.168.2.210 6379 #quorum 2/2</code>，有两个Sentinel节点认为Master 6379挂掉，达到配置的<code>quorum</code>值2，因此认为Master已经客观挂掉，进入odown状态。</p>
+</li>
+<li>
+<p><code>+try-failover master redis-master 192.168.2.210 6379</code>，表示Sentine开始进行故障恢复。</p>
+</li>
+<li>
+<p><code>+vote-for-leader 2b2446b24a2bd01b9f54a6b2ca4f945a3480dd7e 1</code>，准备选举一个 Sentinel Leader来开始failover。</p>
+</li>
+<li>
+<p><code>+failover-end master redis-master 192.168.2.210 6379</code>，表示Sentinel完成故障修复，其中包括了Sentinel Leader的选举、备选从数据库的选择等较为复杂的过程。</p>
+</li>
+<li>
+<p><code>+switch-master redis-master 192.168.2.210 6379 192.168.2.212 6379</code>， 切换Master节点，failover完成。</p>
+</li>
+<li>
+<p><code>-sdown slave 192.168.2.210:6379 192.168.2.210 6379 @ redis-master 192.168.2.212 6379</code>，192.168.2.210休眠完成后，作为Slave挂载到192.168.2.212后面，可见Sentinel确实同时在监控Slave状态，并且挂掉的节点不会自动移除，而是继续监控。</p>
+</li>
+</ul>
+<p>在Redis Slave角色上主要有以下几个事件：</p>
+<p><img src="https://www.hi-linux.com/img/linux/sentine2.png" alt=""></p>
+<p>Redis Slave上大多数都和Redis Master上的事件类似，不同的是Redis Slave还多了一步配置更新。</p>
+<ul>
+<li><code>+config-update-from sentinel 192.168.2.210:26379 192.168.2.210 26379 @ redis-master 192.168.2.210 6379</code></li>
+</ul>
+<p><strong>查看Sentinel配置文件变更</strong></p>
+<p>经过一次failover后，会发现Sentinel配置文件变更了以下一些内容。可以看到Sentinel将最新的集群状态写入了配置文件。</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line">$ cat /etc/redis/sentinel.conf</span><br><span class="line"></span><br><span class="line"># Generated by CONFIG REWRITE</span><br><span class="line">maxclients 4064</span><br><span class="line">sentinel leader-epoch redis-master 1</span><br><span class="line">sentinel known-slave redis-master 192.168.2.211 6379</span><br><span class="line">sentinel known-slave redis-master 192.168.2.210 6379</span><br><span class="line">sentinel known-sentinel redis-master 192.168.2.212 26379 bbf85fae74692d9527e77c5b0bb83a2b5db40dd2</span><br><span class="line">sentinel known-sentinel redis-master 192.168.2.210 26379 2b2446b24a2bd01b9f54a6b2ca4f945a3480dd7e</span><br><span class="line">sentinel current-epoch 1</span><br></pre></td></tr></table></figure>
+<p><strong>验证下三台主机上的角色</strong></p>
+<ul>
+<li>dev-node-02</li>
+</ul>
+<p>以下输出信息，表明192.168.2.212上的Redis是Master角色。</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line">$ redis-cli -p 6379 -h 192.168.2.212 -a 000000 info Replication</span><br><span class="line"># Replication</span><br><span class="line">role:master</span><br><span class="line">connected_slaves:2</span><br><span class="line">slave0:ip=192.168.2.211,port=6379,state=online,offset=2312008,lag=0</span><br><span class="line">slave1:ip=192.168.2.210,port=6379,state=online,offset=2312008,lag=0</span><br><span class="line">master_repl_offset:2312008</span><br><span class="line">repl_backlog_active:1</span><br><span class="line">repl_backlog_size:1048576</span><br><span class="line">repl_backlog_first_byte_offset:1639828</span><br><span class="line">repl_backlog_histlen:672181</span><br></pre></td></tr></table></figure>
+<ul>
+<li>dev-master-01</li>
+</ul>
+<p>以下输出信息，表明192.168.2.210上的Redis是Slave角色。</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br></pre></td><td class="code"><pre><span class="line">$ redis-cli -p 6379 -h 192.168.2.210 -a 000000 info Replication</span><br><span class="line"># Replication</span><br><span class="line">role:slave</span><br><span class="line">master_host:192.168.2.212</span><br><span class="line">master_port:6379</span><br><span class="line">master_link_status:up</span><br><span class="line">master_last_io_seconds_ago:0</span><br><span class="line">master_sync_in_progress:0</span><br><span class="line">slave_repl_offset:2222825</span><br><span class="line">slave_priority:100</span><br><span class="line">slave_read_only:1</span><br><span class="line">connected_slaves:0</span><br><span class="line">master_repl_offset:0</span><br><span class="line">repl_backlog_active:0</span><br><span class="line">repl_backlog_size:1048576</span><br><span class="line">repl_backlog_first_byte_offset:593455</span><br><span class="line">repl_backlog_histlen:1048576</span><br></pre></td></tr></table></figure>
+<ul>
+<li>dev-node-01</li>
+</ul>
+<p>以下输出信息，表明192.168.2.211上的Redis是Slave角色。</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br></pre></td><td class="code"><pre><span class="line">$ redis-cli -p 6379 -h 192.168.2.211 -a 000000 info Replication</span><br><span class="line"># Replication</span><br><span class="line">role:slave</span><br><span class="line">master_host:192.168.2.212</span><br><span class="line">master_port:6379</span><br><span class="line">master_link_status:up</span><br><span class="line">master_last_io_seconds_ago:0</span><br><span class="line">master_sync_in_progress:0</span><br><span class="line">slave_repl_offset:2283392</span><br><span class="line">slave_priority:100</span><br><span class="line">slave_read_only:1</span><br><span class="line">connected_slaves:0</span><br><span class="line">master_repl_offset:0</span><br><span class="line">repl_backlog_active:0</span><br><span class="line">repl_backlog_size:1048576</span><br><span class="line">repl_backlog_first_byte_offset:0</span><br><span class="line">repl_backlog_histlen:0</span><br></pre></td></tr></table></figure>
+<h3 id="sentinel日常运维">Sentinel日常运维</h3>
+<h4 id="sentinel常用命令">Sentinel常用命令</h4>
+<p>以下列出的是Sentinel接受的命令：</p>
+<ul>
+<li>
+<p><code>PING</code>：返回PONG。</p>
+</li>
+<li>
+<p><code>SENTINEL masters</code>：列出所有被监视的主服务器，以及这些主服务器的当前状态。</p>
+</li>
+<li>
+<p><code>SENTINEL master &lt;master name&gt;</code>：用于查看监控的某个Redis Master信息，包括配置和状态等。</p>
+</li>
+<li>
+<p><code>SENTINEL slaves &lt;master name&gt;</code>：列出给定主服务器的所有从服务器，以及这些从服务器的当前状态。</p>
+</li>
+<li>
+<p><code>SENTINEL sentinels &lt;master name&gt;</code>：查看给定主服务器的Sentinel实例列表及其状态。</p>
+</li>
+<li>
+<p><code>SENTINEL get-master-addr-by-name &lt;master name&gt;</code>：返回给定名字的主服务器的IP地址和端口号。 如果这个主服务器正在执行故障转移操作，或者针对这个主服务器的故障转移操作已经完成，那么这个命令返回新的主服务器的IP地址和端口号。</p>
+</li>
+<li>
+<p><code>SENTINEL reset &lt;pattern&gt;</code>：重置所有名字和给定模式pattern相匹配的主服务器。pattern 参数是一个Glob风格的模式。重置操作清除主服务器目前的所有状态，包括正在执行中的故障转移，并移除目前已经发现和关联的，主服务器的所有从服务器和Sentinel。</p>
+</li>
+<li>
+<p><code>SENTINEL failover &lt;master name&gt;</code>：当主服务器失效时， 在不询问其他Sentinel意见的情况下， 强制开始一次自动故障迁移(不过发起故障转移的Sentinel会向其他Sentinel发送一个新的配置，其他Sentinel会根据这个配置进行相应的更新)。</p>
+</li>
+<li>
+<p><code>SENTINEL reset &lt;pattern&gt;</code>：强制重设所有监控的Master状态，清除已知的Slave和Sentinel实例信息，重新获取并生成配置文件。</p>
+</li>
+<li>
+<p><code>SENTINEL failover &lt;master name&gt;</code>：强制发起一次某个Master的failover，如果该Master不可访问的话。</p>
+</li>
+<li>
+<p><code>SENTINEL ckquorum &lt;master name&gt;</code>：检测Sentinel配置是否合理，failover的条件是否可能满足，主要用来检测你的Sentinel配置是否正常。</p>
+</li>
+<li>
+<p><code>SENTINEL flushconfig</code>：强制Sentinel重写所有配置信息到配置文件。</p>
+</li>
+<li>
+<p><code>SENTINEL is-master-down-by-addr &lt;ip&gt; &lt;port&gt;</code>：一个Sentinel可以通过向另一个Sentinel发送<code>SENTINEL is-master-down-by-addr</code>命令来询问对方是否认为给定的服务器已下线。</p>
+</li>
+</ul>
+<h4 id="增加和移除监控以及修改配置参数">增加和移除监控以及修改配置参数</h4>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">SENTINEL MONITOR &lt;name&gt; &lt;ip&gt; &lt;port&gt; &lt;quorum&gt;</span><br><span class="line">SENTINEL REMOVE &lt;name&gt;</span><br><span class="line">SENTINEL SET &lt;name&gt; &lt;option&gt; &lt;value&gt;</span><br></pre></td></tr></table></figure>
+<p><strong>增加和移除Sentinel</strong></p>
+<p>增加新的Sentinel实例非常简单，修改好配置文件，启动即可，其他Sentinel会自动发现该实例并加入集群。如果要批量启动一批Sentinel节点，最好以30秒的间隔一个一个启动为好，这样能确保整个 Sentinel集群的大多数能够及时感知到新节点，满足当时可能发生的选举条件。</p>
+<p>移除一个Sentinel实例会相对麻烦一些，因为Sentinel不会忘记已经感知到的Sentinel实例，所以最好按照下列步骤来处理：</p>
+<ul>
+<li>
+<p>停止将要移除的sentinel进程。</p>
+</li>
+<li>
+<p>给其余的sentinel进程发送<code>SENTINEL RESET *</code>命令来重置状态，忘记将要移除的sentinel，每个进程之间间隔30秒。</p>
+</li>
+<li>
+<p>确保所有sentinel对于当前存货的sentinel数量达成一致，可以通过<code>SENTINEL MASTER &lt;mastername&gt;</code>命令来观察，或者查看配置文件。</p>
+</li>
+</ul>
+<h4 id="生产环境推荐">生产环境推荐</h4>
+<p>对于一个最小集群，Redis应该是一个Master带上两个Slave，并且开启下列选项：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">min-slaves-to-write 1</span><br><span class="line">min-slaves-max-lag 10</span><br></pre></td></tr></table></figure>
+<p>这样能保证写入Master的同时至少写入一个Slave，如果出现网络分区阻隔并发生failover的时候，可以保证写入的数据最终一致而不是丢失，写入老的Master会直接失败。</p>
+<p>Slave可以适当设置优先级，除了0之外(0表示永远不提升为Master)，越小的优先级，越有可能被提示为Master。如果Slave分布在多个机房，可以考虑将和Master同一个机房的Slave的优先级设置的更低以提升他被选为新的Master的可能性。</p>
+<p>考虑到可用性和选举的需要，Sentinel进程至少为3个，推荐为5个。如果有网络分区，应当适当分布(比如2个在A机房， 2个在B机房，一个在C机房)等。</p>
+<h4 id="客户端实现">客户端实现</h4>
+<p>客户端从过去直接连接Redis ，变成：</p>
+<ul>
+<li>
+<p>先连接一个Sentinel实例</p>
+</li>
+<li>
+<p>使用 <code>SENTINEL get-master-addr-by-name master-name</code> 获取Redis地址信息。</p>
+</li>
+<li>
+<p>连接返回的Redis地址信息，通过<code>ROLE</code>命令查询是否是Master。如果是，连接进入正常的服务环节。否则应该断开重新查询。</p>
+</li>
+<li>
+<p>(可选)客户端可以通过<code>SENTINEL sentinels &lt;master-name&gt;</code>来更新自己的Sentinel实例列表。</p>
+</li>
+</ul>
+<p>当Sentinel发起failover后，切换了新的Master，Sentinel会发送 <code>CLIENT KILL TYPE normal</code>命令给客户端，客户端需要主动断开对老的Master的链接，然后重新查询新的Master地址，再重复走上面的流程。这样的方式仍然相对不够实时，可以通过<code>Sentinel</code>提供的<code>Pub/Sub</code>来更快地监听到failover事件，加快重连。</p>
+<p>如果需要实现读写分离，读走Slave，那可以走<code>SENTINEL slaves &lt;master name&gt;</code> 来查询Slave列表并连接。</p>
+<h4 id="其他">其他</h4>
+<p>由于Redis是异步复制，所以Sentinel其实无法达到强一致性，它承诺的是最终一致性：最后一次failover的Redis Master赢者通吃，其他Slave的数据将被丢弃，重新从新的Master复制数据。此外还有前面提到的分区带来的一致性问题。</p>
+<p>其次，Sentinel的选举算法依赖时间，因此要确保所有机器的时间同步，如果发现时间不一致，Sentinel实现了一个TITL模式来保护系统的可用性。</p>
+<h3 id="参考文档">参考文档</h3>
+<p><a href="http://www.google.com" target="_blank" rel="noopener">http://www.google.com</a><br>
+<a href="http://t.cn/RS95rUA" target="_blank" rel="noopener">http://t.cn/RS95rUA</a><br>
+<a href="http://www.jianshu.com/p/42ee966f96e5" target="_blank" rel="noopener">http://www.jianshu.com/p/42ee966f96e5</a><br>
+<a href="https://redis.io/topics/sentinel" target="_blank" rel="noopener">https://redis.io/topics/sentinel</a><br>
+<a href="https://redis.io/topics/sentinel-clients" target="_blank" rel="noopener">https://redis.io/topics/sentinel-clients</a><br>
+<a href="http://blog.fnil.net/blog/255ccfae971d6d30b0921120d327490b/" target="_blank" rel="noopener">http://blog.fnil.net/blog/255ccfae971d6d30b0921120d327490b/</a></p>
+
+                
+
+                <hr>
+                <!-- Pager -->
+                <ul class="pager">
+                    
+                        <li class="previous">
+                            <a href="/posts/61083/" data-toggle="tooltip" data-placement="top" title="MySQL 5.7 多源复制实践">&larr; Previous Post</a>
+                        </li>
+                    
+                    
+                        <li class="next">
+                            <a href="/posts/4811/" data-toggle="tooltip" data-placement="top" title="在内网环境中离线安装 Docker">Next Post &rarr;</a>
+                        </li>
+                    
+                </ul>
+
+                <!-- duoshuo Share start -->
+                
+                <!-- 多说 Share end-->
+
+                <!-- 多说评论框 start -->
+                
+                <!-- 多说评论框 end -->
+
+                <!-- disqus comment start -->
+                
+                <!-- disqus comment end -->
+
+                
+                    <!-- disqus 评论框 start -->
+                    <div class="comment">
+                        <div id="lv-container" data-id="city" data-uid="MTAyMC8yNzg2My80NDQw"></div>
+                    </div>
+                    <!-- disqus 评论框 end -->
+                
+
+            </div>
+            
+            <!-- Tabe of Content -->
+            <!-- Table of Contents -->
+
+  
+    <style>
+      span.toc-nav-number{
+        display: none
+      }
+    </style>
+  
+    
+      <aside id="sidebar">
+        <div id="toc" class="toc-article">
+        <strong class="toc-title">Contents</strong>
+        
+          <ol class="toc-nav"><li class="toc-nav-item toc-nav-level-3"><a class="toc-nav-link" href="#什么是redis-sentinel"><span class="toc-nav-number">1.</span> <span class="toc-nav-text">什么是Redis Sentinel</span></a></li><li class="toc-nav-item toc-nav-level-3"><a class="toc-nav-link" href="#构建redis-sentinel集群"><span class="toc-nav-number">2.</span> <span class="toc-nav-text">构建Redis Sentinel集群</span></a><ol class="toc-nav-child"><li class="toc-nav-item toc-nav-level-4"><a class="toc-nav-link" href="#安装redis和sentinel"><span class="toc-nav-number">2.1.</span> <span class="toc-nav-text">安装Redis和Sentinel</span></a></li><li class="toc-nav-item toc-nav-level-4"><a class="toc-nav-link" href="#配置redis和sentinel"><span class="toc-nav-number">2.2.</span> <span class="toc-nav-text">配置Redis和Sentinel</span></a></li><li class="toc-nav-item toc-nav-level-4"><a class="toc-nav-link" href="#运行sentinel"><span class="toc-nav-number">2.3.</span> <span class="toc-nav-text">运行Sentinel</span></a></li><li class="toc-nav-item toc-nav-level-4"><a class="toc-nav-link" href="#sentinel验证"><span class="toc-nav-number">2.4.</span> <span class="toc-nav-text">Sentinel验证</span></a></li></ol></li><li class="toc-nav-item toc-nav-level-3"><a class="toc-nav-link" href="#sentinel日常运维"><span class="toc-nav-number">3.</span> <span class="toc-nav-text">Sentinel日常运维</span></a><ol class="toc-nav-child"><li class="toc-nav-item toc-nav-level-4"><a class="toc-nav-link" href="#sentinel常用命令"><span class="toc-nav-number">3.1.</span> <span class="toc-nav-text">Sentinel常用命令</span></a></li><li class="toc-nav-item toc-nav-level-4"><a class="toc-nav-link" href="#增加和移除监控以及修改配置参数"><span class="toc-nav-number">3.2.</span> <span class="toc-nav-text">增加和移除监控以及修改配置参数</span></a></li><li class="toc-nav-item toc-nav-level-4"><a class="toc-nav-link" href="#生产环境推荐"><span class="toc-nav-number">3.3.</span> <span class="toc-nav-text">生产环境推荐</span></a></li><li class="toc-nav-item toc-nav-level-4"><a class="toc-nav-link" href="#客户端实现"><span class="toc-nav-number">3.4.</span> <span class="toc-nav-text">客户端实现</span></a></li><li class="toc-nav-item toc-nav-level-4"><a class="toc-nav-link" href="#其他"><span class="toc-nav-number">3.5.</span> <span class="toc-nav-text">其他</span></a></li></ol></li><li class="toc-nav-item toc-nav-level-3"><a class="toc-nav-link" href="#参考文档"><span class="toc-nav-number">4.</span> <span class="toc-nav-text">参考文档</span></a></li></ol>
+        
+        </div>
+      </aside>
+    
+
+                
+            <!-- Sidebar Container -->
+            <div class="
+                col-lg-8 col-lg-offset-2
+                col-md-10 col-md-offset-1
+                sidebar-container">
+
+                <!-- Featured Tags -->
+                
+                <section>
+                    <!-- no hr -->
+                    <h5><a href="/tags/">FEATURED TAGS</a></h5>
+                    <div class="tags">
+                       
+                          <a class="tag" href="/tags/#Linux" title="Linux">Linux</a>
+                        
+                          <a class="tag" href="/tags/#Redis" title="Redis">Redis</a>
+                        
+                    </div>
+                </section>
+                
+
+                <!-- Friends Blog -->
+                
+                <hr>
+                <h5>FRIENDS</h5>
+                <ul class="list-inline">
+
+                    
+                        <li><a href="http://www.mike.org.cn/" target="_blank">简单.生活</a></li>
+                    
+                        <li><a href="http://shang.qq.com/wpa/qunwpa?idkey=ea4c43493c2269428ac6ef6141de4b6d78e5ab2d41380ca4099b833b62884ee9" target="_blank">技术交流群</a></li>
+                    
+                        <li><a href="" target="_blank"></a></li>
+                    
+                        <li><a href="" target="_blank"></a></li>
+                    
+                </ul>
+                
+            </div>
+        </div>
+    </div>
+</article>
+
+
+
+
+
+
+    <!-- 来必力City版公共JS代码 start (一个网页只需插入一次) -->
+    <script type="text/javascript">
+       (function(d, s) {
+           var j, e = d.getElementsByTagName(s)[0];
+    
+           if (typeof LivereTower === 'function') { return; }
+    
+           j = d.createElement(s);
+           j.src = 'https://cdn-city.livere.com/js/embed.dist.js';
+           j.async = true;
+    
+           e.parentNode.insertBefore(j, e);
+       })(document, 'script');
+    </script>
+    <noscript>为正常使用来必力评论功能请激活JavaScript</noscript>
+    <!-- 来必力City版 公共JS代码 end -->
+
+
+
+<!-- async load function -->
+<script>
+    function async(u, c) {
+      var d = document, t = 'script',
+          o = d.createElement(t),
+          s = d.getElementsByTagName(t)[0];
+      o.src = u;
+      if (c) { o.addEventListener('load', function (e) { c(null, e); }, false); }
+      s.parentNode.insertBefore(o, s);
+    }
+</script>
+<!-- anchor-js, Doc:http://bryanbraun.github.io/anchorjs/ -->
+<script>
+    async("https://cdn.bootcss.com/anchor-js/1.1.1/anchor.min.js",function(){
+        anchors.options = {
+          visible: 'hover',
+          placement: 'left',
+          icon: 'ℬ'
+        };
+        anchors.add().remove('.intro-header h1').remove('.subheading').remove('.sidebar-container h5');
+    })
+</script>
+<style>
+    /* place left on bigger screen */
+    @media all and (min-width: 800px) {
+        .anchorjs-link{
+            position: absolute;
+            left: -0.75em;
+            font-size: 1.1em;
+            margin-top : -0.1em;
+        }
+    }
+</style>
+
+
+
+    <!-- Footer -->
+    <!-- Footer -->
+<footer>
+    <div class="container">
+        <div class="row">
+            <div class="col-lg-8 col-lg-offset-2 col-md-10 col-md-offset-1">
+                <ul class="list-inline text-center">
+                
+                    <li>
+                        <a href="/atom.xml">
+                            <span class="fa-stack fa-lg">
+                                <i class="fa fa-circle fa-stack-2x"></i>
+                                <i class="fa fa-rss fa-stack-1x fa-inverse"></i>
+                            </span>
+                        </a>
+                    </li>
+                
+                
+                
+                    <li>
+                        <a target="_blank" href="https://www.zhihu.com/people/80imike">
+                            <span class="fa-stack fa-lg">
+                                <i class="fa fa-circle fa-stack-2x"></i>
+                                <i class="fa  fa-stack-1x fa-inverse">知</i>
+                            </span>
+                        </a>
+                    </li>
+                
+
+                
+                    <li>
+                        <a target="_blank" href="http://weibo.com/2093524665">
+                            <span class="fa-stack fa-lg">
+                                <i class="fa fa-circle fa-stack-2x"></i>
+                                <i class="fa fa-weibo fa-stack-1x fa-inverse"></i>
+                            </span>
+                        </a>
+                    </li>
+                
+
+                
+
+                
+
+                
+
+                </ul>
+                <p class="copyright text-muted">
+                    Copyright &copy; Mike 2018 | Hosted by <a href="https://pages.coding.me" style="font-weight: bold">Coding Pages</a>
+                    <br>
+                    Theme by <a href="http://beantech.org">BeanTech</a> 
+                    <span style="display: inline-block; margin: 0 5px;">
+                        <i class="fa fa-heart"></i>
+                    </span> 
+                    re-Ported by <a href="http://www.huweihuang.com">胡伟煌</a> | 
+                    <iframe
+                        style="margin-left: 2px; margin-bottom:-5px;"
+                        frameborder="0" scrolling="0" width="91px" height="20px"
+                        src="https://ghbtns.com/github-btn.html?user=huweihuang&repo=hexo-theme-huweihuang&type=star&count=true" >
+                    </iframe>
+                </p>
+            </div>
+        </div>
+    </div>
+</footer>
+
+<!-- jQuery -->
+<script src="/js/jquery.min.js"></script>
+
+<!-- Bootstrap Core JavaScript -->
+<script src="/js/bootstrap.min.js"></script>
+
+<!-- Custom Theme JavaScript -->
+<script src="/js/hux-blog.min.js"></script>
+
+
+<!-- async load function -->
+<script>
+    function async(u, c) {
+      var d = document, t = 'script',
+          o = d.createElement(t),
+          s = d.getElementsByTagName(t)[0];
+      o.src = u;
+      if (c) { o.addEventListener('load', function (e) { c(null, e); }, false); }
+      s.parentNode.insertBefore(o, s);
+    }
+</script>
+
+<!-- 
+     Because of the native support for backtick-style fenced code blocks 
+     right within the Markdown is landed in Github Pages, 
+     From V1.6, There is no need for Highlight.js, 
+     so Huxblog drops it officially.
+
+     - https://github.com/blog/2100-github-pages-now-faster-and-simpler-with-jekyll-3-0  
+     - https://help.github.com/articles/creating-and-highlighting-code-blocks/    
+-->
+<!--
+    <script>
+        async("http://cdn.bootcss.com/highlight.js/8.6/highlight.min.js", function(){
+            hljs.initHighlightingOnLoad();
+        })
+    </script>
+    <link href="http://cdn.bootcss.com/highlight.js/8.6/styles/github.min.css" rel="stylesheet">
+-->
+
+
+<!-- jquery.tagcloud.js -->
+<script>
+    // only load tagcloud.js in tag.html
+    if($('#tag_cloud').length !== 0){
+        async("http://www.hi-linux.com/js/jquery.tagcloud.js",function(){
+            $.fn.tagcloud.defaults = {
+                //size: {start: 1, end: 1, unit: 'em'},
+                color: {start: '#bbbbee', end: '#0085a1'},
+            };
+            $('#tag_cloud a').tagcloud();
+        })
+    }
+</script>
+
+<!--fastClick.js -->
+<script>
+    async("https://cdn.bootcss.com/fastclick/1.0.6/fastclick.min.js", function(){
+        var $nav = document.querySelector("nav");
+        if($nav) FastClick.attach($nav);
+    })
+</script>
+
+
+<!-- Google Analytics -->
+
+
+
+
+<!-- Baidu Tongji -->
+
+
+
+
+
+
+	<a id="rocket" href="#top" class=""></a>
+	<script type="text/javascript" src="/js/totop.js?v=1.0.0" async=""></script>
+    <script type="text/javascript" src="/js/toc.js?v=1.0.0" async=""></script>
+<!-- Image to hack wechat -->
+<img src="http://www.hi-linux.com/img/icon_wechat.png" width="0" height="0" />
+<!-- Migrate from head to bottom, no longer block render and still work -->
+
+</body>
+
+</html>

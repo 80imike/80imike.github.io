@@ -1,0 +1,860 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<!-- Head tag -->
+<head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="google-site-verification" content="xBT4GhYoi5qRD5tr338pgPM5OWHHIDR6mNg1a3euekI" />
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="description" content="">
+    <meta name="keyword"  content="Linux,运维,Nginx,Zabbix,Centos,Ansible,MySQL,Python,Docker,ELK,Haproxy,Git,Nodejs,安全,技术">
+    <link rel="shortcut icon" href="/img/ironman-draw.png">
+    <!-- Place this tag in your head or just before your close body tag. -->
+    <script async defer src="https://buttons.github.io/buttons.js"></script>
+    <title>
+        
+          使用 Docker-Compose 编排容器 - 运维之美
+        
+    </title>
+
+    <link rel="canonical" href="http://www.hi-linux.com/posts/12554/">
+
+    <!-- Bootstrap Core CSS -->
+    <link rel="stylesheet" href="/css/bootstrap.min.css">
+
+    <!-- Custom CSS --> 
+    <link rel="stylesheet" href="/css/beantech.min.css">
+    
+    <!-- Pygments Highlight CSS -->
+    <link rel="stylesheet" href="/css/highlight.css">
+
+    <link rel="stylesheet" href="/css/widget.css">
+
+    <link rel="stylesheet" href="/css/rocket.css">
+
+    <link rel="stylesheet" href="/css/signature.css">
+
+    <link rel="stylesheet" href="/css/toc.css">
+
+    <!-- Custom Fonts -->
+    <!-- <link href="https://maxcdn.bootstrapcdn.com/font-awesome/4.3.0/css/font-awesome.min.css" rel="stylesheet" type="text/css"> -->
+    <!-- Hux change font-awesome CDN to qiniu -->
+    <link href="https://cdn.staticfile.org/font-awesome/4.5.0/css/font-awesome.min.css" rel="stylesheet" type="text/css">
+
+
+    <!-- Hux Delete, sad but pending in China
+    <link href='http://fonts.googleapis.com/css?family=Lora:400,700,400italic,700italic' rel='stylesheet' type='text/css'>
+    <link href='http://fonts.googleapis.com/css?family=Open+Sans:300italic,400italic,600italic,700italic,800italic,400,300,600,700,800' rel='stylesheet' type='text/
+    css'>
+    -->
+
+
+    <!-- HTML5 Shim and Respond.js IE8 support of HTML5 elements and media queries -->
+    <!-- WARNING: Respond.js doesn't work if you view the page via file:// -->
+    <!--[if lt IE 9]>
+        <script src="https://oss.maxcdn.com/libs/html5shiv/3.7.0/html5shiv.js"></script>
+        <script src="https://oss.maxcdn.com/libs/respond.js/1.4.2/respond.min.js"></script>
+    <![endif]-->
+
+    <!-- ga & ba script hoook -->
+    <script></script>
+</head>
+
+
+<!-- hack iOS CSS :active style -->
+<body ontouchstart="">
+	<!-- Modified by Yu-Hsuan Yen -->
+<!-- Post Header -->
+<style type="text/css">
+    header.intro-header{
+        
+            background-image: url('/img/header_img/article.jpg')
+            /*post*/
+        
+    }
+    
+</style>
+
+<header class="intro-header" >
+    <!-- Signature -->
+    <div id="signature">
+        <div class="container">
+            <div class="row">
+                <div class="col-lg-8 col-lg-offset-2 col-md-10 col-md-offset-1">
+                
+                    <div class="post-heading">
+                        <div class="tags">
+                            
+                              <a class="tag" href="/tags/#Linux" title="Linux">Linux</a>
+                            
+                              <a class="tag" href="/tags/#Docker" title="Docker">Docker</a>
+                            
+                        </div>
+                        <h1>使用 Docker-Compose 编排容器</h1>
+                        <h2 class="subheading"></h2>
+                        <span class="meta">
+                            Posted by Mike on
+                            2017-02-22
+                        </span>
+                    </div>
+                
+
+
+                </div>
+            </div>
+        </div>
+    </div>
+</header>
+
+	
+    <!-- Navigation -->
+<nav class="navbar navbar-default navbar-custom navbar-fixed-top">
+    <div class="container-fluid">
+        <!-- Brand and toggle get grouped for better mobile display -->
+        <div class="navbar-header page-scroll">
+            <button type="button" class="navbar-toggle">
+                <span class="sr-only">Toggle navigation</span>
+                <span class="icon-bar"></span>
+                <span class="icon-bar"></span>
+                <span class="icon-bar"></span>
+            </button>
+            <a class="navbar-brand" href="/">运维之美</a>
+        </div>
+
+        <!-- Collect the nav links, forms, and other content for toggling -->
+        <!-- Known Issue, found by Hux:
+            <nav>'s height woule be hold on by its content.
+            so, when navbar scale out, the <nav> will cover tags.
+            also mask any touch event of tags, unfortunately.
+        -->
+        <div id="huxblog_navbar">
+            <div class="navbar-collapse">
+                <ul class="nav navbar-nav navbar-right">
+                    <li>
+                        <a href="/">Home</a>
+                    </li>
+
+                    
+
+                        
+                    
+
+                        
+                    
+
+                        
+                        <li>
+                            <a href="/archive/">Archives</a>
+                        </li>
+                        
+                    
+
+                        
+                        <li>
+                            <a href="/about/">About</a>
+                        </li>
+                        
+                    
+
+                        
+                        <li>
+                            <a href="/tags/">Tags</a>
+                        </li>
+                        
+                    
+                    
+                </ul>
+            </div>
+        </div>
+        <!-- /.navbar-collapse -->
+    </div>
+    <!-- /.container -->
+</nav>
+<script>
+    // Drop Bootstarp low-performance Navbar
+    // Use customize navbar with high-quality material design animation
+    // in high-perf jank-free CSS3 implementation
+    var $body   = document.body;
+    var $toggle = document.querySelector('.navbar-toggle');
+    var $navbar = document.querySelector('#huxblog_navbar');
+    var $collapse = document.querySelector('.navbar-collapse');
+
+    $toggle.addEventListener('click', handleMagic)
+    function handleMagic(e){
+        if ($navbar.className.indexOf('in') > 0) {
+        // CLOSE
+            $navbar.className = " ";
+            // wait until animation end.
+            setTimeout(function(){
+                // prevent frequently toggle
+                if($navbar.className.indexOf('in') < 0) {
+                    $collapse.style.height = "0px"
+                }
+            },400)
+        }else{
+        // OPEN
+            $collapse.style.height = "auto"
+            $navbar.className += " in";
+        }
+    }
+</script>
+
+
+    <!-- Main Content -->
+    <!-- Modify by Yu-Hsuan Yen -->
+
+<!-- Post Content -->
+<article>
+    <div class="container">
+        <div class="row">
+
+            <!-- Post Container -->
+            <div class="
+                col-lg-8 col-lg-offset-2
+                col-md-10 col-md-offset-1
+                post-container">
+
+                <p>Docker-Compose是Docker的一种编排服务，是一个用于在Docker上定义并运行复杂应用的工具，可以让用户在集群中部署分布式应用。</p>
+<p>通过Docker-Compose用户可以很容易地用一个配置文件定义一个多容器的应用，然后使用一条指令安装这个应用的所有依赖，完成构建。Docker-Compose解决了容器与容器之间如何管理编排的问题。</p>
+<a id="more"></a>
+<p><strong>Docker Compose 工作原理图</strong></p>
+<p><img src="https://www.hi-linux.com/img/linux/docker-compose.png" alt=""></p>
+<h3 id="安装docker-compose">安装Docker-Compose</h3>
+<p>Docker-Compose</p>
+<ul>
+<li>如Docker-Compose文件格式为2.0，Docker Engine版本必须大于1.10.0</li>
+<li>如Docker-Compose文件格式为1.0，Docker Engine版本必须大于1.9.1</li>
+</ul>
+<h4 id="安装docker-compose">安装Docker-Compose</h4>
+<p>这里使用的是阿里云镜像安装，速度比官方的快一些。</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">$ curl -sSL http://acs-public-mirror.oss-cn-hangzhou.aliyuncs.com/docker-engine/internet | sh -</span><br></pre></td></tr></table></figure>
+<ul>
+<li>方法一</li>
+</ul>
+<p>通过pip安装(推荐)</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">Note: pip version 6.0 or greater is required</span><br><span class="line">$ pip install -U docker-compose</span><br></pre></td></tr></table></figure>
+<p>验证安装成功</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">$ pip list|grep compose</span><br><span class="line">docker-compose (1.11.1)</span><br></pre></td></tr></table></figure>
+<ul>
+<li>方法二</li>
+</ul>
+<p>直接使用二进制文件</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">$ curl -L https://github.com/docker/compose/releases/download/1.7.1/docker-compose-`uname -s`-`uname -m` &gt; /usr/<span class="built_in">local</span>/bin/docker-compose</span><br><span class="line">$ chmod +x /usr/<span class="built_in">local</span>/bin/docker-compose</span><br></pre></td></tr></table></figure>
+<p>你可以通过修改URL中的版本，可以自定义您的需要的版本。</p>
+<p>Docker Compose存放在GitHub，国内访问比较慢。你可以也通过执行下面的命令，使用国内镜像安装Docker Compose。</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">$ curl -L https://get.daocloud.io/docker/compose/releases/download/1.7.1/docker-compose-`uname -s`-`uname -m` &gt; /usr/<span class="built_in">local</span>/bin/docker-compose</span><br><span class="line">$ chmod +x /usr/<span class="built_in">local</span>/bin/docker-compose</span><br></pre></td></tr></table></figure>
+<p>验证安装成功</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">$ docker-compose --version</span><br></pre></td></tr></table></figure>
+<h4 id="添加shell的tab补全">添加SHELL的TAB补全</h4>
+<ul>
+<li>Bash</li>
+</ul>
+<p><strong>安装bash-completion</strong></p>
+<p>Debian/Ubuntu</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">$ apt-get install bash-completion</span><br></pre></td></tr></table></figure>
+<p>Centos</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">$ yum install bash-completion</span><br></pre></td></tr></table></figure>
+<p>MAC</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">$ brew install bash-completion</span><br></pre></td></tr></table></figure>
+<p><strong>下载docker-compose脚本</strong></p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">$ curl -L https://raw.githubusercontent.com/docker/compose/$(docker-compose version --short)/contrib/completion/bash/docker-compose &gt; /etc/bash_completion.d/docker-compose</span><br></pre></td></tr></table></figure>
+<p>重新登陆后就生效了</p>
+<ul>
+<li>ZSH</li>
+</ul>
+<p>下载脚本</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">$ mkdir -p ~/.zsh/completion</span><br><span class="line">$ curl -L https://raw.githubusercontent.com/docker/compose/$(docker-compose version --short)/contrib/completion/zsh/_docker-compose &gt; ~/.zsh/completion/_docker-compose</span><br></pre></td></tr></table></figure>
+<p>编辑zshrc</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">$ vim ~/.zshrc</span><br><span class="line"></span><br><span class="line">fpath=(~/.zsh/completion <span class="variable">$fpath</span>)</span><br><span class="line"><span class="built_in">autoload</span> -Uz compinit &amp;&amp; compinit -i</span><br></pre></td></tr></table></figure>
+<ul>
+<li>Oh My ZSH</li>
+</ul>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">$ vim ~/.zshrc</span><br><span class="line"></span><br><span class="line">plugins+=(docker-compose)</span><br></pre></td></tr></table></figure>
+<ul>
+<li>重新加载SHELL</li>
+</ul>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">$ <span class="built_in">exec</span> <span class="variable">$SHELL</span> -l</span><br></pre></td></tr></table></figure>
+<h4 id="卸载docker-compose">卸载Docker-Compose</h4>
+<ul>
+<li>通过二进制文件</li>
+</ul>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">$ rm /usr/<span class="built_in">local</span>/bin/docker-compose</span><br></pre></td></tr></table></figure>
+<ul>
+<li>通过pip安装</li>
+</ul>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">$ pip uninstall docker-compose</span><br></pre></td></tr></table></figure>
+<h3 id="使用docker-compose">使用Docker-Compose</h3>
+<h4 id="docker-compose常用命令">Docker-Compose常用命令</h4>
+<p>查看docker-compose的用法</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br></pre></td><td class="code"><pre><span class="line">$ docker-compose</span><br><span class="line"></span><br><span class="line">Define and run multi-container applications with Docker.</span><br><span class="line"></span><br><span class="line">Usage:</span><br><span class="line">  docker-compose [-f &lt;arg&gt;...] [options] [COMMAND] [ARGS...]</span><br><span class="line">  docker-compose -h|--<span class="built_in">help</span></span><br><span class="line"></span><br><span class="line">Options:</span><br><span class="line">  -f, --file FILE             Specify an alternate compose file (default: docker-compose.yml)</span><br><span class="line">  -p, --project-name NAME     Specify an alternate project name (default: directory name)</span><br><span class="line">  --verbose                   Show more output</span><br><span class="line">  -v, --version               Print version and <span class="built_in">exit</span></span><br><span class="line">  -H, --host HOST             Daemon socket to connect to</span><br><span class="line"></span><br><span class="line">  --tls                       Use TLS; implied by --tlsverify</span><br><span class="line">  --tlscacert CA_PATH         Trust certs signed only by this CA</span><br><span class="line">  --tlscert CLIENT_CERT_PATH  Path to TLS certificate file</span><br><span class="line">  --tlskey TLS_KEY_PATH       Path to TLS key file</span><br><span class="line">  --tlsverify                 Use TLS and verify the remote</span><br><span class="line">  --skip-hostname-check       Don<span class="string">'t check the daemon'</span>s hostname against the name specified</span><br><span class="line">                              <span class="keyword">in</span> the client certificate (<span class="keyword">for</span> example <span class="keyword">if</span> your docker host</span><br><span class="line">                              is an IP address)</span><br><span class="line"></span><br><span class="line">Commands:</span><br><span class="line">  build              Build or rebuild services</span><br><span class="line">  config             Validate and view the compose file</span><br><span class="line">  create             Create services</span><br><span class="line">  down               Stop and remove containers, networks, images, and volumes</span><br><span class="line">  events             Receive real time events from containers</span><br><span class="line">  <span class="built_in">exec</span>               Execute a <span class="built_in">command</span> <span class="keyword">in</span> a running container</span><br><span class="line">  <span class="built_in">help</span>               Get <span class="built_in">help</span> on a <span class="built_in">command</span></span><br><span class="line">  <span class="built_in">kill</span>               Kill containers</span><br><span class="line">  logs               View output from containers</span><br><span class="line">  pause              Pause services</span><br><span class="line">  port               Print the public port <span class="keyword">for</span> a port binding</span><br><span class="line">  ps                 List containers</span><br><span class="line">  pull               Pulls service images</span><br><span class="line">  restart            Restart services</span><br><span class="line">  rm                 Remove stopped containers</span><br><span class="line">  run                Run a one-off <span class="built_in">command</span></span><br><span class="line">  scale              Set number of containers <span class="keyword">for</span> a service</span><br><span class="line">  start              Start services</span><br><span class="line">  stop               Stop services</span><br><span class="line">  unpause            Unpause services</span><br><span class="line">  up                 Create and start containers</span><br><span class="line">  version            Show the Docker-Compose version information</span><br></pre></td></tr></table></figure>
+<h4 id="docker-compose命令说明">Docker-Compose命令说明</h4>
+<p>大部分命令都可以运行在一个或多个服务上。如果没有特别的说明，命令则应用在项目所有的服务上。</p>
+<p>执行<code>docker-compose [COMMAND] --help</code>查看具体某个命令的使用说明。</p>
+<p><strong>基本的使用格式</strong></p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">docker-compose [options] [COMMAND] [ARGS...]</span><br></pre></td></tr></table></figure>
+<p><strong>常用选项</strong></p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line">-f, --file FILE           指定启动模版文件(一个非docker-compose.yml命名的yaml文件,默认为docker-compose.yml)</span><br><span class="line">-p, --project-name NAME   指定一个替代项目名称 (默认是directory名)</span><br><span class="line">-d 以daemon的方式启动容器</span><br><span class="line">--x-networking            (EXPERIMENTAL) 使用新的网络功能</span><br><span class="line">--x-network-driver DRIVER (EXPERIMENTAL) 指定网络驱动程序，桥 (default: <span class="string">"bridge"</span>).</span><br><span class="line">--verbose：输出详细信息</span><br><span class="line">--version 打印版本并退出。</span><br></pre></td></tr></table></figure>
+<p><strong>常用命令</strong></p>
+<ul>
+<li>build</li>
+</ul>
+<p>构建或重新构建服务。<br>
+服务一旦构建后，将会带上一个标记名，例如 web_db。<br>
+可以随时在项目目录下运行 docker-compose build 来重新构建服务。</p>
+<ul>
+<li>help</li>
+</ul>
+<p>获得一个命令的帮助。</p>
+<ul>
+<li>kill</li>
+</ul>
+<p>通过发送SIGKILL信号来强制停止服务容器。支持通过参数来指定发送的信号，例如 <code>docker-compose kill -s SIGINT</code></p>
+<ul>
+<li>logs</li>
+</ul>
+<p>查看服务的输出。</p>
+<ul>
+<li>port</li>
+</ul>
+<p>打印绑定的公共端口。</p>
+<ul>
+<li>ps</li>
+</ul>
+<p>输出运行的容器列表。</p>
+<ul>
+<li>pull</li>
+</ul>
+<p>拉取服务镜像。</p>
+<ul>
+<li>rm</li>
+</ul>
+<p>删除停止的服务容器。</p>
+<ul>
+<li>run</li>
+</ul>
+<p>在一个服务上执行一个命令。例如：<code>docker-compose run ubuntu ping docker.com</code>将会启动一个ubuntu 服务，执行 <code>ping docker.com</code> 命令。</p>
+<p>默认情况下，所有关联的服务将会自动被启动，除非这些服务已经在运行中。该命令类似启动容器后运行指定的命令，相关卷、链接等等都将会按照期望创建。</p>
+<p>如果不希望自动启动关联的容器，可以使用 <code>--no-deps</code> 选项，例如 <code>docker-compose run --no-deps web python manage.py shell</code> 将不会启动 web 容器所关联的其它容器。</p>
+<ul>
+<li>scale</li>
+</ul>
+<p>设置同一个服务运行的容器个数。</p>
+<p>通过 service=num 的参数来设置数量。例如：<code>docker-compose scale web=2 worker=3</code></p>
+<ul>
+<li>start</li>
+</ul>
+<p>启动一个已经存在的服务容器。</p>
+<ul>
+<li>stop</li>
+</ul>
+<p>停止一个已经运行的容器，但不删除它。通过 <code>docker-compose start</code>可以再次启动这些容器。</p>
+<ul>
+<li>restart</li>
+</ul>
+<p>重启服务容器</p>
+<ul>
+<li>up</li>
+</ul>
+<p>构建，（重新）创建，启动，链接一个服务相关的容器。链接的服务都将会启动，除非他们已经运行。</p>
+<p>默认情况， <code>docker-compose up</code> 将会整合所有容器的输出，并且退出时，所有容器将会停止。如果使用 <code>docker-compose up -d</code> ，将会在后台启动并运行所有的容器。</p>
+<p>默认情况，如果该服务的容器已经存在， <code>docker-compose up</code> 将会停止并尝试重新创建他们（保持使用 <code>volumes-from</code> 挂载的卷），以保证 <code>docker-compose.yml</code> 的修改生效。如果你不想容器被停止并重新创建，可以使用 <code>docker-compose up --no-recreate</code>。如果需要的话，这样将会启动已经停止的容器。</p>
+<ul>
+<li>pause</li>
+</ul>
+<p>暂停容器服务</p>
+<ul>
+<li>version</li>
+</ul>
+<p>显示Docker-Compose版本信息</p>
+<ul>
+<li>环境变量</li>
+</ul>
+<p>环境变量可以用来配置Compose的行为。</p>
+<p>以DOCKER_开头的变量和用来配置 Docker 命令行客户端的使用一样。</p>
+<p>COMPOSE_PROJECT_NAME</p>
+<p>设置通过Compose启动的每一个容器前添加的项目名称，默认是当前工作目录的名字。</p>
+<p>COMPOSE_FILE</p>
+<p>设置要使用的 <code>docker-compose.yml</code> 的路径。默认路径是当前工作目录。</p>
+<p>DOCKER_HOST</p>
+<p>设置Docker daemon的地址。默认使用<code>unix:///var/run/docker.sock</code>，与Docker客户端采用的默认值一致。</p>
+<p>DOCKER_TLS_VERIFY</p>
+<p>如果设置不为空，则与 Docker daemon 交互通过 TLS 进行。</p>
+<p>DOCKER_CERT_PATH</p>
+<p>配置TLS通信所需要的验证(ca.pem、cert.pem 和 key.pem)文件的路径，默认是 <code>~/.docker</code> 。</p>
+<p><strong>docker-compose命令对比</strong></p>
+<ul>
+<li>image vs build</li>
+</ul>
+<p>image：如果镜像在本地不存在，Compose 将会尝试拉去这个镜像。</p>
+<p>build：指定 <code>Dockerfile</code> 所在文件夹的路径。 Compose 将会利用它自动构建这个镜像，然后使用这个镜像。</p>
+<ul>
+<li>links vs external_links</li>
+</ul>
+<p>links：链接到其它服务中的容器。使用服务名称（同时作为别名）或服务名称：服务别名 （SERVICE:ALIAS） 格式都可以。使用的别名将会自动在服务容器中的 /etc/hosts 里创建。</p>
+<p>external_links：链接到 docker-compose.yml 外部的容器，甚至 并非 Compose 管理的容器。</p>
+<ul>
+<li>ports vs expose</li>
+</ul>
+<p>ports</p>
+<p>暴露端口信息。使用：宿主：容器 （HOST:CONTAINER）格式或者仅仅指定容器的端口（宿主将会随机选择端口）都可以。</p>
+<p>当使用 HOST:CONTAINER 格式来映射端口时，如果你使用的容器端口小于 60 你可能会得到错误得结果，因为 YAML 将会解析 xx:yy 这种数字格式为 60 进制。所以建议采用字符串格式。</p>
+<p>expose</p>
+<p>暴露端口，但不映射到宿主机，只被连接的服务访问。</p>
+<ul>
+<li>volumes vs volumes_from</li>
+</ul>
+<p>volumes</p>
+<p>卷挂载路径设置。可以设置宿主机路径 （HOST:CONTAINER） 或加上访问模式 （HOST:CONTAINER:ro）。ro就是readonly的意思，只读模式。</p>
+<p>volumes_from</p>
+<p>从另一个服务或容器挂载它的所有卷。</p>
+<h4 id="docker-compose-yaml语法使用说明">Docker-Compose YAML语法使用说明</h4>
+<p>默认的模板文件是 <code>docker-compose.yml</code>，其中定义的每个服务都必须通过image指令指定镜像或build指令(需要 Dockerfile)来自动构建。其它大部分指令都跟docker run中的类似。</p>
+<p>如果使用build指令，在Dockerfile中设置的选项(例如：CMD, EXPOSE, VOLUME, ENV 等) 将会自动被获取，无需在docker-compose.yml中再次设置。</p>
+<ul>
+<li>build</li>
+</ul>
+<p>这个是创建docker镜像时的选项，通过本地的dockerfile来创建，而不是通过image id来pull。<br>
+其中build还有一些小选项。</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">build:</span><br><span class="line">  context: ./webapp</span><br><span class="line">  dockerfile: Dockerfile-alternate</span><br><span class="line">  args:</span><br><span class="line">    - buildno=1</span><br><span class="line">    - user=someuser</span><br></pre></td></tr></table></figure>
+<p>context上下文是docker build中很重要的一个概念。构建镜像必须指定context。context是 docker build 命令的工作目录。默认情况下，如果不额外指定 Dockerfile 的话，会将 Context 下的名为 Dockerfile 的文件作为 Dockerfile。</p>
+<p>dockerfile选项是值得备选的dockerfile。args是一些提供的参数。</p>
+<ul>
+<li>image: 生成镜像的ID</li>
+</ul>
+<p>指定为镜像名称或镜像 ID。如果镜像在本地不存在，Compose 将会尝试拉去这个镜像。</p>
+<p>例如：</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">image: ubuntu</span><br><span class="line">image: orchardup/postgresql</span><br><span class="line">image: a4bc65fd</span><br></pre></td></tr></table></figure>
+<ul>
+<li>links</li>
+</ul>
+<p>链接到其它服务中的容器,使一个容器可以主动的去和另外一个容器通讯。使用服务名称（同时作为别名）或服务名称：服务别名 （SERVICE:ALIAS） 格式都可以。</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">links:</span><br><span class="line"> - db</span><br><span class="line"> - db:database</span><br><span class="line"> - redis</span><br></pre></td></tr></table></figure>
+<p>使用的别名将会自动在服务容器中的 /etc/hosts 里创建。例如：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">172.17.2.186  db</span><br><span class="line">172.17.2.186  database</span><br><span class="line">172.17.2.187  redis</span><br></pre></td></tr></table></figure>
+<p>相应的环境变量也将被创建。</p>
+<ul>
+<li>external_links</li>
+</ul>
+<p>链接到 docker-compose.yml 外部的容器，甚至 并非 Compose 管理的容器。参数格式跟 links 类似。</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">external_links:</span><br><span class="line"> - redis_1</span><br><span class="line"> - project_db_1:mysql</span><br><span class="line"> - project_db_1:postgresql</span><br></pre></td></tr></table></figure>
+<ul>
+<li>expose</li>
+</ul>
+<p>这个是给link用的，将一些端口暴露给link到这个container上的containers。暴露端口，但不映射到宿主机，只被连接的服务访问。</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">expose:</span><br><span class="line">    - &quot;3000&quot;</span><br><span class="line">    - &quot;8000&quot;</span><br></pre></td></tr></table></figure>
+<ul>
+<li>ports</li>
+</ul>
+<p>暴露端口信息,这个是将端口和本机端口映射的选项，写法如下，其实跟<code>docker -p</code>一样。使用宿主：容器 （HOST:CONTAINER）格式或者仅仅指定容器的端口（宿主将会随机选择端口）都可以。</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line">ports:</span><br><span class="line">    - &quot;3000&quot;</span><br><span class="line">    - &quot;3000-3005&quot;</span><br><span class="line">    - &quot;8000:8000&quot;</span><br><span class="line">    - &quot;9090-9091:8080-8081&quot;</span><br><span class="line">    - &quot;49100:22&quot;</span><br><span class="line">    - &quot;127.0.0.1:8001:8001&quot;</span><br><span class="line">    - &quot;127.0.0.1:5000-5010:5000-5010&quot;</span><br></pre></td></tr></table></figure>
+<p>注：当使用 HOST:CONTAINER 格式来映射端口时，如果你使用的容器端口小于 60 你可能会得到错误得结果，因为 YAML 将会解析 xx:yy 这种数字格式为 60 进制。所以建议采用字符串格式。</p>
+<ul>
+<li>environment:</li>
+</ul>
+<p>设置环境变量。你可以使用数组或字典两种格式。</p>
+<p>只给定名称的变量会自动获取它在 Compose 主机上的值，可以用来防止泄露不必要的数据。</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line">environment:</span><br><span class="line">  RACK_ENV: development</span><br><span class="line">  SESSION_SECRET:</span><br><span class="line"></span><br><span class="line">environment:</span><br><span class="line">  - RACK_ENV=development</span><br><span class="line">  - SESSION_SECRET</span><br></pre></td></tr></table></figure>
+<ul>
+<li>env_file</li>
+</ul>
+<p>从文件中获取环境变量，可以为单独的文件路径或列表。</p>
+<p>如果通过 <code>docker-compose -f FILE</code> 指定了模板文件，则 env_file 中路径会基于模板文件路径。</p>
+<p>如果有变量名称与 environment 指令冲突，则以后者为准。</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">env_file: .env</span><br><span class="line"></span><br><span class="line">env_file:</span><br><span class="line">  - ./common.env</span><br><span class="line">  - ./apps/web.env</span><br><span class="line">  - /opt/secrets.env</span><br></pre></td></tr></table></figure>
+<p>环境变量文件中每一行必须符合格式，支持 # 开头的注释行。</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"># common.env: Set Rails/Rack environment</span><br><span class="line">RACK_ENV=development</span><br></pre></td></tr></table></figure>
+<ul>
+<li>volumes</li>
+</ul>
+<p>将本机的文件夹挂载到container中，这一点在使用zmq的ipc通讯方式时用到了。</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br></pre></td><td class="code"><pre><span class="line">volumes:</span><br><span class="line">     # Just specify a path and let the Engine create a volume</span><br><span class="line">        - /var/lib/mysql</span><br><span class="line"></span><br><span class="line">    # Specify an absolute path mapping</span><br><span class="line">        - /opt/data:/var/lib/mysql</span><br><span class="line"></span><br><span class="line">    # Path on the host, relative to the Compose file</span><br><span class="line">        - ./cache:/tmp/cache</span><br><span class="line"></span><br><span class="line">      # User-relative path</span><br><span class="line">        - ~/configs:/etc/configs/:ro</span><br><span class="line"></span><br><span class="line">     # Named volume</span><br><span class="line">        - datavolume:/var/lib/mysql</span><br></pre></td></tr></table></figure>
+<p>卷挂载路径设置。可以设置宿主机路径 （HOST:CONTAINER） 或加上访问模式 （HOST:CONTAINER:ro）。</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">volumes:</span><br><span class="line"> - /var/lib/mysql</span><br><span class="line"> - cache/:/tmp/cache</span><br><span class="line"> - ~/configs:/etc/configs/:ro</span><br></pre></td></tr></table></figure>
+<ul>
+<li>volumes_from</li>
+</ul>
+<p>从另一个服务或容器挂载它的所有卷。</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">volumes_from:</span><br><span class="line"> - service_name</span><br><span class="line"> - container_name</span><br></pre></td></tr></table></figure>
+<ul>
+<li>extends</li>
+</ul>
+<p>基于已有的服务进行扩展。例如我们已经有了一个webapp服务，模板文件为 common.yml。</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"># common.yml</span><br><span class="line">webapp:</span><br><span class="line">  build: ./webapp</span><br><span class="line">  environment:</span><br><span class="line">    - DEBUG=false</span><br><span class="line">    - SEND_EMAILS=false</span><br></pre></td></tr></table></figure>
+<p>编写一个新的 development.yml 文件，使用 common.yml 中的 webapp 服务进行扩展。</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line"># development.yml</span><br><span class="line">web:</span><br><span class="line">  extends:</span><br><span class="line">    file: common.yml</span><br><span class="line">    service: webapp</span><br><span class="line">  ports:</span><br><span class="line">    - &quot;8000:8000&quot;</span><br><span class="line">  links:</span><br><span class="line">    - db</span><br><span class="line">  environment:</span><br><span class="line">    - DEBUG=true</span><br><span class="line">db:</span><br><span class="line">  image: postgres</span><br></pre></td></tr></table></figure>
+<p>后者会自动继承 common.yml 中的 webapp 服务及相关环节变量。</p>
+<ul>
+<li>net</li>
+</ul>
+<p>设置网络模式。使用和 docker client 的 –net 参数一样的值。</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">net: &quot;bridge&quot;</span><br><span class="line">net: &quot;none&quot;</span><br><span class="line">net: &quot;container:[name or id]&quot;</span><br><span class="line">net: &quot;host&quot;</span><br></pre></td></tr></table></figure>
+<ul>
+<li>pid</li>
+</ul>
+<p>跟主机系统共享进程命名空间。打开该选项的容器可以相互通过进程 ID 来访问和操作。</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">pid: &quot;host&quot;</span><br></pre></td></tr></table></figure>
+<ul>
+<li>dns</li>
+</ul>
+<p>配置 DNS 服务器。可以是一个值，也可以是一个列表。</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">dns: 8.8.8.8</span><br><span class="line">dns:</span><br><span class="line">  - 8.8.8.8</span><br><span class="line">  - 9.9.9.9</span><br></pre></td></tr></table></figure>
+<ul>
+<li>cap_add, cap_drop</li>
+</ul>
+<p>添加或放弃容器的 Linux 能力（Capabiliity）。</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">cap_add:</span><br><span class="line">  - ALL</span><br><span class="line"></span><br><span class="line">cap_drop:</span><br><span class="line">  - NET_ADMIN</span><br><span class="line">  - SYS_ADMIN</span><br></pre></td></tr></table></figure>
+<ul>
+<li>dns_search</li>
+</ul>
+<p>配置 DNS 搜索域。可以是一个值，也可以是一个列表。</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">dns_search: example.com</span><br><span class="line">dns_search:</span><br><span class="line">  - domain1.example.com</span><br><span class="line">  - domain2.example.com</span><br></pre></td></tr></table></figure>
+<ul>
+<li>command</li>
+</ul>
+<p>覆盖容器启动后默认执行的命令。</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">command: bundle exec thin -p 3000</span><br></pre></td></tr></table></figure>
+<ul>
+<li>其它选项</li>
+</ul>
+<p>working_dir, entrypoint, user, hostname, domainname, mem_limit, privileged, restart, stdin_open, tty, cpu_sharesv 这些都是和 docker run 支持的选项类似。</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line">cpu_shares: 73</span><br><span class="line">working_dir: /code</span><br><span class="line">entrypoint: /code/entrypoint.sh</span><br><span class="line">user: postgresql</span><br><span class="line">hostname: foo</span><br><span class="line">domainname: foo.com</span><br><span class="line">mem_limit: 1000000000</span><br><span class="line">privileged: true</span><br><span class="line">restart: always</span><br><span class="line">stdin_open: true</span><br><span class="line">tty: true</span><br></pre></td></tr></table></figure>
+<h3 id="docker-compose使用实例">Docker-Compose使用实例</h3>
+<p>创建一个Wordpress应用,首先建立一个应用的目录</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">$ mkdir wordpress</span><br><span class="line">$ <span class="built_in">cd</span> wordpress</span><br></pre></td></tr></table></figure>
+<p>创建 docker-compose.yml</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br></pre></td><td class="code"><pre><span class="line">$ vim docker-compose.yml</span><br><span class="line"></span><br><span class="line">version: <span class="string">'2'</span></span><br><span class="line">services:</span><br><span class="line">  db:</span><br><span class="line">    image: mysql:5.7</span><br><span class="line">    volumes:</span><br><span class="line">      - <span class="string">"./data/db:/var/lib/mysql"</span></span><br><span class="line">    restart: always</span><br><span class="line">    environment:</span><br><span class="line">      MYSQL_ROOT_PASSWORD: wordpress</span><br><span class="line">      MYSQL_DATABASE: wordpress</span><br><span class="line">      MYSQL_USER: wordpress</span><br><span class="line">      MYSQL_PASSWORD: wordpress</span><br><span class="line"></span><br><span class="line">  wordpress:</span><br><span class="line">    depends_on:</span><br><span class="line">      - db</span><br><span class="line">    image: wordpress:latest</span><br><span class="line">    links:</span><br><span class="line">      - db</span><br><span class="line">    ports:</span><br><span class="line">      - <span class="string">"8000:80"</span></span><br><span class="line">    restart: always</span><br><span class="line">    environment:</span><br><span class="line">      WORDPRESS_DB_HOST: db:3306</span><br><span class="line">      WORDPRESS_DB_PASSWORD: wordpress</span><br></pre></td></tr></table></figure>
+<p>MySQL的数据目录挂载到当前目录下，./.data/db不存在时会自动创建。</p>
+<p>启动应用</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">$ docker-compose up -d</span><br><span class="line"></span><br><span class="line">Starting wordpress_db_1</span><br><span class="line">Starting wordpress_wordpress_1</span><br></pre></td></tr></table></figure>
+<p>确认启动成功</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">$ docker-compose ps</span><br><span class="line"></span><br><span class="line">675777c33fdb        wordpress:latest    <span class="string">"docker-entrypoint.sh"</span>   About an hour ago   Up About a minute                     0.0.0.0:8000-&gt;80/tcp   wordpress_wordpress_1</span><br><span class="line">6edfe3786798        mysql:5.7           <span class="string">"docker-entrypoint.sh"</span>   About an hour ago   Up About a minute                     3306/tcp               wordpress_db_1</span><br></pre></td></tr></table></figure>
+<p>访问应用</p>
+<p><a href="http://localhost:8000/" target="_blank" rel="noopener">http://localhost:8000/</a></p>
+<p>初始化设置后，就可以看到Wordpress的页面</p>
+<p><img src="https://www.hi-linux.com/img/linux/wordpress.png" alt=""></p>
+<p><strong>其它</strong></p>
+<p>Docker Compose UI，一个可在网页上的直观的进行Docker Compose操作的项目。</p>
+<p>项目地址：<a href="https://github.com/francescou/docker-compose-ui" target="_blank" rel="noopener">https://github.com/francescou/docker-compose-ui</a></p>
+<h3 id="参考文档">参考文档</h3>
+<p><a href="http://www.google.com" target="_blank" rel="noopener">http://www.google.com</a><br>
+<a href="https://docs.docker.com/compose/compose-file/" target="_blank" rel="noopener">https://docs.docker.com/compose/compose-file/</a><br>
+<a href="https://coding.net/u/twang2218/p/docker-lnmp/git" target="_blank" rel="noopener">https://coding.net/u/twang2218/p/docker-lnmp/git</a><br>
+<a href="http://www.cnblogs.com/ee900222/p/docker_5.html" target="_blank" rel="noopener">http://www.cnblogs.com/ee900222/p/docker_5.html</a></p>
+
+                
+
+                <hr>
+                <!-- Pager -->
+                <ul class="pager">
+                    
+                        <li class="previous">
+                            <a href="/posts/64839/" data-toggle="tooltip" data-placement="top" title="Alpine Linux 配置使用技巧">&larr; Previous Post</a>
+                        </li>
+                    
+                    
+                        <li class="next">
+                            <a href="/posts/64672/" data-toggle="tooltip" data-placement="top" title="关于云服务器相同系统镜像模板中 OpenSSH 密钥相同的处理方法">Next Post &rarr;</a>
+                        </li>
+                    
+                </ul>
+
+                <!-- duoshuo Share start -->
+                
+                <!-- 多说 Share end-->
+
+                <!-- 多说评论框 start -->
+                
+                <!-- 多说评论框 end -->
+
+                <!-- disqus comment start -->
+                
+                <!-- disqus comment end -->
+
+                
+                    <!-- disqus 评论框 start -->
+                    <div class="comment">
+                        <div id="lv-container" data-id="city" data-uid="MTAyMC8yNzg2My80NDQw"></div>
+                    </div>
+                    <!-- disqus 评论框 end -->
+                
+
+            </div>
+            
+            <!-- Tabe of Content -->
+            <!-- Table of Contents -->
+
+  
+    <style>
+      span.toc-nav-number{
+        display: none
+      }
+    </style>
+  
+    
+      <aside id="sidebar">
+        <div id="toc" class="toc-article">
+        <strong class="toc-title">Contents</strong>
+        
+          <ol class="toc-nav"><li class="toc-nav-item toc-nav-level-3"><a class="toc-nav-link" href="#安装docker-compose"><span class="toc-nav-number">1.</span> <span class="toc-nav-text">安装Docker-Compose</span></a><ol class="toc-nav-child"><li class="toc-nav-item toc-nav-level-4"><a class="toc-nav-link" href="#安装docker-compose"><span class="toc-nav-number">1.1.</span> <span class="toc-nav-text">安装Docker-Compose</span></a></li><li class="toc-nav-item toc-nav-level-4"><a class="toc-nav-link" href="#添加shell的tab补全"><span class="toc-nav-number">1.2.</span> <span class="toc-nav-text">添加SHELL的TAB补全</span></a></li><li class="toc-nav-item toc-nav-level-4"><a class="toc-nav-link" href="#卸载docker-compose"><span class="toc-nav-number">1.3.</span> <span class="toc-nav-text">卸载Docker-Compose</span></a></li></ol></li><li class="toc-nav-item toc-nav-level-3"><a class="toc-nav-link" href="#使用docker-compose"><span class="toc-nav-number">2.</span> <span class="toc-nav-text">使用Docker-Compose</span></a><ol class="toc-nav-child"><li class="toc-nav-item toc-nav-level-4"><a class="toc-nav-link" href="#docker-compose常用命令"><span class="toc-nav-number">2.1.</span> <span class="toc-nav-text">Docker-Compose常用命令</span></a></li><li class="toc-nav-item toc-nav-level-4"><a class="toc-nav-link" href="#docker-compose命令说明"><span class="toc-nav-number">2.2.</span> <span class="toc-nav-text">Docker-Compose命令说明</span></a></li><li class="toc-nav-item toc-nav-level-4"><a class="toc-nav-link" href="#docker-compose-yaml语法使用说明"><span class="toc-nav-number">2.3.</span> <span class="toc-nav-text">Docker-Compose YAML语法使用说明</span></a></li></ol></li><li class="toc-nav-item toc-nav-level-3"><a class="toc-nav-link" href="#docker-compose使用实例"><span class="toc-nav-number">3.</span> <span class="toc-nav-text">Docker-Compose使用实例</span></a></li><li class="toc-nav-item toc-nav-level-3"><a class="toc-nav-link" href="#参考文档"><span class="toc-nav-number">4.</span> <span class="toc-nav-text">参考文档</span></a></li></ol>
+        
+        </div>
+      </aside>
+    
+
+                
+            <!-- Sidebar Container -->
+            <div class="
+                col-lg-8 col-lg-offset-2
+                col-md-10 col-md-offset-1
+                sidebar-container">
+
+                <!-- Featured Tags -->
+                
+                <section>
+                    <!-- no hr -->
+                    <h5><a href="/tags/">FEATURED TAGS</a></h5>
+                    <div class="tags">
+                       
+                          <a class="tag" href="/tags/#Linux" title="Linux">Linux</a>
+                        
+                          <a class="tag" href="/tags/#Docker" title="Docker">Docker</a>
+                        
+                    </div>
+                </section>
+                
+
+                <!-- Friends Blog -->
+                
+                <hr>
+                <h5>FRIENDS</h5>
+                <ul class="list-inline">
+
+                    
+                        <li><a href="http://www.mike.org.cn/" target="_blank">简单.生活</a></li>
+                    
+                        <li><a href="http://shang.qq.com/wpa/qunwpa?idkey=ea4c43493c2269428ac6ef6141de4b6d78e5ab2d41380ca4099b833b62884ee9" target="_blank">技术交流群</a></li>
+                    
+                        <li><a href="" target="_blank"></a></li>
+                    
+                        <li><a href="" target="_blank"></a></li>
+                    
+                </ul>
+                
+            </div>
+        </div>
+    </div>
+</article>
+
+
+
+
+
+
+    <!-- 来必力City版公共JS代码 start (一个网页只需插入一次) -->
+    <script type="text/javascript">
+       (function(d, s) {
+           var j, e = d.getElementsByTagName(s)[0];
+    
+           if (typeof LivereTower === 'function') { return; }
+    
+           j = d.createElement(s);
+           j.src = 'https://cdn-city.livere.com/js/embed.dist.js';
+           j.async = true;
+    
+           e.parentNode.insertBefore(j, e);
+       })(document, 'script');
+    </script>
+    <noscript>为正常使用来必力评论功能请激活JavaScript</noscript>
+    <!-- 来必力City版 公共JS代码 end -->
+
+
+
+<!-- async load function -->
+<script>
+    function async(u, c) {
+      var d = document, t = 'script',
+          o = d.createElement(t),
+          s = d.getElementsByTagName(t)[0];
+      o.src = u;
+      if (c) { o.addEventListener('load', function (e) { c(null, e); }, false); }
+      s.parentNode.insertBefore(o, s);
+    }
+</script>
+<!-- anchor-js, Doc:http://bryanbraun.github.io/anchorjs/ -->
+<script>
+    async("https://cdn.bootcss.com/anchor-js/1.1.1/anchor.min.js",function(){
+        anchors.options = {
+          visible: 'hover',
+          placement: 'left',
+          icon: 'ℬ'
+        };
+        anchors.add().remove('.intro-header h1').remove('.subheading').remove('.sidebar-container h5');
+    })
+</script>
+<style>
+    /* place left on bigger screen */
+    @media all and (min-width: 800px) {
+        .anchorjs-link{
+            position: absolute;
+            left: -0.75em;
+            font-size: 1.1em;
+            margin-top : -0.1em;
+        }
+    }
+</style>
+
+
+
+    <!-- Footer -->
+    <!-- Footer -->
+<footer>
+    <div class="container">
+        <div class="row">
+            <div class="col-lg-8 col-lg-offset-2 col-md-10 col-md-offset-1">
+                <ul class="list-inline text-center">
+                
+                    <li>
+                        <a href="/atom.xml">
+                            <span class="fa-stack fa-lg">
+                                <i class="fa fa-circle fa-stack-2x"></i>
+                                <i class="fa fa-rss fa-stack-1x fa-inverse"></i>
+                            </span>
+                        </a>
+                    </li>
+                
+                
+                
+                    <li>
+                        <a target="_blank" href="https://www.zhihu.com/people/80imike">
+                            <span class="fa-stack fa-lg">
+                                <i class="fa fa-circle fa-stack-2x"></i>
+                                <i class="fa  fa-stack-1x fa-inverse">知</i>
+                            </span>
+                        </a>
+                    </li>
+                
+
+                
+                    <li>
+                        <a target="_blank" href="http://weibo.com/2093524665">
+                            <span class="fa-stack fa-lg">
+                                <i class="fa fa-circle fa-stack-2x"></i>
+                                <i class="fa fa-weibo fa-stack-1x fa-inverse"></i>
+                            </span>
+                        </a>
+                    </li>
+                
+
+                
+
+                
+
+                
+
+                </ul>
+                <p class="copyright text-muted">
+                    Copyright &copy; Mike 2018 | Hosted by <a href="https://pages.coding.me" style="font-weight: bold">Coding Pages</a>
+                    <br>
+                    Theme by <a href="http://beantech.org">BeanTech</a> 
+                    <span style="display: inline-block; margin: 0 5px;">
+                        <i class="fa fa-heart"></i>
+                    </span> 
+                    re-Ported by <a href="http://www.huweihuang.com">胡伟煌</a> | 
+                    <iframe
+                        style="margin-left: 2px; margin-bottom:-5px;"
+                        frameborder="0" scrolling="0" width="91px" height="20px"
+                        src="https://ghbtns.com/github-btn.html?user=huweihuang&repo=hexo-theme-huweihuang&type=star&count=true" >
+                    </iframe>
+                </p>
+            </div>
+        </div>
+    </div>
+</footer>
+
+<!-- jQuery -->
+<script src="/js/jquery.min.js"></script>
+
+<!-- Bootstrap Core JavaScript -->
+<script src="/js/bootstrap.min.js"></script>
+
+<!-- Custom Theme JavaScript -->
+<script src="/js/hux-blog.min.js"></script>
+
+
+<!-- async load function -->
+<script>
+    function async(u, c) {
+      var d = document, t = 'script',
+          o = d.createElement(t),
+          s = d.getElementsByTagName(t)[0];
+      o.src = u;
+      if (c) { o.addEventListener('load', function (e) { c(null, e); }, false); }
+      s.parentNode.insertBefore(o, s);
+    }
+</script>
+
+<!-- 
+     Because of the native support for backtick-style fenced code blocks 
+     right within the Markdown is landed in Github Pages, 
+     From V1.6, There is no need for Highlight.js, 
+     so Huxblog drops it officially.
+
+     - https://github.com/blog/2100-github-pages-now-faster-and-simpler-with-jekyll-3-0  
+     - https://help.github.com/articles/creating-and-highlighting-code-blocks/    
+-->
+<!--
+    <script>
+        async("http://cdn.bootcss.com/highlight.js/8.6/highlight.min.js", function(){
+            hljs.initHighlightingOnLoad();
+        })
+    </script>
+    <link href="http://cdn.bootcss.com/highlight.js/8.6/styles/github.min.css" rel="stylesheet">
+-->
+
+
+<!-- jquery.tagcloud.js -->
+<script>
+    // only load tagcloud.js in tag.html
+    if($('#tag_cloud').length !== 0){
+        async("http://www.hi-linux.com/js/jquery.tagcloud.js",function(){
+            $.fn.tagcloud.defaults = {
+                //size: {start: 1, end: 1, unit: 'em'},
+                color: {start: '#bbbbee', end: '#0085a1'},
+            };
+            $('#tag_cloud a').tagcloud();
+        })
+    }
+</script>
+
+<!--fastClick.js -->
+<script>
+    async("https://cdn.bootcss.com/fastclick/1.0.6/fastclick.min.js", function(){
+        var $nav = document.querySelector("nav");
+        if($nav) FastClick.attach($nav);
+    })
+</script>
+
+
+<!-- Google Analytics -->
+
+
+
+
+<!-- Baidu Tongji -->
+
+
+
+
+
+
+	<a id="rocket" href="#top" class=""></a>
+	<script type="text/javascript" src="/js/totop.js?v=1.0.0" async=""></script>
+    <script type="text/javascript" src="/js/toc.js?v=1.0.0" async=""></script>
+<!-- Image to hack wechat -->
+<img src="http://www.hi-linux.com/img/icon_wechat.png" width="0" height="0" />
+<!-- Migrate from head to bottom, no longer block render and still work -->
+
+</body>
+
+</html>

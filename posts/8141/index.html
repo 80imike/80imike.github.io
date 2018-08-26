@@ -1,0 +1,708 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<!-- Head tag -->
+<head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="google-site-verification" content="xBT4GhYoi5qRD5tr338pgPM5OWHHIDR6mNg1a3euekI" />
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="description" content="">
+    <meta name="keyword"  content="Linux,运维,Nginx,Zabbix,Centos,Ansible,MySQL,Python,Docker,ELK,Haproxy,Git,Nodejs,安全,技术">
+    <link rel="shortcut icon" href="/img/ironman-draw.png">
+    <!-- Place this tag in your head or just before your close body tag. -->
+    <script async defer src="https://buttons.github.io/buttons.js"></script>
+    <title>
+        
+          使用 Mesos 和 Marathon 管理 Docker 集群 - 运维之美
+        
+    </title>
+
+    <link rel="canonical" href="http://www.hi-linux.com/posts/8141/">
+
+    <!-- Bootstrap Core CSS -->
+    <link rel="stylesheet" href="/css/bootstrap.min.css">
+
+    <!-- Custom CSS --> 
+    <link rel="stylesheet" href="/css/beantech.min.css">
+    
+    <!-- Pygments Highlight CSS -->
+    <link rel="stylesheet" href="/css/highlight.css">
+
+    <link rel="stylesheet" href="/css/widget.css">
+
+    <link rel="stylesheet" href="/css/rocket.css">
+
+    <link rel="stylesheet" href="/css/signature.css">
+
+    <link rel="stylesheet" href="/css/toc.css">
+
+    <!-- Custom Fonts -->
+    <!-- <link href="https://maxcdn.bootstrapcdn.com/font-awesome/4.3.0/css/font-awesome.min.css" rel="stylesheet" type="text/css"> -->
+    <!-- Hux change font-awesome CDN to qiniu -->
+    <link href="https://cdn.staticfile.org/font-awesome/4.5.0/css/font-awesome.min.css" rel="stylesheet" type="text/css">
+
+
+    <!-- Hux Delete, sad but pending in China
+    <link href='http://fonts.googleapis.com/css?family=Lora:400,700,400italic,700italic' rel='stylesheet' type='text/css'>
+    <link href='http://fonts.googleapis.com/css?family=Open+Sans:300italic,400italic,600italic,700italic,800italic,400,300,600,700,800' rel='stylesheet' type='text/
+    css'>
+    -->
+
+
+    <!-- HTML5 Shim and Respond.js IE8 support of HTML5 elements and media queries -->
+    <!-- WARNING: Respond.js doesn't work if you view the page via file:// -->
+    <!--[if lt IE 9]>
+        <script src="https://oss.maxcdn.com/libs/html5shiv/3.7.0/html5shiv.js"></script>
+        <script src="https://oss.maxcdn.com/libs/respond.js/1.4.2/respond.min.js"></script>
+    <![endif]-->
+
+    <!-- ga & ba script hoook -->
+    <script></script>
+</head>
+
+
+<!-- hack iOS CSS :active style -->
+<body ontouchstart="">
+	<!-- Modified by Yu-Hsuan Yen -->
+<!-- Post Header -->
+<style type="text/css">
+    header.intro-header{
+        
+            background-image: url('/img/header_img/article.jpg')
+            /*post*/
+        
+    }
+    
+</style>
+
+<header class="intro-header" >
+    <!-- Signature -->
+    <div id="signature">
+        <div class="container">
+            <div class="row">
+                <div class="col-lg-8 col-lg-offset-2 col-md-10 col-md-offset-1">
+                
+                    <div class="post-heading">
+                        <div class="tags">
+                            
+                              <a class="tag" href="/tags/#Docker" title="Docker">Docker</a>
+                            
+                              <a class="tag" href="/tags/#Mesos" title="Mesos">Mesos</a>
+                            
+                        </div>
+                        <h1>使用 Mesos 和 Marathon 管理 Docker 集群</h1>
+                        <h2 class="subheading"></h2>
+                        <span class="meta">
+                            Posted by Mike on
+                            2017-05-03
+                        </span>
+                    </div>
+                
+
+
+                </div>
+            </div>
+        </div>
+    </div>
+</header>
+
+	
+    <!-- Navigation -->
+<nav class="navbar navbar-default navbar-custom navbar-fixed-top">
+    <div class="container-fluid">
+        <!-- Brand and toggle get grouped for better mobile display -->
+        <div class="navbar-header page-scroll">
+            <button type="button" class="navbar-toggle">
+                <span class="sr-only">Toggle navigation</span>
+                <span class="icon-bar"></span>
+                <span class="icon-bar"></span>
+                <span class="icon-bar"></span>
+            </button>
+            <a class="navbar-brand" href="/">运维之美</a>
+        </div>
+
+        <!-- Collect the nav links, forms, and other content for toggling -->
+        <!-- Known Issue, found by Hux:
+            <nav>'s height woule be hold on by its content.
+            so, when navbar scale out, the <nav> will cover tags.
+            also mask any touch event of tags, unfortunately.
+        -->
+        <div id="huxblog_navbar">
+            <div class="navbar-collapse">
+                <ul class="nav navbar-nav navbar-right">
+                    <li>
+                        <a href="/">Home</a>
+                    </li>
+
+                    
+
+                        
+                    
+
+                        
+                    
+
+                        
+                        <li>
+                            <a href="/archive/">Archives</a>
+                        </li>
+                        
+                    
+
+                        
+                        <li>
+                            <a href="/about/">About</a>
+                        </li>
+                        
+                    
+
+                        
+                        <li>
+                            <a href="/tags/">Tags</a>
+                        </li>
+                        
+                    
+                    
+                </ul>
+            </div>
+        </div>
+        <!-- /.navbar-collapse -->
+    </div>
+    <!-- /.container -->
+</nav>
+<script>
+    // Drop Bootstarp low-performance Navbar
+    // Use customize navbar with high-quality material design animation
+    // in high-perf jank-free CSS3 implementation
+    var $body   = document.body;
+    var $toggle = document.querySelector('.navbar-toggle');
+    var $navbar = document.querySelector('#huxblog_navbar');
+    var $collapse = document.querySelector('.navbar-collapse');
+
+    $toggle.addEventListener('click', handleMagic)
+    function handleMagic(e){
+        if ($navbar.className.indexOf('in') > 0) {
+        // CLOSE
+            $navbar.className = " ";
+            // wait until animation end.
+            setTimeout(function(){
+                // prevent frequently toggle
+                if($navbar.className.indexOf('in') < 0) {
+                    $collapse.style.height = "0px"
+                }
+            },400)
+        }else{
+        // OPEN
+            $collapse.style.height = "auto"
+            $navbar.className += " in";
+        }
+    }
+</script>
+
+
+    <!-- Main Content -->
+    <!-- Modify by Yu-Hsuan Yen -->
+
+<!-- Post Content -->
+<article>
+    <div class="container">
+        <div class="row">
+
+            <!-- Post Container -->
+            <div class="
+                col-lg-8 col-lg-offset-2
+                col-md-10 col-md-offset-1
+                post-container">
+
+                <h3 id="mesos简介">Mesos简介</h3>
+<p>Apache Mesos是一个分布式系统的管理软件，对集群的资源进行分配和管理。具体的介绍可参考 「<a href="https://www.hi-linux.com/posts/54145.html">Apache Mesos入门</a>」一文，这里就不再重复介绍了。</p>
+<p>项目地址：<a href="https://github.com/mesosphere" target="_blank" rel="noopener">https://github.com/mesosphere</a></p>
+<h3 id="marathon简介">Marathon简介</h3>
+<p>Marathon按照官方的说法是个基于Mesos的私有PaaS，它实现了Mesos的Framework。Marathon实现了服务发现和负载平衡、为部署提供提供REST API服务、授权和SSL、配置约束等功能。</p>
+<p>Marathon支持通过Shell命令和Docker部署应用。提供Web界面、支持cpu/mem、实例数等参数设置，支持单应用的Scale，但不支持复杂的集群定义。Marathon本身是通过Scala实现的。</p>
+<p>Marathon能够支持运行长服务，比如Web应用等。Marathon能够原样运行任何Linux二进制发布版本，如Tomcat Play等等。</p>
+<a id="more"></a>
+<p>理解Mesos和Marathon之间的关系，如果将Mesos类比为操作系统的内核，负责资源调度。则Marathon可以类比为服务管理系统，比如是init，systemd或upstart等系统，用来管理应用的状态信息。Marathon将应用程序部署为长时间运行的Mesos任务。</p>
+<p><img src="https://www.hi-linux.com/img/linux/mesos13.png" alt=""></p>
+<p>Marathon可以让您指定每个应用程序实例需要的资源以及要运行此程序需要多少实例。它可以使用可用的集群资源对失败的任务自动做出响应。</p>
+<p>如果某个Mesos Slave当机或应用的某个实例退出、失败，Marathon将会自动启动一个新的实例，来替换掉失败的实例。Marathon也允许用户在部署时指定应用程序彼此间的依赖关系，这样就可以保证某个应用程序实例不会在它依赖的数据库实例启动前启动。</p>
+<p>Marathon特性</p>
+<ul>
+<li>高可用，支持多主节点(主备模式)自动切换。</li>
+<li>支持多种容器环境。</li>
+<li>支持有状态服务，如数据库。</li>
+<li>使用Web管理界面用于配置操作和监控系统状态。</li>
+<li>约束规则，比如限制任务分布在特定节点。</li>
+<li>服务发现、负载均衡。</li>
+<li>支持健康检查，实现容错。</li>
+<li>支持事件订阅，用于集成到其它系统。</li>
+<li>运行指标监控接口。</li>
+<li>完善易用的REST API。</li>
+</ul>
+<h3 id="安装mesos和marathon">安装Mesos和Marathon</h3>
+<p><strong>系统环境</strong></p>
+<table>
+<thead>
+<tr>
+<th>主机名</th>
+<th>IP地址</th>
+<th>软件环境</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>dev-master-01</td>
+<td>192.168.2.210</td>
+<td>Mesos Master、Zookeeper、Marathon</td>
+</tr>
+<tr>
+<td>dev-node-01</td>
+<td>192.168.2.211</td>
+<td>Mesos Slave、Docker</td>
+</tr>
+</tbody>
+</table>
+<p>我们使用mesosphere提供的安装包进行安装。</p>
+<p><strong>添加软件安装源</strong></p>
+<ul>
+<li>Ubuntu and Debian系统</li>
+</ul>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line"># 增加证书并设备环境变量</span><br><span class="line">$ apt-key adv --keyserver keyserver.ubuntu.com --recv E56151BF</span><br><span class="line">$ DISTRO=$(lsb_release -is | tr &apos;[:upper:]&apos; &apos;[:lower:]&apos;)</span><br><span class="line">$ CODENAME=$(lsb_release -cs)</span><br><span class="line"></span><br><span class="line"># 增加仓库</span><br><span class="line">$ echo &quot;deb http://repos.mesosphere.com/$&#123;DISTRO&#125; $&#123;CODENAME&#125; main&quot;|sudo tee /etc/apt/sources.list.d/mesosphere.list</span><br><span class="line">$ apt-get -y update</span><br></pre></td></tr></table></figure>
+<ul>
+<li>RedHat and CentOS系统</li>
+</ul>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">$ rpm -Uvh http://repos.mesosphere.com/el/7/noarch/RPMS/mesosphere-el-repo-7-3.noarch.rpm</span><br><span class="line">$ yum -y update</span><br></pre></td></tr></table></figure>
+<blockquote>
+<p>注：所有安装的机器都需要添加。</p>
+</blockquote>
+<h4 id="安装master">安装Master</h4>
+<p>这里需要在Master上安装Mesos、Marathon、ZooKeeper。</p>
+<ul>
+<li>Ubuntu and Debian系统</li>
+</ul>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">$ apt-get -y install mesos marathon zookeeperd</span><br></pre></td></tr></table></figure>
+<ul>
+<li>RedHat and CentOS系统</li>
+</ul>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">$ yum install -y mesos marathon mesosphere-zookeeper</span><br></pre></td></tr></table></figure>
+<p><strong>ZooKeeper设定</strong></p>
+<p>本次配置的ZooKeeper是单节点。生产环境建议配置ZooKeeper集群，有关ZooKeeper集群安装后面会分享相关文档。</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">$ vim /etc/mesos/zk</span><br><span class="line">zk://dev-master-01:2181/mesos</span><br></pre></td></tr></table></figure>
+<blockquote>
+<p>注：这里使用的是主机名，记得在各主机的hosts配置下映射关系。</p>
+</blockquote>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">$ vim /etc/hosts</span><br><span class="line">192.168.2.210 dev-master-01</span><br><span class="line">192.168.2.211 dev-node-02</span><br></pre></td></tr></table></figure>
+<p>手动建立management.properties文件</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">$ mkdir -p /usr/lib/jvm/java-9-openjdk-amd64/conf/management/ &amp;&amp; touch /usr/lib/jvm/java-9-openjdk-amd64/conf/management/management.properties</span><br></pre></td></tr></table></figure>
+<p>如果不建立,ZooKeeper不能正确启动。会报以下错误：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">$ Error: Config file not found: /usr/lib/jvm/java-9-openjdk-amd64/conf/management/management.properties</span><br></pre></td></tr></table></figure>
+<p>这是一个OpenJDK的巨坑，生产环境建议用Oracle JDK。</p>
+<p>配置JAVA环境变量(可选)</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">$ vim /etc/profile.d/zookeeper.sh</span><br><span class="line">export JAVA_HOME=/usr/lib/jvm/java-9-openjdk-amd64/</span><br><span class="line">export JER_HOME=$JAVA_HOME/jre</span><br><span class="line">export CLASSPATH=$JAVA_HOME/lib:$JRE_HOME/lib:$CLASSPATH</span><br><span class="line">export PATH=$JAVA_HOME/bin:$JRE_HOME/bin:$PATH</span><br></pre></td></tr></table></figure>
+<p><strong>启动相关服务</strong></p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">$ systemctl start zookeeper</span><br><span class="line">$ systemctl start mesos-master</span><br><span class="line">$ systemctl start marathon</span><br></pre></td></tr></table></figure>
+<p>验证ZooKeeper是否启动成功</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br></pre></td><td class="code"><pre><span class="line">$ systemctl status zookeeper</span><br><span class="line">● zookeeper.service - LSB: centralized coordination service</span><br><span class="line">  Loaded: loaded (/etc/init.d/zookeeper; bad; vendor preset: enabled)</span><br><span class="line">  Active: active (running) since Tue 2017-05-02 15:16:59 CST; 4min 34s ago</span><br><span class="line">    Docs: man:systemd-sysv-generator(8)</span><br><span class="line"> Process: 15309 ExecStop=/etc/init.d/zookeeper stop (code=exited, status=0/SUCCESS)</span><br><span class="line"> Process: 15324 ExecStart=/etc/init.d/zookeeper start (code=exited, status=0/SUCCESS)</span><br><span class="line">   Tasks: 26</span><br><span class="line">  Memory: 46.0M</span><br><span class="line">     CPU: 12.041s</span><br><span class="line">  CGroup: /system.slice/zookeeper.service</span><br><span class="line">          └─15336 /usr/bin/java -cp /etc/zookeeper/conf:/usr/share/java/jline.jar:/usr/share/java/log4j-1.2.jar:/usr/share/java/xercesImpl.jar:/usr/share/java/xmlParserAPIs.jar:/usr/share/java/netty.jar:/usr/share/java/slf4j-api.jar:/usr/share/java/slf4j-log4j12.jar:/u</span><br><span class="line"></span><br><span class="line">May 02 15:16:59 dev-master-01 systemd[1]: Starting LSB: centralized coordination service...</span><br><span class="line">May 02 15:16:59 dev-master-01 systemd[1]: Started LSB: centralized coordination service.</span><br></pre></td></tr></table></figure>
+<p><strong>访问Mesos的Web管理界面</strong></p>
+<p>Mesos安装完毕后，Mesos Master会启动一个Web服务，默认监听在5050端口。通过使用<code>http://ip:5050/</code>来访问。如下图所示：</p>
+<p><img src="https://www.hi-linux.com/img/linux/mesos1.png" alt=""></p>
+<p>在这个界面里，我们能看到整个集群的资源分配情况和框架的状态。 现在所有资源还是空，也没有任何进程。</p>
+<p><strong>访问Marathon的Web管理界面</strong></p>
+<p>Marathon默认监听在8080端口，通过使用<code>http://ip:8080/</code>来访问。如下图所示：</p>
+<p><img src="https://www.hi-linux.com/img/linux/mesos2.png" alt=""></p>
+<h4 id="安装slave">安装Slave</h4>
+<p>Mesos Master集群要真正能够分配资源并运行任务，还需要向Master注册Slave。Slave的所有配置都在<code>/etc/mesos-slave</code>目录中。</p>
+<p>这里我们需要Slave上安装Mesos、Docker。</p>
+<ul>
+<li>Ubuntu and Debian系统</li>
+</ul>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">$ apt-get install -y mesos docker</span><br></pre></td></tr></table></figure>
+<ul>
+<li>RedHat and CentOS系统</li>
+</ul>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">$ yum install -y mesos docker</span><br></pre></td></tr></table></figure>
+<p><strong>Docker相关设定</strong></p>
+<p>这里主要需要设置containerizers、executor_registration_timeout参数。设置containerizers参数是为了让Slave支持Docker，默认是用lxc来管理容器的。executor_registration_timeout参数主要是由于Docker任务启动的时候，需要去远程拉取镜像。一般首次拉取时容易超时，这里把超时时间设得长一些，避免超时。</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">$ echo &apos;docker,mesos&apos; &gt; /etc/mesos-slave/containerizers</span><br><span class="line">$ echo &apos;5mins&apos; &gt; /etc/mesos-slave/executor_registration_timeout</span><br></pre></td></tr></table></figure>
+<p><strong>ZooKeeper设定</strong></p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">$ vim /etc/mesos/zk</span><br><span class="line">zk://dev-master-01:2181/mesos</span><br></pre></td></tr></table></figure>
+<blockquote>
+<p>注：这里使用的是主机名，记得在各主机的hosts配置下映射关系。</p>
+</blockquote>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">$ vim /etc/hosts</span><br><span class="line">192.168.2.210 dev-master-01</span><br><span class="line">192.168.2.211 dev-node-02</span><br></pre></td></tr></table></figure>
+<p><strong>启动相关服务</strong></p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">$ systemctl start docker</span><br><span class="line">$ systemctl start mesos-slave</span><br></pre></td></tr></table></figure>
+<h3 id="使用mesos">使用Mesos</h3>
+<p>在MASTER上执行Frameworks测试框架</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">$ MASTER=$(mesos-resolve `cat /etc/mesos/zk`)</span><br><span class="line">$ mesos-execute --master=$MASTER --name=&quot;cluster-test&quot; --command=&quot;sleep 60&quot;</span><br></pre></td></tr></table></figure>
+<p>在Frameworks页面刷新，可以查看任务的执行情况。</p>
+<p>查看活动的框架</p>
+<p><img src="https://www.hi-linux.com/img/linux/mesos3.png" alt=""></p>
+<p>查看活动的任务</p>
+<p><img src="https://www.hi-linux.com/img/linux/mesos4.png" alt=""></p>
+<p>点击结束的任务页面，可以看到在哪个Slave上执行的。</p>
+<p><img src="https://www.hi-linux.com/img/linux/mesos6.png" alt=""></p>
+<p><img src="https://www.hi-linux.com/img/linux/mesos7.png" alt=""></p>
+<h3 id="使用marathon调用mesos运行docker容器">使用Marathon调用Mesos运行Docker容器</h3>
+<p>下面通过Marathon调用Mesos来创建一个Nginx镜像的Docker容器。Marathon启动时会读取<code>/etc/mesos/zk</code>配置文件，Marathon通过Zookeeper来找到Mesos Master。</p>
+<p><strong>创建应用</strong></p>
+<p>首先准备应用定义文件， 此文件为JSON格式。定义了应用的名称(id)、命令、资源(cpu、内存等)和实例数量等信息。</p>
+<ul>
+<li>创建应用定义文件</li>
+</ul>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br></pre></td><td class="code"><pre><span class="line">$ vim nginx.json</span><br><span class="line">&#123;</span><br><span class="line">  &quot;id&quot;:&quot;nginx&quot;,</span><br><span class="line">  &quot;cpus&quot;:0.2,</span><br><span class="line">  &quot;mem&quot;:20.0,</span><br><span class="line">  &quot;instances&quot;: 1,</span><br><span class="line">  &quot;constraints&quot;: [[&quot;hostname&quot;, &quot;UNIQUE&quot;,&quot;&quot;]],</span><br><span class="line">  &quot;container&quot;: &#123;</span><br><span class="line">  &quot;type&quot;:&quot;DOCKER&quot;,</span><br><span class="line">  &quot;docker&quot;: &#123;</span><br><span class="line">     &quot;image&quot;: &quot;nginx&quot;,</span><br><span class="line">     &quot;network&quot;: &quot;BRIDGE&quot;,</span><br><span class="line">     &quot;portMappings&quot;: [</span><br><span class="line">        &#123;&quot;containerPort&quot;: 80, &quot;hostPort&quot;: 0,&quot;servicePort&quot;: 0, &quot;protocol&quot;: &quot;tcp&quot; &#125;</span><br><span class="line">      ]</span><br><span class="line">    &#125;</span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<ul>
+<li>通过Marathon UI创建应用</li>
+</ul>
+<p>在Web页面上，点击创建<code>Create Application</code>按钮。 弹出操作窗中，切换为JSON模式。</p>
+<p><img src="https://www.hi-linux.com/img/linux/mesos8.png" alt=""></p>
+<p>将上一步准备的JSON内容复制到输入框内，点击输入框旁的创建<code>Create Application</code>按钮保存配置。 此时新建应用的信息，将出现在Web页面的应用列表。</p>
+<p><img src="https://www.hi-linux.com/img/linux/mesos10.png" alt=""></p>
+<p>在<code>dev-node-01</code>上查看通过Marathon创建的容器</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">$ docker ps</span><br><span class="line">CONTAINER ID        IMAGE                        COMMAND                  CREATED             STATUS              PORTS                   NAMES</span><br><span class="line">419fd7d23736        nginx                        &quot;nginx -g &apos;daemon ...&quot;   12 minutes ago      Up 12 minutes       0.0.0.0:31182-&gt;80/tcp   mesos-66734014-5647-47e2-9264-b5775128b01d-S0.cf1d01ec-0b7d-4f3f-a407-926794686490</span><br></pre></td></tr></table></figure>
+<p>现在你就可以通过<code>http://ip:31182</code>来访问到nginx了。</p>
+<p><img src="https://www.hi-linux.com/img/linux/mesos9.png" alt=""></p>
+<ul>
+<li>使用Marathon API操作</li>
+</ul>
+<p>Marathon有自己的REST API，为了方便批量化管理，我们通过API的方式来创建一个简单应用。这里我们使用其中的<code>POST /v2/apps</code>来创建应用。</p>
+<p><strong>创建JSON文件</strong></p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br></pre></td><td class="code"><pre><span class="line">$ vim busybox-demo.json</span><br><span class="line"></span><br><span class="line">&#123;</span><br><span class="line">  &quot;container&quot;: &#123;</span><br><span class="line">    &quot;type&quot;: &quot;DOCKER&quot;,</span><br><span class="line">    &quot;docker&quot;: &#123;</span><br><span class="line">    &quot;image&quot;: &quot;busybox&quot;</span><br><span class="line">    &#125;</span><br><span class="line">  &#125;,</span><br><span class="line">  &quot;id&quot;: &quot;busybox-demo&quot;,</span><br><span class="line">  &quot;instances&quot;: 2,</span><br><span class="line">  &quot;cpus&quot;: 0.5,</span><br><span class="line">  &quot;mem&quot;: 128,</span><br><span class="line">  &quot;uris&quot;: [],</span><br><span class="line">  &quot;cmd&quot;: &quot;while sleep 10; do date -u +%T; done&quot;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>其中的<code>cmd</code>字段包含了应用将要执行的命令，<code>instances</code>是进程的数量。</p>
+<p><strong>通过API在Marathon上创建任务</strong></p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"># curl -X POST -H &quot;Content-Type: application/json&quot; http://192.168.2.210:8080/v2/apps -d@busybox-demo.json</span><br><span class="line"></span><br><span class="line">&#123;&quot;id&quot;:&quot;/busybox-demo&quot;,&quot;cmd&quot;:&quot;while sleep 10; do date -u +%T; done&quot;,&quot;args&quot;:null,&quot;user&quot;:null,&quot;env&quot;:&#123;&#125;,&quot;instances&quot;:2,&quot;cpus&quot;:0.5,&quot;mem&quot;:256,&quot;disk&quot;:0,&quot;gpus&quot;:0,&quot;executor&quot;:&quot;&quot;,&quot;constraints&quot;:[],&quot;uris&quot;:[],&quot;fetch&quot;:[],&quot;storeUrls&quot;:[],&quot;backoffSeconds&quot;:1,&quot;backoffFactor&quot;:1.15,&quot;maxLaunchDelaySeconds&quot;:3600,&quot;container&quot;:&#123;&quot;type&quot;:&quot;DOCKER&quot;,&quot;volumes&quot;:[],&quot;docker&quot;:&#123;&quot;image&quot;:&quot;busybox&quot;,&quot;network&quot;:null,&quot;portMappings&quot;:[],&quot;privileged&quot;:false,&quot;parameters&quot;:[],&quot;forcePullImage&quot;:false&#125;&#125;,&quot;healthChecks&quot;:[],&quot;readinessChecks&quot;:[],&quot;dependencies&quot;:[],&quot;upgradeStrategy&quot;:&#123;&quot;minimumHealthCapacity&quot;:1,&quot;maximumOverCapacity&quot;:1&#125;,&quot;labels&quot;:&#123;&#125;,&quot;ipAddress&quot;:null,&quot;version&quot;:&quot;2017-05-03T03:29:46.941Z&quot;,&quot;residency&quot;:null,&quot;secrets&quot;:&#123;&#125;,&quot;taskKillGracePeriodSeconds&quot;:null,&quot;unreachableStrategy&quot;:&#123;&quot;inactiveAfterSeconds&quot;:300,&quot;expungeAfterSeconds&quot;:600&#125;,&quot;killSelection&quot;:&quot;YOUNGEST_FIRST&quot;,&quot;ports&quot;:[0],&quot;portDefinitions&quot;:[&#123;&quot;port&quot;:0,&quot;protocol&quot;:&quot;tcp&quot;,&quot;name&quot;:&quot;default&quot;,&quot;labels&quot;:&#123;&#125;&#125;],&quot;requirePorts&quot;:false,&quot;tasksStaged&quot;:0,&quot;tasksRunning&quot;:0,&quot;tasksHealthy&quot;:0,&quot;tasksUnhealthy&quot;:0,&quot;deployments&quot;:[&#123;&quot;id&quot;:&quot;2f25526a-7641-4326-bd63-26eb69364838&quot;&#125;],&quot;tasks&quot;:[]&#125;</span><br></pre></td></tr></table></figure>
+<p>在Marathon页面确认容器已经启动</p>
+<p><img src="https://www.hi-linux.com/img/linux/mesos11.png" alt=""></p>
+<p>在Mesos页面确认任务正在执行中</p>
+<p><img src="https://www.hi-linux.com/img/linux/mesos12.png" alt=""></p>
+<p>在<code>dev-node-01</code>节点上确认容器已经启动</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">$ docker ps</span><br><span class="line">CONTAINER ID        IMAGE                        COMMAND                  CREATED             STATUS              PORTS                   NAMES</span><br><span class="line">db72938c7628        busybox                      &quot;/bin/sh -c &apos;while...&quot;   2 minutes ago       Up 2 minutes                                mesos-66734014-5647-47e2-9264-b5775128b01d-S0.3e6e80a8-51b7-4f23-876b-6deb08671f46</span><br><span class="line">cbeb91ebfeca        busybox                      &quot;/bin/sh -c &apos;while...&quot;   2 minutes ago       Up 2 minutes                                mesos-66734014-5647-47e2-9264-b5775128b01d-S0.a8cad50d-c0b8-42ef-a986-fb99b6fe4f1b</span><br></pre></td></tr></table></figure>
+<p>查看容器的日志，确认输出的时间</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">$ docker logs  db72938c7628</span><br><span class="line">03:35:28</span><br><span class="line">03:35:38</span><br><span class="line">03:35:48</span><br><span class="line">03:35:58</span><br><span class="line">03:36:08</span><br></pre></td></tr></table></figure>
+<p>如果你想创建同样的容器，可以点击上图中的<code>Scale Application</code>来体验一下。同样的，你也可以通过Marathon的Web界面来进行容器的创建、扩展和销毁。</p>
+<p><img src="https://www.hi-linux.com/img/linux/mesos14.png" alt=""></p>
+<p>通过上面的部署体验，Mesos和Marathon使得Docker集群的管理变得简单方便，为在生产环境部署使用Docker集群提供了可能。</p>
+<h3 id="参考文档">参考文档</h3>
+<p><a href="http://www.google.com" target="_blank" rel="noopener">http://www.google.com</a><br>
+<a href="https://github.com/arangodb/dcos-mini-cluster/blob/master/Dockerfile" target="_blank" rel="noopener">https://github.com/arangodb/dcos-mini-cluster/blob/master/Dockerfile</a><br>
+<a href="http://www.cnblogs.com/ee900222/p/docker_2.html" target="_blank" rel="noopener">http://www.cnblogs.com/ee900222/p/docker_2.html</a><br>
+<a href="http://www.xuliangwei.com/xubusi/422.html" target="_blank" rel="noopener">http://www.xuliangwei.com/xubusi/422.html</a><br>
+<a href="http://biglittleant.cn/2016/12/18/mesos-marathon-docker/" target="_blank" rel="noopener">http://biglittleant.cn/2016/12/18/mesos-marathon-docker/</a></p>
+
+                
+
+                <hr>
+                <!-- Pager -->
+                <ul class="pager">
+                    
+                        <li class="previous">
+                            <a href="/posts/13634/" data-toggle="tooltip" data-placement="top" title="在 Mesos 上使用 Chronos 运行计划任务">&larr; Previous Post</a>
+                        </li>
+                    
+                    
+                        <li class="next">
+                            <a href="/posts/30547/" data-toggle="tooltip" data-placement="top" title="如何有效学习一门外语">Next Post &rarr;</a>
+                        </li>
+                    
+                </ul>
+
+                <!-- duoshuo Share start -->
+                
+                <!-- 多说 Share end-->
+
+                <!-- 多说评论框 start -->
+                
+                <!-- 多说评论框 end -->
+
+                <!-- disqus comment start -->
+                
+                <!-- disqus comment end -->
+
+                
+                    <!-- disqus 评论框 start -->
+                    <div class="comment">
+                        <div id="lv-container" data-id="city" data-uid="MTAyMC8yNzg2My80NDQw"></div>
+                    </div>
+                    <!-- disqus 评论框 end -->
+                
+
+            </div>
+            
+            <!-- Tabe of Content -->
+            <!-- Table of Contents -->
+
+  
+    <style>
+      span.toc-nav-number{
+        display: none
+      }
+    </style>
+  
+    
+      <aside id="sidebar">
+        <div id="toc" class="toc-article">
+        <strong class="toc-title">Contents</strong>
+        
+          <ol class="toc-nav"><li class="toc-nav-item toc-nav-level-3"><a class="toc-nav-link" href="#mesos简介"><span class="toc-nav-number">1.</span> <span class="toc-nav-text">Mesos简介</span></a></li><li class="toc-nav-item toc-nav-level-3"><a class="toc-nav-link" href="#marathon简介"><span class="toc-nav-number">2.</span> <span class="toc-nav-text">Marathon简介</span></a></li><li class="toc-nav-item toc-nav-level-3"><a class="toc-nav-link" href="#安装mesos和marathon"><span class="toc-nav-number">3.</span> <span class="toc-nav-text">安装Mesos和Marathon</span></a><ol class="toc-nav-child"><li class="toc-nav-item toc-nav-level-4"><a class="toc-nav-link" href="#安装master"><span class="toc-nav-number">3.1.</span> <span class="toc-nav-text">安装Master</span></a></li><li class="toc-nav-item toc-nav-level-4"><a class="toc-nav-link" href="#安装slave"><span class="toc-nav-number">3.2.</span> <span class="toc-nav-text">安装Slave</span></a></li></ol></li><li class="toc-nav-item toc-nav-level-3"><a class="toc-nav-link" href="#使用mesos"><span class="toc-nav-number">4.</span> <span class="toc-nav-text">使用Mesos</span></a></li><li class="toc-nav-item toc-nav-level-3"><a class="toc-nav-link" href="#使用marathon调用mesos运行docker容器"><span class="toc-nav-number">5.</span> <span class="toc-nav-text">使用Marathon调用Mesos运行Docker容器</span></a></li><li class="toc-nav-item toc-nav-level-3"><a class="toc-nav-link" href="#参考文档"><span class="toc-nav-number">6.</span> <span class="toc-nav-text">参考文档</span></a></li></ol>
+        
+        </div>
+      </aside>
+    
+
+                
+            <!-- Sidebar Container -->
+            <div class="
+                col-lg-8 col-lg-offset-2
+                col-md-10 col-md-offset-1
+                sidebar-container">
+
+                <!-- Featured Tags -->
+                
+                <section>
+                    <!-- no hr -->
+                    <h5><a href="/tags/">FEATURED TAGS</a></h5>
+                    <div class="tags">
+                       
+                          <a class="tag" href="/tags/#Docker" title="Docker">Docker</a>
+                        
+                          <a class="tag" href="/tags/#Mesos" title="Mesos">Mesos</a>
+                        
+                    </div>
+                </section>
+                
+
+                <!-- Friends Blog -->
+                
+                <hr>
+                <h5>FRIENDS</h5>
+                <ul class="list-inline">
+
+                    
+                        <li><a href="http://www.mike.org.cn/" target="_blank">简单.生活</a></li>
+                    
+                        <li><a href="http://shang.qq.com/wpa/qunwpa?idkey=ea4c43493c2269428ac6ef6141de4b6d78e5ab2d41380ca4099b833b62884ee9" target="_blank">技术交流群</a></li>
+                    
+                        <li><a href="" target="_blank"></a></li>
+                    
+                        <li><a href="" target="_blank"></a></li>
+                    
+                </ul>
+                
+            </div>
+        </div>
+    </div>
+</article>
+
+
+
+
+
+
+    <!-- 来必力City版公共JS代码 start (一个网页只需插入一次) -->
+    <script type="text/javascript">
+       (function(d, s) {
+           var j, e = d.getElementsByTagName(s)[0];
+    
+           if (typeof LivereTower === 'function') { return; }
+    
+           j = d.createElement(s);
+           j.src = 'https://cdn-city.livere.com/js/embed.dist.js';
+           j.async = true;
+    
+           e.parentNode.insertBefore(j, e);
+       })(document, 'script');
+    </script>
+    <noscript>为正常使用来必力评论功能请激活JavaScript</noscript>
+    <!-- 来必力City版 公共JS代码 end -->
+
+
+
+<!-- async load function -->
+<script>
+    function async(u, c) {
+      var d = document, t = 'script',
+          o = d.createElement(t),
+          s = d.getElementsByTagName(t)[0];
+      o.src = u;
+      if (c) { o.addEventListener('load', function (e) { c(null, e); }, false); }
+      s.parentNode.insertBefore(o, s);
+    }
+</script>
+<!-- anchor-js, Doc:http://bryanbraun.github.io/anchorjs/ -->
+<script>
+    async("https://cdn.bootcss.com/anchor-js/1.1.1/anchor.min.js",function(){
+        anchors.options = {
+          visible: 'hover',
+          placement: 'left',
+          icon: 'ℬ'
+        };
+        anchors.add().remove('.intro-header h1').remove('.subheading').remove('.sidebar-container h5');
+    })
+</script>
+<style>
+    /* place left on bigger screen */
+    @media all and (min-width: 800px) {
+        .anchorjs-link{
+            position: absolute;
+            left: -0.75em;
+            font-size: 1.1em;
+            margin-top : -0.1em;
+        }
+    }
+</style>
+
+
+
+    <!-- Footer -->
+    <!-- Footer -->
+<footer>
+    <div class="container">
+        <div class="row">
+            <div class="col-lg-8 col-lg-offset-2 col-md-10 col-md-offset-1">
+                <ul class="list-inline text-center">
+                
+                    <li>
+                        <a href="/atom.xml">
+                            <span class="fa-stack fa-lg">
+                                <i class="fa fa-circle fa-stack-2x"></i>
+                                <i class="fa fa-rss fa-stack-1x fa-inverse"></i>
+                            </span>
+                        </a>
+                    </li>
+                
+                
+                
+                    <li>
+                        <a target="_blank" href="https://www.zhihu.com/people/80imike">
+                            <span class="fa-stack fa-lg">
+                                <i class="fa fa-circle fa-stack-2x"></i>
+                                <i class="fa  fa-stack-1x fa-inverse">知</i>
+                            </span>
+                        </a>
+                    </li>
+                
+
+                
+                    <li>
+                        <a target="_blank" href="http://weibo.com/2093524665">
+                            <span class="fa-stack fa-lg">
+                                <i class="fa fa-circle fa-stack-2x"></i>
+                                <i class="fa fa-weibo fa-stack-1x fa-inverse"></i>
+                            </span>
+                        </a>
+                    </li>
+                
+
+                
+
+                
+
+                
+
+                </ul>
+                <p class="copyright text-muted">
+                    Copyright &copy; Mike 2018 | Hosted by <a href="https://pages.coding.me" style="font-weight: bold">Coding Pages</a>
+                    <br>
+                    Theme by <a href="http://beantech.org">BeanTech</a> 
+                    <span style="display: inline-block; margin: 0 5px;">
+                        <i class="fa fa-heart"></i>
+                    </span> 
+                    re-Ported by <a href="http://www.huweihuang.com">胡伟煌</a> | 
+                    <iframe
+                        style="margin-left: 2px; margin-bottom:-5px;"
+                        frameborder="0" scrolling="0" width="91px" height="20px"
+                        src="https://ghbtns.com/github-btn.html?user=huweihuang&repo=hexo-theme-huweihuang&type=star&count=true" >
+                    </iframe>
+                </p>
+            </div>
+        </div>
+    </div>
+</footer>
+
+<!-- jQuery -->
+<script src="/js/jquery.min.js"></script>
+
+<!-- Bootstrap Core JavaScript -->
+<script src="/js/bootstrap.min.js"></script>
+
+<!-- Custom Theme JavaScript -->
+<script src="/js/hux-blog.min.js"></script>
+
+
+<!-- async load function -->
+<script>
+    function async(u, c) {
+      var d = document, t = 'script',
+          o = d.createElement(t),
+          s = d.getElementsByTagName(t)[0];
+      o.src = u;
+      if (c) { o.addEventListener('load', function (e) { c(null, e); }, false); }
+      s.parentNode.insertBefore(o, s);
+    }
+</script>
+
+<!-- 
+     Because of the native support for backtick-style fenced code blocks 
+     right within the Markdown is landed in Github Pages, 
+     From V1.6, There is no need for Highlight.js, 
+     so Huxblog drops it officially.
+
+     - https://github.com/blog/2100-github-pages-now-faster-and-simpler-with-jekyll-3-0  
+     - https://help.github.com/articles/creating-and-highlighting-code-blocks/    
+-->
+<!--
+    <script>
+        async("http://cdn.bootcss.com/highlight.js/8.6/highlight.min.js", function(){
+            hljs.initHighlightingOnLoad();
+        })
+    </script>
+    <link href="http://cdn.bootcss.com/highlight.js/8.6/styles/github.min.css" rel="stylesheet">
+-->
+
+
+<!-- jquery.tagcloud.js -->
+<script>
+    // only load tagcloud.js in tag.html
+    if($('#tag_cloud').length !== 0){
+        async("http://www.hi-linux.com/js/jquery.tagcloud.js",function(){
+            $.fn.tagcloud.defaults = {
+                //size: {start: 1, end: 1, unit: 'em'},
+                color: {start: '#bbbbee', end: '#0085a1'},
+            };
+            $('#tag_cloud a').tagcloud();
+        })
+    }
+</script>
+
+<!--fastClick.js -->
+<script>
+    async("https://cdn.bootcss.com/fastclick/1.0.6/fastclick.min.js", function(){
+        var $nav = document.querySelector("nav");
+        if($nav) FastClick.attach($nav);
+    })
+</script>
+
+
+<!-- Google Analytics -->
+
+
+
+
+<!-- Baidu Tongji -->
+
+
+
+
+
+
+	<a id="rocket" href="#top" class=""></a>
+	<script type="text/javascript" src="/js/totop.js?v=1.0.0" async=""></script>
+    <script type="text/javascript" src="/js/toc.js?v=1.0.0" async=""></script>
+<!-- Image to hack wechat -->
+<img src="http://www.hi-linux.com/img/icon_wechat.png" width="0" height="0" />
+<!-- Migrate from head to bottom, no longer block render and still work -->
+
+</body>
+
+</html>

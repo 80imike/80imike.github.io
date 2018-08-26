@@ -1,0 +1,706 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<!-- Head tag -->
+<head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="google-site-verification" content="xBT4GhYoi5qRD5tr338pgPM5OWHHIDR6mNg1a3euekI" />
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="description" content="">
+    <meta name="keyword"  content="Linux,运维,Nginx,Zabbix,Centos,Ansible,MySQL,Python,Docker,ELK,Haproxy,Git,Nodejs,安全,技术">
+    <link rel="shortcut icon" href="/img/ironman-draw.png">
+    <!-- Place this tag in your head or just before your close body tag. -->
+    <script async defer src="https://buttons.github.io/buttons.js"></script>
+    <title>
+        
+          Prometheus 进阶 - 运维之美
+        
+    </title>
+
+    <link rel="canonical" href="http://www.hi-linux.com/posts/27014/">
+
+    <!-- Bootstrap Core CSS -->
+    <link rel="stylesheet" href="/css/bootstrap.min.css">
+
+    <!-- Custom CSS --> 
+    <link rel="stylesheet" href="/css/beantech.min.css">
+    
+    <!-- Pygments Highlight CSS -->
+    <link rel="stylesheet" href="/css/highlight.css">
+
+    <link rel="stylesheet" href="/css/widget.css">
+
+    <link rel="stylesheet" href="/css/rocket.css">
+
+    <link rel="stylesheet" href="/css/signature.css">
+
+    <link rel="stylesheet" href="/css/toc.css">
+
+    <!-- Custom Fonts -->
+    <!-- <link href="https://maxcdn.bootstrapcdn.com/font-awesome/4.3.0/css/font-awesome.min.css" rel="stylesheet" type="text/css"> -->
+    <!-- Hux change font-awesome CDN to qiniu -->
+    <link href="https://cdn.staticfile.org/font-awesome/4.5.0/css/font-awesome.min.css" rel="stylesheet" type="text/css">
+
+
+    <!-- Hux Delete, sad but pending in China
+    <link href='http://fonts.googleapis.com/css?family=Lora:400,700,400italic,700italic' rel='stylesheet' type='text/css'>
+    <link href='http://fonts.googleapis.com/css?family=Open+Sans:300italic,400italic,600italic,700italic,800italic,400,300,600,700,800' rel='stylesheet' type='text/
+    css'>
+    -->
+
+
+    <!-- HTML5 Shim and Respond.js IE8 support of HTML5 elements and media queries -->
+    <!-- WARNING: Respond.js doesn't work if you view the page via file:// -->
+    <!--[if lt IE 9]>
+        <script src="https://oss.maxcdn.com/libs/html5shiv/3.7.0/html5shiv.js"></script>
+        <script src="https://oss.maxcdn.com/libs/respond.js/1.4.2/respond.min.js"></script>
+    <![endif]-->
+
+    <!-- ga & ba script hoook -->
+    <script></script>
+</head>
+
+
+<!-- hack iOS CSS :active style -->
+<body ontouchstart="">
+	<!-- Modified by Yu-Hsuan Yen -->
+<!-- Post Header -->
+<style type="text/css">
+    header.intro-header{
+        
+            background-image: url('/img/header_img/article.jpg')
+            /*post*/
+        
+    }
+    
+</style>
+
+<header class="intro-header" >
+    <!-- Signature -->
+    <div id="signature">
+        <div class="container">
+            <div class="row">
+                <div class="col-lg-8 col-lg-offset-2 col-md-10 col-md-offset-1">
+                
+                    <div class="post-heading">
+                        <div class="tags">
+                            
+                              <a class="tag" href="/tags/#Docker" title="Docker">Docker</a>
+                            
+                              <a class="tag" href="/tags/#Prometheus" title="Prometheus">Prometheus</a>
+                            
+                        </div>
+                        <h1>Prometheus 进阶</h1>
+                        <h2 class="subheading"></h2>
+                        <span class="meta">
+                            Posted by Mike on
+                            2017-05-24
+                        </span>
+                    </div>
+                
+
+
+                </div>
+            </div>
+        </div>
+    </div>
+</header>
+
+	
+    <!-- Navigation -->
+<nav class="navbar navbar-default navbar-custom navbar-fixed-top">
+    <div class="container-fluid">
+        <!-- Brand and toggle get grouped for better mobile display -->
+        <div class="navbar-header page-scroll">
+            <button type="button" class="navbar-toggle">
+                <span class="sr-only">Toggle navigation</span>
+                <span class="icon-bar"></span>
+                <span class="icon-bar"></span>
+                <span class="icon-bar"></span>
+            </button>
+            <a class="navbar-brand" href="/">运维之美</a>
+        </div>
+
+        <!-- Collect the nav links, forms, and other content for toggling -->
+        <!-- Known Issue, found by Hux:
+            <nav>'s height woule be hold on by its content.
+            so, when navbar scale out, the <nav> will cover tags.
+            also mask any touch event of tags, unfortunately.
+        -->
+        <div id="huxblog_navbar">
+            <div class="navbar-collapse">
+                <ul class="nav navbar-nav navbar-right">
+                    <li>
+                        <a href="/">Home</a>
+                    </li>
+
+                    
+
+                        
+                    
+
+                        
+                    
+
+                        
+                        <li>
+                            <a href="/archive/">Archives</a>
+                        </li>
+                        
+                    
+
+                        
+                        <li>
+                            <a href="/about/">About</a>
+                        </li>
+                        
+                    
+
+                        
+                        <li>
+                            <a href="/tags/">Tags</a>
+                        </li>
+                        
+                    
+                    
+                </ul>
+            </div>
+        </div>
+        <!-- /.navbar-collapse -->
+    </div>
+    <!-- /.container -->
+</nav>
+<script>
+    // Drop Bootstarp low-performance Navbar
+    // Use customize navbar with high-quality material design animation
+    // in high-perf jank-free CSS3 implementation
+    var $body   = document.body;
+    var $toggle = document.querySelector('.navbar-toggle');
+    var $navbar = document.querySelector('#huxblog_navbar');
+    var $collapse = document.querySelector('.navbar-collapse');
+
+    $toggle.addEventListener('click', handleMagic)
+    function handleMagic(e){
+        if ($navbar.className.indexOf('in') > 0) {
+        // CLOSE
+            $navbar.className = " ";
+            // wait until animation end.
+            setTimeout(function(){
+                // prevent frequently toggle
+                if($navbar.className.indexOf('in') < 0) {
+                    $collapse.style.height = "0px"
+                }
+            },400)
+        }else{
+        // OPEN
+            $collapse.style.height = "auto"
+            $navbar.className += " in";
+        }
+    }
+</script>
+
+
+    <!-- Main Content -->
+    <!-- Modify by Yu-Hsuan Yen -->
+
+<!-- Post Content -->
+<article>
+    <div class="container">
+        <div class="row">
+
+            <!-- Post Container -->
+            <div class="
+                col-lg-8 col-lg-offset-2
+                col-md-10 col-md-offset-1
+                post-container">
+
+                <p>在「<a href="https://www.hi-linux.com/posts/25047.html">Prometheus入门</a>」一文中我们对Prometheus基本知识点做了讲解，并演示了如何监控一个Linux服务器。这篇文章我们将讲解如何对几个常见的应用进行监控。</p>
+<h3 id="监控mysql服务器">监控MySQL服务器</h3>
+<p>Prometheus通过安装在远程机器上的exporter来收集监控数据，这里要用到的是mysqld_exporter。</p>
+<ul>
+<li>部署的架构图</li>
+</ul>
+<p><img src="https://www.hi-linux.com/img/linux/prometheus33.png" alt=""></p>
+<a id="more"></a>
+<ul>
+<li>安装mysqld_exporter</li>
+</ul>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">$ wget https://github.com/prometheus/mysqld_exporter/releases/download/v0.10.0/mysqld_exporter-0.10.0.linux-amd64.tar.gz</span><br><span class="line">$ tar xzvf mysqld_exporter-0.10.0.linux-amd64.tar.gz</span><br><span class="line">$ mv mysqld_exporter-0.10.0.linux-amd64 /usr/local/prometheus/mysqld_exporter</span><br></pre></td></tr></table></figure>
+<ul>
+<li>增加一个用于监控的MySQL用户</li>
+</ul>
+<p>创建一个用于mysqld_exporter连接到MySQL的用户并赋予所需的权限。</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">mysql&gt; GRANT REPLICATION CLIENT, PROCESS ON *.* TO &apos;mysqld_exporter&apos;@&apos;localhost&apos; identified by &apos;000000&apos;;</span><br><span class="line">mysql&gt; GRANT SELECT ON performance_schema.* TO &apos;mysqld_exporter&apos;@&apos;localhost&apos;;</span><br><span class="line">mysql&gt; flush privileges;</span><br></pre></td></tr></table></figure>
+<ul>
+<li>创建一个用于连接MySQL的配置文件</li>
+</ul>
+<p>mysqld_exporter默认会读取<code>~/.my.cnf</code>文件。这里是创建在mysqld_exporter的安装目录下的。</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">$ vim /usr/local/prometheus/mysqld_exporter/.my.cnf</span><br><span class="line"></span><br><span class="line">[client]</span><br><span class="line">user=mysqld_exporter</span><br><span class="line">password=000000</span><br></pre></td></tr></table></figure>
+<ul>
+<li>创建Systemd服务</li>
+</ul>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line">$ vim /etc/systemd/system/mysql_exporter.service</span><br><span class="line"></span><br><span class="line">[Unit]</span><br><span class="line">Description=mysql_exporter</span><br><span class="line">After=network.target</span><br><span class="line">[Service]</span><br><span class="line">Type=simple</span><br><span class="line">User=prometheus</span><br><span class="line">ExecStart=/usr/local/prometheus/mysqld_exporter/mysqld_exporter -config.my-cnf=&quot;/usr/local/prometheus/mysqld_exporter/.my.cnf&quot;</span><br><span class="line">Restart=on-failure</span><br><span class="line">[Install]</span><br><span class="line">WantedBy=multi-user.target</span><br></pre></td></tr></table></figure>
+<ul>
+<li>启动mysqld_exporter</li>
+</ul>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">$ systemctl start mysql_exporter</span><br></pre></td></tr></table></figure>
+<ul>
+<li>验证mysqld_exporter是否启动成功</li>
+</ul>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line">$ systemctl status mysql_exporter</span><br><span class="line">● mysql_exporter.service - mysql_exporter</span><br><span class="line">   Loaded: loaded (/etc/systemd/system/mysql_exporter.service; disabled; vendor preset: enabled)</span><br><span class="line">   Active: active (running) since Tue 2017-05-23 14:11:25 CST; 3s ago</span><br><span class="line"> Main PID: 15026 (mysqld_exporter)</span><br><span class="line">    Tasks: 4</span><br><span class="line">   Memory: 1.6M</span><br><span class="line">      CPU: 16ms</span><br><span class="line">   CGroup: /system.slice/mysql_exporter.service</span><br><span class="line">           └─15026 /usr/local/prometheus/mysqld_exporter/mysqld_exporter -config.my-cnf=/usr/local/prometheus/mysqld_exporter/.my.cnf</span><br></pre></td></tr></table></figure>
+<ul>
+<li>修改prometheus.yml，加入下面的监控目标：</li>
+</ul>
+<p>mysqld_exporter默认的抓取地址为<code>http://IP:9104/metrics</code></p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line">$ vim  /usr/local/prometheus/prometheus.yml</span><br><span class="line"></span><br><span class="line">  - job_name: mysql</span><br><span class="line">    static_configs:</span><br><span class="line">      - targets: [&apos;192.168.2.210:9104&apos;]</span><br><span class="line">        labels:</span><br><span class="line">          instance: db1</span><br></pre></td></tr></table></figure>
+<ul>
+<li>重启Prometheus</li>
+</ul>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">$ systemctl restart prometheus</span><br></pre></td></tr></table></figure>
+<ul>
+<li>在Grafana中导入模板</li>
+</ul>
+<p>Grafana目前官方还没有的配置好的MySQL图表模板，这里使用Percona开源的模板。</p>
+<p>a) 下载Percona提供的模板</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">$ git clone https://github.com/percona/grafana-dashboards.git</span><br></pre></td></tr></table></figure>
+<p>Perconar提供的模板相当丰富，有MySQL、MariaDB、MongoDB等。</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line">ls grafana-dashboards/dashboards/MySQL*</span><br><span class="line"></span><br><span class="line">grafana-dashboards/dashboards/MySQL_InnoDB_Metrics_Advanced.json</span><br><span class="line">grafana-dashboards/dashboards/MySQL_Overview.json</span><br><span class="line">grafana-dashboards/dashboards/MySQL_Replication.json</span><br><span class="line">grafana-dashboards/dashboards/MySQL_User_Statistics.json</span><br><span class="line">grafana-dashboards/dashboards/MySQL_InnoDB_Metrics.json</span><br><span class="line">grafana-dashboards/dashboards/MySQL_Performance_Schema.json</span><br><span class="line">grafana-dashboards/dashboards/MySQL_Table_Statistics.json</span><br><span class="line">grafana-dashboards/dashboards/MySQL_MyISAM_Metrics.json</span><br><span class="line">grafana-dashboards/dashboards/MySQL_Query_Response_Time.json</span><br><span class="line">grafana-dashboards/dashboards/MySQL_TokuDB_Metrics.json</span><br></pre></td></tr></table></figure>
+<p>b) 导入模板</p>
+<p>1.单个导入</p>
+<p>以MySQL_Overview模板为例，在Grafana–Dashboard中导入这个文件，数据源选择Prometheus。</p>
+<p><img src="https://www.hi-linux.com/img/linux/prometheus20.png" alt=""></p>
+<p>2.批量导入</p>
+<p>复制所有模板到指定位置</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">$ cp -r grafana-dashboards/dashboards /var/lib/grafana/</span><br></pre></td></tr></table></figure>
+<p>编辑Grafana配置文件</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">$ vim /etc/grafana/grafana.ini</span><br><span class="line"></span><br><span class="line"># 修改以下选项</span><br><span class="line">[dashboards.json]</span><br><span class="line">enabled = true</span><br><span class="line">path = /var/lib/grafana/dashboards</span><br></pre></td></tr></table></figure>
+<p>重启Grafana</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">$ systemctl restart grafana-server</span><br></pre></td></tr></table></figure>
+<p>可以看到已批量导入了Percona系列模板。</p>
+<p><img src="https://www.hi-linux.com/img/linux/prometheus22.png" alt=""></p>
+<ul>
+<li>访问Dashboards</li>
+</ul>
+<p>在Dashboards上选MySQL Overview模板，就可以看到被监控MySQL服务器的各项状态。</p>
+<p><img src="https://www.hi-linux.com/img/linux/prometheus21.png" alt=""></p>
+<p>其它一些模板的效果</p>
+<p><img src="https://www.hi-linux.com/img/linux/prometheus23.png" alt=""></p>
+<p>如果你想更加方便的实现MySQL的监控，可以直接使用Percona发布的的监控工具Percona Monitoring and Management(PMM)。具体可以参考「<a href="https://www.hi-linux.com/posts/52766.html">Percona监控工具初探</a>」一文。</p>
+<h3 id="监控nginx服务器">监控Nginx服务器</h3>
+<p>由于官方没有提供Nginx直接可用的exporter，Nginx的监控要相对复杂一些。这里使用的是三方提供nginx-vts-exporter。</p>
+<ul>
+<li>安装Nginx</li>
+</ul>
+<p>由于nginx-vts-exporter依赖于Nginx的nginx-module-vts模块，所以这里需要重新编译下Nginx。</p>
+<p>a) 下载对应软件包</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">$ cd /root</span><br><span class="line">$ wget &apos;http://nginx.org/download/nginx-1.9.2.tar.gz&apos;</span><br><span class="line">$ git clone git://github.com/vozlt/nginx-module-vts.git</span><br></pre></td></tr></table></figure>
+<p>b) 编译安装Nginx</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">$ apt-get install libreadline-dev libncurses5-dev libpcre3-dev libssl-dev perl make build-essential</span><br><span class="line">$ tar xzvf nginx-1.9.2.tar.gz</span><br><span class="line">$ cd nginx-1.9.2</span><br><span class="line">$ ./configure --add-module=/root/nginx-module-vts</span><br><span class="line">$ make &amp;&amp; make install</span><br></pre></td></tr></table></figure>
+<p>c) 修改Nginx配置</p>
+<p>这里就不展开讲了，主要需修改内容如下：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br></pre></td><td class="code"><pre><span class="line">http &#123;</span><br><span class="line">    vhost_traffic_status_zone;</span><br><span class="line"></span><br><span class="line">    ...</span><br><span class="line"></span><br><span class="line">    server &#123;</span><br><span class="line"></span><br><span class="line">        ...</span><br><span class="line"></span><br><span class="line">        location /status &#123;</span><br><span class="line">            vhost_traffic_status_display;</span><br><span class="line">            vhost_traffic_status_display_format html;</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>d) 验证nginx-module-vts模块</p>
+<p>访问<code>http://IP/status</code>，出现以下页面：</p>
+<p><img src="https://www.hi-linux.com/img/linux/prometheus26.png" alt=""></p>
+<p>以JSON格式访问</p>
+<p><img src="https://www.hi-linux.com/img/linux/prometheus27.png" alt=""></p>
+<ul>
+<li>安装nginx-vts-exporter</li>
+</ul>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">$ wget -O nginx-vts-exporter-0.5.zip https://github.com/hnlq715/nginx-vts-exporter/archive/v0.5.zip</span><br><span class="line">$ unzip nginx-vts-exporter-0.5.zip</span><br><span class="line">$ mv nginx-vts-exporter-0.5  /usr/local/prometheus/nginx-vts-exporter</span><br><span class="line">$ chmod +x /usr/local/prometheus/nginx-vts-exporter/bin/nginx-vts-exporter</span><br></pre></td></tr></table></figure>
+<ul>
+<li>创建Systemd服务</li>
+</ul>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line">$ vim /etc/systemd/system/nginx_vts_exporter.service</span><br><span class="line"></span><br><span class="line">[Unit]</span><br><span class="line">Description=nginx_exporter</span><br><span class="line">After=network.target</span><br><span class="line">[Service]</span><br><span class="line">Type=simple</span><br><span class="line">User=prometheus</span><br><span class="line">ExecStart=/usr/local/prometheus/nginx-vts-exporter/bin/nginx-vts-exporter -nginx.scrape_uri=http://localhost/status/format/json</span><br><span class="line">Restart=on-failure</span><br><span class="line">[Install]</span><br><span class="line">WantedBy=multi-user.target</span><br></pre></td></tr></table></figure>
+<ul>
+<li>启动nginx-vts-exporter</li>
+</ul>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">$ systemctl start nginx_vts_exporter.service</span><br></pre></td></tr></table></figure>
+<ul>
+<li>验证nginx-vts-exporter是否启动成功</li>
+</ul>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line">$ systemctl status nginx_vts_exporter.service</span><br><span class="line">● nginx_vts_exporter.service - nginx_exporter</span><br><span class="line">   Loaded: loaded (/etc/systemd/system/nginx_vts_exporter.service; disabled; vendor preset: enabled)</span><br><span class="line">   Active: active (running) since Wed 2017-05-24 10:37:09 CST; 8s ago</span><br><span class="line"> Main PID: 5748 (nginx-vts-expor)</span><br><span class="line">    Tasks: 4</span><br><span class="line">   Memory: 5.5M</span><br><span class="line">      CPU: 13ms</span><br><span class="line">   CGroup: /system.slice/nginx_vts_exporter.service</span><br><span class="line">           └─5748 /usr/local/prometheus/nginx-vts-exporter/bin/nginx-vts-exporter -nginx.scrape_uri=http://localhost/status/format/json</span><br></pre></td></tr></table></figure>
+<ul>
+<li>修改prometheus.yml，加入下面的监控目标：</li>
+</ul>
+<p>nginx-vts-exporter默认的抓取地址为<code>http://IP:9913/metrics</code></p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">$ vim  /usr/local/prometheus/prometheus.yml</span><br><span class="line">  - job_name: nginx</span><br><span class="line">    static_configs:</span><br><span class="line">      - targets: [&apos;192.168.2.210:9913&apos;]</span><br><span class="line">        labels:</span><br><span class="line">          instance: web1</span><br></pre></td></tr></table></figure>
+<ul>
+<li>重启Prometheus</li>
+</ul>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">$ systemctl restart prometheus</span><br></pre></td></tr></table></figure>
+<ul>
+<li>导入Nginx Stats模板</li>
+</ul>
+<p>由于是官方平台提供的模板，直接在导入页面填入模板id即可导入。</p>
+<p><img src="https://www.hi-linux.com/img/linux/prometheus24.png" alt=""></p>
+<p><img src="https://www.hi-linux.com/img/linux/prometheus25.png" alt=""></p>
+<ul>
+<li>访问Dashboards</li>
+</ul>
+<p>在Dashboards上选Nginx Stats模板，就可以看到被监控Nginx服务器的各项状态。</p>
+<p><img src="https://www.hi-linux.com/img/linux/prometheus28.png" alt=""></p>
+<p>不知道是模板问题，还是打开姿势不对。我这里没有出现数据，不过在Prometheus自带的WEB是可以查询到相应监控指标的。</p>
+<p><img src="https://www.hi-linux.com/img/linux/prometheus29.png" alt=""></p>
+<h3 id="监控memcache服务器">监控Memcache服务器</h3>
+<ul>
+<li>安装memcached_exporter</li>
+</ul>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">$ wget https://github.com/prometheus/memcached_exporter/releases/download/v0.3.0/memcached_exporter-0.3.0.linux-amd64.tar.gz</span><br><span class="line">$ tar xzvf memcached_exporter-0.3.0.linux-amd64.tar.gz</span><br><span class="line">$ mv memcached_exporter-0.3.0.linux-amd64 /usr/local/prometheus/memcached_exporter</span><br></pre></td></tr></table></figure>
+<ul>
+<li>创建Systemd服务</li>
+</ul>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line">$ vim /etc/systemd/system/memcached_exporter.service</span><br><span class="line"></span><br><span class="line">[Unit]</span><br><span class="line">Description=memcached_exporter</span><br><span class="line">After=network.target</span><br><span class="line">[Service]</span><br><span class="line">Type=simple</span><br><span class="line">User=prometheus</span><br><span class="line">ExecStart=/usr/local/prometheus/memcached_exporter/memcached_exporter  --memcached.address=127.0.0.1:11211</span><br><span class="line">Restart=on-failure</span><br><span class="line">[Install]</span><br><span class="line">WantedBy=multi-user.target</span><br></pre></td></tr></table></figure>
+<ul>
+<li>启动memcached_exporter</li>
+</ul>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">$ systemctl start memcached_exporter</span><br></pre></td></tr></table></figure>
+<ul>
+<li>验证memcached_exporter是否启动成功</li>
+</ul>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line">$ systemctl status memcached_exporter</span><br><span class="line">● memcached_exporter.service - memcached_exporter</span><br><span class="line">   Loaded: loaded (/etc/systemd/system/memcached_exporter.service; disabled; vendor preset: enabled)</span><br><span class="line">   Active: active (running) since Wed 2017-05-24 11:12:08 CST; 26s ago</span><br><span class="line"> Main PID: 7136 (memcached_expor)</span><br><span class="line">    Tasks: 4</span><br><span class="line">   Memory: 808.0K</span><br><span class="line">      CPU: 6ms</span><br><span class="line">   CGroup: /system.slice/memcached_exporter.service</span><br><span class="line">           └─7136 /usr/local/prometheus/memcached_exporter/memcached_exporter --memcached.address=127.0.0.1:11211</span><br></pre></td></tr></table></figure>
+<ul>
+<li>修改prometheus.yml，加入下面的监控目标：</li>
+</ul>
+<p>memcached_exporter默认的抓取地址为<code>http://IP:9150/metrics</code></p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line">$ vim  /usr/local/prometheus/prometheus.yml</span><br><span class="line"></span><br><span class="line">  - job_name: memcached</span><br><span class="line">    static_configs:</span><br><span class="line">      - targets: [&apos;192.168.2.210:9150&apos;]</span><br><span class="line">        labels:</span><br><span class="line">          instance: db2</span><br></pre></td></tr></table></figure>
+<ul>
+<li>重启Prometheus</li>
+</ul>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">$ systemctl restart prometheus</span><br></pre></td></tr></table></figure>
+<ul>
+<li>导入Prometheus memcached模板</li>
+</ul>
+<p>由于是官方平台提供的模板，直接在导入页面填入模板id即可导入。</p>
+<p><img src="https://www.hi-linux.com/img/linux/prometheus30.png" alt=""></p>
+<p><img src="https://www.hi-linux.com/img/linux/prometheus31.png" alt=""></p>
+<ul>
+<li>访问Dashboards</li>
+</ul>
+<p>在Dashboards上选Prometheus memcached模板，就可以看到被监控Memcached服务器的各项状态。</p>
+<p><img src="https://www.hi-linux.com/img/linux/prometheus32.png" alt=""></p>
+<p>好了，这次就先讲几个较常用的监控实例。更多的第三方exporters可参考这里：<a href="https://prometheus.io/docs/instrumenting/exporters/" target="_blank" rel="noopener">EXPORTERS AND INTEGRATIONS</a>，目前Grafana官方支持Prometheus的模板还是比较少的。</p>
+<p>如果你知道文中Grafana Nginx模板无数据的原因，欢迎留言交流！</p>
+<h3 id="参考文档">参考文档</h3>
+<p><a href="http://www.google.com" target="_blank" rel="noopener">http://www.google.com</a><br>
+<a href="http://qingkang.me/Grafana-Prometheus-Monitor.html" target="_blank" rel="noopener">http://qingkang.me/Grafana-Prometheus-Monitor.html</a><br>
+<a href="https://github.com/percona/grafana-dashboards" target="_blank" rel="noopener">https://github.com/percona/grafana-dashboards</a><br>
+<a href="https://www.percona.com/blog/2016/02/29/graphing-mysql-performance-with-prometheus-and-grafana/" target="_blank" rel="noopener">https://www.percona.com/blog/2016/02/29/graphing-mysql-performance-with-prometheus-and-grafana/</a></p>
+
+                
+
+                <hr>
+                <!-- Pager -->
+                <ul class="pager">
+                    
+                        <li class="previous">
+                            <a href="/posts/49433/" data-toggle="tooltip" data-placement="top" title="推荐两款实用工具 hcache 和 SQLPad">&larr; Previous Post</a>
+                        </li>
+                    
+                    
+                        <li class="next">
+                            <a href="/posts/25047/" data-toggle="tooltip" data-placement="top" title="Prometheus 入门">Next Post &rarr;</a>
+                        </li>
+                    
+                </ul>
+
+                <!-- duoshuo Share start -->
+                
+                <!-- 多说 Share end-->
+
+                <!-- 多说评论框 start -->
+                
+                <!-- 多说评论框 end -->
+
+                <!-- disqus comment start -->
+                
+                <!-- disqus comment end -->
+
+                
+                    <!-- disqus 评论框 start -->
+                    <div class="comment">
+                        <div id="lv-container" data-id="city" data-uid="MTAyMC8yNzg2My80NDQw"></div>
+                    </div>
+                    <!-- disqus 评论框 end -->
+                
+
+            </div>
+            
+            <!-- Tabe of Content -->
+            <!-- Table of Contents -->
+
+  
+    <style>
+      span.toc-nav-number{
+        display: none
+      }
+    </style>
+  
+    
+      <aside id="sidebar">
+        <div id="toc" class="toc-article">
+        <strong class="toc-title">Contents</strong>
+        
+          <ol class="toc-nav"><li class="toc-nav-item toc-nav-level-3"><a class="toc-nav-link" href="#监控mysql服务器"><span class="toc-nav-number">1.</span> <span class="toc-nav-text">监控MySQL服务器</span></a></li><li class="toc-nav-item toc-nav-level-3"><a class="toc-nav-link" href="#监控nginx服务器"><span class="toc-nav-number">2.</span> <span class="toc-nav-text">监控Nginx服务器</span></a></li><li class="toc-nav-item toc-nav-level-3"><a class="toc-nav-link" href="#监控memcache服务器"><span class="toc-nav-number">3.</span> <span class="toc-nav-text">监控Memcache服务器</span></a></li><li class="toc-nav-item toc-nav-level-3"><a class="toc-nav-link" href="#参考文档"><span class="toc-nav-number">4.</span> <span class="toc-nav-text">参考文档</span></a></li></ol>
+        
+        </div>
+      </aside>
+    
+
+                
+            <!-- Sidebar Container -->
+            <div class="
+                col-lg-8 col-lg-offset-2
+                col-md-10 col-md-offset-1
+                sidebar-container">
+
+                <!-- Featured Tags -->
+                
+                <section>
+                    <!-- no hr -->
+                    <h5><a href="/tags/">FEATURED TAGS</a></h5>
+                    <div class="tags">
+                       
+                          <a class="tag" href="/tags/#Docker" title="Docker">Docker</a>
+                        
+                          <a class="tag" href="/tags/#Prometheus" title="Prometheus">Prometheus</a>
+                        
+                    </div>
+                </section>
+                
+
+                <!-- Friends Blog -->
+                
+                <hr>
+                <h5>FRIENDS</h5>
+                <ul class="list-inline">
+
+                    
+                        <li><a href="http://www.mike.org.cn/" target="_blank">简单.生活</a></li>
+                    
+                        <li><a href="http://shang.qq.com/wpa/qunwpa?idkey=ea4c43493c2269428ac6ef6141de4b6d78e5ab2d41380ca4099b833b62884ee9" target="_blank">技术交流群</a></li>
+                    
+                        <li><a href="" target="_blank"></a></li>
+                    
+                        <li><a href="" target="_blank"></a></li>
+                    
+                </ul>
+                
+            </div>
+        </div>
+    </div>
+</article>
+
+
+
+
+
+
+    <!-- 来必力City版公共JS代码 start (一个网页只需插入一次) -->
+    <script type="text/javascript">
+       (function(d, s) {
+           var j, e = d.getElementsByTagName(s)[0];
+    
+           if (typeof LivereTower === 'function') { return; }
+    
+           j = d.createElement(s);
+           j.src = 'https://cdn-city.livere.com/js/embed.dist.js';
+           j.async = true;
+    
+           e.parentNode.insertBefore(j, e);
+       })(document, 'script');
+    </script>
+    <noscript>为正常使用来必力评论功能请激活JavaScript</noscript>
+    <!-- 来必力City版 公共JS代码 end -->
+
+
+
+<!-- async load function -->
+<script>
+    function async(u, c) {
+      var d = document, t = 'script',
+          o = d.createElement(t),
+          s = d.getElementsByTagName(t)[0];
+      o.src = u;
+      if (c) { o.addEventListener('load', function (e) { c(null, e); }, false); }
+      s.parentNode.insertBefore(o, s);
+    }
+</script>
+<!-- anchor-js, Doc:http://bryanbraun.github.io/anchorjs/ -->
+<script>
+    async("https://cdn.bootcss.com/anchor-js/1.1.1/anchor.min.js",function(){
+        anchors.options = {
+          visible: 'hover',
+          placement: 'left',
+          icon: 'ℬ'
+        };
+        anchors.add().remove('.intro-header h1').remove('.subheading').remove('.sidebar-container h5');
+    })
+</script>
+<style>
+    /* place left on bigger screen */
+    @media all and (min-width: 800px) {
+        .anchorjs-link{
+            position: absolute;
+            left: -0.75em;
+            font-size: 1.1em;
+            margin-top : -0.1em;
+        }
+    }
+</style>
+
+
+
+    <!-- Footer -->
+    <!-- Footer -->
+<footer>
+    <div class="container">
+        <div class="row">
+            <div class="col-lg-8 col-lg-offset-2 col-md-10 col-md-offset-1">
+                <ul class="list-inline text-center">
+                
+                    <li>
+                        <a href="/atom.xml">
+                            <span class="fa-stack fa-lg">
+                                <i class="fa fa-circle fa-stack-2x"></i>
+                                <i class="fa fa-rss fa-stack-1x fa-inverse"></i>
+                            </span>
+                        </a>
+                    </li>
+                
+                
+                
+                    <li>
+                        <a target="_blank" href="https://www.zhihu.com/people/80imike">
+                            <span class="fa-stack fa-lg">
+                                <i class="fa fa-circle fa-stack-2x"></i>
+                                <i class="fa  fa-stack-1x fa-inverse">知</i>
+                            </span>
+                        </a>
+                    </li>
+                
+
+                
+                    <li>
+                        <a target="_blank" href="http://weibo.com/2093524665">
+                            <span class="fa-stack fa-lg">
+                                <i class="fa fa-circle fa-stack-2x"></i>
+                                <i class="fa fa-weibo fa-stack-1x fa-inverse"></i>
+                            </span>
+                        </a>
+                    </li>
+                
+
+                
+
+                
+
+                
+
+                </ul>
+                <p class="copyright text-muted">
+                    Copyright &copy; Mike 2018 | Hosted by <a href="https://pages.coding.me" style="font-weight: bold">Coding Pages</a>
+                    <br>
+                    Theme by <a href="http://beantech.org">BeanTech</a> 
+                    <span style="display: inline-block; margin: 0 5px;">
+                        <i class="fa fa-heart"></i>
+                    </span> 
+                    re-Ported by <a href="http://www.huweihuang.com">胡伟煌</a> | 
+                    <iframe
+                        style="margin-left: 2px; margin-bottom:-5px;"
+                        frameborder="0" scrolling="0" width="91px" height="20px"
+                        src="https://ghbtns.com/github-btn.html?user=huweihuang&repo=hexo-theme-huweihuang&type=star&count=true" >
+                    </iframe>
+                </p>
+            </div>
+        </div>
+    </div>
+</footer>
+
+<!-- jQuery -->
+<script src="/js/jquery.min.js"></script>
+
+<!-- Bootstrap Core JavaScript -->
+<script src="/js/bootstrap.min.js"></script>
+
+<!-- Custom Theme JavaScript -->
+<script src="/js/hux-blog.min.js"></script>
+
+
+<!-- async load function -->
+<script>
+    function async(u, c) {
+      var d = document, t = 'script',
+          o = d.createElement(t),
+          s = d.getElementsByTagName(t)[0];
+      o.src = u;
+      if (c) { o.addEventListener('load', function (e) { c(null, e); }, false); }
+      s.parentNode.insertBefore(o, s);
+    }
+</script>
+
+<!-- 
+     Because of the native support for backtick-style fenced code blocks 
+     right within the Markdown is landed in Github Pages, 
+     From V1.6, There is no need for Highlight.js, 
+     so Huxblog drops it officially.
+
+     - https://github.com/blog/2100-github-pages-now-faster-and-simpler-with-jekyll-3-0  
+     - https://help.github.com/articles/creating-and-highlighting-code-blocks/    
+-->
+<!--
+    <script>
+        async("http://cdn.bootcss.com/highlight.js/8.6/highlight.min.js", function(){
+            hljs.initHighlightingOnLoad();
+        })
+    </script>
+    <link href="http://cdn.bootcss.com/highlight.js/8.6/styles/github.min.css" rel="stylesheet">
+-->
+
+
+<!-- jquery.tagcloud.js -->
+<script>
+    // only load tagcloud.js in tag.html
+    if($('#tag_cloud').length !== 0){
+        async("http://www.hi-linux.com/js/jquery.tagcloud.js",function(){
+            $.fn.tagcloud.defaults = {
+                //size: {start: 1, end: 1, unit: 'em'},
+                color: {start: '#bbbbee', end: '#0085a1'},
+            };
+            $('#tag_cloud a').tagcloud();
+        })
+    }
+</script>
+
+<!--fastClick.js -->
+<script>
+    async("https://cdn.bootcss.com/fastclick/1.0.6/fastclick.min.js", function(){
+        var $nav = document.querySelector("nav");
+        if($nav) FastClick.attach($nav);
+    })
+</script>
+
+
+<!-- Google Analytics -->
+
+
+
+
+<!-- Baidu Tongji -->
+
+
+
+
+
+
+	<a id="rocket" href="#top" class=""></a>
+	<script type="text/javascript" src="/js/totop.js?v=1.0.0" async=""></script>
+    <script type="text/javascript" src="/js/toc.js?v=1.0.0" async=""></script>
+<!-- Image to hack wechat -->
+<img src="http://www.hi-linux.com/img/icon_wechat.png" width="0" height="0" />
+<!-- Migrate from head to bottom, no longer block render and still work -->
+
+</body>
+
+</html>

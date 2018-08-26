@@ -1,0 +1,695 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<!-- Head tag -->
+<head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="google-site-verification" content="xBT4GhYoi5qRD5tr338pgPM5OWHHIDR6mNg1a3euekI" />
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="description" content="">
+    <meta name="keyword"  content="Linux,运维,Nginx,Zabbix,Centos,Ansible,MySQL,Python,Docker,ELK,Haproxy,Git,Nodejs,安全,技术">
+    <link rel="shortcut icon" href="/img/ironman-draw.png">
+    <!-- Place this tag in your head or just before your close body tag. -->
+    <script async defer src="https://buttons.github.io/buttons.js"></script>
+    <title>
+        
+          MySQL 5.7 多源复制实践 - 运维之美
+        
+    </title>
+
+    <link rel="canonical" href="http://www.hi-linux.com/posts/61083/">
+
+    <!-- Bootstrap Core CSS -->
+    <link rel="stylesheet" href="/css/bootstrap.min.css">
+
+    <!-- Custom CSS --> 
+    <link rel="stylesheet" href="/css/beantech.min.css">
+    
+    <!-- Pygments Highlight CSS -->
+    <link rel="stylesheet" href="/css/highlight.css">
+
+    <link rel="stylesheet" href="/css/widget.css">
+
+    <link rel="stylesheet" href="/css/rocket.css">
+
+    <link rel="stylesheet" href="/css/signature.css">
+
+    <link rel="stylesheet" href="/css/toc.css">
+
+    <!-- Custom Fonts -->
+    <!-- <link href="https://maxcdn.bootstrapcdn.com/font-awesome/4.3.0/css/font-awesome.min.css" rel="stylesheet" type="text/css"> -->
+    <!-- Hux change font-awesome CDN to qiniu -->
+    <link href="https://cdn.staticfile.org/font-awesome/4.5.0/css/font-awesome.min.css" rel="stylesheet" type="text/css">
+
+
+    <!-- Hux Delete, sad but pending in China
+    <link href='http://fonts.googleapis.com/css?family=Lora:400,700,400italic,700italic' rel='stylesheet' type='text/css'>
+    <link href='http://fonts.googleapis.com/css?family=Open+Sans:300italic,400italic,600italic,700italic,800italic,400,300,600,700,800' rel='stylesheet' type='text/
+    css'>
+    -->
+
+
+    <!-- HTML5 Shim and Respond.js IE8 support of HTML5 elements and media queries -->
+    <!-- WARNING: Respond.js doesn't work if you view the page via file:// -->
+    <!--[if lt IE 9]>
+        <script src="https://oss.maxcdn.com/libs/html5shiv/3.7.0/html5shiv.js"></script>
+        <script src="https://oss.maxcdn.com/libs/respond.js/1.4.2/respond.min.js"></script>
+    <![endif]-->
+
+    <!-- ga & ba script hoook -->
+    <script></script>
+</head>
+
+
+<!-- hack iOS CSS :active style -->
+<body ontouchstart="">
+	<!-- Modified by Yu-Hsuan Yen -->
+<!-- Post Header -->
+<style type="text/css">
+    header.intro-header{
+        
+            background-image: url('/img/header_img/article.jpg')
+            /*post*/
+        
+    }
+    
+</style>
+
+<header class="intro-header" >
+    <!-- Signature -->
+    <div id="signature">
+        <div class="container">
+            <div class="row">
+                <div class="col-lg-8 col-lg-offset-2 col-md-10 col-md-offset-1">
+                
+                    <div class="post-heading">
+                        <div class="tags">
+                            
+                              <a class="tag" href="/tags/#技巧" title="技巧">技巧</a>
+                            
+                              <a class="tag" href="/tags/#MySQL" title="MySQL">MySQL</a>
+                            
+                        </div>
+                        <h1>MySQL 5.7 多源复制实践</h1>
+                        <h2 class="subheading"></h2>
+                        <span class="meta">
+                            Posted by Mike on
+                            2017-06-21
+                        </span>
+                    </div>
+                
+
+
+                </div>
+            </div>
+        </div>
+    </div>
+</header>
+
+	
+    <!-- Navigation -->
+<nav class="navbar navbar-default navbar-custom navbar-fixed-top">
+    <div class="container-fluid">
+        <!-- Brand and toggle get grouped for better mobile display -->
+        <div class="navbar-header page-scroll">
+            <button type="button" class="navbar-toggle">
+                <span class="sr-only">Toggle navigation</span>
+                <span class="icon-bar"></span>
+                <span class="icon-bar"></span>
+                <span class="icon-bar"></span>
+            </button>
+            <a class="navbar-brand" href="/">运维之美</a>
+        </div>
+
+        <!-- Collect the nav links, forms, and other content for toggling -->
+        <!-- Known Issue, found by Hux:
+            <nav>'s height woule be hold on by its content.
+            so, when navbar scale out, the <nav> will cover tags.
+            also mask any touch event of tags, unfortunately.
+        -->
+        <div id="huxblog_navbar">
+            <div class="navbar-collapse">
+                <ul class="nav navbar-nav navbar-right">
+                    <li>
+                        <a href="/">Home</a>
+                    </li>
+
+                    
+
+                        
+                    
+
+                        
+                    
+
+                        
+                        <li>
+                            <a href="/archive/">Archives</a>
+                        </li>
+                        
+                    
+
+                        
+                        <li>
+                            <a href="/about/">About</a>
+                        </li>
+                        
+                    
+
+                        
+                        <li>
+                            <a href="/tags/">Tags</a>
+                        </li>
+                        
+                    
+                    
+                </ul>
+            </div>
+        </div>
+        <!-- /.navbar-collapse -->
+    </div>
+    <!-- /.container -->
+</nav>
+<script>
+    // Drop Bootstarp low-performance Navbar
+    // Use customize navbar with high-quality material design animation
+    // in high-perf jank-free CSS3 implementation
+    var $body   = document.body;
+    var $toggle = document.querySelector('.navbar-toggle');
+    var $navbar = document.querySelector('#huxblog_navbar');
+    var $collapse = document.querySelector('.navbar-collapse');
+
+    $toggle.addEventListener('click', handleMagic)
+    function handleMagic(e){
+        if ($navbar.className.indexOf('in') > 0) {
+        // CLOSE
+            $navbar.className = " ";
+            // wait until animation end.
+            setTimeout(function(){
+                // prevent frequently toggle
+                if($navbar.className.indexOf('in') < 0) {
+                    $collapse.style.height = "0px"
+                }
+            },400)
+        }else{
+        // OPEN
+            $collapse.style.height = "auto"
+            $navbar.className += " in";
+        }
+    }
+</script>
+
+
+    <!-- Main Content -->
+    <!-- Modify by Yu-Hsuan Yen -->
+
+<!-- Post Content -->
+<article>
+    <div class="container">
+        <div class="row">
+
+            <!-- Post Container -->
+            <div class="
+                col-lg-8 col-lg-offset-2
+                col-md-10 col-md-offset-1
+                post-container">
+
+                <p>MySQL 5.7发布后，在复制方面有了很大的改进和提升。比如开始支持多源复制 (multi-source) 以及真正的支持多线程复制了。多源复制可以使用基于二进制日志的复制或者基于事务的复制。下面我们讲讲如何配置基于二进制日志的多源复制。</p>
+<h3 id="什么是多源复制">什么是多源复制</h3>
+<p>首先，我们需要清楚几种常见的复制模式：</p>
+<p>1）一主一从<br>
+2）一主多从<br>
+3）级联复制<br>
+4）multi-master</p>
+<p>MySQL 5.7 之前只能实现一主一从、一主多从或者多主多从的复制。如果想实现多主一从的复制，只能使用 MariaDB，但是 MariaDB 又与官方的 MySQL 版本不兼容。</p>
+<p>MySQL 5.7 开始支持了多主一从的复制方式，也就是多源复制。MySQL 5.7 版本相比之前的版本，无论在功能还是性能、安全等方面都已经有不少的提升。</p>
+<a id="more"></a>
+<p>首先，我们需要清楚 <code>multi-master</code> 与 <code>multi-source</code> 复制不是一样的。<code>multi-master</code> 复制通常是环形复制，你可以在任意主机上将数据复制给其他主机。</p>
+<p><img src="https://www.hi-linux.com/img/linux/mysql-multi-source-1.jpg" alt=""></p>
+<p><code>multi-source</code> 是不同的。简单的说，多源复制就是将多个主库同步到一个从库上面，从而增加从的利用率，节省了机器。如下图：</p>
+<p><img src="https://www.hi-linux.com/img/linux/mysql-multi-source-2.jpg" alt=""></p>
+<p><strong>多源复制使用场景</strong></p>
+<ul>
+<li>
+<p>数据分析部门会需要各个业务部门的部分数据做数据分析，这个时候就可以用到多源复制把各个主数据库的数据复制到统一的数据库中。</p>
+</li>
+<li>
+<p>在从服务器进行数据汇总，如果我们的主服务器进行了分库分表的操作，为了实现后期的一些数据统计功能，往往需要把数据汇总在一起再统计。</p>
+</li>
+<li>
+<p>在从服务器对所有主服务器的数据进行备份，在MySQL 5.7之前每一个主服务器都需要一个从服务器，这样很容易造成资源浪费，同时也加大了DBA的维护成本，但MySQL 5.7引入多源复制，可以把多个主服务器的数据同步到一个从服务器进行备份。</p>
+</li>
+</ul>
+<p><strong>使用多源复制的必要条件</strong></p>
+<p>不管是使用基于二进制日志的复制或者基于事务的复制，要开启多源复制功能必须需要在从库上设置 <code>master-info-repository</code> 和 <code>relay-log-info-repository</code> 这两个参数。</p>
+<p>这两个参数是用来存储同步信息的，可以设置的值为 <code>FILE</code> 和 <code>TABLE</code> ，默认值是 <code>FILE</code>。比如 <code>master-info</code> 就保存在 <code>master.info</code> 文件中, <code>relay-log-info</code> 保存在 <code>relay-log.info</code> 文件中，如果服务器意外关闭，正确的 <code>relay-log-info</code> 没有来得及更新到 <code>relay-log.info</code> 文件，这样会造成数据丢失。</p>
+<p>为了数据更加安全，通常设为 <code>TABLE</code>。这些表都是 <code>innodb</code> 类型的，支持事务。相对文件存储安全得多。在 MySQL 库下可以看见这两个表信息，分别是 <code>mysql.slave_master_info</code> 和 <code>mysql.slave_relay_log_info</code>。</p>
+<p>这两个参数也是可以动态调整的。</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">SET GLOBAL master_info_repository = &apos;TABLE&apos;;</span><br><span class="line">SET GLOBAL relay_log_info_repository = &apos;TABLE&apos;;</span><br></pre></td></tr></table></figure>
+<p>如果要启用 <code>enhanced multi-threaded slave</code>(多线程复制)，可以设置以下参数</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">slave-parallel-type=LOGICAL_CLOCK</span><br><span class="line">slave-parallel-workers=8</span><br><span class="line">relay_log_recovery=ON</span><br></pre></td></tr></table></figure>
+<p>如果SLAVE已经为开启状态，那么需要首先关闭SLAVE(STOP SLAVE;)。</p>
+<h3 id="配置多源复制">配置多源复制</h3>
+<h4 id="环境准备">环境准备</h4>
+<p>这里一共使用了三台机器，MySQL版本都为5.7.18。</p>
+<table>
+<thead>
+<tr>
+<th>机器名</th>
+<th>IP地址</th>
+<th>MySQL角色</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>dev-master-01</td>
+<td>192.168.2.210</td>
+<td>MySQL 主库</td>
+</tr>
+<tr>
+<td>dev-node-01</td>
+<td>192.168.2.211</td>
+<td>MySQL 主库</td>
+</tr>
+<tr>
+<td>dev-node-02</td>
+<td>192.168.2.212</td>
+<td>MySQL 从库</td>
+</tr>
+</tbody>
+</table>
+<h4 id="安装mysql">安装MySQL</h4>
+<p>MySQL安装比较简单，官方都有提供不同系统的相应软件源。这里以 Ubuntu 16.04 系统为例：</p>
+<ul>
+<li>从MySQL官方网站下载APT源</li>
+</ul>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">$ wget https://dev.mysql.com/get/mysql-apt-config_0.8.6-1_all.deb</span><br></pre></td></tr></table></figure>
+<p>更多软件源可参考：<code>http://dev.mysql.com/downloads/repo/apt/</code>，如果是 <code>CentOS/RHEL</code> 系统可参考官方文档：<code>https://dev.mysql.com/doc/refman/5.7/en/linux-installation-yum-repo.html</code></p>
+<ul>
+<li>安装MySQL软件源并更新</li>
+</ul>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">$ dpkg -i mysql-apt-config_0.8.6-1_all.deb</span><br><span class="line">$ apt-get update</span><br></pre></td></tr></table></figure>
+<ul>
+<li>安装MySQL Server和MySQL Client</li>
+</ul>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">$ apt-get install mysql-server mysql-client</span><br></pre></td></tr></table></figure>
+<ul>
+<li>启动MySQL Server</li>
+</ul>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">$ service mysql start</span><br></pre></td></tr></table></figure>
+<ul>
+<li>检查MySQL Server是否成功启动</li>
+</ul>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line">$ service mysql status</span><br><span class="line">● mysql.service - MySQL Community Server</span><br><span class="line">   Loaded: loaded (/lib/systemd/system/mysql.service; enabled; vendor preset: enabled)</span><br><span class="line">   Active: active (running) since Mon 2017-06-12 17:16:09 CST; 32s ago</span><br><span class="line">  Process: 10442 ExecStart=/usr/sbin/mysqld --daemonize --pid-file=/var/run/mysqld/mysqld.pid (code=exited, status=0/SUCCESS)</span><br><span class="line">  Process: 10399 ExecStartPre=/usr/share/mysql/mysql-systemd-start pre (code=exited, status=0/SUCCESS)</span><br><span class="line"> Main PID: 10446 (mysqld)</span><br><span class="line">    Tasks: 27</span><br><span class="line">   Memory: 190.8M</span><br><span class="line">      CPU: 362ms</span><br><span class="line">   CGroup: /system.slice/mysql.service</span><br><span class="line">           └─10446 /usr/sbin/mysqld --daemonize --pid-file=/var/run/mysqld/mysqld.pid</span><br></pre></td></tr></table></figure>
+<h4 id="配置mysql多源复制">配置MySQL多源复制</h4>
+<ul>
+<li>修改MySQL主配置文件</li>
+</ul>
+<p>配置 MySQL 多源复制，主要是需要在 MySQL 从服务器的主配置文件 <code>[mysqld]</code> 段中添加以下两行：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">$ vim /etc/mysql/mysql.conf.d/mysqld.cnf</span><br><span class="line"></span><br><span class="line">master-info-repository = table</span><br><span class="line">relay-log-info-repository = table</span><br></pre></td></tr></table></figure>
+<p>MySQL主服务器配置片断</p>
+<p>以 <code>dev-master-01</code> 为例，另一台 Master 也是类似的配置方法。</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line">$ vim /etc/mysql/mysql.conf.d/mysqld.cnf</span><br><span class="line"></span><br><span class="line">server-id = 1</span><br><span class="line">log-bin = /var/log/mysql/mysql-bin</span><br><span class="line">log_bin_index = /var/log/mysql/mysql-bin.index</span><br><span class="line">expire_logs_days = 30</span><br><span class="line">max_binlog_size  = 100M</span><br><span class="line">binlog_format = ROW</span><br></pre></td></tr></table></figure>
+<p>MySQL从服务器配置片断</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br></pre></td><td class="code"><pre><span class="line">$ vim /etc/mysql/mysql.conf.d/mysqld.cnf</span><br><span class="line"></span><br><span class="line">server-id = 3</span><br><span class="line">log-slave-updates = true</span><br><span class="line">skip-slave-start = true</span><br><span class="line">expire_logs_days = 30</span><br><span class="line">max_binlog_size  = 100M</span><br><span class="line">log-bin = /var/log/mysql/mysql-bin</span><br><span class="line">relay-log = /var/log/mysql/relay-log</span><br><span class="line">relay-log-index = /var/log/mysql/relay-log-index</span><br><span class="line">relay-log-info-file = /var/log/mysql/relay-log.info</span><br><span class="line">master-info-repository = table</span><br><span class="line">relay-log-info-repository = table</span><br><span class="line">report-port = 3306</span><br><span class="line">report-host = 192.168.2.212</span><br><span class="line">replicate-do-db = master1</span><br><span class="line">replicate-do-db = master2</span><br><span class="line">replicate_wild_do_table=master1.%</span><br><span class="line">replicate_wild_do_table=master2.%</span><br></pre></td></tr></table></figure>
+<p>注：<code>server-id</code> 每台必须配置为不一样，比如 <code>dev-master-01</code> 为1，<code>dev-node-01</code> 为2，<code>dev-node-02</code> 为3。这里没有给出全部配置，其它请根据实际情况自行配置。</p>
+<ul>
+<li>重启MySQL服务器</li>
+</ul>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">$ service mysql restart</span><br></pre></td></tr></table></figure>
+<ul>
+<li>创建具有复制权限的用户</li>
+</ul>
+<p>在两台 MySQL Master 上创建</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">mysql&gt; grant replication slave on *.* to &apos;repl&apos;@&apos;192.168.2.%&apos; identified by &apos;000000&apos;;</span><br><span class="line">mysql&gt; flush privileges;</span><br></pre></td></tr></table></figure>
+<ul>
+<li>从库分别连接至两个主库</li>
+</ul>
+<p>MySQL 5.7 有了通信渠道的概念，每一个通信渠道都是一个从服务器到主服务器获得二进制日志的链接。这意味着每个通信渠道都得有一个 <code>IO_THREAD</code>。对于每一个主服务器，我们需要运行不同的 <code>CHANGE MASTER</code> 命令和<code>FOR CHANNEL</code> 这个参数来分别提供不同通信链接名字。</p>
+<p>下面开始设置需要同步的源，同步两个主服务器的数据到从服务器上。</p>
+<p>设置同步源到 Master1 (在 MySQL 从服务器上执行)</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">mysql&gt; CHANGE MASTER TO MASTER_HOST=&apos;192.168.2.210&apos;,</span><br><span class="line">MASTER_USER=&apos;repl&apos;,</span><br><span class="line">MASTER_PORT=3306,</span><br><span class="line">MASTER_PASSWORD=&apos;000000&apos;,</span><br><span class="line">MASTER_LOG_FILE=&apos;mysql-bin.000001&apos;,</span><br><span class="line">MASTER_LOG_POS=1 FOR CHANNEL &apos;master1&apos;;</span><br></pre></td></tr></table></figure>
+<p>设置同步源到 Master2 (在 MySQL 从服务器上执行)</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">mysql&gt; CHANGE MASTER TO MASTER_HOST=&apos;192.168.2.211&apos;,</span><br><span class="line">MASTER_USER=&apos;repl&apos;,</span><br><span class="line">MASTER_PORT=3306,</span><br><span class="line">MASTER_PASSWORD=&apos;000000&apos;,</span><br><span class="line">MASTER_LOG_FILE=&apos;mysql-bin.000001&apos;,</span><br><span class="line">MASTER_LOG_POS=1 FOR CHANNEL &apos;master2&apos;;</span><br></pre></td></tr></table></figure>
+<p>启动所有SLAVE</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">mysql&gt; START SLAVE;</span><br></pre></td></tr></table></figure>
+<p>也可以单独启动需要同步的通道。</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">mysql&gt; START SLAVE FOR CHANNEL &apos;master1&apos;;</span><br><span class="line">mysql&gt; START SLAVE FOR CHANNEL &apos;master2&apos;;</span><br></pre></td></tr></table></figure>
+<p>停止和 RESET 复制的命令也同 START 类似，可以操作所有的，也可以操作单个通道。</p>
+<p>查看SLAVE信息</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">mysql&gt; SHOW SLAVE STATUS\G</span><br><span class="line"></span><br><span class="line">...</span><br><span class="line">Slave_IO_Running: Yes</span><br><span class="line">Slave_SQL_Running: Yes</span><br><span class="line">...</span><br></pre></td></tr></table></figure>
+<p>确认 <code>Slave_IO_Running</code> 和 <code>Slave_SQL_Running</code> 两个参数都为 Yes 状态。</p>
+<p>如果要查看单一信道的复制的详细状态，可以使用以下命令：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">mysql&gt; SHOW SLAVE STATUS FOR CHANNEL &apos;master1&apos;\G;</span><br></pre></td></tr></table></figure>
+<h4 id="测试多源复制">测试多源复制</h4>
+<ul>
+<li>在主库(dev-master-01)实例创建一些数据。</li>
+</ul>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">mysql&gt; create database master1;</span><br><span class="line">mysql&gt; use master1;</span><br><span class="line">mysql&gt; CREATE TABLE `test1` (`id` int(11) DEFAULT NULL,`count` int(11) DEFAULT NULL);</span><br><span class="line">mysql&gt; insert into test1 values(1,1);</span><br></pre></td></tr></table></figure>
+<ul>
+<li>在主库(dev-node-01)实例创建一些数据。</li>
+</ul>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">mysql&gt; create database master2;</span><br><span class="line">mysql&gt; use master2;</span><br><span class="line">mysql&gt; CREATE TABLE `test2` (`id` int(11) DEFAULT NULL,`count` int(11) DEFAULT NULL);</span><br><span class="line">mysql&gt; insert into test2 values(1,1);</span><br></pre></td></tr></table></figure>
+<ul>
+<li>在从库(dev-node-02)实例检查数据是否成功复制。</li>
+</ul>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br></pre></td><td class="code"><pre><span class="line">mysql&gt; select * from master1.test1;</span><br><span class="line">+------+-------+</span><br><span class="line">| id   | count |</span><br><span class="line">+------+-------+</span><br><span class="line">|    1 |     1 |</span><br><span class="line">+------+-------+</span><br><span class="line">1 row in set (0.00 sec)</span><br><span class="line"></span><br><span class="line">mysql&gt; select * from master2.test2;</span><br><span class="line">+------+-------+</span><br><span class="line">| id   | count |</span><br><span class="line">+------+-------+</span><br><span class="line">|    1 |     1 |</span><br><span class="line">+------+-------+</span><br><span class="line">1 row in set (0.00 sec)</span><br></pre></td></tr></table></figure>
+<ul>
+<li>查看复制管理视图</li>
+</ul>
+<p>列出所有的复制信道的复制状态概况：</p>
+<p><img src="https://www.hi-linux.com/img/linux/mysql-multi-source-3.png" alt=""></p>
+<p>在 <code>performance_schema</code> 库中，提供了复制相关的一些视图，可供查看复制相关的信息。</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br></pre></td><td class="code"><pre><span class="line">mysql&gt; use performance_schema;</span><br><span class="line">mysql&gt; show tables like &apos;%repl%&apos;;</span><br><span class="line">+-------------------------------------------+</span><br><span class="line">| Tables_in_performance_schema (%repl%)     |</span><br><span class="line">+-------------------------------------------+</span><br><span class="line">| replication_applier_configuration         |</span><br><span class="line">| replication_applier_status                |</span><br><span class="line">| replication_applier_status_by_coordinator |</span><br><span class="line">| replication_applier_status_by_worker      |</span><br><span class="line">| replication_connection_configuration      |</span><br><span class="line">| replication_connection_status             |</span><br><span class="line">| replication_group_member_stats            |</span><br><span class="line">| replication_group_members                 |</span><br><span class="line">+-------------------------------------------+</span><br><span class="line">8 rows in set (0.00 sec)</span><br></pre></td></tr></table></figure>
+<p>这些表里分别有多源通道的配置信息和多源通道的状态信息，另外还有连接配置信息和连接状态信息，如果配置了多线程复制的话，还会有多线程配置信息和多线程状态信息。</p>
+<h3 id="其它一些需要注意的点">其它一些需要注意的点</h3>
+<ul>
+<li>初次配置耗时较长，需要将各个 master 的数据 dump 下来，再 source 到 slave 上。</li>
+<li>需要考虑各 master 数据增长频率，slave 的数据增长频率是这些数据的总和。如果太高，会导致大量的磁盘IO，造成数据更新延迟，最严重的是会影响正常的查询。</li>
+<li>如果多个主数据库实例中存在同名的库，则同名库的表都会放到一个库中；</li>
+<li>如果同名库中的表名相同且结构相同，则数据会到一起；如果结构不同，则先建的有效。</li>
+</ul>
+<h3 id="参考文档">参考文档</h3>
+<p><a href="http://www.google.com" target="_blank" rel="noopener">http://www.google.com</a><br>
+<a href="http://www.ywnds.com/?p=7154" target="_blank" rel="noopener">http://www.ywnds.com/?p=7154</a><br>
+<a href="http://blog.itpub.net/27808137/viewspace-1848036/" target="_blank" rel="noopener">http://blog.itpub.net/27808137/viewspace-1848036/</a><br>
+<a href="http://www.cnblogs.com/xuanzhi201111/p/5151666.html" target="_blank" rel="noopener">http://www.cnblogs.com/xuanzhi201111/p/5151666.html</a><br>
+<a href="https://dev.mysql.com/doc/refman/5.7/en/replication-options-slave.html" target="_blank" rel="noopener">https://dev.mysql.com/doc/refman/5.7/en/replication-options-slave.html</a></p>
+
+                
+
+                <hr>
+                <!-- Pager -->
+                <ul class="pager">
+                    
+                        <li class="previous">
+                            <a href="/posts/4477/" data-toggle="tooltip" data-placement="top" title="给 Docker 配置官方国内加速镜像">&larr; Previous Post</a>
+                        </li>
+                    
+                    
+                        <li class="next">
+                            <a href="/posts/36631/" data-toggle="tooltip" data-placement="top" title="Redis Sentinel 集群部署">Next Post &rarr;</a>
+                        </li>
+                    
+                </ul>
+
+                <!-- duoshuo Share start -->
+                
+                <!-- 多说 Share end-->
+
+                <!-- 多说评论框 start -->
+                
+                <!-- 多说评论框 end -->
+
+                <!-- disqus comment start -->
+                
+                <!-- disqus comment end -->
+
+                
+                    <!-- disqus 评论框 start -->
+                    <div class="comment">
+                        <div id="lv-container" data-id="city" data-uid="MTAyMC8yNzg2My80NDQw"></div>
+                    </div>
+                    <!-- disqus 评论框 end -->
+                
+
+            </div>
+            
+            <!-- Tabe of Content -->
+            <!-- Table of Contents -->
+
+  
+    <style>
+      span.toc-nav-number{
+        display: none
+      }
+    </style>
+  
+    
+      <aside id="sidebar">
+        <div id="toc" class="toc-article">
+        <strong class="toc-title">Contents</strong>
+        
+          <ol class="toc-nav"><li class="toc-nav-item toc-nav-level-3"><a class="toc-nav-link" href="#什么是多源复制"><span class="toc-nav-number">1.</span> <span class="toc-nav-text">什么是多源复制</span></a></li><li class="toc-nav-item toc-nav-level-3"><a class="toc-nav-link" href="#配置多源复制"><span class="toc-nav-number">2.</span> <span class="toc-nav-text">配置多源复制</span></a><ol class="toc-nav-child"><li class="toc-nav-item toc-nav-level-4"><a class="toc-nav-link" href="#环境准备"><span class="toc-nav-number">2.1.</span> <span class="toc-nav-text">环境准备</span></a></li><li class="toc-nav-item toc-nav-level-4"><a class="toc-nav-link" href="#安装mysql"><span class="toc-nav-number">2.2.</span> <span class="toc-nav-text">安装MySQL</span></a></li><li class="toc-nav-item toc-nav-level-4"><a class="toc-nav-link" href="#配置mysql多源复制"><span class="toc-nav-number">2.3.</span> <span class="toc-nav-text">配置MySQL多源复制</span></a></li><li class="toc-nav-item toc-nav-level-4"><a class="toc-nav-link" href="#测试多源复制"><span class="toc-nav-number">2.4.</span> <span class="toc-nav-text">测试多源复制</span></a></li></ol></li><li class="toc-nav-item toc-nav-level-3"><a class="toc-nav-link" href="#其它一些需要注意的点"><span class="toc-nav-number">3.</span> <span class="toc-nav-text">其它一些需要注意的点</span></a></li><li class="toc-nav-item toc-nav-level-3"><a class="toc-nav-link" href="#参考文档"><span class="toc-nav-number">4.</span> <span class="toc-nav-text">参考文档</span></a></li></ol>
+        
+        </div>
+      </aside>
+    
+
+                
+            <!-- Sidebar Container -->
+            <div class="
+                col-lg-8 col-lg-offset-2
+                col-md-10 col-md-offset-1
+                sidebar-container">
+
+                <!-- Featured Tags -->
+                
+                <section>
+                    <!-- no hr -->
+                    <h5><a href="/tags/">FEATURED TAGS</a></h5>
+                    <div class="tags">
+                       
+                          <a class="tag" href="/tags/#技巧" title="技巧">技巧</a>
+                        
+                          <a class="tag" href="/tags/#MySQL" title="MySQL">MySQL</a>
+                        
+                    </div>
+                </section>
+                
+
+                <!-- Friends Blog -->
+                
+                <hr>
+                <h5>FRIENDS</h5>
+                <ul class="list-inline">
+
+                    
+                        <li><a href="http://www.mike.org.cn/" target="_blank">简单.生活</a></li>
+                    
+                        <li><a href="http://shang.qq.com/wpa/qunwpa?idkey=ea4c43493c2269428ac6ef6141de4b6d78e5ab2d41380ca4099b833b62884ee9" target="_blank">技术交流群</a></li>
+                    
+                        <li><a href="" target="_blank"></a></li>
+                    
+                        <li><a href="" target="_blank"></a></li>
+                    
+                </ul>
+                
+            </div>
+        </div>
+    </div>
+</article>
+
+
+
+
+
+
+    <!-- 来必力City版公共JS代码 start (一个网页只需插入一次) -->
+    <script type="text/javascript">
+       (function(d, s) {
+           var j, e = d.getElementsByTagName(s)[0];
+    
+           if (typeof LivereTower === 'function') { return; }
+    
+           j = d.createElement(s);
+           j.src = 'https://cdn-city.livere.com/js/embed.dist.js';
+           j.async = true;
+    
+           e.parentNode.insertBefore(j, e);
+       })(document, 'script');
+    </script>
+    <noscript>为正常使用来必力评论功能请激活JavaScript</noscript>
+    <!-- 来必力City版 公共JS代码 end -->
+
+
+
+<!-- async load function -->
+<script>
+    function async(u, c) {
+      var d = document, t = 'script',
+          o = d.createElement(t),
+          s = d.getElementsByTagName(t)[0];
+      o.src = u;
+      if (c) { o.addEventListener('load', function (e) { c(null, e); }, false); }
+      s.parentNode.insertBefore(o, s);
+    }
+</script>
+<!-- anchor-js, Doc:http://bryanbraun.github.io/anchorjs/ -->
+<script>
+    async("https://cdn.bootcss.com/anchor-js/1.1.1/anchor.min.js",function(){
+        anchors.options = {
+          visible: 'hover',
+          placement: 'left',
+          icon: 'ℬ'
+        };
+        anchors.add().remove('.intro-header h1').remove('.subheading').remove('.sidebar-container h5');
+    })
+</script>
+<style>
+    /* place left on bigger screen */
+    @media all and (min-width: 800px) {
+        .anchorjs-link{
+            position: absolute;
+            left: -0.75em;
+            font-size: 1.1em;
+            margin-top : -0.1em;
+        }
+    }
+</style>
+
+
+
+    <!-- Footer -->
+    <!-- Footer -->
+<footer>
+    <div class="container">
+        <div class="row">
+            <div class="col-lg-8 col-lg-offset-2 col-md-10 col-md-offset-1">
+                <ul class="list-inline text-center">
+                
+                    <li>
+                        <a href="/atom.xml">
+                            <span class="fa-stack fa-lg">
+                                <i class="fa fa-circle fa-stack-2x"></i>
+                                <i class="fa fa-rss fa-stack-1x fa-inverse"></i>
+                            </span>
+                        </a>
+                    </li>
+                
+                
+                
+                    <li>
+                        <a target="_blank" href="https://www.zhihu.com/people/80imike">
+                            <span class="fa-stack fa-lg">
+                                <i class="fa fa-circle fa-stack-2x"></i>
+                                <i class="fa  fa-stack-1x fa-inverse">知</i>
+                            </span>
+                        </a>
+                    </li>
+                
+
+                
+                    <li>
+                        <a target="_blank" href="http://weibo.com/2093524665">
+                            <span class="fa-stack fa-lg">
+                                <i class="fa fa-circle fa-stack-2x"></i>
+                                <i class="fa fa-weibo fa-stack-1x fa-inverse"></i>
+                            </span>
+                        </a>
+                    </li>
+                
+
+                
+
+                
+
+                
+
+                </ul>
+                <p class="copyright text-muted">
+                    Copyright &copy; Mike 2018 | Hosted by <a href="https://pages.coding.me" style="font-weight: bold">Coding Pages</a>
+                    <br>
+                    Theme by <a href="http://beantech.org">BeanTech</a> 
+                    <span style="display: inline-block; margin: 0 5px;">
+                        <i class="fa fa-heart"></i>
+                    </span> 
+                    re-Ported by <a href="http://www.huweihuang.com">胡伟煌</a> | 
+                    <iframe
+                        style="margin-left: 2px; margin-bottom:-5px;"
+                        frameborder="0" scrolling="0" width="91px" height="20px"
+                        src="https://ghbtns.com/github-btn.html?user=huweihuang&repo=hexo-theme-huweihuang&type=star&count=true" >
+                    </iframe>
+                </p>
+            </div>
+        </div>
+    </div>
+</footer>
+
+<!-- jQuery -->
+<script src="/js/jquery.min.js"></script>
+
+<!-- Bootstrap Core JavaScript -->
+<script src="/js/bootstrap.min.js"></script>
+
+<!-- Custom Theme JavaScript -->
+<script src="/js/hux-blog.min.js"></script>
+
+
+<!-- async load function -->
+<script>
+    function async(u, c) {
+      var d = document, t = 'script',
+          o = d.createElement(t),
+          s = d.getElementsByTagName(t)[0];
+      o.src = u;
+      if (c) { o.addEventListener('load', function (e) { c(null, e); }, false); }
+      s.parentNode.insertBefore(o, s);
+    }
+</script>
+
+<!-- 
+     Because of the native support for backtick-style fenced code blocks 
+     right within the Markdown is landed in Github Pages, 
+     From V1.6, There is no need for Highlight.js, 
+     so Huxblog drops it officially.
+
+     - https://github.com/blog/2100-github-pages-now-faster-and-simpler-with-jekyll-3-0  
+     - https://help.github.com/articles/creating-and-highlighting-code-blocks/    
+-->
+<!--
+    <script>
+        async("http://cdn.bootcss.com/highlight.js/8.6/highlight.min.js", function(){
+            hljs.initHighlightingOnLoad();
+        })
+    </script>
+    <link href="http://cdn.bootcss.com/highlight.js/8.6/styles/github.min.css" rel="stylesheet">
+-->
+
+
+<!-- jquery.tagcloud.js -->
+<script>
+    // only load tagcloud.js in tag.html
+    if($('#tag_cloud').length !== 0){
+        async("http://www.hi-linux.com/js/jquery.tagcloud.js",function(){
+            $.fn.tagcloud.defaults = {
+                //size: {start: 1, end: 1, unit: 'em'},
+                color: {start: '#bbbbee', end: '#0085a1'},
+            };
+            $('#tag_cloud a').tagcloud();
+        })
+    }
+</script>
+
+<!--fastClick.js -->
+<script>
+    async("https://cdn.bootcss.com/fastclick/1.0.6/fastclick.min.js", function(){
+        var $nav = document.querySelector("nav");
+        if($nav) FastClick.attach($nav);
+    })
+</script>
+
+
+<!-- Google Analytics -->
+
+
+
+
+<!-- Baidu Tongji -->
+
+
+
+
+
+
+	<a id="rocket" href="#top" class=""></a>
+	<script type="text/javascript" src="/js/totop.js?v=1.0.0" async=""></script>
+    <script type="text/javascript" src="/js/toc.js?v=1.0.0" async=""></script>
+<!-- Image to hack wechat -->
+<img src="http://www.hi-linux.com/img/icon_wechat.png" width="0" height="0" />
+<!-- Migrate from head to bottom, no longer block render and still work -->
+
+</body>
+
+</html>

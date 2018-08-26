@@ -1,0 +1,601 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<!-- Head tag -->
+<head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="google-site-verification" content="xBT4GhYoi5qRD5tr338pgPM5OWHHIDR6mNg1a3euekI" />
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="description" content="">
+    <meta name="keyword"  content="Linux,运维,Nginx,Zabbix,Centos,Ansible,MySQL,Python,Docker,ELK,Haproxy,Git,Nodejs,安全,技术">
+    <link rel="shortcut icon" href="/img/ironman-draw.png">
+    <!-- Place this tag in your head or just before your close body tag. -->
+    <script async defer src="https://buttons.github.io/buttons.js"></script>
+    <title>
+        
+          Linux群常见问题整理(三) - 运维之美
+        
+    </title>
+
+    <link rel="canonical" href="http://www.hi-linux.com/posts/4728/">
+
+    <!-- Bootstrap Core CSS -->
+    <link rel="stylesheet" href="/css/bootstrap.min.css">
+
+    <!-- Custom CSS --> 
+    <link rel="stylesheet" href="/css/beantech.min.css">
+    
+    <!-- Pygments Highlight CSS -->
+    <link rel="stylesheet" href="/css/highlight.css">
+
+    <link rel="stylesheet" href="/css/widget.css">
+
+    <link rel="stylesheet" href="/css/rocket.css">
+
+    <link rel="stylesheet" href="/css/signature.css">
+
+    <link rel="stylesheet" href="/css/toc.css">
+
+    <!-- Custom Fonts -->
+    <!-- <link href="https://maxcdn.bootstrapcdn.com/font-awesome/4.3.0/css/font-awesome.min.css" rel="stylesheet" type="text/css"> -->
+    <!-- Hux change font-awesome CDN to qiniu -->
+    <link href="https://cdn.staticfile.org/font-awesome/4.5.0/css/font-awesome.min.css" rel="stylesheet" type="text/css">
+
+
+    <!-- Hux Delete, sad but pending in China
+    <link href='http://fonts.googleapis.com/css?family=Lora:400,700,400italic,700italic' rel='stylesheet' type='text/css'>
+    <link href='http://fonts.googleapis.com/css?family=Open+Sans:300italic,400italic,600italic,700italic,800italic,400,300,600,700,800' rel='stylesheet' type='text/
+    css'>
+    -->
+
+
+    <!-- HTML5 Shim and Respond.js IE8 support of HTML5 elements and media queries -->
+    <!-- WARNING: Respond.js doesn't work if you view the page via file:// -->
+    <!--[if lt IE 9]>
+        <script src="https://oss.maxcdn.com/libs/html5shiv/3.7.0/html5shiv.js"></script>
+        <script src="https://oss.maxcdn.com/libs/respond.js/1.4.2/respond.min.js"></script>
+    <![endif]-->
+
+    <!-- ga & ba script hoook -->
+    <script></script>
+</head>
+
+
+<!-- hack iOS CSS :active style -->
+<body ontouchstart="">
+	<!-- Modified by Yu-Hsuan Yen -->
+<!-- Post Header -->
+<style type="text/css">
+    header.intro-header{
+        
+            background-image: url('/img/header_img/article.jpg')
+            /*post*/
+        
+    }
+    
+</style>
+
+<header class="intro-header" >
+    <!-- Signature -->
+    <div id="signature">
+        <div class="container">
+            <div class="row">
+                <div class="col-lg-8 col-lg-offset-2 col-md-10 col-md-offset-1">
+                
+                    <div class="post-heading">
+                        <div class="tags">
+                            
+                              <a class="tag" href="/tags/#Linux" title="Linux">Linux</a>
+                            
+                              <a class="tag" href="/tags/#技巧" title="技巧">技巧</a>
+                            
+                        </div>
+                        <h1>Linux群常见问题整理(三)</h1>
+                        <h2 class="subheading"></h2>
+                        <span class="meta">
+                            Posted by Mike on
+                            2016-03-15
+                        </span>
+                    </div>
+                
+
+
+                </div>
+            </div>
+        </div>
+    </div>
+</header>
+
+	
+    <!-- Navigation -->
+<nav class="navbar navbar-default navbar-custom navbar-fixed-top">
+    <div class="container-fluid">
+        <!-- Brand and toggle get grouped for better mobile display -->
+        <div class="navbar-header page-scroll">
+            <button type="button" class="navbar-toggle">
+                <span class="sr-only">Toggle navigation</span>
+                <span class="icon-bar"></span>
+                <span class="icon-bar"></span>
+                <span class="icon-bar"></span>
+            </button>
+            <a class="navbar-brand" href="/">运维之美</a>
+        </div>
+
+        <!-- Collect the nav links, forms, and other content for toggling -->
+        <!-- Known Issue, found by Hux:
+            <nav>'s height woule be hold on by its content.
+            so, when navbar scale out, the <nav> will cover tags.
+            also mask any touch event of tags, unfortunately.
+        -->
+        <div id="huxblog_navbar">
+            <div class="navbar-collapse">
+                <ul class="nav navbar-nav navbar-right">
+                    <li>
+                        <a href="/">Home</a>
+                    </li>
+
+                    
+
+                        
+                    
+
+                        
+                    
+
+                        
+                        <li>
+                            <a href="/archive/">Archives</a>
+                        </li>
+                        
+                    
+
+                        
+                        <li>
+                            <a href="/about/">About</a>
+                        </li>
+                        
+                    
+
+                        
+                        <li>
+                            <a href="/tags/">Tags</a>
+                        </li>
+                        
+                    
+                    
+                </ul>
+            </div>
+        </div>
+        <!-- /.navbar-collapse -->
+    </div>
+    <!-- /.container -->
+</nav>
+<script>
+    // Drop Bootstarp low-performance Navbar
+    // Use customize navbar with high-quality material design animation
+    // in high-perf jank-free CSS3 implementation
+    var $body   = document.body;
+    var $toggle = document.querySelector('.navbar-toggle');
+    var $navbar = document.querySelector('#huxblog_navbar');
+    var $collapse = document.querySelector('.navbar-collapse');
+
+    $toggle.addEventListener('click', handleMagic)
+    function handleMagic(e){
+        if ($navbar.className.indexOf('in') > 0) {
+        // CLOSE
+            $navbar.className = " ";
+            // wait until animation end.
+            setTimeout(function(){
+                // prevent frequently toggle
+                if($navbar.className.indexOf('in') < 0) {
+                    $collapse.style.height = "0px"
+                }
+            },400)
+        }else{
+        // OPEN
+            $collapse.style.height = "auto"
+            $navbar.className += " in";
+        }
+    }
+</script>
+
+
+    <!-- Main Content -->
+    <!-- Modify by Yu-Hsuan Yen -->
+
+<!-- Post Content -->
+<article>
+    <div class="container">
+        <div class="row">
+
+            <!-- Post Container -->
+            <div class="
+                col-lg-8 col-lg-offset-2
+                col-md-10 col-md-offset-1
+                post-container">
+
+                <p>[Linux群常见问题整理]坚持整理到了第三期，是个不错的开头。自我鼓励下，希望以后能一直坚持下去。哈哈！这次整理的一些小技巧都还是挺实用的。在发布到这里的同时，打算以后在CU上也发一份，把一些有用的知识点分享给更多学习Linux的朋友们。</p>
+<p>Q：Linux终端下同时输入ctrl+v,ctrl+n回车后产生乱码？(提供人:Neil)<br>
+A：如果终端显示16进制字符E就会出现乱码，只要输入16进制F就能恢复。</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="built_in">echo</span> -e <span class="string">'\xf'</span></span><br></pre></td></tr></table></figure>
+<p>Q：bash中如何取得当前进程的pid(提供人:galf）<br>
+A：用$$来取。</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="built_in">echo</span> $$</span><br></pre></td></tr></table></figure>
+<p>Q：内核升级后重启内核失败的panic kill的问题(提供人:土猪一号)<a id="more"></a></p>
+<p>重启内核失败的现象如下</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">mount: could not find filesystem <span class="string">'/dev/root'</span></span><br><span class="line">setuproot: moving /dev failed: No such file or directory</span><br><span class="line">setuproot: error mounting /proc: No such file or directory</span><br><span class="line">setuproot: error mounting /sys: No such file or directory</span><br><span class="line">switchroot: mount failed: No such file or directory</span><br><span class="line">Kernel panic - not syncing: Attempted to <span class="built_in">kill</span> init!</span><br></pre></td></tr></table></figure>
+<p>A：产生问题的主要原因：是由于无法加载磁盘硬件的模块驱动。解决方式主要是通过make menuconfig中加载sata sici的devices设备模块驱动。常用的驱动模块如下：</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line">insmod /lib/uhci-hcd.ko </span><br><span class="line">insmod /lib/ohci-hcd.ko </span><br><span class="line">insmod /lib/ehci-hcd.ko </span><br><span class="line">insmod /lib/jbd.ko</span><br><span class="line">insmod /lib/ext3.ko</span><br><span class="line">insmod /lib/scsi_mod.ko</span><br><span class="line">insmod /lib/sd_mod.ko</span><br><span class="line">insmod /lib/libata.ko</span><br><span class="line">insmod /lib/ahci.ko</span><br></pre></td></tr></table></figure>
+<p>如果你initrd中已包含了相应的SATA驱动，出现这种现象的原因就可能是因为initrd是旧版本mkinitrd生成的。</p>
+<p>解决方法就是加入对旧版sysfs路径的支持，方法如下:</p>
+<p>a)、通过make menuconfig选中以下对应的选项</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">General setup--&gt; [*] <span class="built_in">enable</span> deprecated sysfs features to support old userspace tools</span><br></pre></td></tr></table></figure>
+<p>b)、修改.config文件</p>
+<p>修改.config文件中CONFIG_SYSFS_DEPRECATED_V2</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">CONFIG_SYSFS_DEPRECATED_V2=y <span class="comment">#默认该选项为not set,被注释掉的。</span></span><br></pre></td></tr></table></figure>
+<blockquote>
+<p>注:修改这项是因为旧版的mkinitrd及其nash在内核没有CONFIG_SYSFS_DEPRECATED_V2参数时默认使用旧版sysfs路径格式，从而在新内核下无法正确访问/sys内的硬盘信息节点。</p>
+</blockquote>
+<p>Q：如何快速编译内核模块(提供人:枪炮)<br>
+A：常用的方法有以下两种：</p>
+<p>方法一：</p>
+<p>格式：</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">make -C <span class="variable">$KDIR</span> M=<span class="variable">$PWD</span> modules</span><br></pre></td></tr></table></figure>
+<p>例子：</p>
+<p>如在内核源码树内</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">make CONFIG_REISER4_FS=m M=fs/reiser4 modules</span><br></pre></td></tr></table></figure>
+<p>如在内核源码树外</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">make CONFIG_FUSE_FS=m -C /home/blue/linux/linux-2.6.24.3 M=/home/blue/linux/linux-2.6.24.3/drivers/char/mydriver/ modules</span><br><span class="line"></span><br><span class="line">或者</span><br><span class="line"></span><br><span class="line">make KERNEL_DIR=xxx   M=<span class="variable">$PWD</span> modules　　//KERNEL_DIR也是内核源码所在的路径</span><br></pre></td></tr></table></figure>
+<p>方法二</p>
+<p>格式：</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">make -C <span class="variable">$KDIR</span> SUBDIRS=<span class="variable">$PWD</span> modules</span><br></pre></td></tr></table></figure>
+<p>例子：</p>
+<p>如在内核源码树外</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># cd /home/usb/usb-2.6.21.5/</span></span><br><span class="line">make -C /usr/src/linux/ SUBDIRS=<span class="variable">$PWD</span> modules</span><br></pre></td></tr></table></figure>
+<p>如在内核源码树内</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">make CONFIG_REISER4_FS=m SUBDIRS=fs/reiser4 modules</span><br></pre></td></tr></table></figure>
+<blockquote>
+<p>注：make -C $KDIR用来指定内核源代码的路径。’$KDIR’描述内核源代码的目录。Make会进入实际指定的目录执行,但是完成执行时会返回当前的目录。M=用来告诉kbuild正在构建一个外部模块，M=是外部模块(kbuild文件)所在的目录。和M=选项一样,SUBDIRS=的效果一样，是旧的语法。保证向后兼容的。</p>
+</blockquote>
+<p>Q：kill指令的一些小技巧(提供人:土猪一号,Mike)<br>
+A：关闭当前shell下产生的所有进程</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="built_in">kill</span> -9 0</span><br></pre></td></tr></table></figure>
+<blockquote>
+<p>注：PID  0表同一进程组的进程</p>
+</blockquote>
+<p>关闭大于1所有进程</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="built_in">kill</span> -9 -1</span><br></pre></td></tr></table></figure>
+<blockquote>
+<p>注：man中的解释<br>
+-1 All processes with pid larger than 1 will be signaled。<br>
+Kill all processes you can kill。</p>
+</blockquote>
+<p>检查PID是否存在</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="built_in">kill</span> -0 pid</span><br></pre></td></tr></table></figure>
+<blockquote>
+<p>注：对于信号“0”MAN中的解释：exit code indicates if a signal may be sent</p>
+</blockquote>
+<p>Q：用phpize编译动态扩展模块？</p>
+<p>A：phpize命令是用来准备PHP扩展模块的编译环境，通过phpize可以建立php的扩展模块。phpize是属于php-devel包中(档案预设存放于/usr/bin/phpize)。</p>
+<p>整个过程和动态编译apache的模块非常相似，类似于apache的apxs</p>
+<p>下面是一个例子，扩展模組的源程序位于extname目录中：</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">$ <span class="built_in">cd</span> extname</span><br><span class="line">$ phpize</span><br><span class="line">$ ./configure     </span><br><span class="line">$ make</span><br><span class="line"><span class="comment"># make install</span></span><br></pre></td></tr></table></figure>
+<blockquote>
+<p>注意：如在执行./configure时出现&quot;configure: error: Cannot find php-config. Please use --with-php-config=PATH&quot;时，说明你的配置文件位置可能不在缺省目录(–with-php-config预设在/usr/bin/php-config)。可重下类似以下指令调整：</p>
+</blockquote>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">./configure --with-php-config=/usr/<span class="built_in">local</span>/php/bin/php-config</span><br></pre></td></tr></table></figure>
+<p>这个文件通常是在php安装目录的bin目录下的一个文件名叫做php-config或者php-config5的文件。</p>
+<p>然后把该目录下的extname.so复制到你php.ini中的extension_dir指向的目录中，最后需要调整php.ini文件，加入extension=extname.so这一行之后才能使用此扩展库。</p>
+<p>重启web服务器,使你的php配置更新。用phpinfo()检查新模块是否生效。</p>
+<p>任意建一个PHP页面，加入以下代码：</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">&lt;?php phpinfo(); ?&gt;</span><br></pre></td></tr></table></figure>
+<p>访问这个页面，如果增加了你刚刚添加的模块，基本上就证明OK了。</p>
+<p>Q：一个不会kill shell自身的指令(提供人：竹)<br>
+A：killall5是SystemV中的一个killall(杀死所有进程)命令.它会向所有进程发送一个信号,但调用killall5命令的shell自身不会被kill(杀掉)。</p>
+<p>命令格式</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">killall5 -signalnumber</span><br></pre></td></tr></table></figure>
+<p>Q：什么是dmraid?(提供人:金雕,Mike)</p>
+<p>dmraid 全名为设备对应器磁盘阵列(Device Mapper RAID)，利用Linux内核提供的设备对应器（Device Mapper）机制，为多种磁盘阵列设备提供磁盘阵列的设备文件，让用户可以在Red Hat Enterprise Linux系统中使用硬件磁盘阵列设备。</p>
+<p>dmraid主要针对BIOS RAID(Fake RAID)。</p>
+<p>更详细的资料可见：<a href="http://www.babyface.idv.tw/NetAdmin/11200612dmraid/" target="_blank">dmraid介绍Linux上应用ATA/SATA RAID技术(原文)</a>#需翻墙<br>
+　　　　　　　　　<a href="http://www.php-oa.com/2008/01/31/dmraidjieshaolinuxshangyingyongatasataraidjishu.html" target="_blank">dmraid介绍Linux上应用ATA/SATA RAID技术(转载)</a>#墙内可访问</p>
+
+                
+
+                <hr>
+                <!-- Pager -->
+                <ul class="pager">
+                    
+                        <li class="previous">
+                            <a href="/posts/33498/" data-toggle="tooltip" data-placement="top" title="Linux群常见问题整理(二)">&larr; Previous Post</a>
+                        </li>
+                    
+                    
+                        <li class="next">
+                            <a href="/posts/20834/" data-toggle="tooltip" data-placement="top" title="批量杀死 MySQL 连接的几种方法">Next Post &rarr;</a>
+                        </li>
+                    
+                </ul>
+
+                <!-- duoshuo Share start -->
+                
+                <!-- 多说 Share end-->
+
+                <!-- 多说评论框 start -->
+                
+                <!-- 多说评论框 end -->
+
+                <!-- disqus comment start -->
+                
+                <!-- disqus comment end -->
+
+                
+                    <!-- disqus 评论框 start -->
+                    <div class="comment">
+                        <div id="lv-container" data-id="city" data-uid="MTAyMC8yNzg2My80NDQw"></div>
+                    </div>
+                    <!-- disqus 评论框 end -->
+                
+
+            </div>
+            
+            <!-- Tabe of Content -->
+            <!-- Table of Contents -->
+
+                
+            <!-- Sidebar Container -->
+            <div class="
+                col-lg-8 col-lg-offset-2
+                col-md-10 col-md-offset-1
+                sidebar-container">
+
+                <!-- Featured Tags -->
+                
+                <section>
+                    <!-- no hr -->
+                    <h5><a href="/tags/">FEATURED TAGS</a></h5>
+                    <div class="tags">
+                       
+                          <a class="tag" href="/tags/#Linux" title="Linux">Linux</a>
+                        
+                          <a class="tag" href="/tags/#技巧" title="技巧">技巧</a>
+                        
+                    </div>
+                </section>
+                
+
+                <!-- Friends Blog -->
+                
+                <hr>
+                <h5>FRIENDS</h5>
+                <ul class="list-inline">
+
+                    
+                        <li><a href="http://www.mike.org.cn/" target="_blank">简单.生活</a></li>
+                    
+                        <li><a href="http://shang.qq.com/wpa/qunwpa?idkey=ea4c43493c2269428ac6ef6141de4b6d78e5ab2d41380ca4099b833b62884ee9" target="_blank">技术交流群</a></li>
+                    
+                        <li><a href="" target="_blank"></a></li>
+                    
+                        <li><a href="" target="_blank"></a></li>
+                    
+                </ul>
+                
+            </div>
+        </div>
+    </div>
+</article>
+
+
+
+
+
+
+    <!-- 来必力City版公共JS代码 start (一个网页只需插入一次) -->
+    <script type="text/javascript">
+       (function(d, s) {
+           var j, e = d.getElementsByTagName(s)[0];
+    
+           if (typeof LivereTower === 'function') { return; }
+    
+           j = d.createElement(s);
+           j.src = 'https://cdn-city.livere.com/js/embed.dist.js';
+           j.async = true;
+    
+           e.parentNode.insertBefore(j, e);
+       })(document, 'script');
+    </script>
+    <noscript>为正常使用来必力评论功能请激活JavaScript</noscript>
+    <!-- 来必力City版 公共JS代码 end -->
+
+
+
+<!-- async load function -->
+<script>
+    function async(u, c) {
+      var d = document, t = 'script',
+          o = d.createElement(t),
+          s = d.getElementsByTagName(t)[0];
+      o.src = u;
+      if (c) { o.addEventListener('load', function (e) { c(null, e); }, false); }
+      s.parentNode.insertBefore(o, s);
+    }
+</script>
+<!-- anchor-js, Doc:http://bryanbraun.github.io/anchorjs/ -->
+<script>
+    async("https://cdn.bootcss.com/anchor-js/1.1.1/anchor.min.js",function(){
+        anchors.options = {
+          visible: 'hover',
+          placement: 'left',
+          icon: 'ℬ'
+        };
+        anchors.add().remove('.intro-header h1').remove('.subheading').remove('.sidebar-container h5');
+    })
+</script>
+<style>
+    /* place left on bigger screen */
+    @media all and (min-width: 800px) {
+        .anchorjs-link{
+            position: absolute;
+            left: -0.75em;
+            font-size: 1.1em;
+            margin-top : -0.1em;
+        }
+    }
+</style>
+
+
+
+    <!-- Footer -->
+    <!-- Footer -->
+<footer>
+    <div class="container">
+        <div class="row">
+            <div class="col-lg-8 col-lg-offset-2 col-md-10 col-md-offset-1">
+                <ul class="list-inline text-center">
+                
+                    <li>
+                        <a href="/atom.xml">
+                            <span class="fa-stack fa-lg">
+                                <i class="fa fa-circle fa-stack-2x"></i>
+                                <i class="fa fa-rss fa-stack-1x fa-inverse"></i>
+                            </span>
+                        </a>
+                    </li>
+                
+                
+                
+                    <li>
+                        <a target="_blank" href="https://www.zhihu.com/people/80imike">
+                            <span class="fa-stack fa-lg">
+                                <i class="fa fa-circle fa-stack-2x"></i>
+                                <i class="fa  fa-stack-1x fa-inverse">知</i>
+                            </span>
+                        </a>
+                    </li>
+                
+
+                
+                    <li>
+                        <a target="_blank" href="http://weibo.com/2093524665">
+                            <span class="fa-stack fa-lg">
+                                <i class="fa fa-circle fa-stack-2x"></i>
+                                <i class="fa fa-weibo fa-stack-1x fa-inverse"></i>
+                            </span>
+                        </a>
+                    </li>
+                
+
+                
+
+                
+
+                
+
+                </ul>
+                <p class="copyright text-muted">
+                    Copyright &copy; Mike 2018 | Hosted by <a href="https://pages.coding.me" style="font-weight: bold">Coding Pages</a>
+                    <br>
+                    Theme by <a href="http://beantech.org">BeanTech</a> 
+                    <span style="display: inline-block; margin: 0 5px;">
+                        <i class="fa fa-heart"></i>
+                    </span> 
+                    re-Ported by <a href="http://www.huweihuang.com">胡伟煌</a> | 
+                    <iframe
+                        style="margin-left: 2px; margin-bottom:-5px;"
+                        frameborder="0" scrolling="0" width="91px" height="20px"
+                        src="https://ghbtns.com/github-btn.html?user=huweihuang&repo=hexo-theme-huweihuang&type=star&count=true" >
+                    </iframe>
+                </p>
+            </div>
+        </div>
+    </div>
+</footer>
+
+<!-- jQuery -->
+<script src="/js/jquery.min.js"></script>
+
+<!-- Bootstrap Core JavaScript -->
+<script src="/js/bootstrap.min.js"></script>
+
+<!-- Custom Theme JavaScript -->
+<script src="/js/hux-blog.min.js"></script>
+
+
+<!-- async load function -->
+<script>
+    function async(u, c) {
+      var d = document, t = 'script',
+          o = d.createElement(t),
+          s = d.getElementsByTagName(t)[0];
+      o.src = u;
+      if (c) { o.addEventListener('load', function (e) { c(null, e); }, false); }
+      s.parentNode.insertBefore(o, s);
+    }
+</script>
+
+<!-- 
+     Because of the native support for backtick-style fenced code blocks 
+     right within the Markdown is landed in Github Pages, 
+     From V1.6, There is no need for Highlight.js, 
+     so Huxblog drops it officially.
+
+     - https://github.com/blog/2100-github-pages-now-faster-and-simpler-with-jekyll-3-0  
+     - https://help.github.com/articles/creating-and-highlighting-code-blocks/    
+-->
+<!--
+    <script>
+        async("http://cdn.bootcss.com/highlight.js/8.6/highlight.min.js", function(){
+            hljs.initHighlightingOnLoad();
+        })
+    </script>
+    <link href="http://cdn.bootcss.com/highlight.js/8.6/styles/github.min.css" rel="stylesheet">
+-->
+
+
+<!-- jquery.tagcloud.js -->
+<script>
+    // only load tagcloud.js in tag.html
+    if($('#tag_cloud').length !== 0){
+        async("http://www.hi-linux.com/js/jquery.tagcloud.js",function(){
+            $.fn.tagcloud.defaults = {
+                //size: {start: 1, end: 1, unit: 'em'},
+                color: {start: '#bbbbee', end: '#0085a1'},
+            };
+            $('#tag_cloud a').tagcloud();
+        })
+    }
+</script>
+
+<!--fastClick.js -->
+<script>
+    async("https://cdn.bootcss.com/fastclick/1.0.6/fastclick.min.js", function(){
+        var $nav = document.querySelector("nav");
+        if($nav) FastClick.attach($nav);
+    })
+</script>
+
+
+<!-- Google Analytics -->
+
+
+
+
+<!-- Baidu Tongji -->
+
+
+
+
+
+
+	<a id="rocket" href="#top" class=""></a>
+	<script type="text/javascript" src="/js/totop.js?v=1.0.0" async=""></script>
+    <script type="text/javascript" src="/js/toc.js?v=1.0.0" async=""></script>
+<!-- Image to hack wechat -->
+<img src="http://www.hi-linux.com/img/icon_wechat.png" width="0" height="0" />
+<!-- Migrate from head to bottom, no longer block render and still work -->
+
+</body>
+
+</html>

@@ -1,0 +1,672 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<!-- Head tag -->
+<head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="google-site-verification" content="xBT4GhYoi5qRD5tr338pgPM5OWHHIDR6mNg1a3euekI" />
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="description" content="">
+    <meta name="keyword"  content="Linux,运维,Nginx,Zabbix,Centos,Ansible,MySQL,Python,Docker,ELK,Haproxy,Git,Nodejs,安全,技术">
+    <link rel="shortcut icon" href="/img/ironman-draw.png">
+    <!-- Place this tag in your head or just before your close body tag. -->
+    <script async defer src="https://buttons.github.io/buttons.js"></script>
+    <title>
+        
+          利用 Oh-My-Zsh 打造你的超级终端 - 运维之美
+        
+    </title>
+
+    <link rel="canonical" href="http://www.hi-linux.com/posts/54879/">
+
+    <!-- Bootstrap Core CSS -->
+    <link rel="stylesheet" href="/css/bootstrap.min.css">
+
+    <!-- Custom CSS --> 
+    <link rel="stylesheet" href="/css/beantech.min.css">
+    
+    <!-- Pygments Highlight CSS -->
+    <link rel="stylesheet" href="/css/highlight.css">
+
+    <link rel="stylesheet" href="/css/widget.css">
+
+    <link rel="stylesheet" href="/css/rocket.css">
+
+    <link rel="stylesheet" href="/css/signature.css">
+
+    <link rel="stylesheet" href="/css/toc.css">
+
+    <!-- Custom Fonts -->
+    <!-- <link href="https://maxcdn.bootstrapcdn.com/font-awesome/4.3.0/css/font-awesome.min.css" rel="stylesheet" type="text/css"> -->
+    <!-- Hux change font-awesome CDN to qiniu -->
+    <link href="https://cdn.staticfile.org/font-awesome/4.5.0/css/font-awesome.min.css" rel="stylesheet" type="text/css">
+
+
+    <!-- Hux Delete, sad but pending in China
+    <link href='http://fonts.googleapis.com/css?family=Lora:400,700,400italic,700italic' rel='stylesheet' type='text/css'>
+    <link href='http://fonts.googleapis.com/css?family=Open+Sans:300italic,400italic,600italic,700italic,800italic,400,300,600,700,800' rel='stylesheet' type='text/
+    css'>
+    -->
+
+
+    <!-- HTML5 Shim and Respond.js IE8 support of HTML5 elements and media queries -->
+    <!-- WARNING: Respond.js doesn't work if you view the page via file:// -->
+    <!--[if lt IE 9]>
+        <script src="https://oss.maxcdn.com/libs/html5shiv/3.7.0/html5shiv.js"></script>
+        <script src="https://oss.maxcdn.com/libs/respond.js/1.4.2/respond.min.js"></script>
+    <![endif]-->
+
+    <!-- ga & ba script hoook -->
+    <script></script>
+</head>
+
+
+<!-- hack iOS CSS :active style -->
+<body ontouchstart="">
+	<!-- Modified by Yu-Hsuan Yen -->
+<!-- Post Header -->
+<style type="text/css">
+    header.intro-header{
+        
+            background-image: url('/img/header_img/article.jpg')
+            /*post*/
+        
+    }
+    
+</style>
+
+<header class="intro-header" >
+    <!-- Signature -->
+    <div id="signature">
+        <div class="container">
+            <div class="row">
+                <div class="col-lg-8 col-lg-offset-2 col-md-10 col-md-offset-1">
+                
+                    <div class="post-heading">
+                        <div class="tags">
+                            
+                              <a class="tag" href="/tags/#Linux" title="Linux">Linux</a>
+                            
+                              <a class="tag" href="/tags/#ZSH" title="ZSH">ZSH</a>
+                            
+                        </div>
+                        <h1>利用 Oh-My-Zsh 打造你的超级终端</h1>
+                        <h2 class="subheading"></h2>
+                        <span class="meta">
+                            Posted by Mike on
+                            2016-04-28
+                        </span>
+                    </div>
+                
+
+
+                </div>
+            </div>
+        </div>
+    </div>
+</header>
+
+	
+    <!-- Navigation -->
+<nav class="navbar navbar-default navbar-custom navbar-fixed-top">
+    <div class="container-fluid">
+        <!-- Brand and toggle get grouped for better mobile display -->
+        <div class="navbar-header page-scroll">
+            <button type="button" class="navbar-toggle">
+                <span class="sr-only">Toggle navigation</span>
+                <span class="icon-bar"></span>
+                <span class="icon-bar"></span>
+                <span class="icon-bar"></span>
+            </button>
+            <a class="navbar-brand" href="/">运维之美</a>
+        </div>
+
+        <!-- Collect the nav links, forms, and other content for toggling -->
+        <!-- Known Issue, found by Hux:
+            <nav>'s height woule be hold on by its content.
+            so, when navbar scale out, the <nav> will cover tags.
+            also mask any touch event of tags, unfortunately.
+        -->
+        <div id="huxblog_navbar">
+            <div class="navbar-collapse">
+                <ul class="nav navbar-nav navbar-right">
+                    <li>
+                        <a href="/">Home</a>
+                    </li>
+
+                    
+
+                        
+                    
+
+                        
+                    
+
+                        
+                        <li>
+                            <a href="/archive/">Archives</a>
+                        </li>
+                        
+                    
+
+                        
+                        <li>
+                            <a href="/about/">About</a>
+                        </li>
+                        
+                    
+
+                        
+                        <li>
+                            <a href="/tags/">Tags</a>
+                        </li>
+                        
+                    
+                    
+                </ul>
+            </div>
+        </div>
+        <!-- /.navbar-collapse -->
+    </div>
+    <!-- /.container -->
+</nav>
+<script>
+    // Drop Bootstarp low-performance Navbar
+    // Use customize navbar with high-quality material design animation
+    // in high-perf jank-free CSS3 implementation
+    var $body   = document.body;
+    var $toggle = document.querySelector('.navbar-toggle');
+    var $navbar = document.querySelector('#huxblog_navbar');
+    var $collapse = document.querySelector('.navbar-collapse');
+
+    $toggle.addEventListener('click', handleMagic)
+    function handleMagic(e){
+        if ($navbar.className.indexOf('in') > 0) {
+        // CLOSE
+            $navbar.className = " ";
+            // wait until animation end.
+            setTimeout(function(){
+                // prevent frequently toggle
+                if($navbar.className.indexOf('in') < 0) {
+                    $collapse.style.height = "0px"
+                }
+            },400)
+        }else{
+        // OPEN
+            $collapse.style.height = "auto"
+            $navbar.className += " in";
+        }
+    }
+</script>
+
+
+    <!-- Main Content -->
+    <!-- Modify by Yu-Hsuan Yen -->
+
+<!-- Post Content -->
+<article>
+    <div class="container">
+        <div class="row">
+
+            <!-- Post Container -->
+            <div class="
+                col-lg-8 col-lg-offset-2
+                col-md-10 col-md-offset-1
+                post-container">
+
+                <h3 id="什么是zsh">什么是Zsh</h3>
+<p>Zsh是一款强大的虚拟终端，既是一个系统的虚拟终端，也可以作为一个脚本语言的交互解析器。</p>
+<p>Zsh的一些特性</p>
+<blockquote>
+<p>兼容bash，原来使用bash的兄弟切换过来毫无压力。</p>
+</blockquote>
+<blockquote>
+<p>强大的历史纪录功能，在用<ctrl-p>或者方向上键查找历史命令时，zsh支持限制查找。比如输入ls然后再按方向上键,则只会查找用过的ls命令。而此时使用<ctrl-p>则会仍然按之前的方式查找，忽略ls。</ctrl-p></ctrl-p></p>
+</blockquote>
+<blockquote>
+<p>多个终端会话共享历史记录。经常有多个窗口，tab，tmux的多个session，panel。这些命令历史不能共享实在是很糟糕的回忆。但是有了zsh之后，这些确实成了回忆了,所有的命令历史都可以共享。</p>
+</blockquote>
+<a id="more"></a>
+<blockquote>
+<p>智能拼写纠正，输入<code>gtep mactalk * -R</code>，系统会提示：<code>zsh: correct 'gtep' to 'grep' [nyae]?</code>比妹纸贴心吧，她们向来都是让你猜的……</p>
+</blockquote>
+<blockquote>
+<p>各种补全：路径补全、命令补全，命令参数补全，插件内容补全等等。触发补全只需要按一下或两下tab键，补全项可以使用ctrl+n/p/f/b上下左右切换。比如你想杀掉java的进程，只需要输入<code>kill java + tab</code>键，如果只有一个java进程，zsh 会自动替换为进程的 pid，如果有多个则会出现选择项供你选择。ssh+空格+两个tab键，zsh会列出所有访问过的主机和用户名进行补全</p>
+</blockquote>
+<blockquote>
+<p>智能跳转，安装了autojump之后，zsh 会自动记录你访问过的目录，通过 j + 目录名 可以直接进行目录跳转，而且目录名支持模糊匹配和自动补全，例如你访问过hadoop-1.0.0目录，输入j hado 即可正确跳转。j –stat 可以看你的历史路径库。</p>
+</blockquote>
+<blockquote>
+<p>目录浏览和跳转：输入 d，即可列出你在这个会话里访问的目录列表，输入列表前的序号，即可直接跳转。</p>
+</blockquote>
+<blockquote>
+<p>在当前目录下输入 … 或 … ，或直接输入当前目录名都可以跳转，你甚至不再需要输入cd命令了。</p>
+</blockquote>
+<blockquote>
+<p>通配符搜索：<code>ls -l **/*.sh</code>，可以递归显示当前目录下的 shell 文件，文件少时可以代替find，文件太多还是用find。</p>
+</blockquote>
+<p>Zsh默认不兼容Bash，不过Zsh实现中包含了一个屌炸天的仿真模式(emulation mode)支持对两种主流的Bourne衍生版shell（bash、ksh）和C shell的仿真(csh的支持并不完整)。在Bash的仿真模式下，可以使用与Bash相同的语法和命令集合，从而达到近乎完全兼容的目的。</p>
+<p>为了激活对Bash的仿真，需要显式执行</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">$ emulate bash</span><br></pre></td></tr></table></figure>
+<p>等效于</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">$ emulate sh</span><br></pre></td></tr></table></figure>
+<p>更详细介绍可到官网了解，zsh官网：<a href="http://www.zsh.org/" target="_blank" rel="noopener">http://www.zsh.org/</a></p>
+<h4 id="安装">安装</h4>
+<p>Redhat/Centos</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">$ yum install zsh</span><br></pre></td></tr></table></figure>
+<p>Debian/Ubuntu</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">$ apt-get install zsh</span><br></pre></td></tr></table></figure>
+<h4 id="设置默认shell为zsh">设置默认shell为zsh</h4>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">$ chsh -s $(which zsh)</span><br></pre></td></tr></table></figure>
+<p>完成后可以使用下面这条命令检查是否设置成功</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">$ echo $SHELL</span><br></pre></td></tr></table></figure>
+<h3 id="什么是oh-my-zsh">什么是Oh My Zsh</h3>
+<p>Oh My Zsh是一款社区驱动的命令行工具，正如它的主页上说的，Oh My Zsh 是一种生活方式。它基于zsh命令行，提供了主题配置，插件机制，已经内置的便捷操作。给我们一种全新的方式使用命令行。</p>
+<p>Oh My Zsh这个名字听起来就很有意思，它是基于zsh命令行的一个扩展工具集，提供了丰富的扩展功能。</p>
+<p>Oh My Zsh只是一个对zsh命令行环境的配置包装框架，但它不提供命令行窗口，更不是一个独立的APP。</p>
+<p>更详细介绍可到官网了解，Oh My Zsh官网：<a href="http://ohmyz.sh" target="_blank" rel="noopener">http://ohmyz.sh</a></p>
+<h4 id="安装oh-my-zsh">安装Oh My Zsh</h4>
+<p>前提条件：必须已安装ZSH</p>
+<p>我们可以在命令行中输入这个命令来查看我们的电脑上是否安装了zsh命令行</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">$ zsh --version</span><br></pre></td></tr></table></figure>
+<p>如果安装了，这个命令就会输出zsh当前的版本号。确定 zsh 已经安装后，我们就可以继续安装Oh My Zsh了。</p>
+<p>安装Oh My Zsh</p>
+<p>Oh My Zsh 的安装方式非常简单，可以通过<code>curl</code>或<code>wget</code>的方式，用一条命令即可安装。</p>
+<p>curl 方式</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">$ sh -c &quot;$(curl -fsSL https://raw.github.com/robbyrussell/oh-my-zsh/master/tools/install.sh)&quot;</span><br></pre></td></tr></table></figure>
+<p>wget 方式</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">$ sh -c &quot;$(wget https://raw.github.com/robbyrussell/oh-my-zsh/master/tools/install.sh -O -)&quot;</span><br></pre></td></tr></table></figure>
+<p>安装过程中输出如下</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br></pre></td><td class="code"><pre><span class="line">Cloning Oh My Zsh...</span><br><span class="line">Cloning into &apos;/root/.oh-my-zsh&apos;...</span><br><span class="line">remote: Counting objects: 712, done.</span><br><span class="line">remote: Compressing objects: 100% (584/584), done.</span><br><span class="line">remote: Total 712 (delta 15), reused 522 (delta 4), pack-reused 0</span><br><span class="line">Receiving objects: 100% (712/712), 443.58 KiB | 27.00 KiB/s, done.</span><br><span class="line">Resolving deltas: 100% (15/15), done.</span><br><span class="line">Checking connectivity... done.</span><br><span class="line">Looking for an existing zsh config...</span><br><span class="line">Using the Oh My Zsh template file and adding it to ~/.zshrc</span><br><span class="line">Copying your current PATH and adding it to the end of ~/.zshrc for you.</span><br><span class="line">Time to change your default shell to zsh!</span><br><span class="line">        __                                     __</span><br><span class="line"> ____  / /_     ____ ___  __  __   ____  _____/ /_</span><br><span class="line">/ __ \/ __ \   / __ `__ \/ / / /  /_  / / ___/ __ \</span><br><span class="line">/ /_/ / / / /  / / / / / / /_/ /    / /_(__  ) / / /</span><br><span class="line">\____/_/ /_/  /_/ /_/ /_/\__, /    /___/____/_/ /_/</span><br><span class="line">                       /____/                       ....is now installed!</span><br><span class="line"></span><br><span class="line"></span><br><span class="line">Please look over the ~/.zshrc file to select plugins, themes, and options.</span><br><span class="line">p.s. Follow us at https://twitter.com/ohmyzsh.</span><br><span class="line">p.p.s. Get stickers and t-shirts at http://shop.planetargon.com.</span><br></pre></td></tr></table></figure>
+<p>到这里，Oh My Zsh 就安装成功了。</p>
+<h4 id="oh-my-zsh目录结构">Oh My Zsh目录结构</h4>
+<p>进入~/.oh-my-zsh目录后，看看该目录的结构</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">$ ls ~/.oh-my-zsh</span><br><span class="line">cache  custom  lib  log  MIT-LICENSE.txt  oh-my-zsh.sh  plugins  README.markdown  templates  themes  tools</span><br></pre></td></tr></table></figure>
+<blockquote>
+<p>lib 提供了核心功能的脚本库<br>
+tools 提供安装、升级等功能的快捷工具<br>
+plugins 自带插件的存在放位置<br>
+templates 自带模板的存在放位置<br>
+themes  自带主题文件的存在放位置<br>
+custom 个性化配置目录，自安装的插件和主题可放这里</p>
+</blockquote>
+<h4 id="设置主题">设置主题</h4>
+<p>安装完毕后，我们就可以使用了，咱们先来简单配置一下。<br>
+Oh My Zsh 提供了很多主题风格，我们可以根据自己的喜好，设置主题风格，主题的配置在 ~/.zshrc 文件中可以看到，用一个自己熟悉的编辑器打开这个文件，可以找到这一项：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">ZSH_THEME=&quot;robbyrussel&quot;</span><br></pre></td></tr></table></figure>
+<p>可以看到，我们默认使用的主题叫做<code>robbyrussel</code>。 它的显示效果嘛，大概是这样</p>
+<p><img src="https://www.hi-linux.com/img/linux/omz.jpg" alt=""></p>
+<p>Oh My Zsh默认自带了一些默认主题，存放在<code>~/.oh-my-zsh/themes</code>目录中。我们可以查看这些主题</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line">$ ls ~/.oh-my-zsh/themes</span><br><span class="line"></span><br><span class="line">3den.zsh-theme                essembeh.zsh-theme            junkfood.zsh-theme            rgm.zsh-theme</span><br><span class="line">Soliah.zsh-theme              evan.zsh-theme                kafeitu.zsh-theme             risto.zsh-theme</span><br><span class="line">adben.zsh-theme               example.zsh-theme             kardan.zsh-theme              rixius.zsh-theme</span><br><span class="line">af-magic.zsh-theme            fino-time.zsh-theme           kennethreitz.zsh-theme        rkj-repos.zsh-theme</span><br><span class="line">afowler.zsh-theme             fino.zsh-theme                kiwi.zsh-theme                rkj.zsh-theme</span><br><span class="line">agnoster.zsh-theme            fishy.zsh-theme               kolo.zsh-theme                robbyrussell.zsh-theme</span><br><span class="line">alanpeabody.zsh-theme         flazz.zsh-theme               kphoen.zsh-theme              sammy.zsh-theme</span><br><span class="line">amuse.zsh-theme               fletcherm.zsh-theme           lambda.zsh-theme              simonoff.zsh-theme</span><br><span class="line">apple.zsh-theme               fox.zsh-theme                 linuxonly.zsh-theme           simple.zsh-theme</span><br><span class="line">arrow.zsh-theme               frisk.zsh-theme               lukerandall.zsh-theme         skaro.zsh-theme</span><br><span class="line">....</span><br></pre></td></tr></table></figure>
+<p>怎么样，默认主题的数量相当多吧，这就是社区驱动的力量。</p>
+<p>这么多的主题可以满足你的各种偏好了，我们只需在<code>./zshrc</code>文件中配置需要的主题即可，比如我们想用<code>lambda.zsh-theme</code>这个主题，我们只要这样配置</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">ZSH_THEME=&quot;lambda&quot;</span><br></pre></td></tr></table></figure>
+<p>然后保存这个文件文件，再打开一个新的命令行窗口即可看到效果了。那么这么多的主题如何快速找到哪些是我们喜欢的呢，我们还可以这样设置</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">ZSH_THEME=&quot;random&quot;</span><br></pre></td></tr></table></figure>
+<p>我们将主题设置为随机，这样在我们每次打开命令行窗口的时候，都会随机在默认主题中选择一个。这样我们如果觉得当前的主题比较喜欢，可以直接使用 echo 命令输出当前主题的名称</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">$ echo $ZSH_THEME</span><br></pre></td></tr></table></figure>
+<p>然后再将他设置到配置文件中即可。</p>
+<p>如果这些默认主题还不能满足你的需要，我们还可以到这里找到更多的主题</p>
+<blockquote>
+<p><a href="https://github.com/robbyrussell/oh-my-zsh/wiki/Themes" target="_blank" rel="noopener">https://github.com/robbyrussell/oh-my-zsh/wiki/Themes</a><br>
+<a href="https://github.com/robbyrussell/oh-my-zsh/wiki/External-themes" target="_blank" rel="noopener">https://github.com/robbyrussell/oh-my-zsh/wiki/External-themes</a><br>
+<a href="https://github.com/unixorn/awesome-zsh-plugins#themes" target="_blank" rel="noopener">https://github.com/unixorn/awesome-zsh-plugins#themes</a></p>
+</blockquote>
+<h4 id="启用插件">启用插件</h4>
+<p>Oh My Zsh 默认自带了一些默认主题，存放在<code>~/.oh-my-zsh/plugins</code>目录中。我们可以查看这些插件</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br></pre></td><td class="code"><pre><span class="line">$ ls ~/.oh-my-zsh/plugins</span><br><span class="line"></span><br><span class="line">adb               brew         coffee             dirpersist      fastfile         gitignore                 httpie     last-working-dir  nanoc                  pod         rebar       sprunge        terminitor  vault              zeus</span><br><span class="line">ant               brew-cask    colemak            django          fbterm           git-prompt                iwhois     lein              nmap                   postgres    redis-cli   ssh-agent      terraform   vim-interaction    zsh-navigation-tools</span><br><span class="line">apache2-macports  bundler      colored-man-pages  dnf             fedora           git-remote-branch         jake-node  lighthouse        node                   pow         repo        stack          textastic   vi-mode            zsh_reload</span><br><span class="line">archlinux         bwana        colorize           docker          forklift         glassfish                 jhbuild    lol               npm                    powder      rsync       sublime        textmate    virtualenv</span><br><span class="line">asdf              cabal        command-not-found  docker-compose  frontend-search  gnu-utils                 jira       macports          nvm                    powify      ruby        sudo           thefuck     virtualenvwrapper</span><br><span class="line">autoenv           cake         common-aliases     emacs           gas              go                        jruby      man               nyan                   profiles    rvm         supervisor     themes      vundle</span><br><span class="line">autojump          cakephp3     compleat           ember-cli       geeknote         golang                    jsontools  marked2           osx                    pyenv       safe-paste  suse           thor        wakeonlan</span><br><span class="line">autopep8          capistrano   composer           emoji           gem              gpg-agent                 jump       mercurial         pass                   pylint      sbt         svn            tmux        wd</span><br><span class="line">aws               cask         copydir            emoji-clock     git              gradle                    kate       meteor            paver                  python      scala       svn-fast-info  tmux-cssh   web-search</span><br><span class="line">battery           catimg       copyfile           emotty          git-extras       grails                    kitchen    mix               pep8                   rails       scd         symfony        tmuxinator  wp-cli</span><br><span class="line">bbedit            celery       cp                 encode64        gitfast          grunt                     knife      mix-fast          per-directory-history  rake        screen      symfony2       torrent     xcode</span><br><span class="line">bgnotify          chruby       cpanm              extract         git-flow         gulp                      knife_ssh  mosh              perl                   rake-fast   scw         systemadmin    tugboat     yii</span><br><span class="line">boot2docker       chucknorris  debian             fabric          git-flow-avh     heroku                    laravel    mvn               phing                  rand-quote  sfffe       systemd        ubuntu      yii2</span><br><span class="line">bower             cloudapp     dircycle           fancy-ctrl-z    github           history                   laravel4   mysql-macports    pip                    rbenv       singlechar  taskwarrior    urltools    yum</span><br><span class="line">branch            codeclimate  dirhistory         fasd            git-hubflow      history-substring-search  laravel5   n98-magerun       pj                     rbfu        spring      terminalapp    vagrant     z</span><br></pre></td></tr></table></figure>
+<p>Oh My Zsh默认是只启用git插件</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">plugins=(git)</span><br></pre></td></tr></table></figure>
+<p>如需启用更多插件，可加入需启用插件的名称。如下</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">plugins=(git wd web-search history history-substring-search)</span><br></pre></td></tr></table></figure>
+<p>推荐几个好用插件</p>
+<blockquote>
+<p>zsh-history-substring-search<br>
+<a href="https://github.com/robbyrussell/oh-my-zsh/tree/master/plugins/history-substring-search" target="_blank" rel="noopener">https://github.com/robbyrussell/oh-my-zsh/tree/master/plugins/history-substring-search</a></p>
+<p>zsh-syntax-highlighting<br>
+<a href="https://github.com/zsh-users/zsh-syntax-highlighting" target="_blank" rel="noopener">https://github.com/zsh-users/zsh-syntax-highlighting</a></p>
+<p>zsh-autosuggestions<br>
+<a href="https://github.com/zsh-users/zsh-autosuggestions" target="_blank" rel="noopener">https://github.com/zsh-users/zsh-autosuggestions</a></p>
+</blockquote>
+<p>更多插件可参考</p>
+<blockquote>
+<p><a href="https://github.com/robbyrussell/oh-my-zsh/wiki/Plugins" target="_blank" rel="noopener">https://github.com/robbyrussell/oh-my-zsh/wiki/Plugins</a><br>
+<a href="https://github.com/unixorn/awesome-zsh-plugins" target="_blank" rel="noopener">https://github.com/unixorn/awesome-zsh-plugins</a><br>
+<a href="https://github.com/robbyrussell/oh-my-zsh/wiki/Plugins-Overview" target="_blank" rel="noopener">https://github.com/robbyrussell/oh-my-zsh/wiki/Plugins-Overview</a></p>
+</blockquote>
+<h3 id="一些小技巧">一些小技巧</h3>
+<p>给history命令增加时间</p>
+<p>.zshrc中加入以下行</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">$ vim ~/.zshrc</span><br><span class="line">HIST_STAMPS=&quot;yyyy-mm-dd&quot; </span><br><span class="line">source ~/.zshrc</span><br></pre></td></tr></table></figure>
+<p>如果没用oh my zsh的话可用如下alias</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">$ alias history=&apos;fc -il 1&apos;</span><br></pre></td></tr></table></figure>
+<h4 id="更新oh-my-zsh">更新oh-my-zsh</h4>
+<p>设置自动更新oh-my-zsh</p>
+<p>默认情况下，当oh-my-zsh有更新时，都会给你提示。如果希望让oh-my-zsh自动更新，在~/.zshrc 中添加下面这句</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">DISABLE_UPDATE_PROMPT=true</span><br></pre></td></tr></table></figure>
+<p>要手动更新，可以执行</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">$ upgrade_oh_my_zsh</span><br></pre></td></tr></table></figure>
+<h4 id="卸载oh-my-zsh">卸载oh my zsh</h4>
+<p>直接在终端中，运行<code>uninstall_oh_my_zsh</code>既可以卸载。</p>
+<h3 id="参考文档">参考文档</h3>
+<p><a href="http://www.google.com" target="_blank" rel="noopener">http://www.google.com</a><br>
+<a href="http://ohmyz.sh/" target="_blank" rel="noopener">http://ohmyz.sh/</a><br>
+<a href="http://swiftcafe.io/2015/10/31/cafe-time-omz/" target="_blank" rel="noopener">http://swiftcafe.io/2015/10/31/cafe-time-omz/</a></p>
+
+                
+
+                <hr>
+                <!-- Pager -->
+                <ul class="pager">
+                    
+                        <li class="previous">
+                            <a href="/posts/46251/" data-toggle="tooltip" data-placement="top" title="通过 Docker Machine 快速安装 Docker 环境">&larr; Previous Post</a>
+                        </li>
+                    
+                    
+                        <li class="next">
+                            <a href="/posts/929/" data-toggle="tooltip" data-placement="top" title="如何透过 SSH 代理穿越跳板机">Next Post &rarr;</a>
+                        </li>
+                    
+                </ul>
+
+                <!-- duoshuo Share start -->
+                
+                <!-- 多说 Share end-->
+
+                <!-- 多说评论框 start -->
+                
+                <!-- 多说评论框 end -->
+
+                <!-- disqus comment start -->
+                
+                <!-- disqus comment end -->
+
+                
+                    <!-- disqus 评论框 start -->
+                    <div class="comment">
+                        <div id="lv-container" data-id="city" data-uid="MTAyMC8yNzg2My80NDQw"></div>
+                    </div>
+                    <!-- disqus 评论框 end -->
+                
+
+            </div>
+            
+            <!-- Tabe of Content -->
+            <!-- Table of Contents -->
+
+  
+    <style>
+      span.toc-nav-number{
+        display: none
+      }
+    </style>
+  
+    
+      <aside id="sidebar">
+        <div id="toc" class="toc-article">
+        <strong class="toc-title">Contents</strong>
+        
+          <ol class="toc-nav"><li class="toc-nav-item toc-nav-level-3"><a class="toc-nav-link" href="#什么是zsh"><span class="toc-nav-number">1.</span> <span class="toc-nav-text">什么是Zsh</span></a><ol class="toc-nav-child"><li class="toc-nav-item toc-nav-level-4"><a class="toc-nav-link" href="#安装"><span class="toc-nav-number">1.1.</span> <span class="toc-nav-text">安装</span></a></li><li class="toc-nav-item toc-nav-level-4"><a class="toc-nav-link" href="#设置默认shell为zsh"><span class="toc-nav-number">1.2.</span> <span class="toc-nav-text">设置默认shell为zsh</span></a></li></ol></li><li class="toc-nav-item toc-nav-level-3"><a class="toc-nav-link" href="#什么是oh-my-zsh"><span class="toc-nav-number">2.</span> <span class="toc-nav-text">什么是Oh My Zsh</span></a><ol class="toc-nav-child"><li class="toc-nav-item toc-nav-level-4"><a class="toc-nav-link" href="#安装oh-my-zsh"><span class="toc-nav-number">2.1.</span> <span class="toc-nav-text">安装Oh My Zsh</span></a></li><li class="toc-nav-item toc-nav-level-4"><a class="toc-nav-link" href="#oh-my-zsh目录结构"><span class="toc-nav-number">2.2.</span> <span class="toc-nav-text">Oh My Zsh目录结构</span></a></li><li class="toc-nav-item toc-nav-level-4"><a class="toc-nav-link" href="#设置主题"><span class="toc-nav-number">2.3.</span> <span class="toc-nav-text">设置主题</span></a></li><li class="toc-nav-item toc-nav-level-4"><a class="toc-nav-link" href="#启用插件"><span class="toc-nav-number">2.4.</span> <span class="toc-nav-text">启用插件</span></a></li></ol></li><li class="toc-nav-item toc-nav-level-3"><a class="toc-nav-link" href="#一些小技巧"><span class="toc-nav-number">3.</span> <span class="toc-nav-text">一些小技巧</span></a><ol class="toc-nav-child"><li class="toc-nav-item toc-nav-level-4"><a class="toc-nav-link" href="#更新oh-my-zsh"><span class="toc-nav-number">3.1.</span> <span class="toc-nav-text">更新oh-my-zsh</span></a></li><li class="toc-nav-item toc-nav-level-4"><a class="toc-nav-link" href="#卸载oh-my-zsh"><span class="toc-nav-number">3.2.</span> <span class="toc-nav-text">卸载oh my zsh</span></a></li></ol></li><li class="toc-nav-item toc-nav-level-3"><a class="toc-nav-link" href="#参考文档"><span class="toc-nav-number">4.</span> <span class="toc-nav-text">参考文档</span></a></li></ol>
+        
+        </div>
+      </aside>
+    
+
+                
+            <!-- Sidebar Container -->
+            <div class="
+                col-lg-8 col-lg-offset-2
+                col-md-10 col-md-offset-1
+                sidebar-container">
+
+                <!-- Featured Tags -->
+                
+                <section>
+                    <!-- no hr -->
+                    <h5><a href="/tags/">FEATURED TAGS</a></h5>
+                    <div class="tags">
+                       
+                          <a class="tag" href="/tags/#Linux" title="Linux">Linux</a>
+                        
+                          <a class="tag" href="/tags/#ZSH" title="ZSH">ZSH</a>
+                        
+                    </div>
+                </section>
+                
+
+                <!-- Friends Blog -->
+                
+                <hr>
+                <h5>FRIENDS</h5>
+                <ul class="list-inline">
+
+                    
+                        <li><a href="http://www.mike.org.cn/" target="_blank">简单.生活</a></li>
+                    
+                        <li><a href="http://shang.qq.com/wpa/qunwpa?idkey=ea4c43493c2269428ac6ef6141de4b6d78e5ab2d41380ca4099b833b62884ee9" target="_blank">技术交流群</a></li>
+                    
+                        <li><a href="" target="_blank"></a></li>
+                    
+                        <li><a href="" target="_blank"></a></li>
+                    
+                </ul>
+                
+            </div>
+        </div>
+    </div>
+</article>
+
+
+
+
+
+
+    <!-- 来必力City版公共JS代码 start (一个网页只需插入一次) -->
+    <script type="text/javascript">
+       (function(d, s) {
+           var j, e = d.getElementsByTagName(s)[0];
+    
+           if (typeof LivereTower === 'function') { return; }
+    
+           j = d.createElement(s);
+           j.src = 'https://cdn-city.livere.com/js/embed.dist.js';
+           j.async = true;
+    
+           e.parentNode.insertBefore(j, e);
+       })(document, 'script');
+    </script>
+    <noscript>为正常使用来必力评论功能请激活JavaScript</noscript>
+    <!-- 来必力City版 公共JS代码 end -->
+
+
+
+<!-- async load function -->
+<script>
+    function async(u, c) {
+      var d = document, t = 'script',
+          o = d.createElement(t),
+          s = d.getElementsByTagName(t)[0];
+      o.src = u;
+      if (c) { o.addEventListener('load', function (e) { c(null, e); }, false); }
+      s.parentNode.insertBefore(o, s);
+    }
+</script>
+<!-- anchor-js, Doc:http://bryanbraun.github.io/anchorjs/ -->
+<script>
+    async("https://cdn.bootcss.com/anchor-js/1.1.1/anchor.min.js",function(){
+        anchors.options = {
+          visible: 'hover',
+          placement: 'left',
+          icon: 'ℬ'
+        };
+        anchors.add().remove('.intro-header h1').remove('.subheading').remove('.sidebar-container h5');
+    })
+</script>
+<style>
+    /* place left on bigger screen */
+    @media all and (min-width: 800px) {
+        .anchorjs-link{
+            position: absolute;
+            left: -0.75em;
+            font-size: 1.1em;
+            margin-top : -0.1em;
+        }
+    }
+</style>
+
+
+
+    <!-- Footer -->
+    <!-- Footer -->
+<footer>
+    <div class="container">
+        <div class="row">
+            <div class="col-lg-8 col-lg-offset-2 col-md-10 col-md-offset-1">
+                <ul class="list-inline text-center">
+                
+                    <li>
+                        <a href="/atom.xml">
+                            <span class="fa-stack fa-lg">
+                                <i class="fa fa-circle fa-stack-2x"></i>
+                                <i class="fa fa-rss fa-stack-1x fa-inverse"></i>
+                            </span>
+                        </a>
+                    </li>
+                
+                
+                
+                    <li>
+                        <a target="_blank" href="https://www.zhihu.com/people/80imike">
+                            <span class="fa-stack fa-lg">
+                                <i class="fa fa-circle fa-stack-2x"></i>
+                                <i class="fa  fa-stack-1x fa-inverse">知</i>
+                            </span>
+                        </a>
+                    </li>
+                
+
+                
+                    <li>
+                        <a target="_blank" href="http://weibo.com/2093524665">
+                            <span class="fa-stack fa-lg">
+                                <i class="fa fa-circle fa-stack-2x"></i>
+                                <i class="fa fa-weibo fa-stack-1x fa-inverse"></i>
+                            </span>
+                        </a>
+                    </li>
+                
+
+                
+
+                
+
+                
+
+                </ul>
+                <p class="copyright text-muted">
+                    Copyright &copy; Mike 2018 | Hosted by <a href="https://pages.coding.me" style="font-weight: bold">Coding Pages</a>
+                    <br>
+                    Theme by <a href="http://beantech.org">BeanTech</a> 
+                    <span style="display: inline-block; margin: 0 5px;">
+                        <i class="fa fa-heart"></i>
+                    </span> 
+                    re-Ported by <a href="http://www.huweihuang.com">胡伟煌</a> | 
+                    <iframe
+                        style="margin-left: 2px; margin-bottom:-5px;"
+                        frameborder="0" scrolling="0" width="91px" height="20px"
+                        src="https://ghbtns.com/github-btn.html?user=huweihuang&repo=hexo-theme-huweihuang&type=star&count=true" >
+                    </iframe>
+                </p>
+            </div>
+        </div>
+    </div>
+</footer>
+
+<!-- jQuery -->
+<script src="/js/jquery.min.js"></script>
+
+<!-- Bootstrap Core JavaScript -->
+<script src="/js/bootstrap.min.js"></script>
+
+<!-- Custom Theme JavaScript -->
+<script src="/js/hux-blog.min.js"></script>
+
+
+<!-- async load function -->
+<script>
+    function async(u, c) {
+      var d = document, t = 'script',
+          o = d.createElement(t),
+          s = d.getElementsByTagName(t)[0];
+      o.src = u;
+      if (c) { o.addEventListener('load', function (e) { c(null, e); }, false); }
+      s.parentNode.insertBefore(o, s);
+    }
+</script>
+
+<!-- 
+     Because of the native support for backtick-style fenced code blocks 
+     right within the Markdown is landed in Github Pages, 
+     From V1.6, There is no need for Highlight.js, 
+     so Huxblog drops it officially.
+
+     - https://github.com/blog/2100-github-pages-now-faster-and-simpler-with-jekyll-3-0  
+     - https://help.github.com/articles/creating-and-highlighting-code-blocks/    
+-->
+<!--
+    <script>
+        async("http://cdn.bootcss.com/highlight.js/8.6/highlight.min.js", function(){
+            hljs.initHighlightingOnLoad();
+        })
+    </script>
+    <link href="http://cdn.bootcss.com/highlight.js/8.6/styles/github.min.css" rel="stylesheet">
+-->
+
+
+<!-- jquery.tagcloud.js -->
+<script>
+    // only load tagcloud.js in tag.html
+    if($('#tag_cloud').length !== 0){
+        async("http://www.hi-linux.com/js/jquery.tagcloud.js",function(){
+            $.fn.tagcloud.defaults = {
+                //size: {start: 1, end: 1, unit: 'em'},
+                color: {start: '#bbbbee', end: '#0085a1'},
+            };
+            $('#tag_cloud a').tagcloud();
+        })
+    }
+</script>
+
+<!--fastClick.js -->
+<script>
+    async("https://cdn.bootcss.com/fastclick/1.0.6/fastclick.min.js", function(){
+        var $nav = document.querySelector("nav");
+        if($nav) FastClick.attach($nav);
+    })
+</script>
+
+
+<!-- Google Analytics -->
+
+
+
+
+<!-- Baidu Tongji -->
+
+
+
+
+
+
+	<a id="rocket" href="#top" class=""></a>
+	<script type="text/javascript" src="/js/totop.js?v=1.0.0" async=""></script>
+    <script type="text/javascript" src="/js/toc.js?v=1.0.0" async=""></script>
+<!-- Image to hack wechat -->
+<img src="http://www.hi-linux.com/img/icon_wechat.png" width="0" height="0" />
+<!-- Migrate from head to bottom, no longer block render and still work -->
+
+</body>
+
+</html>

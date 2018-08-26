@@ -1,0 +1,650 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<!-- Head tag -->
+<head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="google-site-verification" content="xBT4GhYoi5qRD5tr338pgPM5OWHHIDR6mNg1a3euekI" />
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="description" content="">
+    <meta name="keyword"  content="Linux,运维,Nginx,Zabbix,Centos,Ansible,MySQL,Python,Docker,ELK,Haproxy,Git,Nodejs,安全,技术">
+    <link rel="shortcut icon" href="/img/ironman-draw.png">
+    <!-- Place this tag in your head or just before your close body tag. -->
+    <script async defer src="https://buttons.github.io/buttons.js"></script>
+    <title>
+        
+          Web 性能压力测试工具之 Siege 详解 - 运维之美
+        
+    </title>
+
+    <link rel="canonical" href="http://www.hi-linux.com/posts/50141/">
+
+    <!-- Bootstrap Core CSS -->
+    <link rel="stylesheet" href="/css/bootstrap.min.css">
+
+    <!-- Custom CSS --> 
+    <link rel="stylesheet" href="/css/beantech.min.css">
+    
+    <!-- Pygments Highlight CSS -->
+    <link rel="stylesheet" href="/css/highlight.css">
+
+    <link rel="stylesheet" href="/css/widget.css">
+
+    <link rel="stylesheet" href="/css/rocket.css">
+
+    <link rel="stylesheet" href="/css/signature.css">
+
+    <link rel="stylesheet" href="/css/toc.css">
+
+    <!-- Custom Fonts -->
+    <!-- <link href="https://maxcdn.bootstrapcdn.com/font-awesome/4.3.0/css/font-awesome.min.css" rel="stylesheet" type="text/css"> -->
+    <!-- Hux change font-awesome CDN to qiniu -->
+    <link href="https://cdn.staticfile.org/font-awesome/4.5.0/css/font-awesome.min.css" rel="stylesheet" type="text/css">
+
+
+    <!-- Hux Delete, sad but pending in China
+    <link href='http://fonts.googleapis.com/css?family=Lora:400,700,400italic,700italic' rel='stylesheet' type='text/css'>
+    <link href='http://fonts.googleapis.com/css?family=Open+Sans:300italic,400italic,600italic,700italic,800italic,400,300,600,700,800' rel='stylesheet' type='text/
+    css'>
+    -->
+
+
+    <!-- HTML5 Shim and Respond.js IE8 support of HTML5 elements and media queries -->
+    <!-- WARNING: Respond.js doesn't work if you view the page via file:// -->
+    <!--[if lt IE 9]>
+        <script src="https://oss.maxcdn.com/libs/html5shiv/3.7.0/html5shiv.js"></script>
+        <script src="https://oss.maxcdn.com/libs/respond.js/1.4.2/respond.min.js"></script>
+    <![endif]-->
+
+    <!-- ga & ba script hoook -->
+    <script></script>
+</head>
+
+
+<!-- hack iOS CSS :active style -->
+<body ontouchstart="">
+	<!-- Modified by Yu-Hsuan Yen -->
+<!-- Post Header -->
+<style type="text/css">
+    header.intro-header{
+        
+            background-image: url('/img/header_img/article.jpg')
+            /*post*/
+        
+    }
+    
+</style>
+
+<header class="intro-header" >
+    <!-- Signature -->
+    <div id="signature">
+        <div class="container">
+            <div class="row">
+                <div class="col-lg-8 col-lg-offset-2 col-md-10 col-md-offset-1">
+                
+                    <div class="post-heading">
+                        <div class="tags">
+                            
+                              <a class="tag" href="/tags/#Linux" title="Linux">Linux</a>
+                            
+                              <a class="tag" href="/tags/#技巧" title="技巧">技巧</a>
+                            
+                              <a class="tag" href="/tags/#工具" title="工具">工具</a>
+                            
+                              <a class="tag" href="/tags/#Siege" title="Siege">Siege</a>
+                            
+                        </div>
+                        <h1>Web 性能压力测试工具之 Siege 详解</h1>
+                        <h2 class="subheading"></h2>
+                        <span class="meta">
+                            Posted by Mike on
+                            2016-03-15
+                        </span>
+                    </div>
+                
+
+
+                </div>
+            </div>
+        </div>
+    </div>
+</header>
+
+	
+    <!-- Navigation -->
+<nav class="navbar navbar-default navbar-custom navbar-fixed-top">
+    <div class="container-fluid">
+        <!-- Brand and toggle get grouped for better mobile display -->
+        <div class="navbar-header page-scroll">
+            <button type="button" class="navbar-toggle">
+                <span class="sr-only">Toggle navigation</span>
+                <span class="icon-bar"></span>
+                <span class="icon-bar"></span>
+                <span class="icon-bar"></span>
+            </button>
+            <a class="navbar-brand" href="/">运维之美</a>
+        </div>
+
+        <!-- Collect the nav links, forms, and other content for toggling -->
+        <!-- Known Issue, found by Hux:
+            <nav>'s height woule be hold on by its content.
+            so, when navbar scale out, the <nav> will cover tags.
+            also mask any touch event of tags, unfortunately.
+        -->
+        <div id="huxblog_navbar">
+            <div class="navbar-collapse">
+                <ul class="nav navbar-nav navbar-right">
+                    <li>
+                        <a href="/">Home</a>
+                    </li>
+
+                    
+
+                        
+                    
+
+                        
+                    
+
+                        
+                        <li>
+                            <a href="/archive/">Archives</a>
+                        </li>
+                        
+                    
+
+                        
+                        <li>
+                            <a href="/about/">About</a>
+                        </li>
+                        
+                    
+
+                        
+                        <li>
+                            <a href="/tags/">Tags</a>
+                        </li>
+                        
+                    
+                    
+                </ul>
+            </div>
+        </div>
+        <!-- /.navbar-collapse -->
+    </div>
+    <!-- /.container -->
+</nav>
+<script>
+    // Drop Bootstarp low-performance Navbar
+    // Use customize navbar with high-quality material design animation
+    // in high-perf jank-free CSS3 implementation
+    var $body   = document.body;
+    var $toggle = document.querySelector('.navbar-toggle');
+    var $navbar = document.querySelector('#huxblog_navbar');
+    var $collapse = document.querySelector('.navbar-collapse');
+
+    $toggle.addEventListener('click', handleMagic)
+    function handleMagic(e){
+        if ($navbar.className.indexOf('in') > 0) {
+        // CLOSE
+            $navbar.className = " ";
+            // wait until animation end.
+            setTimeout(function(){
+                // prevent frequently toggle
+                if($navbar.className.indexOf('in') < 0) {
+                    $collapse.style.height = "0px"
+                }
+            },400)
+        }else{
+        // OPEN
+            $collapse.style.height = "auto"
+            $navbar.className += " in";
+        }
+    }
+</script>
+
+
+    <!-- Main Content -->
+    <!-- Modify by Yu-Hsuan Yen -->
+
+<!-- Post Content -->
+<article>
+    <div class="container">
+        <div class="row">
+
+            <!-- Post Container -->
+            <div class="
+                col-lg-8 col-lg-offset-2
+                col-md-10 col-md-offset-1
+                post-container">
+
+                <blockquote>
+<p>Siege是一款开源的压力测试工具，设计用于评估WEB应用在压力下的承受能力。可以根据配置对一个WEB站点进行多用户的并发访问，记录每个用户所有请求过程的相应时间，并在一定数量的并发访问下重复进行。siege可以从您选择的预置列表中请求随机的URL。所以siege可用于仿真用户请求负载，而ab则不能。但不要使用siege来执行最高性能基准调校测试，这方面ab就准确很多。</p>
+</blockquote>
+<p>Siege官网：<a href="http://www.joedog.org/" target="_blank" rel="noopener">http://www.joedog.org/</a><br>
+Siege下载：<a href="http://www.joedog.org/pub/siege/siege-latest.tar.gz" target="_blank" rel="noopener">http://www.joedog.org/pub/siege/siege-latest.tar.gz</a></p>
+<h3 id="安装">安装</h3>
+<ul>
+<li>编译安装</li>
+</ul>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">wget http://www.joedog.org/pub/siege/siege-latest.tar.gz</span><br><span class="line">tar -zxvf siege-latest.tar.gz</span><br><span class="line"><span class="built_in">cd</span> siege-2.72/</span><br><span class="line">./configure</span><br><span class="line">make</span><br><span class="line">make install</span><br></pre></td></tr></table></figure>
+<ul>
+<li>通过包安装</li>
+</ul>
+<p><strong>Debian/Ubuntu</strong></p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">apt-get install siege</span><br></pre></td></tr></table></figure>
+<p><strong>CentOS</strong></p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">yum install siege</span><br></pre></td></tr></table></figure>
+<a id="more"></a>
+<h3 id="参数详解">参数详解</h3>
+<ul>
+<li>命令行参数说明：</li>
+</ul>
+<blockquote>
+<p>-C,或–config 在屏幕上打印显示出当前的配置,配置是包括在他的配置文件$HOME/.siegerc中,可以编辑里面的参数,这样每次siege 都会按照它运行.<br>
+-v 运行时能看到详细的运行信息<br>
+-c n,或–concurrent=n 指定并发的用户个数，-c 200指定并发数200。模拟有n个用户在同时访问,n不要设得太大,因为越大,siege 消耗本地机器的资源越多<br>
+-i,–internet 随机访问urls.txt中的url列表项,以此模拟真实的访问情况(随机性),当urls.txt存在是有效。默认为urls.txt列表从上到下来压。<br>
+-d n,–delay=n hit每个url之间的延迟,在0-n之间<br>
+-r n,–reps=n 重复运行测试n次,不能与-t同时存在<br>
+-t n,–time=n 持续时间。即测试持续时间。默认是分钟。例: -t10S,(10秒) -t5M,(5分钟) -t1H,(1小时)<br>
+-l 运行结束,将统计数据保存到日志文件中siege .log,一般位于/usr/local/var/siege .log中,也可在.siegerc中自定义<br>
+-R SIEGERC,–rc=SIEGERC 指定用特定的siege 配置文件来运行,默认的为$HOME/.siegerc<br>
+-f FILE, –file=FILE 指定用特定的urls文件运行siege ,默认为urls.txt,位于siege 安装目录下的etc/urls.txt<br>
+-u URL,–url=URL 测试指定的一个URL,对它进行”siege “,此选项会忽略有关urls文件的设定<br>
+-b 进行压力测试，不进行延时。<br>
+-A, --user-agent=“text” 设置请求的User-Agent</p>
+</blockquote>
+<ul>
+<li>siegerc设定档说明：</li>
+</ul>
+<blockquote>
+<p>verbose ：要不要显示过程。<br>
+display-id ：显示过程的时候，要不要显示模拟user的id<br>
+show-logfile ：跑完之后要不要显示log资讯<br>
+logging ：要不要log到档案<br>
+logfile ：要log到档案的话，档名是什么<br>
+protocol ：HTTP通讯协定( HTTP/1.1或HTTP/1.0 两者择一)<br>
+connection ：keep-alive表示模拟成persistent connection(写close则反之)<br>
+concurrent ：模拟有几个user来冲<br>
+time ：跑多久之后停止( H=hours, M=minutes, S=seconds)<br>
+reps ：每一个concurrent冲几次。<br>
+file ：多个目的url情形下的url档案位置。<br>
+url ：单一url情形下的指定url<br>
+delay ：非benchmakr行况下，每个模拟user随机延迟0到这个数字(单位：秒)。<br>
+timeout ：socket connection timeout(单位：秒)。<br>
+failures ：socket失败次数(timeouts, connection failures)到达这个数字就停下来。<br>
+internet ：随机从urls.txt抓出url，否则从urls.txt循序。<br>
+benchmark ：跑benchmark模式的话，siege将不会在每个connection间delay,适合拿来做load testing.<br>
+user-agent ：送出的agent识别<br>
+login ：WWW-Authenticate login( login = jdfulmer:topsecret:Admin )(非form based)<br>
+username,password ：也是login用的(非form based)<br>
+Login URL ：每一个模拟user都必需经过的第一个login url( form based)<br>
+proxy-host,proxy-port,proxy-login ：使用proxy的话要填这个。(proxy-login: jeff:secret:corporate)<br>
+follow-location ：redirection support<br>
+zero-data-ok ：接不接受zero-length data<br>
+chunked ：HTTP/1.1需要chunked encoding</p>
+</blockquote>
+<h3 id="用法举例">用法举例</h3>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">siege -c 300 -r 100 -f url.txt</span><br></pre></td></tr></table></figure>
+<blockquote>
+<p>说明：-c是并发量，-r是重复次数。url.txt就是一个文本文件，里面是要测试的url,url.txt每行都是一个url。</p>
+</blockquote>
+<p>urls.txt文件是很多行待测试URL的列表以换行符断开,格式为:</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">[protocol://]host.domain.com[:port][path/to/file]</span><br></pre></td></tr></table></figure>
+<p><strong>url.txt内容:</strong></p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">http://192.168.80.166/01.jpg</span><br><span class="line">http://192.168.80.166/02.jpg</span><br><span class="line">http://192.168.80.166/03.jpg</span><br><span class="line">http://192.168.80.166/04.jpg</span><br><span class="line">http://192.168.80.166/05.jpg</span><br><span class="line">http://192.168.80.166/06.jpg</span><br></pre></td></tr></table></figure>
+<p><strong>结果说明：</strong></p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br></pre></td><td class="code"><pre><span class="line">** SIEGE 2.72</span><br><span class="line">** Preparing 10 concurrent users <span class="keyword">for</span> battle.</span><br><span class="line">The server is now under siege..      <span class="keyword">done</span>.</span><br><span class="line"></span><br><span class="line">Transactions:		         300 hits  <span class="comment">#已完成的事务总署</span></span><br><span class="line">Availability:		      100.00 %   <span class="comment">#完成的成功率</span></span><br><span class="line">Elapsed time:		        0.08 secs   <span class="comment">#总共使用的时间</span></span><br><span class="line">Data transferred:	        0.94 MB   <span class="comment">#响应中数据的总大小</span></span><br><span class="line">Response time:		        0.00 secs   <span class="comment">#显示网络连接的速度</span></span><br><span class="line">Transaction rate:	     3750.00 trans/sec  <span class="comment">#平均每秒完成的事务数</span></span><br><span class="line">Throughput:		       11.79 MB/sec  <span class="comment">#平均每秒传送的数据量</span></span><br><span class="line">Concurrency:		        8.50  <span class="comment">#实际最高并发链接数</span></span><br><span class="line">Successful transactions:         300  <span class="comment">#成功处理的次数</span></span><br><span class="line">Failed transactions:	           0    <span class="comment">#失败处理的次数</span></span><br><span class="line">Longest transaction:	        0.01   <span class="comment">#最长事务处理的时间</span></span><br><span class="line">Shortest transaction:	        0.00   <span class="comment">#最短事务处理时间</span></span><br></pre></td></tr></table></figure>
+<h3 id="常用的siege命令举例">常用的siege命令举例</h3>
+<ul>
+<li>200个并发对www.google.com发送请求100次</li>
+</ul>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">siege -c 200 -r 100 http://www.google.com</span><br></pre></td></tr></table></figure>
+<ul>
+<li>在urls.txt中列出所有的网址</li>
+</ul>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">siege -c 200 -r 100 -f urls.txt</span><br></pre></td></tr></table></figure>
+<ul>
+<li>随机选取urls.txt中列出所有的网址</li>
+</ul>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">siege -c 200 -r 100 -f urls.txt -i</span><br></pre></td></tr></table></figure>
+<ul>
+<li>delay=0，更准确的压力测试，而不是功能测试</li>
+</ul>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">siege -c 200 -r 100 -f urls.txt -i -b</span><br></pre></td></tr></table></figure>
+<ul>
+<li>指定http请求头 文档类型</li>
+</ul>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">siege -H <span class="string">"Content-Type:application/json"</span> -c 200 -r 100 -f urls.txt -i -b</span><br></pre></td></tr></table></figure>
+<h3 id="siege-使用的一些总结">Siege 使用的一些总结</h3>
+<ul>
+<li>发送post请求时，url格式为：<a href="http://www.xxxx.com/" target="_blank" rel="noopener">http://www.xxxx.com/</a> POST p1=v1&amp;p2=v2</li>
+<li>如果url中含有空格和中文，要先进行url编码，否则siege发送的请求url不准确</li>
+<li>siege自身感觉也是有瓶颈的，并发数最大也就1000，再提高就会报下面这样的错误</li>
+</ul>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">[error] socket: unable to connect sock.c:222: Operation already <span class="keyword">in</span> progress socket: connection timed out</span><br></pre></td></tr></table></figure>
+<p>这样最终导致测试结果怎么都没法超过2W每秒的请求，所以就把siege -c 1000 -r 100 -i -b -f url.txt 放到shell中并发执行</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line"></span><br><span class="line"><span class="meta">#!/bin/bash</span></span><br><span class="line">user_agent=<span class="string">"Siege 1.0"</span></span><br><span class="line">siege_rc=<span class="string">"siege.rc"</span></span><br><span class="line">concurrent=150</span><br><span class="line">repet=200</span><br><span class="line">siege_single_urls=<span class="string">"singleurl.txt"</span></span><br><span class="line">siege_prefix_urls=<span class="string">"prefixurl.txt"</span></span><br><span class="line"></span><br><span class="line"><span class="keyword">for</span> i <span class="keyword">in</span> &#123;1..10&#125;</span><br><span class="line"><span class="keyword">do</span></span><br><span class="line">siege -c <span class="variable">$concurrent</span> -r <span class="variable">$repet</span> -i -b -f <span class="variable">$siege_single_urls</span> -R <span class="variable">$siege_rc</span> -A <span class="string">"<span class="variable">$user_agent</span>"</span> &amp;;</span><br><span class="line"><span class="keyword">done</span></span><br></pre></td></tr></table></figure>
+
+                
+
+                <hr>
+                <!-- Pager -->
+                <ul class="pager">
+                    
+                        <li class="previous">
+                            <a href="/posts/20834/" data-toggle="tooltip" data-placement="top" title="批量杀死 MySQL 连接的几种方法">&larr; Previous Post</a>
+                        </li>
+                    
+                    
+                        <li class="next">
+                            <a href="/posts/13805/" data-toggle="tooltip" data-placement="top" title="If Everyone Cared">Next Post &rarr;</a>
+                        </li>
+                    
+                </ul>
+
+                <!-- duoshuo Share start -->
+                
+                <!-- 多说 Share end-->
+
+                <!-- 多说评论框 start -->
+                
+                <!-- 多说评论框 end -->
+
+                <!-- disqus comment start -->
+                
+                <!-- disqus comment end -->
+
+                
+                    <!-- disqus 评论框 start -->
+                    <div class="comment">
+                        <div id="lv-container" data-id="city" data-uid="MTAyMC8yNzg2My80NDQw"></div>
+                    </div>
+                    <!-- disqus 评论框 end -->
+                
+
+            </div>
+            
+            <!-- Tabe of Content -->
+            <!-- Table of Contents -->
+
+  
+    <style>
+      span.toc-nav-number{
+        display: none
+      }
+    </style>
+  
+    
+      <aside id="sidebar">
+        <div id="toc" class="toc-article">
+        <strong class="toc-title">Contents</strong>
+        
+          <ol class="toc-nav"><li class="toc-nav-item toc-nav-level-3"><a class="toc-nav-link" href="#安装"><span class="toc-nav-number">1.</span> <span class="toc-nav-text">安装</span></a></li><li class="toc-nav-item toc-nav-level-3"><a class="toc-nav-link" href="#参数详解"><span class="toc-nav-number">2.</span> <span class="toc-nav-text">参数详解</span></a></li><li class="toc-nav-item toc-nav-level-3"><a class="toc-nav-link" href="#用法举例"><span class="toc-nav-number">3.</span> <span class="toc-nav-text">用法举例</span></a></li><li class="toc-nav-item toc-nav-level-3"><a class="toc-nav-link" href="#常用的siege命令举例"><span class="toc-nav-number">4.</span> <span class="toc-nav-text">常用的siege命令举例</span></a></li><li class="toc-nav-item toc-nav-level-3"><a class="toc-nav-link" href="#siege-使用的一些总结"><span class="toc-nav-number">5.</span> <span class="toc-nav-text">Siege 使用的一些总结</span></a></li></ol>
+        
+        </div>
+      </aside>
+    
+
+                
+            <!-- Sidebar Container -->
+            <div class="
+                col-lg-8 col-lg-offset-2
+                col-md-10 col-md-offset-1
+                sidebar-container">
+
+                <!-- Featured Tags -->
+                
+                <section>
+                    <!-- no hr -->
+                    <h5><a href="/tags/">FEATURED TAGS</a></h5>
+                    <div class="tags">
+                       
+                          <a class="tag" href="/tags/#Linux" title="Linux">Linux</a>
+                        
+                          <a class="tag" href="/tags/#技巧" title="技巧">技巧</a>
+                        
+                          <a class="tag" href="/tags/#工具" title="工具">工具</a>
+                        
+                          <a class="tag" href="/tags/#Siege" title="Siege">Siege</a>
+                        
+                    </div>
+                </section>
+                
+
+                <!-- Friends Blog -->
+                
+                <hr>
+                <h5>FRIENDS</h5>
+                <ul class="list-inline">
+
+                    
+                        <li><a href="http://www.mike.org.cn/" target="_blank">简单.生活</a></li>
+                    
+                        <li><a href="http://shang.qq.com/wpa/qunwpa?idkey=ea4c43493c2269428ac6ef6141de4b6d78e5ab2d41380ca4099b833b62884ee9" target="_blank">技术交流群</a></li>
+                    
+                        <li><a href="" target="_blank"></a></li>
+                    
+                        <li><a href="" target="_blank"></a></li>
+                    
+                </ul>
+                
+            </div>
+        </div>
+    </div>
+</article>
+
+
+
+
+
+
+    <!-- 来必力City版公共JS代码 start (一个网页只需插入一次) -->
+    <script type="text/javascript">
+       (function(d, s) {
+           var j, e = d.getElementsByTagName(s)[0];
+    
+           if (typeof LivereTower === 'function') { return; }
+    
+           j = d.createElement(s);
+           j.src = 'https://cdn-city.livere.com/js/embed.dist.js';
+           j.async = true;
+    
+           e.parentNode.insertBefore(j, e);
+       })(document, 'script');
+    </script>
+    <noscript>为正常使用来必力评论功能请激活JavaScript</noscript>
+    <!-- 来必力City版 公共JS代码 end -->
+
+
+
+<!-- async load function -->
+<script>
+    function async(u, c) {
+      var d = document, t = 'script',
+          o = d.createElement(t),
+          s = d.getElementsByTagName(t)[0];
+      o.src = u;
+      if (c) { o.addEventListener('load', function (e) { c(null, e); }, false); }
+      s.parentNode.insertBefore(o, s);
+    }
+</script>
+<!-- anchor-js, Doc:http://bryanbraun.github.io/anchorjs/ -->
+<script>
+    async("https://cdn.bootcss.com/anchor-js/1.1.1/anchor.min.js",function(){
+        anchors.options = {
+          visible: 'hover',
+          placement: 'left',
+          icon: 'ℬ'
+        };
+        anchors.add().remove('.intro-header h1').remove('.subheading').remove('.sidebar-container h5');
+    })
+</script>
+<style>
+    /* place left on bigger screen */
+    @media all and (min-width: 800px) {
+        .anchorjs-link{
+            position: absolute;
+            left: -0.75em;
+            font-size: 1.1em;
+            margin-top : -0.1em;
+        }
+    }
+</style>
+
+
+
+    <!-- Footer -->
+    <!-- Footer -->
+<footer>
+    <div class="container">
+        <div class="row">
+            <div class="col-lg-8 col-lg-offset-2 col-md-10 col-md-offset-1">
+                <ul class="list-inline text-center">
+                
+                    <li>
+                        <a href="/atom.xml">
+                            <span class="fa-stack fa-lg">
+                                <i class="fa fa-circle fa-stack-2x"></i>
+                                <i class="fa fa-rss fa-stack-1x fa-inverse"></i>
+                            </span>
+                        </a>
+                    </li>
+                
+                
+                
+                    <li>
+                        <a target="_blank" href="https://www.zhihu.com/people/80imike">
+                            <span class="fa-stack fa-lg">
+                                <i class="fa fa-circle fa-stack-2x"></i>
+                                <i class="fa  fa-stack-1x fa-inverse">知</i>
+                            </span>
+                        </a>
+                    </li>
+                
+
+                
+                    <li>
+                        <a target="_blank" href="http://weibo.com/2093524665">
+                            <span class="fa-stack fa-lg">
+                                <i class="fa fa-circle fa-stack-2x"></i>
+                                <i class="fa fa-weibo fa-stack-1x fa-inverse"></i>
+                            </span>
+                        </a>
+                    </li>
+                
+
+                
+
+                
+
+                
+
+                </ul>
+                <p class="copyright text-muted">
+                    Copyright &copy; Mike 2018 | Hosted by <a href="https://pages.coding.me" style="font-weight: bold">Coding Pages</a>
+                    <br>
+                    Theme by <a href="http://beantech.org">BeanTech</a> 
+                    <span style="display: inline-block; margin: 0 5px;">
+                        <i class="fa fa-heart"></i>
+                    </span> 
+                    re-Ported by <a href="http://www.huweihuang.com">胡伟煌</a> | 
+                    <iframe
+                        style="margin-left: 2px; margin-bottom:-5px;"
+                        frameborder="0" scrolling="0" width="91px" height="20px"
+                        src="https://ghbtns.com/github-btn.html?user=huweihuang&repo=hexo-theme-huweihuang&type=star&count=true" >
+                    </iframe>
+                </p>
+            </div>
+        </div>
+    </div>
+</footer>
+
+<!-- jQuery -->
+<script src="/js/jquery.min.js"></script>
+
+<!-- Bootstrap Core JavaScript -->
+<script src="/js/bootstrap.min.js"></script>
+
+<!-- Custom Theme JavaScript -->
+<script src="/js/hux-blog.min.js"></script>
+
+
+<!-- async load function -->
+<script>
+    function async(u, c) {
+      var d = document, t = 'script',
+          o = d.createElement(t),
+          s = d.getElementsByTagName(t)[0];
+      o.src = u;
+      if (c) { o.addEventListener('load', function (e) { c(null, e); }, false); }
+      s.parentNode.insertBefore(o, s);
+    }
+</script>
+
+<!-- 
+     Because of the native support for backtick-style fenced code blocks 
+     right within the Markdown is landed in Github Pages, 
+     From V1.6, There is no need for Highlight.js, 
+     so Huxblog drops it officially.
+
+     - https://github.com/blog/2100-github-pages-now-faster-and-simpler-with-jekyll-3-0  
+     - https://help.github.com/articles/creating-and-highlighting-code-blocks/    
+-->
+<!--
+    <script>
+        async("http://cdn.bootcss.com/highlight.js/8.6/highlight.min.js", function(){
+            hljs.initHighlightingOnLoad();
+        })
+    </script>
+    <link href="http://cdn.bootcss.com/highlight.js/8.6/styles/github.min.css" rel="stylesheet">
+-->
+
+
+<!-- jquery.tagcloud.js -->
+<script>
+    // only load tagcloud.js in tag.html
+    if($('#tag_cloud').length !== 0){
+        async("http://www.hi-linux.com/js/jquery.tagcloud.js",function(){
+            $.fn.tagcloud.defaults = {
+                //size: {start: 1, end: 1, unit: 'em'},
+                color: {start: '#bbbbee', end: '#0085a1'},
+            };
+            $('#tag_cloud a').tagcloud();
+        })
+    }
+</script>
+
+<!--fastClick.js -->
+<script>
+    async("https://cdn.bootcss.com/fastclick/1.0.6/fastclick.min.js", function(){
+        var $nav = document.querySelector("nav");
+        if($nav) FastClick.attach($nav);
+    })
+</script>
+
+
+<!-- Google Analytics -->
+
+
+
+
+<!-- Baidu Tongji -->
+
+
+
+
+
+
+	<a id="rocket" href="#top" class=""></a>
+	<script type="text/javascript" src="/js/totop.js?v=1.0.0" async=""></script>
+    <script type="text/javascript" src="/js/toc.js?v=1.0.0" async=""></script>
+<!-- Image to hack wechat -->
+<img src="http://www.hi-linux.com/img/icon_wechat.png" width="0" height="0" />
+<!-- Migrate from head to bottom, no longer block render and still work -->
+
+</body>
+
+</html>

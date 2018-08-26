@@ -1,0 +1,600 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<!-- Head tag -->
+<head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="google-site-verification" content="xBT4GhYoi5qRD5tr338pgPM5OWHHIDR6mNg1a3euekI" />
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="description" content="">
+    <meta name="keyword"  content="Linux,运维,Nginx,Zabbix,Centos,Ansible,MySQL,Python,Docker,ELK,Haproxy,Git,Nodejs,安全,技术">
+    <link rel="shortcut icon" href="/img/ironman-draw.png">
+    <!-- Place this tag in your head or just before your close body tag. -->
+    <script async defer src="https://buttons.github.io/buttons.js"></script>
+    <title>
+        
+          如何在 Ubuntu 18.04 下正确配置网络 - 运维之美
+        
+    </title>
+
+    <link rel="canonical" href="http://www.hi-linux.com/posts/49513/">
+
+    <!-- Bootstrap Core CSS -->
+    <link rel="stylesheet" href="/css/bootstrap.min.css">
+
+    <!-- Custom CSS --> 
+    <link rel="stylesheet" href="/css/beantech.min.css">
+    
+    <!-- Pygments Highlight CSS -->
+    <link rel="stylesheet" href="/css/highlight.css">
+
+    <link rel="stylesheet" href="/css/widget.css">
+
+    <link rel="stylesheet" href="/css/rocket.css">
+
+    <link rel="stylesheet" href="/css/signature.css">
+
+    <link rel="stylesheet" href="/css/toc.css">
+
+    <!-- Custom Fonts -->
+    <!-- <link href="https://maxcdn.bootstrapcdn.com/font-awesome/4.3.0/css/font-awesome.min.css" rel="stylesheet" type="text/css"> -->
+    <!-- Hux change font-awesome CDN to qiniu -->
+    <link href="https://cdn.staticfile.org/font-awesome/4.5.0/css/font-awesome.min.css" rel="stylesheet" type="text/css">
+
+
+    <!-- Hux Delete, sad but pending in China
+    <link href='http://fonts.googleapis.com/css?family=Lora:400,700,400italic,700italic' rel='stylesheet' type='text/css'>
+    <link href='http://fonts.googleapis.com/css?family=Open+Sans:300italic,400italic,600italic,700italic,800italic,400,300,600,700,800' rel='stylesheet' type='text/
+    css'>
+    -->
+
+
+    <!-- HTML5 Shim and Respond.js IE8 support of HTML5 elements and media queries -->
+    <!-- WARNING: Respond.js doesn't work if you view the page via file:// -->
+    <!--[if lt IE 9]>
+        <script src="https://oss.maxcdn.com/libs/html5shiv/3.7.0/html5shiv.js"></script>
+        <script src="https://oss.maxcdn.com/libs/respond.js/1.4.2/respond.min.js"></script>
+    <![endif]-->
+
+    <!-- ga & ba script hoook -->
+    <script></script>
+</head>
+
+
+<!-- hack iOS CSS :active style -->
+<body ontouchstart="">
+	<!-- Modified by Yu-Hsuan Yen -->
+<!-- Post Header -->
+<style type="text/css">
+    header.intro-header{
+        
+            background-image: url('/img/header_img/article.jpg')
+            /*post*/
+        
+    }
+    
+</style>
+
+<header class="intro-header" >
+    <!-- Signature -->
+    <div id="signature">
+        <div class="container">
+            <div class="row">
+                <div class="col-lg-8 col-lg-offset-2 col-md-10 col-md-offset-1">
+                
+                    <div class="post-heading">
+                        <div class="tags">
+                            
+                              <a class="tag" href="/tags/#Linux" title="Linux">Linux</a>
+                            
+                              <a class="tag" href="/tags/#Ubuntu" title="Ubuntu">Ubuntu</a>
+                            
+                        </div>
+                        <h1>如何在 Ubuntu 18.04 下正确配置网络</h1>
+                        <h2 class="subheading"></h2>
+                        <span class="meta">
+                            Posted by Mike on
+                            2018-06-14
+                        </span>
+                    </div>
+                
+
+
+                </div>
+            </div>
+        </div>
+    </div>
+</header>
+
+	
+    <!-- Navigation -->
+<nav class="navbar navbar-default navbar-custom navbar-fixed-top">
+    <div class="container-fluid">
+        <!-- Brand and toggle get grouped for better mobile display -->
+        <div class="navbar-header page-scroll">
+            <button type="button" class="navbar-toggle">
+                <span class="sr-only">Toggle navigation</span>
+                <span class="icon-bar"></span>
+                <span class="icon-bar"></span>
+                <span class="icon-bar"></span>
+            </button>
+            <a class="navbar-brand" href="/">运维之美</a>
+        </div>
+
+        <!-- Collect the nav links, forms, and other content for toggling -->
+        <!-- Known Issue, found by Hux:
+            <nav>'s height woule be hold on by its content.
+            so, when navbar scale out, the <nav> will cover tags.
+            also mask any touch event of tags, unfortunately.
+        -->
+        <div id="huxblog_navbar">
+            <div class="navbar-collapse">
+                <ul class="nav navbar-nav navbar-right">
+                    <li>
+                        <a href="/">Home</a>
+                    </li>
+
+                    
+
+                        
+                    
+
+                        
+                    
+
+                        
+                        <li>
+                            <a href="/archive/">Archives</a>
+                        </li>
+                        
+                    
+
+                        
+                        <li>
+                            <a href="/about/">About</a>
+                        </li>
+                        
+                    
+
+                        
+                        <li>
+                            <a href="/tags/">Tags</a>
+                        </li>
+                        
+                    
+                    
+                </ul>
+            </div>
+        </div>
+        <!-- /.navbar-collapse -->
+    </div>
+    <!-- /.container -->
+</nav>
+<script>
+    // Drop Bootstarp low-performance Navbar
+    // Use customize navbar with high-quality material design animation
+    // in high-perf jank-free CSS3 implementation
+    var $body   = document.body;
+    var $toggle = document.querySelector('.navbar-toggle');
+    var $navbar = document.querySelector('#huxblog_navbar');
+    var $collapse = document.querySelector('.navbar-collapse');
+
+    $toggle.addEventListener('click', handleMagic)
+    function handleMagic(e){
+        if ($navbar.className.indexOf('in') > 0) {
+        // CLOSE
+            $navbar.className = " ";
+            // wait until animation end.
+            setTimeout(function(){
+                // prevent frequently toggle
+                if($navbar.className.indexOf('in') < 0) {
+                    $collapse.style.height = "0px"
+                }
+            },400)
+        }else{
+        // OPEN
+            $collapse.style.height = "auto"
+            $navbar.className += " in";
+        }
+    }
+</script>
+
+
+    <!-- Main Content -->
+    <!-- Modify by Yu-Hsuan Yen -->
+
+<!-- Post Content -->
+<article>
+    <div class="container">
+        <div class="row">
+
+            <!-- Post Container -->
+            <div class="
+                col-lg-8 col-lg-offset-2
+                col-md-10 col-md-offset-1
+                post-container">
+
+                <p><code>Netplan</code> 是 Ubuntu 17.10 中引入的一种新的命令行网络配置实用程序，用于在 Ubuntu 系统中轻松管理和配置网络设置。 它允许您使用 <code>YAML</code> 格式的描述文件来抽像化定义网络接口的相关信息。</p>
+<p><code>Netplan</code> 可以使用 <code>NetworkManager</code> 或 <code>Systemd-networkd</code> 的网络守护程序来做为内核的接口。<code>Netplan</code> 的默认描述文件在 <code>/etc/netplan/*.yaml</code> 里，<code>Netplan</code> 描述文件采用了 <code>YAML</code> 语法。</p>
+<p>在 Ubuntu 18.04 中如果再通过原来的 <code>ifupdown</code> 工具包继续在 <code>/etc/network/interfaces</code> 文件里配置管理网络接口是无效的。</p>
+<p>本文我们就来讲讲如何使用 <code>Netplan</code> 在 Ubuntu 18.04 中为网络接口配置静态 IP 地址、动态 IP 地址以及 DNS。</p>
+<a id="more"></a>
+<p><strong>Netplan 工作原理</strong></p>
+<p>Netplan 官方网址：<a href="https://netplan.io/" target="_blank" rel="noopener">https://netplan.io/</a></p>
+<p>Netplan 根据描述文件中定义的内容自动生成其对应的后端网络守护程序所需要的配置信息，后端网络守护程序再根据其配置信息通过 Linux 内核管理对应的网络设备。</p>
+<p><img src="https://www.hi-linux.com/img/linux/netplan.png" alt=""></p>
+<h3 id="使用-networkd-配置网络">使用 Networkd 配置网络</h3>
+<p><code>Systemd-networkd</code> 是一个管理网络设备的系统守护程序, 它能检测并配置网络设备的状态和创建虚拟网络设备。</p>
+<p>在进行配置前，我们先来看几个常见配置项的含义。</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">1. enp0s5 指定需配置网络接口的名称。</span><br><span class="line">2. dhcp4  是否打开 IPv4 的 dhcp。</span><br><span class="line">3. dhcp6  是否打开 IPv6 的 dhcp。</span><br><span class="line">4. addresses 定义网络接口的静态 IP 地址。</span><br><span class="line">5. gateway4  指定默认网关的 IPv4 地址。</span><br><span class="line">6. nameservers  指定域名服务器的 IP 地址。</span><br></pre></td></tr></table></figure>
+<h4 id="使用-networkd-配置动态-ip-地址">使用 Networkd 配置动态 IP 地址</h4>
+<p>Ubuntu 18.04 Server 安装好后，<code>Netplan</code> 的默认描述文件是：<code>/etc/netplan/50-cloud-init.yaml</code>。</p>
+<ul>
+<li>修改 Netplan 的描述文件</li>
+</ul>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line">$ sudo vim /etc/netplan/50-cloud-init.yaml</span><br><span class="line"></span><br><span class="line">network:</span><br><span class="line"> version: 2</span><br><span class="line"> renderer: networkd</span><br><span class="line"> ethernets:</span><br><span class="line">   enp0s5:</span><br><span class="line">     dhcp4: yes</span><br><span class="line">     dhcp6: yes</span><br></pre></td></tr></table></figure>
+<ul>
+<li>运行下面的命令使其生效</li>
+</ul>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">$ sudo netplan apply</span><br></pre></td></tr></table></figure>
+<h4 id="使用-networkd-配置静态-ip-地址">使用 Networkd 配置静态 IP 地址</h4>
+<ul>
+<li>修改 Netplan 的描述文件</li>
+</ul>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br></pre></td><td class="code"><pre><span class="line">$ sudo vim /etc/netplan/50-cloud-init.yaml</span><br><span class="line"></span><br><span class="line">network:</span><br><span class="line">    renderer: networkd</span><br><span class="line">    ethernets:</span><br><span class="line">        enp0s5:</span><br><span class="line">            addresses:</span><br><span class="line">            - 192.168.100.211/23</span><br><span class="line">            gateway4: 192.168.100.1</span><br><span class="line">            nameservers:</span><br><span class="line">                addresses: [8.8.8.8, 8.8.4.4]</span><br><span class="line">                search: []</span><br><span class="line">            optional: true</span><br><span class="line">    version: 2</span><br></pre></td></tr></table></figure>
+<ul>
+<li>运行下面的命令使配置生效</li>
+</ul>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">$ sudo netplan apply</span><br></pre></td></tr></table></figure>
+<p>如果你要增加一个 IPv6 地址，可以在 addresses 行增加。多个地址间用逗号分隔：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line">$ sudo vim /etc/netplan/50-cloud-init.yaml</span><br><span class="line"></span><br><span class="line">network:</span><br><span class="line">    renderer: networkd</span><br><span class="line">    ethernets:</span><br><span class="line">        enp0s5:</span><br><span class="line">            addresses: [192.168.100.211/23, &apos;fe80:0:0:0:0:0:c0a8:64d3&apos;]</span><br><span class="line">            gateway4: 192.168.100.1</span><br><span class="line">            nameservers:</span><br><span class="line">                addresses: [8.8.8.8, 8.8.4.4]</span><br><span class="line">                search: []</span><br><span class="line">            optional: true</span><br><span class="line">    version: 2</span><br></pre></td></tr></table></figure>
+<h4 id="使用-networkd-同时配置多张网卡">使用 Networkd 同时配置多张网卡</h4>
+<p>如果要同时配置多张网卡，只需在 <code>Netplan</code> 描述文件中定义多个网络设备就可以了，其它类似。</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br></pre></td><td class="code"><pre><span class="line">$ sudo vim /etc/netplan/50-cloud-init.yaml</span><br><span class="line"></span><br><span class="line"># 第一张网卡 enp0s3 配置为动态 IP，第二张网卡 enp0s5 配置为静态 IP。 </span><br><span class="line">network:</span><br><span class="line">  version: 2</span><br><span class="line">  renderer: networkd</span><br><span class="line">  ethernets:</span><br><span class="line">    enp0s3:</span><br><span class="line">      dhcp4: yes</span><br><span class="line">      dhcp6: no</span><br><span class="line">    enp0s5:</span><br><span class="line">      dhcp4: no</span><br><span class="line">      dhcp6: no</span><br><span class="line">      addresses: [192.168.100.211/23]</span><br><span class="line">      gateway4: 192.168.100.1</span><br><span class="line">      nameservers:</span><br><span class="line">        addresses: [8.8.8.8, 8.8.4.4]</span><br></pre></td></tr></table></figure>
+<h3 id="使用-networkmanager-配置网络">使用 NetworkManager 配置网络</h3>
+<p><code>NetworkManager</code> 主要用于在桌面系统上管理网络设备。如果您使用 <code>NetworkManager</code> 作为网络设备管理的系统守护程序，将会使用 <code>NetworkManager</code> 的图形程序来管理网络接口。要使用 <code>NetworkManager</code>，首先需要修改 <code>Netplan</code> 的描述文件：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">$ sudo vim /etc/netplan/50-cloud-init.yaml</span><br><span class="line"></span><br><span class="line">network:</span><br><span class="line">  version: 2</span><br><span class="line">  renderer: NetworkManager</span><br></pre></td></tr></table></figure>
+<p>其次是生成 <code>NetworkManager</code> 对应的配置信息：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">$ sudo netplan apply</span><br></pre></td></tr></table></figure>
+<p>最后就可以打开 Ubuntu 桌面系统上的网络接口图形来管理网络。</p>
+<h3 id="其它相关">其它相关</h3>
+<ul>
+<li>YAML 语言基本语法规则</li>
+</ul>
+<p><code>YAML</code> 语言的设计目标，就是方便人类读写。它实质上是一种通用的数据串行化格式。 <code>YAML</code> 基本语法规则如下:</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">1. 大小写敏感</span><br><span class="line">2. 使用缩进表示层级关系</span><br><span class="line">3. 缩进时不允许使用Tab键，只允许使用空格。</span><br><span class="line">4. 缩进的空格数目不重要，只要相同层级的元素左侧对齐即可</span><br><span class="line">5. # 表示注释，从这个字符一直到行尾，都会被解析器忽略。</span><br></pre></td></tr></table></figure>
+<p>更多的关于 <code>YAML</code> 的使用方法可参考 「 <a href="https://mp.weixin.qq.com/s?__biz=MzI3MTI2NzkxMA==&amp;mid=2247484080&amp;idx=1&amp;sn=3c5ca66a2dc63c285ca6d2db39f7e553&amp;mpshare=1&amp;scene=23&amp;srcid=0613Bf6KoICw4XVpI9CZzkGE%23rd" target="_blank" rel="noopener">YAML 语言教程</a> 」一文。</p>
+<ul>
+<li>根据 <code>Netplan</code> 的描述文件手动创建网络守护程序的配置信息</li>
+</ul>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">$ sudo netplan generate</span><br></pre></td></tr></table></figure>
+<p>执行后会使用 <code>/etc/netplan/*.yaml</code> 生成对应网络守护程序的配置信息。例如：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line">$ cat /run/systemd/network/10-netplan-enp0s5.network</span><br><span class="line">[Match]</span><br><span class="line">Name=enp0s5</span><br><span class="line"></span><br><span class="line">[Link]</span><br><span class="line">RequiredForOnline=no</span><br><span class="line"></span><br><span class="line">[Network]</span><br><span class="line">Address=192.168.100.211/23</span><br><span class="line">Gateway=192.168.100.1</span><br><span class="line">DNS=8.8.8.8</span><br><span class="line">DNS=8.8.4.4</span><br></pre></td></tr></table></figure>
+<ul>
+<li>查看当前系统的 DNS Servers</li>
+</ul>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br></pre></td><td class="code"><pre><span class="line">$ systemd-resolve --status</span><br><span class="line">Global</span><br><span class="line">          DNSSEC NTA: 10.in-addr.arpa</span><br><span class="line">                      16.172.in-addr.arpa</span><br><span class="line">                      168.192.in-addr.arpa</span><br><span class="line">                      17.172.in-addr.arpa</span><br><span class="line">                      18.172.in-addr.arpa</span><br><span class="line">                      19.172.in-addr.arpa</span><br><span class="line">                      20.172.in-addr.arpa</span><br><span class="line">                      21.172.in-addr.arpa</span><br><span class="line">                      22.172.in-addr.arpa</span><br><span class="line">                      23.172.in-addr.arpa</span><br><span class="line">                      24.172.in-addr.arpa</span><br><span class="line">                      25.172.in-addr.arpa</span><br><span class="line">                      26.172.in-addr.arpa</span><br><span class="line">                      27.172.in-addr.arpa</span><br><span class="line">                      28.172.in-addr.arpa</span><br><span class="line">                      29.172.in-addr.arpa</span><br><span class="line">                      30.172.in-addr.arpa</span><br><span class="line">                      31.172.in-addr.arpa</span><br><span class="line">                      corp</span><br><span class="line">                      d.f.ip6.arpa</span><br><span class="line">                      home</span><br><span class="line">                      internal</span><br><span class="line">                      intranet</span><br><span class="line">                      lan</span><br><span class="line">                      local</span><br><span class="line">                      private</span><br><span class="line">                      test</span><br><span class="line"></span><br><span class="line">Link 2 (enp0s5)</span><br><span class="line">      Current Scopes: DNS</span><br><span class="line">       LLMNR setting: yes</span><br><span class="line">MulticastDNS setting: no</span><br><span class="line">      DNSSEC setting: no</span><br><span class="line">    DNSSEC supported: no</span><br><span class="line">         DNS Servers: 8.8.8.8</span><br><span class="line">                      8.8.4.4</span><br></pre></td></tr></table></figure>
+<h3 id="参考文档">参考文档</h3>
+<p><a href="http://www.google.com" target="_blank" rel="noopener">http://www.google.com</a><br>
+<a href="http://t.cn/RBxJCC7" target="_blank" rel="noopener">http://t.cn/RBxJCC7</a><br>
+<a href="http://t.cn/RBxXXlx" target="_blank" rel="noopener">http://t.cn/RBxXXlx</a><br>
+<a href="http://t.cn/R5mqugZ" target="_blank" rel="noopener">http://t.cn/R5mqugZ</a><br>
+<a href="http://t.cn/RBxDyMH" target="_blank" rel="noopener">http://t.cn/RBxDyMH</a></p>
+
+                
+
+                <hr>
+                <!-- Pager -->
+                <ul class="pager">
+                    
+                        <li class="previous">
+                            <a href="/posts/47787/" data-toggle="tooltip" data-placement="top" title="使用 Nginx 的 image_filter 模块来构建动态缩略图服务器">&larr; Previous Post</a>
+                        </li>
+                    
+                    
+                        <li class="next">
+                            <a href="/posts/4650/" data-toggle="tooltip" data-placement="top" title="推荐一款高性能 HTTP 负载测试工具 Vegeta">Next Post &rarr;</a>
+                        </li>
+                    
+                </ul>
+
+                <!-- duoshuo Share start -->
+                
+                <!-- 多说 Share end-->
+
+                <!-- 多说评论框 start -->
+                
+                <!-- 多说评论框 end -->
+
+                <!-- disqus comment start -->
+                
+                <!-- disqus comment end -->
+
+                
+                    <!-- disqus 评论框 start -->
+                    <div class="comment">
+                        <div id="lv-container" data-id="city" data-uid="MTAyMC8yNzg2My80NDQw"></div>
+                    </div>
+                    <!-- disqus 评论框 end -->
+                
+
+            </div>
+            
+            <!-- Tabe of Content -->
+            <!-- Table of Contents -->
+
+  
+    <style>
+      span.toc-nav-number{
+        display: none
+      }
+    </style>
+  
+    
+      <aside id="sidebar">
+        <div id="toc" class="toc-article">
+        <strong class="toc-title">Contents</strong>
+        
+          <ol class="toc-nav"><li class="toc-nav-item toc-nav-level-3"><a class="toc-nav-link" href="#使用-networkd-配置网络"><span class="toc-nav-number">1.</span> <span class="toc-nav-text">使用 Networkd 配置网络</span></a><ol class="toc-nav-child"><li class="toc-nav-item toc-nav-level-4"><a class="toc-nav-link" href="#使用-networkd-配置动态-ip-地址"><span class="toc-nav-number">1.1.</span> <span class="toc-nav-text">使用 Networkd 配置动态 IP 地址</span></a></li><li class="toc-nav-item toc-nav-level-4"><a class="toc-nav-link" href="#使用-networkd-配置静态-ip-地址"><span class="toc-nav-number">1.2.</span> <span class="toc-nav-text">使用 Networkd 配置静态 IP 地址</span></a></li><li class="toc-nav-item toc-nav-level-4"><a class="toc-nav-link" href="#使用-networkd-同时配置多张网卡"><span class="toc-nav-number">1.3.</span> <span class="toc-nav-text">使用 Networkd 同时配置多张网卡</span></a></li></ol></li><li class="toc-nav-item toc-nav-level-3"><a class="toc-nav-link" href="#使用-networkmanager-配置网络"><span class="toc-nav-number">2.</span> <span class="toc-nav-text">使用 NetworkManager 配置网络</span></a></li><li class="toc-nav-item toc-nav-level-3"><a class="toc-nav-link" href="#其它相关"><span class="toc-nav-number">3.</span> <span class="toc-nav-text">其它相关</span></a></li><li class="toc-nav-item toc-nav-level-3"><a class="toc-nav-link" href="#参考文档"><span class="toc-nav-number">4.</span> <span class="toc-nav-text">参考文档</span></a></li></ol>
+        
+        </div>
+      </aside>
+    
+
+                
+            <!-- Sidebar Container -->
+            <div class="
+                col-lg-8 col-lg-offset-2
+                col-md-10 col-md-offset-1
+                sidebar-container">
+
+                <!-- Featured Tags -->
+                
+                <section>
+                    <!-- no hr -->
+                    <h5><a href="/tags/">FEATURED TAGS</a></h5>
+                    <div class="tags">
+                       
+                          <a class="tag" href="/tags/#Linux" title="Linux">Linux</a>
+                        
+                          <a class="tag" href="/tags/#Ubuntu" title="Ubuntu">Ubuntu</a>
+                        
+                    </div>
+                </section>
+                
+
+                <!-- Friends Blog -->
+                
+                <hr>
+                <h5>FRIENDS</h5>
+                <ul class="list-inline">
+
+                    
+                        <li><a href="http://www.mike.org.cn/" target="_blank">简单.生活</a></li>
+                    
+                        <li><a href="http://shang.qq.com/wpa/qunwpa?idkey=ea4c43493c2269428ac6ef6141de4b6d78e5ab2d41380ca4099b833b62884ee9" target="_blank">技术交流群</a></li>
+                    
+                        <li><a href="" target="_blank"></a></li>
+                    
+                        <li><a href="" target="_blank"></a></li>
+                    
+                </ul>
+                
+            </div>
+        </div>
+    </div>
+</article>
+
+
+
+
+
+
+    <!-- 来必力City版公共JS代码 start (一个网页只需插入一次) -->
+    <script type="text/javascript">
+       (function(d, s) {
+           var j, e = d.getElementsByTagName(s)[0];
+    
+           if (typeof LivereTower === 'function') { return; }
+    
+           j = d.createElement(s);
+           j.src = 'https://cdn-city.livere.com/js/embed.dist.js';
+           j.async = true;
+    
+           e.parentNode.insertBefore(j, e);
+       })(document, 'script');
+    </script>
+    <noscript>为正常使用来必力评论功能请激活JavaScript</noscript>
+    <!-- 来必力City版 公共JS代码 end -->
+
+
+
+<!-- async load function -->
+<script>
+    function async(u, c) {
+      var d = document, t = 'script',
+          o = d.createElement(t),
+          s = d.getElementsByTagName(t)[0];
+      o.src = u;
+      if (c) { o.addEventListener('load', function (e) { c(null, e); }, false); }
+      s.parentNode.insertBefore(o, s);
+    }
+</script>
+<!-- anchor-js, Doc:http://bryanbraun.github.io/anchorjs/ -->
+<script>
+    async("https://cdn.bootcss.com/anchor-js/1.1.1/anchor.min.js",function(){
+        anchors.options = {
+          visible: 'hover',
+          placement: 'left',
+          icon: 'ℬ'
+        };
+        anchors.add().remove('.intro-header h1').remove('.subheading').remove('.sidebar-container h5');
+    })
+</script>
+<style>
+    /* place left on bigger screen */
+    @media all and (min-width: 800px) {
+        .anchorjs-link{
+            position: absolute;
+            left: -0.75em;
+            font-size: 1.1em;
+            margin-top : -0.1em;
+        }
+    }
+</style>
+
+
+
+    <!-- Footer -->
+    <!-- Footer -->
+<footer>
+    <div class="container">
+        <div class="row">
+            <div class="col-lg-8 col-lg-offset-2 col-md-10 col-md-offset-1">
+                <ul class="list-inline text-center">
+                
+                    <li>
+                        <a href="/atom.xml">
+                            <span class="fa-stack fa-lg">
+                                <i class="fa fa-circle fa-stack-2x"></i>
+                                <i class="fa fa-rss fa-stack-1x fa-inverse"></i>
+                            </span>
+                        </a>
+                    </li>
+                
+                
+                
+                    <li>
+                        <a target="_blank" href="https://www.zhihu.com/people/80imike">
+                            <span class="fa-stack fa-lg">
+                                <i class="fa fa-circle fa-stack-2x"></i>
+                                <i class="fa  fa-stack-1x fa-inverse">知</i>
+                            </span>
+                        </a>
+                    </li>
+                
+
+                
+                    <li>
+                        <a target="_blank" href="http://weibo.com/2093524665">
+                            <span class="fa-stack fa-lg">
+                                <i class="fa fa-circle fa-stack-2x"></i>
+                                <i class="fa fa-weibo fa-stack-1x fa-inverse"></i>
+                            </span>
+                        </a>
+                    </li>
+                
+
+                
+
+                
+
+                
+
+                </ul>
+                <p class="copyright text-muted">
+                    Copyright &copy; Mike 2018 | Hosted by <a href="https://pages.coding.me" style="font-weight: bold">Coding Pages</a>
+                    <br>
+                    Theme by <a href="http://beantech.org">BeanTech</a> 
+                    <span style="display: inline-block; margin: 0 5px;">
+                        <i class="fa fa-heart"></i>
+                    </span> 
+                    re-Ported by <a href="http://www.huweihuang.com">胡伟煌</a> | 
+                    <iframe
+                        style="margin-left: 2px; margin-bottom:-5px;"
+                        frameborder="0" scrolling="0" width="91px" height="20px"
+                        src="https://ghbtns.com/github-btn.html?user=huweihuang&repo=hexo-theme-huweihuang&type=star&count=true" >
+                    </iframe>
+                </p>
+            </div>
+        </div>
+    </div>
+</footer>
+
+<!-- jQuery -->
+<script src="/js/jquery.min.js"></script>
+
+<!-- Bootstrap Core JavaScript -->
+<script src="/js/bootstrap.min.js"></script>
+
+<!-- Custom Theme JavaScript -->
+<script src="/js/hux-blog.min.js"></script>
+
+
+<!-- async load function -->
+<script>
+    function async(u, c) {
+      var d = document, t = 'script',
+          o = d.createElement(t),
+          s = d.getElementsByTagName(t)[0];
+      o.src = u;
+      if (c) { o.addEventListener('load', function (e) { c(null, e); }, false); }
+      s.parentNode.insertBefore(o, s);
+    }
+</script>
+
+<!-- 
+     Because of the native support for backtick-style fenced code blocks 
+     right within the Markdown is landed in Github Pages, 
+     From V1.6, There is no need for Highlight.js, 
+     so Huxblog drops it officially.
+
+     - https://github.com/blog/2100-github-pages-now-faster-and-simpler-with-jekyll-3-0  
+     - https://help.github.com/articles/creating-and-highlighting-code-blocks/    
+-->
+<!--
+    <script>
+        async("http://cdn.bootcss.com/highlight.js/8.6/highlight.min.js", function(){
+            hljs.initHighlightingOnLoad();
+        })
+    </script>
+    <link href="http://cdn.bootcss.com/highlight.js/8.6/styles/github.min.css" rel="stylesheet">
+-->
+
+
+<!-- jquery.tagcloud.js -->
+<script>
+    // only load tagcloud.js in tag.html
+    if($('#tag_cloud').length !== 0){
+        async("http://www.hi-linux.com/js/jquery.tagcloud.js",function(){
+            $.fn.tagcloud.defaults = {
+                //size: {start: 1, end: 1, unit: 'em'},
+                color: {start: '#bbbbee', end: '#0085a1'},
+            };
+            $('#tag_cloud a').tagcloud();
+        })
+    }
+</script>
+
+<!--fastClick.js -->
+<script>
+    async("https://cdn.bootcss.com/fastclick/1.0.6/fastclick.min.js", function(){
+        var $nav = document.querySelector("nav");
+        if($nav) FastClick.attach($nav);
+    })
+</script>
+
+
+<!-- Google Analytics -->
+
+
+
+
+<!-- Baidu Tongji -->
+
+
+
+
+
+
+	<a id="rocket" href="#top" class=""></a>
+	<script type="text/javascript" src="/js/totop.js?v=1.0.0" async=""></script>
+    <script type="text/javascript" src="/js/toc.js?v=1.0.0" async=""></script>
+<!-- Image to hack wechat -->
+<img src="http://www.hi-linux.com/img/icon_wechat.png" width="0" height="0" />
+<!-- Migrate from head to bottom, no longer block render and still work -->
+
+</body>
+
+</html>

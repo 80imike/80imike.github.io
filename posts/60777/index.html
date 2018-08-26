@@ -1,0 +1,605 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<!-- Head tag -->
+<head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="google-site-verification" content="xBT4GhYoi5qRD5tr338pgPM5OWHHIDR6mNg1a3euekI" />
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="description" content="">
+    <meta name="keyword"  content="Linux,运维,Nginx,Zabbix,Centos,Ansible,MySQL,Python,Docker,ELK,Haproxy,Git,Nodejs,安全,技术">
+    <link rel="shortcut icon" href="/img/ironman-draw.png">
+    <!-- Place this tag in your head or just before your close body tag. -->
+    <script async defer src="https://buttons.github.io/buttons.js"></script>
+    <title>
+        
+          Docker 下部署 .NET 应用教程 - 运维之美
+        
+    </title>
+
+    <link rel="canonical" href="http://www.hi-linux.com/posts/60777/">
+
+    <!-- Bootstrap Core CSS -->
+    <link rel="stylesheet" href="/css/bootstrap.min.css">
+
+    <!-- Custom CSS --> 
+    <link rel="stylesheet" href="/css/beantech.min.css">
+    
+    <!-- Pygments Highlight CSS -->
+    <link rel="stylesheet" href="/css/highlight.css">
+
+    <link rel="stylesheet" href="/css/widget.css">
+
+    <link rel="stylesheet" href="/css/rocket.css">
+
+    <link rel="stylesheet" href="/css/signature.css">
+
+    <link rel="stylesheet" href="/css/toc.css">
+
+    <!-- Custom Fonts -->
+    <!-- <link href="https://maxcdn.bootstrapcdn.com/font-awesome/4.3.0/css/font-awesome.min.css" rel="stylesheet" type="text/css"> -->
+    <!-- Hux change font-awesome CDN to qiniu -->
+    <link href="https://cdn.staticfile.org/font-awesome/4.5.0/css/font-awesome.min.css" rel="stylesheet" type="text/css">
+
+
+    <!-- Hux Delete, sad but pending in China
+    <link href='http://fonts.googleapis.com/css?family=Lora:400,700,400italic,700italic' rel='stylesheet' type='text/css'>
+    <link href='http://fonts.googleapis.com/css?family=Open+Sans:300italic,400italic,600italic,700italic,800italic,400,300,600,700,800' rel='stylesheet' type='text/
+    css'>
+    -->
+
+
+    <!-- HTML5 Shim and Respond.js IE8 support of HTML5 elements and media queries -->
+    <!-- WARNING: Respond.js doesn't work if you view the page via file:// -->
+    <!--[if lt IE 9]>
+        <script src="https://oss.maxcdn.com/libs/html5shiv/3.7.0/html5shiv.js"></script>
+        <script src="https://oss.maxcdn.com/libs/respond.js/1.4.2/respond.min.js"></script>
+    <![endif]-->
+
+    <!-- ga & ba script hoook -->
+    <script></script>
+</head>
+
+
+<!-- hack iOS CSS :active style -->
+<body ontouchstart="">
+	<!-- Modified by Yu-Hsuan Yen -->
+<!-- Post Header -->
+<style type="text/css">
+    header.intro-header{
+        
+            background-image: url('/img/header_img/article.jpg')
+            /*post*/
+        
+    }
+    
+</style>
+
+<header class="intro-header" >
+    <!-- Signature -->
+    <div id="signature">
+        <div class="container">
+            <div class="row">
+                <div class="col-lg-8 col-lg-offset-2 col-md-10 col-md-offset-1">
+                
+                    <div class="post-heading">
+                        <div class="tags">
+                            
+                              <a class="tag" href="/tags/#Linux" title="Linux">Linux</a>
+                            
+                              <a class="tag" href="/tags/#Docker" title="Docker">Docker</a>
+                            
+                        </div>
+                        <h1>Docker 下部署 .NET 应用教程</h1>
+                        <h2 class="subheading"></h2>
+                        <span class="meta">
+                            Posted by Mike on
+                            2018-05-03
+                        </span>
+                    </div>
+                
+
+
+                </div>
+            </div>
+        </div>
+    </div>
+</header>
+
+	
+    <!-- Navigation -->
+<nav class="navbar navbar-default navbar-custom navbar-fixed-top">
+    <div class="container-fluid">
+        <!-- Brand and toggle get grouped for better mobile display -->
+        <div class="navbar-header page-scroll">
+            <button type="button" class="navbar-toggle">
+                <span class="sr-only">Toggle navigation</span>
+                <span class="icon-bar"></span>
+                <span class="icon-bar"></span>
+                <span class="icon-bar"></span>
+            </button>
+            <a class="navbar-brand" href="/">运维之美</a>
+        </div>
+
+        <!-- Collect the nav links, forms, and other content for toggling -->
+        <!-- Known Issue, found by Hux:
+            <nav>'s height woule be hold on by its content.
+            so, when navbar scale out, the <nav> will cover tags.
+            also mask any touch event of tags, unfortunately.
+        -->
+        <div id="huxblog_navbar">
+            <div class="navbar-collapse">
+                <ul class="nav navbar-nav navbar-right">
+                    <li>
+                        <a href="/">Home</a>
+                    </li>
+
+                    
+
+                        
+                    
+
+                        
+                    
+
+                        
+                        <li>
+                            <a href="/archive/">Archives</a>
+                        </li>
+                        
+                    
+
+                        
+                        <li>
+                            <a href="/about/">About</a>
+                        </li>
+                        
+                    
+
+                        
+                        <li>
+                            <a href="/tags/">Tags</a>
+                        </li>
+                        
+                    
+                    
+                </ul>
+            </div>
+        </div>
+        <!-- /.navbar-collapse -->
+    </div>
+    <!-- /.container -->
+</nav>
+<script>
+    // Drop Bootstarp low-performance Navbar
+    // Use customize navbar with high-quality material design animation
+    // in high-perf jank-free CSS3 implementation
+    var $body   = document.body;
+    var $toggle = document.querySelector('.navbar-toggle');
+    var $navbar = document.querySelector('#huxblog_navbar');
+    var $collapse = document.querySelector('.navbar-collapse');
+
+    $toggle.addEventListener('click', handleMagic)
+    function handleMagic(e){
+        if ($navbar.className.indexOf('in') > 0) {
+        // CLOSE
+            $navbar.className = " ";
+            // wait until animation end.
+            setTimeout(function(){
+                // prevent frequently toggle
+                if($navbar.className.indexOf('in') < 0) {
+                    $collapse.style.height = "0px"
+                }
+            },400)
+        }else{
+        // OPEN
+            $collapse.style.height = "auto"
+            $navbar.className += " in";
+        }
+    }
+</script>
+
+
+    <!-- Main Content -->
+    <!-- Modify by Yu-Hsuan Yen -->
+
+<!-- Post Content -->
+<article>
+    <div class="container">
+        <div class="row">
+
+            <!-- Post Container -->
+            <div class="
+                col-lg-8 col-lg-offset-2
+                col-md-10 col-md-offset-1
+                post-container">
+
+                <p>我们在 「<a href="https://www.hi-linux.com/posts/60756.html">Ubuntu 下部署 .NET 应用教程</a>」一文中讲解了如何在 Linux 环境下部署 .Net 环境和进行了一个具体应用的部署。</p>
+<p>目前将应用部署容器化早已是大趋势，Docker 这样的容器化技术极大地简化了程序的部署工作。不再需要浪费时间在一个服务器上配置你程序所需的环境依赖文件，你只需要创建一个 Docker 镜像，里面包含你程序运行所需的一切，然后在任何 Docker 宿主机上作为容器启动起来就行了。本文就来说说如何在 Docker 环境下部署 .Net 应用。</p>
+<p>开始之前，首先你需要在机器上安装好 Docker。Docker 安装也是非常简单的，这里就不再累述了。如果你还不会安装可以搜索公众号上相关文章或者直接参考官方文档：<a href="https://docs.docker.com/install/" target="_blank" rel="noopener">https://docs.docker.com/install/</a></p>
+<p>安装完成后要检验是否安装成功，可以执行：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">$ docker --version</span><br></pre></td></tr></table></figure>
+<p>接下来，我们就来看看如何在 Docker 下部署 .Net 应用。Docker 部署应用的方式多种多样，这里我们主要讲如何通过 Dockerfile 和 Docker-Compose 进行部署。</p>
+<a id="more"></a>
+<h3 id="通过-dockerfile-进行-net-应用部署">通过 Dockerfile 进行 .Net 应用部署</h3>
+<p>Dockerfile 是由一系列命令和参数构成的脚本，一个 Dockerfile 里面包含了构建整个 Docker 映像的完整命令，我们会通过这些命令创建一个适合 .Net 应用部署的新镜像。</p>
+<p>这里我们使用 「<a href="https://www.hi-linux.com/posts/60756.html">Ubuntu 下部署 .NET 应用教程</a>」一文中提到的 NETCoreBBS 项目来演示。编写 Dockerfile 前我们需要做如下一些准备工作：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"># 建立一个用于 Docker 工作的目录</span><br><span class="line">$ mkdir NETCoreBBS-Docker</span><br><span class="line"># 复制之前编译好的部署代码到 NETCoreBBS-Docker 目录</span><br><span class="line">$ cp -rf NETCoreBBS/src/NetCoreBBS/bin/Debug/netcoreapp2.0/publish/ NETCoreBBS-Docker/</span><br><span class="line"># 切换到 NETCoreBBS-Docker 工作目录</span><br><span class="line">$ cd NETCoreBBS-Docker</span><br></pre></td></tr></table></figure>
+<p>接下来编写一个适用于 .Net 应用镜像的 Dockerfile。</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line">$ vim Dockerfile</span><br><span class="line"></span><br><span class="line">FROM microsoft/dotnet:latest</span><br><span class="line">COPY publish /app</span><br><span class="line">WORKDIR /app</span><br><span class="line">EXPOSE 8000/tcp</span><br><span class="line">ENV ASPNETCORE_URLS http://*:8000</span><br><span class="line">ENTRYPOINT [&quot;dotnet&quot;, &quot;NetCoreBBS.dll&quot;]</span><br></pre></td></tr></table></figure>
+<p>这里我们简单说说以上几条 Dockerfile 中的指令的作用：</p>
+<ul>
+<li>FROM microsoft/dotnet:latest</li>
+</ul>
+<p>第一个指令必须为 FROM。 此指令用于初始化新的镜像生成阶段，并为剩余指令设置基础映像。 本示例的基础映像是微软发布的 microsoft/dotnet ，这个镜像将确保容器包含运行 <code>ASP.NET Core</code> 应用所需的一切基础环境。</p>
+<ul>
+<li>COPY publish /app</li>
+</ul>
+<p>复制 publish 目录下编译好的项目源码到 Docker 镜像里的 /app 目录。</p>
+<ul>
+<li>WORKDIR /app</li>
+</ul>
+<p>WORKDIR 指令 为 Dockerfile 中的任何 RUN，CMD，ENTRYPOINT，COPY 和 ADD 指令设置工作目录。如果 WORKDIR 不存在它将被创建，Dockerfile 中之后的命令都会在这个 /app 文件夹内执行。</p>
+<ul>
+<li>EXPOSE 8000/tcp</li>
+</ul>
+<p>默认情况下，Docker 容器不会暴露任何网络端口到外部。这里通过 EXPOSE 将内部端口映射到外部 8000 端口。</p>
+<ul>
+<li>ENV ASPNETCORE_URLS http://*:8000</li>
+</ul>
+<p>ENV 指令将在容器里设置环境变量。ASPNETCORE_URLS 这个变量告诉 <code>ASP.NET Core</code> 应该绑定到哪个网卡的哪个端口上。</p>
+<ul>
+<li>ENTRYPOINT [“dotnet”, “NetCoreBBS.dll”]</li>
+</ul>
+<p>Dockerfile 的最后一行通常都会设置一个入口程序，这里用 <code>dotnet NetCoreBBS.dll</code> 命令启动程序。</p>
+<p>Dockerfile 编写完成后，我们就可以开始构建镜像了。Docker 是通过 <code>docker build</code> 指令执行 Dockerfile 中的一系列命令来完成自动构建镜像的。</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br></pre></td><td class="code"><pre><span class="line">$ docker build -t aspnetcore .</span><br><span class="line"></span><br><span class="line">Sending build context to Docker daemon  214.2MB</span><br><span class="line">Step 1/6 : FROM microsoft/dotnet:latest</span><br><span class="line"> ---&gt; ae53eff0f099</span><br><span class="line">Step 2/6 : COPY publish /app</span><br><span class="line"> ---&gt; 92b10a218e58</span><br><span class="line">Step 3/6 : WORKDIR /app</span><br><span class="line">Removing intermediate container 83c530a6dbf4</span><br><span class="line"> ---&gt; a5ba92f15324</span><br><span class="line">Step 4/6 : EXPOSE 8000/tcp</span><br><span class="line"> ---&gt; Running in 294682400e71</span><br><span class="line">Removing intermediate container 294682400e71</span><br><span class="line"> ---&gt; ef5431fb28d8</span><br><span class="line">Step 5/6 : ENV ASPNETCORE_URLS http://*:8000</span><br><span class="line"> ---&gt; Running in e9cee7648025</span><br><span class="line">Removing intermediate container e9cee7648025</span><br><span class="line"> ---&gt; 89513e3fcc64</span><br><span class="line">Step 6/6 : ENTRYPOINT [&quot;dotnet&quot;, &quot;NetCoreBBS.dll&quot;]</span><br><span class="line"> ---&gt; Running in c8e81b5bed09</span><br><span class="line">Removing intermediate container c8e81b5bed09</span><br><span class="line"> ---&gt; e780d5110f71</span><br><span class="line">Successfully built e780d5110f71</span><br><span class="line">Successfully tagged aspnetcore:latest</span><br></pre></td></tr></table></figure>
+<p>运行 <code>docker images</code> 命令可列出全部镜像。</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">$ docker images</span><br><span class="line">REPOSITORY          TAG                 IMAGE ID            CREATED             SIZE</span><br><span class="line">aspnetcore          latest              e780d5110f71        3 minutes ago       1.78GB</span><br><span class="line">microsoft/dotnet    latest              ae53eff0f099        3 days ago          1.74GB</span><br></pre></td></tr></table></figure>
+<p>镜像创建完成后，我们就可以通过这个镜像来创建一个运行有 .NET 应用的容器了。</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">$ docker run -it -p 8000:8000 aspnetcore</span><br><span class="line"></span><br><span class="line">Hosting environment: Production</span><br><span class="line">Content root path: /app</span><br><span class="line">Now listening on: http://[::]:8000</span><br><span class="line">Application started. Press Ctrl+C to shut down.</span><br></pre></td></tr></table></figure>
+<blockquote>
+<p>-it 参数的作用是让 Docker 以交互模式运行这个容器。当你想要停止这个容器的时候可按 Ctrl+C 结束。</p>
+</blockquote>
+<p>如果你要让容器在后台运行可使用 <code>-d</code> 参数：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">$ docker run -d --name bbs -p 8000:8000 aspnetcore</span><br><span class="line">4946b885d4413bd9243b61d595450dd68ea16052fd81c6e54807c9fea1fb0594</span><br><span class="line"></span><br><span class="line">$ docker ps</span><br><span class="line">CONTAINER ID        IMAGE               COMMAND                  CREATED             STATUS              PORTS                    NAMES</span><br><span class="line">4946b885d441        aspnetcore          &quot;dotnet NetCoreBBS.d…&quot;   23 seconds ago      Up 22 seconds       0.0.0.0:8000-&gt;8000/tcp   bbs</span><br></pre></td></tr></table></figure>
+<h3 id="通过-docker-compose-进行-net-应用部署">通过 Docker-Compose 进行 .Net 应用部署</h3>
+<p>Docker-Compose 是 Docker 官方提供的编排工具，负责快速的部署分布式应用。Docker-Compose 是通过 docker-compose.yml 配置文件进行应用部署的。</p>
+<p>Docker-Compose 并不是 Docker 软件包中自带的工具。要使用 Docker-Compose 需要独立的安装，Docker-Compose 的安装也非常的简单，你可以通过以下指令来完成安装：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">$ pip install docker-compose</span><br></pre></td></tr></table></figure>
+<p>通过 Docker-Compose 方式部署容器大大的简化了操作步骤，一共只需要下面两步：</p>
+<ul>
+<li>编写 docker-compose.yml 文件</li>
+</ul>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br></pre></td><td class="code"><pre><span class="line">$ vim docker-compose.yml</span><br><span class="line"></span><br><span class="line">dotnet:</span><br><span class="line">  container_name: bbs</span><br><span class="line">  image: microsoft/dotnet:latest</span><br><span class="line">  restart: always</span><br><span class="line">  ports:</span><br><span class="line">    - 8000:8000</span><br><span class="line">  volumes:</span><br><span class="line">    - ./publish:/app/</span><br><span class="line">  environment:</span><br><span class="line">    - ASPNETCORE_URLS http://*:8000</span><br><span class="line">  working_dir: /app</span><br><span class="line">  command: [&quot;dotnet&quot;,&quot;NetCoreBBS.dll&quot;]</span><br></pre></td></tr></table></figure>
+<p>配置参数含义和 Dockerfile 中类似，这里就不再累述了。 如果你先更加了解 Dockerfile 或 docker-compose.yml 语法可参考官方文档。</p>
+<ul>
+<li>启动容器</li>
+</ul>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">$ docker-compose up -d</span><br><span class="line">Creating bbs ... done</span><br><span class="line"></span><br><span class="line">$ docker ps</span><br><span class="line">CONTAINER ID        IMAGE                     COMMAND                  CREATED             STATUS              PORTS                    NAMES</span><br><span class="line">61598d90134c        microsoft/dotnet:latest   &quot;dotnet NetCoreBBS.d…&quot;   15 seconds ago      Up 14 seconds       0.0.0.0:8000-&gt;8000/tcp   bbs</span><br></pre></td></tr></table></figure>
+<p>最后打开浏览器访问 <code>http://IP:8000/</code>，成功出现以下页面就表示部署成功了。</p>
+<p><img src="https://www.hi-linux.com/img/linux/dotnetcore1.png" alt=""></p>
+<p>到此，我们就演示了如何在 Docker 上搭建了一个完整的 .NET 应用。</p>
+<h3 id="参考文档">参考文档</h3>
+<p><a href="http://www.google.com" target="_blank" rel="noopener">http://www.google.com</a><br>
+<a href="http://t.cn/Rn2X39F" target="_blank" rel="noopener">http://t.cn/Rn2X39F</a><br>
+<a href="https://deepzz.com/post/docker-compose-file.html" target="_blank" rel="noopener">https://deepzz.com/post/docker-compose-file.html</a><br>
+<a href="https://deepzz.com/post/dockerfile-reference.html" target="_blank" rel="noopener">https://deepzz.com/post/dockerfile-reference.html</a></p>
+
+                
+
+                <hr>
+                <!-- Pager -->
+                <ul class="pager">
+                    
+                        <li class="previous">
+                            <a href="/posts/61905/" data-toggle="tooltip" data-placement="top" title="MySQL 用户和角色管理入门">&larr; Previous Post</a>
+                        </li>
+                    
+                    
+                        <li class="next">
+                            <a href="/posts/16159/" data-toggle="tooltip" data-placement="top" title="Ubuntu 18.04 LTS (Bionic Beaver) 正式发布，一大波新特性到来!">Next Post &rarr;</a>
+                        </li>
+                    
+                </ul>
+
+                <!-- duoshuo Share start -->
+                
+                <!-- 多说 Share end-->
+
+                <!-- 多说评论框 start -->
+                
+                <!-- 多说评论框 end -->
+
+                <!-- disqus comment start -->
+                
+                <!-- disqus comment end -->
+
+                
+                    <!-- disqus 评论框 start -->
+                    <div class="comment">
+                        <div id="lv-container" data-id="city" data-uid="MTAyMC8yNzg2My80NDQw"></div>
+                    </div>
+                    <!-- disqus 评论框 end -->
+                
+
+            </div>
+            
+            <!-- Tabe of Content -->
+            <!-- Table of Contents -->
+
+  
+    <style>
+      span.toc-nav-number{
+        display: none
+      }
+    </style>
+  
+    
+      <aside id="sidebar">
+        <div id="toc" class="toc-article">
+        <strong class="toc-title">Contents</strong>
+        
+          <ol class="toc-nav"><li class="toc-nav-item toc-nav-level-3"><a class="toc-nav-link" href="#通过-dockerfile-进行-net-应用部署"><span class="toc-nav-number">1.</span> <span class="toc-nav-text">通过 Dockerfile 进行 .Net 应用部署</span></a></li><li class="toc-nav-item toc-nav-level-3"><a class="toc-nav-link" href="#通过-docker-compose-进行-net-应用部署"><span class="toc-nav-number">2.</span> <span class="toc-nav-text">通过 Docker-Compose 进行 .Net 应用部署</span></a></li><li class="toc-nav-item toc-nav-level-3"><a class="toc-nav-link" href="#参考文档"><span class="toc-nav-number">3.</span> <span class="toc-nav-text">参考文档</span></a></li></ol>
+        
+        </div>
+      </aside>
+    
+
+                
+            <!-- Sidebar Container -->
+            <div class="
+                col-lg-8 col-lg-offset-2
+                col-md-10 col-md-offset-1
+                sidebar-container">
+
+                <!-- Featured Tags -->
+                
+                <section>
+                    <!-- no hr -->
+                    <h5><a href="/tags/">FEATURED TAGS</a></h5>
+                    <div class="tags">
+                       
+                          <a class="tag" href="/tags/#Linux" title="Linux">Linux</a>
+                        
+                          <a class="tag" href="/tags/#Docker" title="Docker">Docker</a>
+                        
+                    </div>
+                </section>
+                
+
+                <!-- Friends Blog -->
+                
+                <hr>
+                <h5>FRIENDS</h5>
+                <ul class="list-inline">
+
+                    
+                        <li><a href="http://www.mike.org.cn/" target="_blank">简单.生活</a></li>
+                    
+                        <li><a href="http://shang.qq.com/wpa/qunwpa?idkey=ea4c43493c2269428ac6ef6141de4b6d78e5ab2d41380ca4099b833b62884ee9" target="_blank">技术交流群</a></li>
+                    
+                        <li><a href="" target="_blank"></a></li>
+                    
+                        <li><a href="" target="_blank"></a></li>
+                    
+                </ul>
+                
+            </div>
+        </div>
+    </div>
+</article>
+
+
+
+
+
+
+    <!-- 来必力City版公共JS代码 start (一个网页只需插入一次) -->
+    <script type="text/javascript">
+       (function(d, s) {
+           var j, e = d.getElementsByTagName(s)[0];
+    
+           if (typeof LivereTower === 'function') { return; }
+    
+           j = d.createElement(s);
+           j.src = 'https://cdn-city.livere.com/js/embed.dist.js';
+           j.async = true;
+    
+           e.parentNode.insertBefore(j, e);
+       })(document, 'script');
+    </script>
+    <noscript>为正常使用来必力评论功能请激活JavaScript</noscript>
+    <!-- 来必力City版 公共JS代码 end -->
+
+
+
+<!-- async load function -->
+<script>
+    function async(u, c) {
+      var d = document, t = 'script',
+          o = d.createElement(t),
+          s = d.getElementsByTagName(t)[0];
+      o.src = u;
+      if (c) { o.addEventListener('load', function (e) { c(null, e); }, false); }
+      s.parentNode.insertBefore(o, s);
+    }
+</script>
+<!-- anchor-js, Doc:http://bryanbraun.github.io/anchorjs/ -->
+<script>
+    async("https://cdn.bootcss.com/anchor-js/1.1.1/anchor.min.js",function(){
+        anchors.options = {
+          visible: 'hover',
+          placement: 'left',
+          icon: 'ℬ'
+        };
+        anchors.add().remove('.intro-header h1').remove('.subheading').remove('.sidebar-container h5');
+    })
+</script>
+<style>
+    /* place left on bigger screen */
+    @media all and (min-width: 800px) {
+        .anchorjs-link{
+            position: absolute;
+            left: -0.75em;
+            font-size: 1.1em;
+            margin-top : -0.1em;
+        }
+    }
+</style>
+
+
+
+    <!-- Footer -->
+    <!-- Footer -->
+<footer>
+    <div class="container">
+        <div class="row">
+            <div class="col-lg-8 col-lg-offset-2 col-md-10 col-md-offset-1">
+                <ul class="list-inline text-center">
+                
+                    <li>
+                        <a href="/atom.xml">
+                            <span class="fa-stack fa-lg">
+                                <i class="fa fa-circle fa-stack-2x"></i>
+                                <i class="fa fa-rss fa-stack-1x fa-inverse"></i>
+                            </span>
+                        </a>
+                    </li>
+                
+                
+                
+                    <li>
+                        <a target="_blank" href="https://www.zhihu.com/people/80imike">
+                            <span class="fa-stack fa-lg">
+                                <i class="fa fa-circle fa-stack-2x"></i>
+                                <i class="fa  fa-stack-1x fa-inverse">知</i>
+                            </span>
+                        </a>
+                    </li>
+                
+
+                
+                    <li>
+                        <a target="_blank" href="http://weibo.com/2093524665">
+                            <span class="fa-stack fa-lg">
+                                <i class="fa fa-circle fa-stack-2x"></i>
+                                <i class="fa fa-weibo fa-stack-1x fa-inverse"></i>
+                            </span>
+                        </a>
+                    </li>
+                
+
+                
+
+                
+
+                
+
+                </ul>
+                <p class="copyright text-muted">
+                    Copyright &copy; Mike 2018 | Hosted by <a href="https://pages.coding.me" style="font-weight: bold">Coding Pages</a>
+                    <br>
+                    Theme by <a href="http://beantech.org">BeanTech</a> 
+                    <span style="display: inline-block; margin: 0 5px;">
+                        <i class="fa fa-heart"></i>
+                    </span> 
+                    re-Ported by <a href="http://www.huweihuang.com">胡伟煌</a> | 
+                    <iframe
+                        style="margin-left: 2px; margin-bottom:-5px;"
+                        frameborder="0" scrolling="0" width="91px" height="20px"
+                        src="https://ghbtns.com/github-btn.html?user=huweihuang&repo=hexo-theme-huweihuang&type=star&count=true" >
+                    </iframe>
+                </p>
+            </div>
+        </div>
+    </div>
+</footer>
+
+<!-- jQuery -->
+<script src="/js/jquery.min.js"></script>
+
+<!-- Bootstrap Core JavaScript -->
+<script src="/js/bootstrap.min.js"></script>
+
+<!-- Custom Theme JavaScript -->
+<script src="/js/hux-blog.min.js"></script>
+
+
+<!-- async load function -->
+<script>
+    function async(u, c) {
+      var d = document, t = 'script',
+          o = d.createElement(t),
+          s = d.getElementsByTagName(t)[0];
+      o.src = u;
+      if (c) { o.addEventListener('load', function (e) { c(null, e); }, false); }
+      s.parentNode.insertBefore(o, s);
+    }
+</script>
+
+<!-- 
+     Because of the native support for backtick-style fenced code blocks 
+     right within the Markdown is landed in Github Pages, 
+     From V1.6, There is no need for Highlight.js, 
+     so Huxblog drops it officially.
+
+     - https://github.com/blog/2100-github-pages-now-faster-and-simpler-with-jekyll-3-0  
+     - https://help.github.com/articles/creating-and-highlighting-code-blocks/    
+-->
+<!--
+    <script>
+        async("http://cdn.bootcss.com/highlight.js/8.6/highlight.min.js", function(){
+            hljs.initHighlightingOnLoad();
+        })
+    </script>
+    <link href="http://cdn.bootcss.com/highlight.js/8.6/styles/github.min.css" rel="stylesheet">
+-->
+
+
+<!-- jquery.tagcloud.js -->
+<script>
+    // only load tagcloud.js in tag.html
+    if($('#tag_cloud').length !== 0){
+        async("http://www.hi-linux.com/js/jquery.tagcloud.js",function(){
+            $.fn.tagcloud.defaults = {
+                //size: {start: 1, end: 1, unit: 'em'},
+                color: {start: '#bbbbee', end: '#0085a1'},
+            };
+            $('#tag_cloud a').tagcloud();
+        })
+    }
+</script>
+
+<!--fastClick.js -->
+<script>
+    async("https://cdn.bootcss.com/fastclick/1.0.6/fastclick.min.js", function(){
+        var $nav = document.querySelector("nav");
+        if($nav) FastClick.attach($nav);
+    })
+</script>
+
+
+<!-- Google Analytics -->
+
+
+
+
+<!-- Baidu Tongji -->
+
+
+
+
+
+
+	<a id="rocket" href="#top" class=""></a>
+	<script type="text/javascript" src="/js/totop.js?v=1.0.0" async=""></script>
+    <script type="text/javascript" src="/js/toc.js?v=1.0.0" async=""></script>
+<!-- Image to hack wechat -->
+<img src="http://www.hi-linux.com/img/icon_wechat.png" width="0" height="0" />
+<!-- Migrate from head to bottom, no longer block render and still work -->
+
+</body>
+
+</html>

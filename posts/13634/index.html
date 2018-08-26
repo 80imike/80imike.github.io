@@ -1,0 +1,645 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<!-- Head tag -->
+<head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="google-site-verification" content="xBT4GhYoi5qRD5tr338pgPM5OWHHIDR6mNg1a3euekI" />
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="description" content="">
+    <meta name="keyword"  content="Linux,运维,Nginx,Zabbix,Centos,Ansible,MySQL,Python,Docker,ELK,Haproxy,Git,Nodejs,安全,技术">
+    <link rel="shortcut icon" href="/img/ironman-draw.png">
+    <!-- Place this tag in your head or just before your close body tag. -->
+    <script async defer src="https://buttons.github.io/buttons.js"></script>
+    <title>
+        
+          在 Mesos 上使用 Chronos 运行计划任务 - 运维之美
+        
+    </title>
+
+    <link rel="canonical" href="http://www.hi-linux.com/posts/13634/">
+
+    <!-- Bootstrap Core CSS -->
+    <link rel="stylesheet" href="/css/bootstrap.min.css">
+
+    <!-- Custom CSS --> 
+    <link rel="stylesheet" href="/css/beantech.min.css">
+    
+    <!-- Pygments Highlight CSS -->
+    <link rel="stylesheet" href="/css/highlight.css">
+
+    <link rel="stylesheet" href="/css/widget.css">
+
+    <link rel="stylesheet" href="/css/rocket.css">
+
+    <link rel="stylesheet" href="/css/signature.css">
+
+    <link rel="stylesheet" href="/css/toc.css">
+
+    <!-- Custom Fonts -->
+    <!-- <link href="https://maxcdn.bootstrapcdn.com/font-awesome/4.3.0/css/font-awesome.min.css" rel="stylesheet" type="text/css"> -->
+    <!-- Hux change font-awesome CDN to qiniu -->
+    <link href="https://cdn.staticfile.org/font-awesome/4.5.0/css/font-awesome.min.css" rel="stylesheet" type="text/css">
+
+
+    <!-- Hux Delete, sad but pending in China
+    <link href='http://fonts.googleapis.com/css?family=Lora:400,700,400italic,700italic' rel='stylesheet' type='text/css'>
+    <link href='http://fonts.googleapis.com/css?family=Open+Sans:300italic,400italic,600italic,700italic,800italic,400,300,600,700,800' rel='stylesheet' type='text/
+    css'>
+    -->
+
+
+    <!-- HTML5 Shim and Respond.js IE8 support of HTML5 elements and media queries -->
+    <!-- WARNING: Respond.js doesn't work if you view the page via file:// -->
+    <!--[if lt IE 9]>
+        <script src="https://oss.maxcdn.com/libs/html5shiv/3.7.0/html5shiv.js"></script>
+        <script src="https://oss.maxcdn.com/libs/respond.js/1.4.2/respond.min.js"></script>
+    <![endif]-->
+
+    <!-- ga & ba script hoook -->
+    <script></script>
+</head>
+
+
+<!-- hack iOS CSS :active style -->
+<body ontouchstart="">
+	<!-- Modified by Yu-Hsuan Yen -->
+<!-- Post Header -->
+<style type="text/css">
+    header.intro-header{
+        
+            background-image: url('/img/header_img/article.jpg')
+            /*post*/
+        
+    }
+    
+</style>
+
+<header class="intro-header" >
+    <!-- Signature -->
+    <div id="signature">
+        <div class="container">
+            <div class="row">
+                <div class="col-lg-8 col-lg-offset-2 col-md-10 col-md-offset-1">
+                
+                    <div class="post-heading">
+                        <div class="tags">
+                            
+                              <a class="tag" href="/tags/#Docker" title="Docker">Docker</a>
+                            
+                              <a class="tag" href="/tags/#Chronos" title="Chronos">Chronos</a>
+                            
+                        </div>
+                        <h1>在 Mesos 上使用 Chronos 运行计划任务</h1>
+                        <h2 class="subheading"></h2>
+                        <span class="meta">
+                            Posted by Mike on
+                            2017-05-04
+                        </span>
+                    </div>
+                
+
+
+                </div>
+            </div>
+        </div>
+    </div>
+</header>
+
+	
+    <!-- Navigation -->
+<nav class="navbar navbar-default navbar-custom navbar-fixed-top">
+    <div class="container-fluid">
+        <!-- Brand and toggle get grouped for better mobile display -->
+        <div class="navbar-header page-scroll">
+            <button type="button" class="navbar-toggle">
+                <span class="sr-only">Toggle navigation</span>
+                <span class="icon-bar"></span>
+                <span class="icon-bar"></span>
+                <span class="icon-bar"></span>
+            </button>
+            <a class="navbar-brand" href="/">运维之美</a>
+        </div>
+
+        <!-- Collect the nav links, forms, and other content for toggling -->
+        <!-- Known Issue, found by Hux:
+            <nav>'s height woule be hold on by its content.
+            so, when navbar scale out, the <nav> will cover tags.
+            also mask any touch event of tags, unfortunately.
+        -->
+        <div id="huxblog_navbar">
+            <div class="navbar-collapse">
+                <ul class="nav navbar-nav navbar-right">
+                    <li>
+                        <a href="/">Home</a>
+                    </li>
+
+                    
+
+                        
+                    
+
+                        
+                    
+
+                        
+                        <li>
+                            <a href="/archive/">Archives</a>
+                        </li>
+                        
+                    
+
+                        
+                        <li>
+                            <a href="/about/">About</a>
+                        </li>
+                        
+                    
+
+                        
+                        <li>
+                            <a href="/tags/">Tags</a>
+                        </li>
+                        
+                    
+                    
+                </ul>
+            </div>
+        </div>
+        <!-- /.navbar-collapse -->
+    </div>
+    <!-- /.container -->
+</nav>
+<script>
+    // Drop Bootstarp low-performance Navbar
+    // Use customize navbar with high-quality material design animation
+    // in high-perf jank-free CSS3 implementation
+    var $body   = document.body;
+    var $toggle = document.querySelector('.navbar-toggle');
+    var $navbar = document.querySelector('#huxblog_navbar');
+    var $collapse = document.querySelector('.navbar-collapse');
+
+    $toggle.addEventListener('click', handleMagic)
+    function handleMagic(e){
+        if ($navbar.className.indexOf('in') > 0) {
+        // CLOSE
+            $navbar.className = " ";
+            // wait until animation end.
+            setTimeout(function(){
+                // prevent frequently toggle
+                if($navbar.className.indexOf('in') < 0) {
+                    $collapse.style.height = "0px"
+                }
+            },400)
+        }else{
+        // OPEN
+            $collapse.style.height = "auto"
+            $navbar.className += " in";
+        }
+    }
+</script>
+
+
+    <!-- Main Content -->
+    <!-- Modify by Yu-Hsuan Yen -->
+
+<!-- Post Content -->
+<article>
+    <div class="container">
+        <div class="row">
+
+            <!-- Post Container -->
+            <div class="
+                col-lg-8 col-lg-offset-2
+                col-md-10 col-md-offset-1
+                post-container">
+
+                <h3 id="chronost简介">Chronost简介</h3>
+<p>Chronos是由Airbnb公司推出的用来替代Cron的开源产品，这是一个用来运行基于容器定时任务的Mesos框架。Chronos可处理依赖性和基于ISO8601的调度，你可以用它来对作业进行编排。支持使用Mesos作为作业执行器，支持和Hadoop进行交互。可定义作业执行完成后的触发器。支持任意长度的依赖链。</p>
+<p>由于Chronos以ISO8601时间规范作为定时任务的执行时间配置，所以理解这个时间规范对配置Chronos定时任务至关重要。这里我们就简单看下ISO8601的规则：</p>
+<ul>
+<li>所有字母都是大写，无论用来做什么的。</li>
+<li>日期写成2012-02-05或者20120205都OK。</li>
+<li>时间需要用字母T开始，比如：T08:00:00或者T080000。</li>
+<li>时间末尾用Z表示UTC时间，用+08:00这种表示在UTC时间基础上偏移的时间(+08:00是中国的时区)</li>
+<li>字母P表示一段时间，常用于表达执行任务的间隔。比如：P10M表示10个月的时长，而PT10M是10分钟的时长，因为T开头表示的时间，非T开头表示的是日期。</li>
+<li>R表示从A时间到B时间之间，每间隔C时长，执行一次。</li>
+</ul>
+<p>更详细的ISO 8601介绍可参考：<a href="https://zh.wikipedia.org/zh-hans/ISO_8601" target="_blank" rel="noopener">https://zh.wikipedia.org/zh-hans/ISO_8601</a></p>
+<a id="more"></a>
+<p><strong>Chronos工作原理</strong></p>
+<p>Chronos以Framework身份接入Mesos，支持Zookeeper选举高可用，同时将所有的定时任务配置存储在Zookeeper里。</p>
+<p>Chronos的工作流程描述如下：</p>
+<ol>
+<li>从ZK获取全部的任务列表。</li>
+<li>以Scheduler身份接入到Mesos，分析任务的执行依赖。</li>
+<li>分析出需要立即执行的任务和暂时不需要执行的任务。</li>
+<li>将需要立即执行的任务放入执行队列，等待Mesos offer足够的资源。</li>
+<li>等待执行队列中的一个任务被执行，再次回到步骤1。</li>
+</ol>
+<p>项目地址：<a href="https://github.com/mesos/chronos" target="_blank" rel="noopener">https://github.com/mesos/chronos</a></p>
+<h3 id="安装chronos">安装Chronos</h3>
+<p>在安装Chronos前你必须有一个Mesos集群环境，有关Mesos集群搭建你可以参考「<a href="https://www.hi-linux.com/posts/8141.html">使用Mesos和Marathon管理Docker集群</a>」一文，这里就不再讲述了。</p>
+<p>这里是在之前集群环境基础上搭建，所以在<code>dev-master-01</code>上安装Chronos。</p>
+<h4 id="通过软件包安装">通过软件包安装</h4>
+<ul>
+<li>Ubuntu and Debian系统</li>
+</ul>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">$ apt-get install chronos</span><br></pre></td></tr></table></figure>
+<ul>
+<li>RedHat and CentOS系统</li>
+</ul>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">$ yum -y install chronos</span><br></pre></td></tr></table></figure>
+<ul>
+<li>启动相关服务</li>
+</ul>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">$ service chronos start</span><br></pre></td></tr></table></figure>
+<h4 id="通过docker安装">通过Docker安装</h4>
+<p>由于Ubuntu 16.04不支持包安装，这里直接用官方的Docker镜像运行Chronos。</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">$ docker run -d --name=chronos --net=host -e PORT0=8000 -e PORT1=8001 mesosphere/chronos:latest --zk_hosts zk://dev-master-01:2181/chronos/ --master zk://dev-master-01:2181/mesos/</span><br></pre></td></tr></table></figure>
+<ol>
+<li>网络模式使用host，这样Docker容器将共享宿主机的网络namespace，这是因为我们需要的仅仅是Docker的执行环境，并不是网络隔离。</li>
+<li><code>zk_hosts</code>是给Chronos保存任务数据和进行Leader选举的存储目录。</li>
+<li>Master是Mesos-master的ZK存储地址，这样Chronos才可以找到Master并注册上去。</li>
+<li>环境变量PORT0=8000是Chronos的HTTP接口，也是Web UI的地址，PORT1=8001用于Libprocess。</li>
+</ol>
+<ul>
+<li>验证是否安装成功</li>
+</ul>
+<p>查看Docker容器是否正常运行</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">$ docker ps|grep chronos</span><br><span class="line">afb1c37b07d1        mesosphere/chronos:latest    &quot;/chronos/bin/star...&quot;   4 minutes ago       Up 4 minutes                                        chronos</span><br></pre></td></tr></table></figure>
+<p>查看相应端口是否正常</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">$ netstat -tunlp|grep -E  &quot;8000|8001&quot;</span><br><span class="line">tcp        0      0 0.0.0.0:8001            0.0.0.0:*               LISTEN      5151/java</span><br><span class="line">tcp6       0      0 :::8000                 :::*                    LISTEN      5151/java</span><br></pre></td></tr></table></figure>
+<ul>
+<li>访问Chronos的Web管理界面</li>
+</ul>
+<p>Chronos的最新版本是v3.x，它对之前的2.x版本进行了重写，导致目前3.x的Web UI界面极其简陋，仅仅提供了基础的任务启停和配置功能。</p>
+<p>Chronos默认是监听在4400端口，这里使用了自定义端口为8000。通过使用<code>http://ip:8000/</code>来访问。如下图所示：</p>
+<p><img src="https://www.hi-linux.com/img/linux/chronos1.png" alt=""></p>
+<h3 id="使用chronos">使用Chronos</h3>
+<ul>
+<li>使用Web界面创建任务</li>
+</ul>
+<p>在Chronos页面，点击&quot;ADD JOB–Scheduled&quot;并填入以下相关信息来创建一个任务，如下图：</p>
+<p><img src="https://www.hi-linux.com/img/linux/chronos2.png" alt=""></p>
+<blockquote>
+<p>Name：Test-Chronos<br>
+Command： sleep 30<br>
+Schedule：R/2017-05-04T03:26:00.000Z/PT24H</p>
+</blockquote>
+<p>注意：时间格式是ISO 8601表示法，时间是UTC时间。如果要加上时区可以这样写：<code>R/2017-05-04T14:25:00.000+08:00/PT24H</code>。这样就表示中国时区，+08:00是中国的时区。</p>
+<p>在Chronos页面，查看任务执行的情况</p>
+<p><img src="https://www.hi-linux.com/img/linux/chronos3.png" alt=""></p>
+<p>在Mesos页面，查看任务执行的情况。</p>
+<p><img src="https://www.hi-linux.com/img/linux/chronos5.png" alt=""></p>
+<ul>
+<li>使用REST API创建任务</li>
+</ul>
+<p>REST API包括Web UI没有提供的功能，如Docker容器信息、时区支持、使用Mesos fetcher来下载文件到任务的工作目录中等。</p>
+<p>创建JSON文件</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line">$ vim test-chronos-api.json</span><br><span class="line"></span><br><span class="line">&#123;</span><br><span class="line">  &quot;schedule&quot;: &quot;R/2017-05-04T02:58:00Z/PT24H&quot;,</span><br><span class="line">  &quot;name&quot;: &quot;Test-Chronos-API&quot;,</span><br><span class="line">  &quot;description&quot;: &quot;Sleep for 60 seconds and return.&quot;,</span><br><span class="line">  &quot;cpus&quot;: 0.5,</span><br><span class="line">  &quot;mem&quot;: 128,</span><br><span class="line">  &quot;disk&quot;: 500,</span><br><span class="line">  &quot;command&quot;: &quot;sleep 60&quot;  </span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>使用curl命令提交到Chronos</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">$ curl -H &apos;Content-Type: application/json&apos; -X POST -d @test-chronos-api.json http://dev-master-01:8000/v1/scheduler/iso8601</span><br></pre></td></tr></table></figure>
+<p>在Chronos页面，可以看到任务已创建成功。</p>
+<p><img src="https://www.hi-linux.com/img/linux/chronos6.png" alt=""></p>
+<p>在Mesos页面，查看任务执行的情况。</p>
+<p><img src="https://www.hi-linux.com/img/linux/chronos7.png" alt=""></p>
+<p>更多API的用法可参考：<a href="https://mesos.github.io/chronos/docs/api.html" target="_blank" rel="noopener">https://mesos.github.io/chronos/docs/api.html</a></p>
+<ul>
+<li>创建基于Docker的任务</li>
+</ul>
+<p>Docker容器允许你将代码和它的依赖一起打包成一个镜像，并分发到集群中的任何节点上。这极大地方便了程序的部署。这里用定时输出一个时间的例子来体现这一个过程。</p>
+<p>创建JSON文件</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br></pre></td><td class="code"><pre><span class="line">$ vi test-chronos-docker.json</span><br><span class="line"></span><br><span class="line">&#123;</span><br><span class="line">  &quot;schedule&quot;: &quot;R/2017-05-04T05:50:00Z/PT24H&quot;,</span><br><span class="line">  &quot;name&quot;: &quot;Test-Chronos-Docker&quot;,</span><br><span class="line">  &quot;container&quot;: &#123;</span><br><span class="line">    &quot;type&quot;: &quot;DOCKER&quot;,</span><br><span class="line">    &quot;image&quot;: &quot;busybox&quot;,</span><br><span class="line">    &quot;network&quot;: &quot;BRIDGE&quot;,</span><br><span class="line">    &quot;volumes&quot;: [</span><br><span class="line">      &#123;</span><br><span class="line">        &quot;containerPath&quot;: &quot;/var/log/&quot;,</span><br><span class="line">        &quot;hostPath&quot;: &quot;/var/log/&quot;,</span><br><span class="line">        &quot;mode&quot;: &quot;RW&quot;</span><br><span class="line">      &#125;</span><br><span class="line">    ]</span><br><span class="line">  &#125;,</span><br><span class="line">  &quot;cpus&quot;: &quot;0.5&quot;,</span><br><span class="line">  &quot;mem&quot;: &quot;128&quot;,</span><br><span class="line">  &quot;fetch&quot;: [],</span><br><span class="line">  &quot;command&quot;: &quot;while sleep 10; do date -u +%T; done&quot;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>在Chronos上，使用REST API创建任务</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">$ curl -H &apos;Content-Type: application/json&apos; -X POST -d @test-chronos-docker.json http://dev-master-01:8000/v1/scheduler/iso8601</span><br></pre></td></tr></table></figure>
+<p>在Chronos页面确认任务已创建成功。</p>
+<p><img src="https://www.hi-linux.com/img/linux/chronos8.png" alt=""></p>
+<p>在节点上确认容器启动</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">$ docker ps</span><br><span class="line">CONTAINER ID        IMAGE                        COMMAND                  CREATED              STATUS              PORTS               NAMES</span><br><span class="line">1b60113326de        busybox                      &quot;/bin/sh -c &apos;while...&quot;   About a minute ago   Up About a minute                       mesos-86e469e1-f0e0-439d-990a-52e897b8075d-S0.dc3dbf69-b415-45db-96ec-91bf8ec12362</span><br></pre></td></tr></table></figure>
+<p>确认容器是否正确运行</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line">$ docker logs 1b6</span><br><span class="line">05:50:12</span><br><span class="line">05:50:22</span><br><span class="line">05:50:32</span><br><span class="line">05:50:42</span><br><span class="line">05:50:52</span><br><span class="line">05:51:02</span><br><span class="line">05:51:12</span><br></pre></td></tr></table></figure>
+<h3 id="参考文档">参考文档</h3>
+<p><a href="http://www.google.com" target="_blank" rel="noopener">http://www.google.com</a><br>
+<a href="http://t.cn/RcpXPI2" target="_blank" rel="noopener">http://t.cn/RcpXPI2</a><br>
+<a href="http://qinghua.github.io/mesos-chronos/" target="_blank" rel="noopener">http://qinghua.github.io/mesos-chronos/</a><br>
+<a href="http://www.cnblogs.com/ee900222/p/docker_2.html" target="_blank" rel="noopener">http://www.cnblogs.com/ee900222/p/docker_2.html</a><br>
+<a href="http://yuerblog.cc/2017/02/14/setup-chronos-on-mesos/" target="_blank" rel="noopener">http://yuerblog.cc/2017/02/14/setup-chronos-on-mesos/</a></p>
+
+                
+
+                <hr>
+                <!-- Pager -->
+                <ul class="pager">
+                    
+                        <li class="previous">
+                            <a href="/posts/28459/" data-toggle="tooltip" data-placement="top" title="推荐几款我喜欢的 Atom 插件">&larr; Previous Post</a>
+                        </li>
+                    
+                    
+                        <li class="next">
+                            <a href="/posts/8141/" data-toggle="tooltip" data-placement="top" title="使用 Mesos 和 Marathon 管理 Docker 集群">Next Post &rarr;</a>
+                        </li>
+                    
+                </ul>
+
+                <!-- duoshuo Share start -->
+                
+                <!-- 多说 Share end-->
+
+                <!-- 多说评论框 start -->
+                
+                <!-- 多说评论框 end -->
+
+                <!-- disqus comment start -->
+                
+                <!-- disqus comment end -->
+
+                
+                    <!-- disqus 评论框 start -->
+                    <div class="comment">
+                        <div id="lv-container" data-id="city" data-uid="MTAyMC8yNzg2My80NDQw"></div>
+                    </div>
+                    <!-- disqus 评论框 end -->
+                
+
+            </div>
+            
+            <!-- Tabe of Content -->
+            <!-- Table of Contents -->
+
+  
+    <style>
+      span.toc-nav-number{
+        display: none
+      }
+    </style>
+  
+    
+      <aside id="sidebar">
+        <div id="toc" class="toc-article">
+        <strong class="toc-title">Contents</strong>
+        
+          <ol class="toc-nav"><li class="toc-nav-item toc-nav-level-3"><a class="toc-nav-link" href="#chronost简介"><span class="toc-nav-number">1.</span> <span class="toc-nav-text">Chronost简介</span></a></li><li class="toc-nav-item toc-nav-level-3"><a class="toc-nav-link" href="#安装chronos"><span class="toc-nav-number">2.</span> <span class="toc-nav-text">安装Chronos</span></a><ol class="toc-nav-child"><li class="toc-nav-item toc-nav-level-4"><a class="toc-nav-link" href="#通过软件包安装"><span class="toc-nav-number">2.1.</span> <span class="toc-nav-text">通过软件包安装</span></a></li><li class="toc-nav-item toc-nav-level-4"><a class="toc-nav-link" href="#通过docker安装"><span class="toc-nav-number">2.2.</span> <span class="toc-nav-text">通过Docker安装</span></a></li></ol></li><li class="toc-nav-item toc-nav-level-3"><a class="toc-nav-link" href="#使用chronos"><span class="toc-nav-number">3.</span> <span class="toc-nav-text">使用Chronos</span></a></li><li class="toc-nav-item toc-nav-level-3"><a class="toc-nav-link" href="#参考文档"><span class="toc-nav-number">4.</span> <span class="toc-nav-text">参考文档</span></a></li></ol>
+        
+        </div>
+      </aside>
+    
+
+                
+            <!-- Sidebar Container -->
+            <div class="
+                col-lg-8 col-lg-offset-2
+                col-md-10 col-md-offset-1
+                sidebar-container">
+
+                <!-- Featured Tags -->
+                
+                <section>
+                    <!-- no hr -->
+                    <h5><a href="/tags/">FEATURED TAGS</a></h5>
+                    <div class="tags">
+                       
+                          <a class="tag" href="/tags/#Docker" title="Docker">Docker</a>
+                        
+                          <a class="tag" href="/tags/#Chronos" title="Chronos">Chronos</a>
+                        
+                    </div>
+                </section>
+                
+
+                <!-- Friends Blog -->
+                
+                <hr>
+                <h5>FRIENDS</h5>
+                <ul class="list-inline">
+
+                    
+                        <li><a href="http://www.mike.org.cn/" target="_blank">简单.生活</a></li>
+                    
+                        <li><a href="http://shang.qq.com/wpa/qunwpa?idkey=ea4c43493c2269428ac6ef6141de4b6d78e5ab2d41380ca4099b833b62884ee9" target="_blank">技术交流群</a></li>
+                    
+                        <li><a href="" target="_blank"></a></li>
+                    
+                        <li><a href="" target="_blank"></a></li>
+                    
+                </ul>
+                
+            </div>
+        </div>
+    </div>
+</article>
+
+
+
+
+
+
+    <!-- 来必力City版公共JS代码 start (一个网页只需插入一次) -->
+    <script type="text/javascript">
+       (function(d, s) {
+           var j, e = d.getElementsByTagName(s)[0];
+    
+           if (typeof LivereTower === 'function') { return; }
+    
+           j = d.createElement(s);
+           j.src = 'https://cdn-city.livere.com/js/embed.dist.js';
+           j.async = true;
+    
+           e.parentNode.insertBefore(j, e);
+       })(document, 'script');
+    </script>
+    <noscript>为正常使用来必力评论功能请激活JavaScript</noscript>
+    <!-- 来必力City版 公共JS代码 end -->
+
+
+
+<!-- async load function -->
+<script>
+    function async(u, c) {
+      var d = document, t = 'script',
+          o = d.createElement(t),
+          s = d.getElementsByTagName(t)[0];
+      o.src = u;
+      if (c) { o.addEventListener('load', function (e) { c(null, e); }, false); }
+      s.parentNode.insertBefore(o, s);
+    }
+</script>
+<!-- anchor-js, Doc:http://bryanbraun.github.io/anchorjs/ -->
+<script>
+    async("https://cdn.bootcss.com/anchor-js/1.1.1/anchor.min.js",function(){
+        anchors.options = {
+          visible: 'hover',
+          placement: 'left',
+          icon: 'ℬ'
+        };
+        anchors.add().remove('.intro-header h1').remove('.subheading').remove('.sidebar-container h5');
+    })
+</script>
+<style>
+    /* place left on bigger screen */
+    @media all and (min-width: 800px) {
+        .anchorjs-link{
+            position: absolute;
+            left: -0.75em;
+            font-size: 1.1em;
+            margin-top : -0.1em;
+        }
+    }
+</style>
+
+
+
+    <!-- Footer -->
+    <!-- Footer -->
+<footer>
+    <div class="container">
+        <div class="row">
+            <div class="col-lg-8 col-lg-offset-2 col-md-10 col-md-offset-1">
+                <ul class="list-inline text-center">
+                
+                    <li>
+                        <a href="/atom.xml">
+                            <span class="fa-stack fa-lg">
+                                <i class="fa fa-circle fa-stack-2x"></i>
+                                <i class="fa fa-rss fa-stack-1x fa-inverse"></i>
+                            </span>
+                        </a>
+                    </li>
+                
+                
+                
+                    <li>
+                        <a target="_blank" href="https://www.zhihu.com/people/80imike">
+                            <span class="fa-stack fa-lg">
+                                <i class="fa fa-circle fa-stack-2x"></i>
+                                <i class="fa  fa-stack-1x fa-inverse">知</i>
+                            </span>
+                        </a>
+                    </li>
+                
+
+                
+                    <li>
+                        <a target="_blank" href="http://weibo.com/2093524665">
+                            <span class="fa-stack fa-lg">
+                                <i class="fa fa-circle fa-stack-2x"></i>
+                                <i class="fa fa-weibo fa-stack-1x fa-inverse"></i>
+                            </span>
+                        </a>
+                    </li>
+                
+
+                
+
+                
+
+                
+
+                </ul>
+                <p class="copyright text-muted">
+                    Copyright &copy; Mike 2018 | Hosted by <a href="https://pages.coding.me" style="font-weight: bold">Coding Pages</a>
+                    <br>
+                    Theme by <a href="http://beantech.org">BeanTech</a> 
+                    <span style="display: inline-block; margin: 0 5px;">
+                        <i class="fa fa-heart"></i>
+                    </span> 
+                    re-Ported by <a href="http://www.huweihuang.com">胡伟煌</a> | 
+                    <iframe
+                        style="margin-left: 2px; margin-bottom:-5px;"
+                        frameborder="0" scrolling="0" width="91px" height="20px"
+                        src="https://ghbtns.com/github-btn.html?user=huweihuang&repo=hexo-theme-huweihuang&type=star&count=true" >
+                    </iframe>
+                </p>
+            </div>
+        </div>
+    </div>
+</footer>
+
+<!-- jQuery -->
+<script src="/js/jquery.min.js"></script>
+
+<!-- Bootstrap Core JavaScript -->
+<script src="/js/bootstrap.min.js"></script>
+
+<!-- Custom Theme JavaScript -->
+<script src="/js/hux-blog.min.js"></script>
+
+
+<!-- async load function -->
+<script>
+    function async(u, c) {
+      var d = document, t = 'script',
+          o = d.createElement(t),
+          s = d.getElementsByTagName(t)[0];
+      o.src = u;
+      if (c) { o.addEventListener('load', function (e) { c(null, e); }, false); }
+      s.parentNode.insertBefore(o, s);
+    }
+</script>
+
+<!-- 
+     Because of the native support for backtick-style fenced code blocks 
+     right within the Markdown is landed in Github Pages, 
+     From V1.6, There is no need for Highlight.js, 
+     so Huxblog drops it officially.
+
+     - https://github.com/blog/2100-github-pages-now-faster-and-simpler-with-jekyll-3-0  
+     - https://help.github.com/articles/creating-and-highlighting-code-blocks/    
+-->
+<!--
+    <script>
+        async("http://cdn.bootcss.com/highlight.js/8.6/highlight.min.js", function(){
+            hljs.initHighlightingOnLoad();
+        })
+    </script>
+    <link href="http://cdn.bootcss.com/highlight.js/8.6/styles/github.min.css" rel="stylesheet">
+-->
+
+
+<!-- jquery.tagcloud.js -->
+<script>
+    // only load tagcloud.js in tag.html
+    if($('#tag_cloud').length !== 0){
+        async("http://www.hi-linux.com/js/jquery.tagcloud.js",function(){
+            $.fn.tagcloud.defaults = {
+                //size: {start: 1, end: 1, unit: 'em'},
+                color: {start: '#bbbbee', end: '#0085a1'},
+            };
+            $('#tag_cloud a').tagcloud();
+        })
+    }
+</script>
+
+<!--fastClick.js -->
+<script>
+    async("https://cdn.bootcss.com/fastclick/1.0.6/fastclick.min.js", function(){
+        var $nav = document.querySelector("nav");
+        if($nav) FastClick.attach($nav);
+    })
+</script>
+
+
+<!-- Google Analytics -->
+
+
+
+
+<!-- Baidu Tongji -->
+
+
+
+
+
+
+	<a id="rocket" href="#top" class=""></a>
+	<script type="text/javascript" src="/js/totop.js?v=1.0.0" async=""></script>
+    <script type="text/javascript" src="/js/toc.js?v=1.0.0" async=""></script>
+<!-- Image to hack wechat -->
+<img src="http://www.hi-linux.com/img/icon_wechat.png" width="0" height="0" />
+<!-- Migrate from head to bottom, no longer block render and still work -->
+
+</body>
+
+</html>

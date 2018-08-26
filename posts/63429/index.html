@@ -1,0 +1,698 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<!-- Head tag -->
+<head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="google-site-verification" content="xBT4GhYoi5qRD5tr338pgPM5OWHHIDR6mNg1a3euekI" />
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="description" content="">
+    <meta name="keyword"  content="Linux,运维,Nginx,Zabbix,Centos,Ansible,MySQL,Python,Docker,ELK,Haproxy,Git,Nodejs,安全,技术">
+    <link rel="shortcut icon" href="/img/ironman-draw.png">
+    <!-- Place this tag in your head or just before your close body tag. -->
+    <script async defer src="https://buttons.github.io/buttons.js"></script>
+    <title>
+        
+          使用 pyenv 搭建 Python 虚拟环境 - 运维之美
+        
+    </title>
+
+    <link rel="canonical" href="http://www.hi-linux.com/posts/63429/">
+
+    <!-- Bootstrap Core CSS -->
+    <link rel="stylesheet" href="/css/bootstrap.min.css">
+
+    <!-- Custom CSS --> 
+    <link rel="stylesheet" href="/css/beantech.min.css">
+    
+    <!-- Pygments Highlight CSS -->
+    <link rel="stylesheet" href="/css/highlight.css">
+
+    <link rel="stylesheet" href="/css/widget.css">
+
+    <link rel="stylesheet" href="/css/rocket.css">
+
+    <link rel="stylesheet" href="/css/signature.css">
+
+    <link rel="stylesheet" href="/css/toc.css">
+
+    <!-- Custom Fonts -->
+    <!-- <link href="https://maxcdn.bootstrapcdn.com/font-awesome/4.3.0/css/font-awesome.min.css" rel="stylesheet" type="text/css"> -->
+    <!-- Hux change font-awesome CDN to qiniu -->
+    <link href="https://cdn.staticfile.org/font-awesome/4.5.0/css/font-awesome.min.css" rel="stylesheet" type="text/css">
+
+
+    <!-- Hux Delete, sad but pending in China
+    <link href='http://fonts.googleapis.com/css?family=Lora:400,700,400italic,700italic' rel='stylesheet' type='text/css'>
+    <link href='http://fonts.googleapis.com/css?family=Open+Sans:300italic,400italic,600italic,700italic,800italic,400,300,600,700,800' rel='stylesheet' type='text/
+    css'>
+    -->
+
+
+    <!-- HTML5 Shim and Respond.js IE8 support of HTML5 elements and media queries -->
+    <!-- WARNING: Respond.js doesn't work if you view the page via file:// -->
+    <!--[if lt IE 9]>
+        <script src="https://oss.maxcdn.com/libs/html5shiv/3.7.0/html5shiv.js"></script>
+        <script src="https://oss.maxcdn.com/libs/respond.js/1.4.2/respond.min.js"></script>
+    <![endif]-->
+
+    <!-- ga & ba script hoook -->
+    <script></script>
+</head>
+
+
+<!-- hack iOS CSS :active style -->
+<body ontouchstart="">
+	<!-- Modified by Yu-Hsuan Yen -->
+<!-- Post Header -->
+<style type="text/css">
+    header.intro-header{
+        
+            background-image: url('/img/header_img/article.jpg')
+            /*post*/
+        
+    }
+    
+</style>
+
+<header class="intro-header" >
+    <!-- Signature -->
+    <div id="signature">
+        <div class="container">
+            <div class="row">
+                <div class="col-lg-8 col-lg-offset-2 col-md-10 col-md-offset-1">
+                
+                    <div class="post-heading">
+                        <div class="tags">
+                            
+                              <a class="tag" href="/tags/#Linux" title="Linux">Linux</a>
+                            
+                              <a class="tag" href="/tags/#Python" title="Python">Python</a>
+                            
+                        </div>
+                        <h1>使用 pyenv 搭建 Python 虚拟环境</h1>
+                        <h2 class="subheading"></h2>
+                        <span class="meta">
+                            Posted by Mike on
+                            2016-04-25
+                        </span>
+                    </div>
+                
+
+
+                </div>
+            </div>
+        </div>
+    </div>
+</header>
+
+	
+    <!-- Navigation -->
+<nav class="navbar navbar-default navbar-custom navbar-fixed-top">
+    <div class="container-fluid">
+        <!-- Brand and toggle get grouped for better mobile display -->
+        <div class="navbar-header page-scroll">
+            <button type="button" class="navbar-toggle">
+                <span class="sr-only">Toggle navigation</span>
+                <span class="icon-bar"></span>
+                <span class="icon-bar"></span>
+                <span class="icon-bar"></span>
+            </button>
+            <a class="navbar-brand" href="/">运维之美</a>
+        </div>
+
+        <!-- Collect the nav links, forms, and other content for toggling -->
+        <!-- Known Issue, found by Hux:
+            <nav>'s height woule be hold on by its content.
+            so, when navbar scale out, the <nav> will cover tags.
+            also mask any touch event of tags, unfortunately.
+        -->
+        <div id="huxblog_navbar">
+            <div class="navbar-collapse">
+                <ul class="nav navbar-nav navbar-right">
+                    <li>
+                        <a href="/">Home</a>
+                    </li>
+
+                    
+
+                        
+                    
+
+                        
+                    
+
+                        
+                        <li>
+                            <a href="/archive/">Archives</a>
+                        </li>
+                        
+                    
+
+                        
+                        <li>
+                            <a href="/about/">About</a>
+                        </li>
+                        
+                    
+
+                        
+                        <li>
+                            <a href="/tags/">Tags</a>
+                        </li>
+                        
+                    
+                    
+                </ul>
+            </div>
+        </div>
+        <!-- /.navbar-collapse -->
+    </div>
+    <!-- /.container -->
+</nav>
+<script>
+    // Drop Bootstarp low-performance Navbar
+    // Use customize navbar with high-quality material design animation
+    // in high-perf jank-free CSS3 implementation
+    var $body   = document.body;
+    var $toggle = document.querySelector('.navbar-toggle');
+    var $navbar = document.querySelector('#huxblog_navbar');
+    var $collapse = document.querySelector('.navbar-collapse');
+
+    $toggle.addEventListener('click', handleMagic)
+    function handleMagic(e){
+        if ($navbar.className.indexOf('in') > 0) {
+        // CLOSE
+            $navbar.className = " ";
+            // wait until animation end.
+            setTimeout(function(){
+                // prevent frequently toggle
+                if($navbar.className.indexOf('in') < 0) {
+                    $collapse.style.height = "0px"
+                }
+            },400)
+        }else{
+        // OPEN
+            $collapse.style.height = "auto"
+            $navbar.className += " in";
+        }
+    }
+</script>
+
+
+    <!-- Main Content -->
+    <!-- Modify by Yu-Hsuan Yen -->
+
+<!-- Post Content -->
+<article>
+    <div class="container">
+        <div class="row">
+
+            <!-- Post Container -->
+            <div class="
+                col-lg-8 col-lg-offset-2
+                col-md-10 col-md-offset-1
+                post-container">
+
+                <p>pyenv可以帮助你在一台开发机上建立多个版本的python环境， 并提供方便的切换方法。</p>
+<p>例如系统自带的Python是2.6，自己需要Python 2.7中的某些特性；此时需要在系统中安装多个Python，但又不能影响系统自带的Python，即需要实现Python的多版本共存，pyenv就是这样一个Python版本管理器。</p>
+<p>pyenv项目地址: <a href="https://github.com/yyuu/pyenv" target="_blank" rel="noopener">https://github.com/yyuu/pyenv</a></p>
+<h3 id="安装pyenv">安装pyenv</h3>
+<h4 id="通过脚本自动安装方式">通过脚本自动安装方式</h4>
+<p>通过<code>https://github.com/yyuu/pyenv-installer</code>提供脚本进行自动安装</p>
+<a id="more"></a>
+<h5 id="安装">安装</h5>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">$ curl -L https://raw.githubusercontent.com/yyuu/pyenv-installer/master/bin/pyenv-installer | bash</span><br></pre></td></tr></table></figure>
+<h5 id="添加环境变量">添加环境变量</h5>
+<p><code>PYENV_ROOT</code>指向pyenv检出的根目录，并向<code>$PATH</code>添加<code>$PYENV_ROOT/bin</code>以提供访问<code>pyenv</code>这条命令的路径(这里的shell配置文件(<code>~/.bash_profile</code>)依不同SHELL而需作修改,如Zsh：<code>~/.zshrc</code>)</p>
+<p>BASH</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">$ echo &apos;export PYENV_ROOT=&quot;$HOME/.pyenv&quot;&apos; &gt;&gt; ~/.bashrc</span><br><span class="line">$ echo &apos;export PATH=&quot;$PYENV_ROOT/bin:$PATH&quot;&apos; &gt;&gt; ~/.bashrc</span><br><span class="line">$ echo &apos;eval &quot;$(pyenv init -)&quot;&apos; &gt;&gt; ~/.bashrc</span><br></pre></td></tr></table></figure>
+<p>重启shell(因为修改了$PATH)</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">$ exec $SHELL</span><br></pre></td></tr></table></figure>
+<p>ZSH</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">$ echo &apos;export PYENV_ROOT=&quot;$HOME/.pyenv&quot;&apos; &gt;&gt; ~/.zshrc</span><br><span class="line">$ echo &apos;export PATH=&quot;$PYENV_ROOT/bin:$PATH&quot;&apos; &gt;&gt; ~/.zshrc</span><br><span class="line">$ echo &apos;eval &quot;$(pyenv init -)&quot;&apos; &gt;&gt; ~/.zshrc</span><br></pre></td></tr></table></figure>
+<p>重启shell(因为修改了$PATH)</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">$ exec $SHELL</span><br></pre></td></tr></table></figure>
+<h5 id="更新">更新</h5>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">$ pyenv update</span><br></pre></td></tr></table></figure>
+<h5 id="卸载">卸载</h5>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">#Uninstall: pyenv is installed within $PYENV_ROOT (default: ~/.pyenv). To uninstall, just remove it:</span><br><span class="line">$ rm -fr ~/.pyenv</span><br></pre></td></tr></table></figure>
+<h4 id="手动安装方式">手动安装方式</h4>
+<h5 id="安装">安装</h5>
+<p>将pyenv检出到你想安装的目录。建议路径为<code>$HOME/.pyenv</code></p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">$ git clone git://github.com/yyuu/pyenv.git ~/.pyenv</span><br></pre></td></tr></table></figure>
+<h5 id="添加环境变量">添加环境变量</h5>
+<p><code>PYENV_ROOT</code>指向pyenv检出的根目录，并向<code>$PATH</code>添加<code>$PYENV_ROOT/bin</code>以提供访问<code>pyenv</code>这条命令的路径(这里的shell配置文件(<code>~/.bash_profile</code>)依不同SHELL而需作修改，如Zsh：<code>~/.zshrc</code>)</p>
+<p>BASH</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">$ echo &apos;export PYENV_ROOT=&quot;$HOME/.pyenv&quot;&apos; &gt;&gt; ~/.bashrc</span><br><span class="line">$ echo &apos;export PATH=&quot;$PYENV_ROOT/bin:$PATH&quot;&apos; &gt;&gt; ~/.bashrc</span><br><span class="line">$ echo &apos;eval &quot;$(pyenv init -)&quot;&apos; &gt;&gt; ~/.bashrc</span><br></pre></td></tr></table></figure>
+<p>重启shell(因为修改了$PATH)</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">$ exec $SHELL</span><br></pre></td></tr></table></figure>
+<p>ZSH</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">$ echo &apos;export PYENV_ROOT=&quot;$HOME/.pyenv&quot;&apos; &gt;&gt; ~/.zshrc</span><br><span class="line">$ echo &apos;export PATH=&quot;$PYENV_ROOT/bin:$PATH&quot;&apos; &gt;&gt; ~/.zshrc</span><br><span class="line">$ echo &apos;eval &quot;$(pyenv init -)&quot;&apos; &gt;&gt; ~/.zshrc</span><br></pre></td></tr></table></figure>
+<p>重启shell(因为修改了$PATH)</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">$ exec $SHELL</span><br></pre></td></tr></table></figure>
+<h5 id="更新pyenv">更新pyenv</h5>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">$ cd ~/.pyenv</span><br><span class="line">$ git pull</span><br></pre></td></tr></table></figure>
+<h5 id="删除特定版本python">删除特定版本Python</h5>
+<p>查找特定版本Python文件夹位置，之后直接删除即可。</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">$ pyenv prefix 3.4.3</span><br><span class="line">$ rm -rf ~/.pyenv/versions/3.4.3</span><br></pre></td></tr></table></figure>
+<h4 id="包安装">包安装</h4>
+<h5 id="linux">Linux</h5>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">$ pip install  --egg  pyenv</span><br></pre></td></tr></table></figure>
+<h5 id="mac">MAC</h5>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">$ brew install pyenv</span><br></pre></td></tr></table></figure>
+<h3 id="pyenv可用的命令">pyenv可用的命令</h3>
+<h4 id="查看pyenv的命令">查看pyenv的命令</h4>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line">$ pyenv -h</span><br><span class="line"></span><br><span class="line">commands    List all available pyenv commands</span><br><span class="line">local       Set or show the local application-specific Python version</span><br><span class="line">global      Set or show the global Python version</span><br><span class="line">shell       Set or show the shell-specific Python version</span><br><span class="line">install     Install a Python version using python-build</span><br><span class="line">uninstall   Uninstall a specific Python version</span><br><span class="line">rehash      Rehash pyenv shims (run this after installing executables)</span><br><span class="line">version     Show the current Python version and its origin</span><br><span class="line">versions    List all Python versions available to pyenv</span><br><span class="line">which       Display the full path to an executable</span><br><span class="line">whence      List all Python versions that contain the given executable</span><br></pre></td></tr></table></figure>
+<h4 id="使用">使用</h4>
+<p>查看当前 pyenv 可检测到的所有版本，处于激活状态的版本前以<code>*</code>标示。</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line">$ pyenv versions</span><br><span class="line"> 2.5.6</span><br><span class="line"> 2.6.8</span><br><span class="line">*2.7.6 (set by /home/yyuu/.pyenv/version)</span><br><span class="line"> 3.3.3</span><br><span class="line"> jython-2.5.3</span><br><span class="line"> pypy-2.2.1</span><br></pre></td></tr></table></figure>
+<p>查看当前处于激活状态的版本，括号中内容表示这个版本是由哪条途径激活的（global、local、shell）</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">$ pyenv version</span><br><span class="line">2.7.6 (set by /home/yyuu/.pyenv/version)</span><br></pre></td></tr></table></figure>
+<p>使用python-build(一个插件)安装一个Python版本，到<code>$PYENV_ROOT/versions</code>路径下。</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">$ pyenv install -v 2.7.3</span><br></pre></td></tr></table></figure>
+<p>建议添加<code>-v</code>参数用于显示细节。<code>python-build</code>会首先尝试从一个镜像站点下载包，此时可以去/tmp/python-build.xxx 里面关心一下下载速度。如果太慢，可以直接在shell里<code>ctrl-c</code>终止此次下载，然后<code>python-build</code>会自动去<code>python.org/ftp</code>下载。不一定哪个更快。</p>
+<p>卸载一个版本</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">$ pyenv uninstall 2.7.3</span><br></pre></td></tr></table></figure>
+<p>为所有已安装的可执行文件 （如：~/.pyenv/versions/<em>/bin/</em>） 创建shims，因此，每当你增删了Python 版本或带有可执行文件的包(如 pip)以后，都应该执行一次本命令</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">$ pyenv install 2.7.3</span><br><span class="line">$ pyenv rehash  #安装新版本的python或者其他二进制包后都需要运行</span><br></pre></td></tr></table></figure>
+<p>设置全局的 Python 版本，通过将版本号写入 ~/.pyenv/version 文件的方式。</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">$ pyenv global 3.4.0</span><br></pre></td></tr></table></figure>
+<p>设置面向程序的本地版本，通过将版本号写入当前目录下的<code>.python-version</code>文件的方式。通过这种方式设置的 Python 版本优先级较 global 高。pyenv会从当前目录开始向上逐级查找<code>.python-version</code>文件，直到根目录为止。若找不到，就用global版本。</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">$ pyenv local 2.7.3</span><br><span class="line">$ pyenv local --unset #取消改变</span><br></pre></td></tr></table></figure>
+<p>设置面向shell的Python版本，通过设置当前shell的PYENV_VERSION环境变量的方式。这个版本的优先级比local和global都要高。<code>--unset</code>参数可以用于取消当前shell设定的版本。</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">$ pyenv shell pypy-2.2.1</span><br><span class="line">$ pyenv shell --unset</span><br></pre></td></tr></table></figure>
+<p>查看pyenv可用的命令</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">$ pyenv commands</span><br></pre></td></tr></table></figure>
+<p>显示当前Python的安裝路径</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">$ pyenv which python</span><br></pre></td></tr></table></figure>
+<h4 id="安装不同版本python">安装不同版本Python</h4>
+<p>查看可安装的版本</p>
+<p>该命令会列出可以用pyenv安装的Python版本，仅列举几个</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">$ pyenv install --list</span><br><span class="line"></span><br><span class="line">2.7.8   #Python 2最新版本</span><br><span class="line">3.4.1   #Python 3最新版本</span><br><span class="line">anaconda-2.0.1  #支持Python 2.6和2.7</span><br><span class="line">anaconda3-2.0.1 #支持Python 3.3和3.4</span><br></pre></td></tr></table></figure>
+<p>其中形如x.x.x这样的只有版本号的为Python官方版本，其他的形如xxxxx-x.x.x这种既有名称又有版本后的属于衍生版或发行版。</p>
+<p>安装Python的依赖包</p>
+<p>在安装Python时需要首先安装其依赖的其他软件包，已知的一些需要预先安装的库如下。</p>
+<p>在CentOS/RHEL/Fedora下:</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">$ yum install readline readline-devel readline-static</span><br><span class="line">$ yum install openssl openssl-devel openssl-static</span><br><span class="line">$ yum install sqlite-devel</span><br><span class="line">$ yum install bzip2-devel bzip2-libs</span><br></pre></td></tr></table></figure>
+<p>安装指定版本</p>
+<p>使用如下命令即可安装python 3.4.1</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">$ pyenv install 3.4.1 -v</span><br></pre></td></tr></table></figure>
+<p>该命令会从github上下载python的源代码，并解压到/tmp目录下，然后在/tmp中执行编译工作。若依赖包没有安装，则会出现编译错误，需要在安装依赖包后重新执行该命令。</p>
+<p>对于科研环境，更推荐安装专为科学计算准备的Anaconda发行版</p>
+<p>安装2.x版本</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">$ pyenv install anaconda-2.1.0</span><br></pre></td></tr></table></figure>
+<p>安装3.x版本</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">$ pyenv install anaconda3-2.1.0</span><br></pre></td></tr></table></figure>
+<p>Anacoda很大，用pyenv下载会比较慢，可以自己到Anaconda官方网站下载，并将下载得到的文件放在<code>~/.pyenv/cache</code>目录下，则pyenv不会重复下载。</p>
+<p>更新数据库</p>
+<p>安装完成之后需要对数据库进行更新</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">$ pyenv rehash</span><br></pre></td></tr></table></figure>
+<p>查看当前已安装的python版本</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">$ pyenv versions</span><br><span class="line">* system (set by /home/seisman/.pyenv/version)</span><br><span class="line">3.4.1</span><br></pre></td></tr></table></figure>
+<p>其中的星号表示当前正在使用的是系统自带的python。</p>
+<p>设置全局的python版本</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">$ pyenv global 3.4.1</span><br><span class="line">pyenv versions</span><br><span class="line">system</span><br><span class="line">* 3.4.1 (set by /home/seisman/.pyenv/version)</span><br></pre></td></tr></table></figure>
+<p>当前全局的python版本已经变成了3.4.1。也可以使用pyenv local或pyenv shell临时改变python版本。</p>
+<p>确认python版本</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">$ python</span><br><span class="line">Python 3.4.1 (default, Sep 10 2014, 17:10:18)</span><br><span class="line">[GCC 4.4.7 20120313 (Red Hat 4.4.7-1)] on linux</span><br><span class="line">Type &quot;help&quot;, &quot;copyright&quot;, &quot;credits&quot; or &quot;license&quot; for more information.</span><br><span class="line">&gt;&gt;&gt;</span><br></pre></td></tr></table></figure>
+<p>使用python</p>
+<p>输入python即可使用新版本的python；<br>
+系统自带的脚本会以<code>/usr/bin/python</code>的方式直接调用老版本的python，因而不会对系统脚本产生影响；<br>
+使用pip安装第三方模块时会安装到<code>~/.pyenv/versions/3.4.1</code>下，不会和系统模块发生冲突。<br>
+使用pip安装模块后，可能需要执行<code>pyenv rehash</code>更新数据库；</p>
+<h3 id="pyenv的pyenv-virtualenv插件">Pyenv的pyenv-virtualenv插件</h3>
+<p>如果你是安装我们前面的方式安装pyenv的，那它已经帮我们以plugin的形式安装好了virtualenv, 我们只要使用就好了</p>
+<p>pyenv virtualenv是pyenv的插件，为Unix系统上的python virtualenv提供<code>pyenv virtualenv</code>命令。它可以为pyenv管理的python版本运行提供隔离的虚拟环境，在此虚拟环境下的操作例如安装第三方模块以及修改库搜索路径等，都不会在原始的python环境里直接操作，从而保证了各python版本本身的纯净。</p>
+<h4 id="安装pyenv-virtualenv插件">安装pyenv-virtualenv插件</h4>
+<h5 id="linux">Linux</h5>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">$ git clone https://github.com/yyuu/pyenv-virtualenv.git ~/.pyenv/plugins/pyenv-virtualenv</span><br></pre></td></tr></table></figure>
+<p>注:用pyenv自动安装脚本安装的已自带</p>
+<h5 id="mac">MAC</h5>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">$ brew install pyenv-virtualenv</span><br><span class="line">$ brew install --HEAD pyenv-virtualenv</span><br></pre></td></tr></table></figure>
+<h4 id="添加环境变量">添加环境变量</h4>
+<p>BASH</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">$ echo &apos;eval &quot;$(pyenv virtualenv-init -)&quot;&apos; &gt;&gt; ~/.bash_profile</span><br></pre></td></tr></table></figure>
+<p>重启SHELL启用pyenv-virtualenv</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">$ exec $SHELL</span><br></pre></td></tr></table></figure>
+<p>ZSH</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">$ echo &apos;eval &quot;$(pyenv virtualenv-init -)&quot;&apos; &gt;&gt; ~/.zshrc</span><br></pre></td></tr></table></figure>
+<p>重启SHELL启用pyenv-virtualenv</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">$ exec &quot;$SHELL&quot;</span><br></pre></td></tr></table></figure>
+<h4 id="pyenv-virtualenv使用">pyenv-virtualenv使用</h4>
+<p><code>pyenv-virtualenv</code>会为<code>pyenv</code>引入一些新命令，例如<code>virtualenv/virtualenv-delete</code>用户创建/删除虚拟环境，virtualenvs用于列出所有的虚拟环境，activate和deactivate用于激活/禁用已有虚拟环境，用于获取使用帮助：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">$ pyenv help virtualenv</span><br><span class="line">Usage: pyenv virtualenv [-f|--force] [VIRTUALENV_OPTIONS] [version] virtualenv-name</span><br><span class="line">pyenv virtualenv --version</span><br><span class="line">pyenv virtualenv --help</span><br><span class="line">-f/--force       Install even if the version appears to be installed already</span><br></pre></td></tr></table></figure>
+<p>使用pyenv-virtualenv建立虚拟python环境</p>
+<p>pyenv virtualenv依赖于通过pyenv已安装的python版本，只能建立已安装python版本的虚拟环境</p>
+<p>查看可用python版本列表</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">$ pyenv versions</span><br><span class="line">* system (set by /root/.pyenv/version)</span><br><span class="line">2.7.9</span><br><span class="line">3.4.2</span><br><span class="line">3.4.2/envs/myenv</span><br></pre></td></tr></table></figure>
+<p>创建一个虚拟的python环境</p>
+<p>创建一个名为myenv的虚拟python环境，其使用3.4.2的版本。</p>
+<p>这条命令在本机上创建了一个名为myenv的python虚拟环境，这个环境的真实目录位于：<code>~/.pyenv/versions/</code></p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">$ pyenv virtualenv 3.4.2 myenv</span><br><span class="line"></span><br><span class="line">Ignoring indexes: https://pypi.python.org/simple/</span><br><span class="line">Requirement already satisfied (use --upgrade to upgrade): setuptools in /root/.pyenv/versions/3.4.2/envs/myenv/lib/python3.4/site-packages</span><br><span class="line">Requirement already satisfied (use --upgrade to upgrade): pip in /root/.pyenv/versions/3.4.2/envs/myenv/lib/python3.4/site-packages</span><br><span class="line"> Cleaning up...</span><br></pre></td></tr></table></figure>
+<p>注意，命令中的3.4.2必须是一个安装前面步骤已经安装好的python版本， 否则会出错。</p>
+<p>然后我们可以继续通过pyenv versions 命令来查看当前的虚拟环境， 结果如下：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">$ pyenv versions</span><br><span class="line">* system (set by /root/.pyenv/version)</span><br><span class="line">2.7.9</span><br><span class="line">3.4.2</span><br><span class="line">3.4.2/envs/myenv</span><br><span class="line">myenv</span><br></pre></td></tr></table></figure>
+<p>这里我们可以看到， 除了已经安装的python版本， 我们多出了一个myenv的python虚拟环境。</p>
+<p>仅查看python的虚拟环境</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">$ pyenv virtualenvs</span><br><span class="line">3.4.2/envs/myenv (created from /root/.pyenv/versions/3.4.2)</span><br><span class="line">myenv (created from /root/.pyenv/versions/3.4.2)</span><br></pre></td></tr></table></figure>
+<p>在当前工作目录激活虚拟环境myenv,此时Python版本自动变为3.4.2, 且是独立环境</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">$ pyenv activate myenv</span><br><span class="line">(myenv) $ python --version</span><br><span class="line">Python 3.4.2</span><br></pre></td></tr></table></figure>
+<p>接下来我们的python环境就已经切换到3.4.2的虚拟环境了， 运行python命令认证</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">$ python</span><br><span class="line">Python 3.4.2 (r271:86832, May  9 2014, 01:07:17) </span><br><span class="line">[GCC 4.8.2] on linux3</span><br><span class="line">Type &quot;help&quot;, &quot;copyright&quot;, &quot;credits&quot; or &quot;license&quot; for more information.</span><br><span class="line">&gt;&gt;&gt;</span><br><span class="line">可以看到， python版本已经是3.4.2, 而且是在虚拟环境之中(myenv)</span><br></pre></td></tr></table></figure>
+<p>查看可用pip及其版本</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">(myenv) $ pip -V</span><br><span class="line">pip 1.5.6 from /root/.pyenv/versions/3.4.2/envs/myenv/lib/python3.4/site-packages (python 3.4)</span><br><span class="line">为当前虚拟环境使用pip命令安装一个第三方模块，例如pymysql和ipython</span><br><span class="line">pip install pymysql</span><br><span class="line">pip install ipython</span><br></pre></td></tr></table></figure>
+<p>运行ipython，并尝试导入pymysql模块，如果能导入成功，则表示模块已然就绪；</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line">$ ipython</span><br><span class="line">Python 3.4.2 (default, Nov 23 2015, 13:14:16)</span><br><span class="line">Type &quot;copyright&quot;, &quot;credits&quot; or &quot;license&quot; for more information.</span><br><span class="line">     </span><br><span class="line">IPython 4.1.1 -- An enhanced Interactive Python.</span><br><span class="line">?         -&gt; Introduction and overview of IPython&apos;s features.</span><br><span class="line">%quickref -&gt; Quick reference.</span><br><span class="line">help      -&gt; Python&apos;s own help system.</span><br><span class="line">object?   -&gt; Details about &apos;object&apos;, use &apos;object??&apos; for extra details.</span><br><span class="line"> </span><br><span class="line">In [1]: import pymysql</span><br><span class="line">In [2]:</span><br></pre></td></tr></table></figure>
+<p>如果要切换回系统环境， 运行这个命令即可</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">$ pyenv deactivate</span><br></pre></td></tr></table></figure>
+<p>那如果要删除这个虚拟环境呢？ 答案简单而且粗暴，只要直接删除它所在的目录就好：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">$ rm -rf ~/.pyenv/versions/myenv/</span><br></pre></td></tr></table></figure>
+<p>顺带一提，Python3自带了一个叫做venv的虚拟环境模块，搭配pyenv使用简直爽</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">$ python3 -m venv venv  # 报错的话那就 python3 -m venv --without-pip venv</span><br><span class="line">$ ln -s ./venv/bin/activate activate</span><br><span class="line">$ . ./activate</span><br></pre></td></tr></table></figure>
+<h3 id="参考">参考</h3>
+<p><a href="http://www.google.com/" target="_blank" rel="noopener">http://www.google.com/</a><br>
+<a href="https://github.com/yyuu/pyenv" target="_blank" rel="noopener">https://github.com/yyuu/pyenv</a><br>
+<a href="http://m.oschina.net/blog/267469" target="_blank" rel="noopener">http://m.oschina.net/blog/267469</a><br>
+<a href="https://blog.laisky.com/p/pyenv/" target="_blank" rel="noopener">https://blog.laisky.com/p/pyenv/</a><br>
+<a href="https://wp-lai.gitbooks.io/learn-python/content/0MOOC/pyenv.html" target="_blank" rel="noopener">https://wp-lai.gitbooks.io/learn-python/content/0MOOC/pyenv.html</a><br>
+<a href="http://www.cnblogs.com/npumenglei/p/3719412.html" target="_blank" rel="noopener">http://www.cnblogs.com/npumenglei/p/3719412.html</a><br>
+<a href="http://seisman.info/python-pyenv.html" target="_blank" rel="noopener">http://seisman.info/python-pyenv.html</a></p>
+
+                
+
+                <hr>
+                <!-- Pager -->
+                <ul class="pager">
+                    
+                        <li class="previous">
+                            <a href="/posts/929/" data-toggle="tooltip" data-placement="top" title="如何透过 SSH 代理穿越跳板机">&larr; Previous Post</a>
+                        </li>
+                    
+                    
+                        <li class="next">
+                            <a href="/posts/49092/" data-toggle="tooltip" data-placement="top" title="为 Bash 和 VIM 配置一个美观奢华的状态提示栏">Next Post &rarr;</a>
+                        </li>
+                    
+                </ul>
+
+                <!-- duoshuo Share start -->
+                
+                <!-- 多说 Share end-->
+
+                <!-- 多说评论框 start -->
+                
+                <!-- 多说评论框 end -->
+
+                <!-- disqus comment start -->
+                
+                <!-- disqus comment end -->
+
+                
+                    <!-- disqus 评论框 start -->
+                    <div class="comment">
+                        <div id="lv-container" data-id="city" data-uid="MTAyMC8yNzg2My80NDQw"></div>
+                    </div>
+                    <!-- disqus 评论框 end -->
+                
+
+            </div>
+            
+            <!-- Tabe of Content -->
+            <!-- Table of Contents -->
+
+  
+    <style>
+      span.toc-nav-number{
+        display: none
+      }
+    </style>
+  
+    
+      <aside id="sidebar">
+        <div id="toc" class="toc-article">
+        <strong class="toc-title">Contents</strong>
+        
+          <ol class="toc-nav"><li class="toc-nav-item toc-nav-level-3"><a class="toc-nav-link" href="#安装pyenv"><span class="toc-nav-number">1.</span> <span class="toc-nav-text">安装pyenv</span></a><ol class="toc-nav-child"><li class="toc-nav-item toc-nav-level-4"><a class="toc-nav-link" href="#通过脚本自动安装方式"><span class="toc-nav-number">1.1.</span> <span class="toc-nav-text">通过脚本自动安装方式</span></a><ol class="toc-nav-child"><li class="toc-nav-item toc-nav-level-5"><a class="toc-nav-link" href="#安装"><span class="toc-nav-number">1.1.1.</span> <span class="toc-nav-text">安装</span></a></li><li class="toc-nav-item toc-nav-level-5"><a class="toc-nav-link" href="#添加环境变量"><span class="toc-nav-number">1.1.2.</span> <span class="toc-nav-text">添加环境变量</span></a></li><li class="toc-nav-item toc-nav-level-5"><a class="toc-nav-link" href="#更新"><span class="toc-nav-number">1.1.3.</span> <span class="toc-nav-text">更新</span></a></li><li class="toc-nav-item toc-nav-level-5"><a class="toc-nav-link" href="#卸载"><span class="toc-nav-number">1.1.4.</span> <span class="toc-nav-text">卸载</span></a></li></ol></li><li class="toc-nav-item toc-nav-level-4"><a class="toc-nav-link" href="#手动安装方式"><span class="toc-nav-number">1.2.</span> <span class="toc-nav-text">手动安装方式</span></a><ol class="toc-nav-child"><li class="toc-nav-item toc-nav-level-5"><a class="toc-nav-link" href="#安装"><span class="toc-nav-number">1.2.1.</span> <span class="toc-nav-text">安装</span></a></li><li class="toc-nav-item toc-nav-level-5"><a class="toc-nav-link" href="#添加环境变量"><span class="toc-nav-number">1.2.2.</span> <span class="toc-nav-text">添加环境变量</span></a></li><li class="toc-nav-item toc-nav-level-5"><a class="toc-nav-link" href="#更新pyenv"><span class="toc-nav-number">1.2.3.</span> <span class="toc-nav-text">更新pyenv</span></a></li><li class="toc-nav-item toc-nav-level-5"><a class="toc-nav-link" href="#删除特定版本python"><span class="toc-nav-number">1.2.4.</span> <span class="toc-nav-text">删除特定版本Python</span></a></li></ol></li><li class="toc-nav-item toc-nav-level-4"><a class="toc-nav-link" href="#包安装"><span class="toc-nav-number">1.3.</span> <span class="toc-nav-text">包安装</span></a><ol class="toc-nav-child"><li class="toc-nav-item toc-nav-level-5"><a class="toc-nav-link" href="#linux"><span class="toc-nav-number">1.3.1.</span> <span class="toc-nav-text">Linux</span></a></li><li class="toc-nav-item toc-nav-level-5"><a class="toc-nav-link" href="#mac"><span class="toc-nav-number">1.3.2.</span> <span class="toc-nav-text">MAC</span></a></li></ol></li></ol></li><li class="toc-nav-item toc-nav-level-3"><a class="toc-nav-link" href="#pyenv可用的命令"><span class="toc-nav-number">2.</span> <span class="toc-nav-text">pyenv可用的命令</span></a><ol class="toc-nav-child"><li class="toc-nav-item toc-nav-level-4"><a class="toc-nav-link" href="#查看pyenv的命令"><span class="toc-nav-number">2.1.</span> <span class="toc-nav-text">查看pyenv的命令</span></a></li><li class="toc-nav-item toc-nav-level-4"><a class="toc-nav-link" href="#使用"><span class="toc-nav-number">2.2.</span> <span class="toc-nav-text">使用</span></a></li><li class="toc-nav-item toc-nav-level-4"><a class="toc-nav-link" href="#安装不同版本python"><span class="toc-nav-number">2.3.</span> <span class="toc-nav-text">安装不同版本Python</span></a></li></ol></li><li class="toc-nav-item toc-nav-level-3"><a class="toc-nav-link" href="#pyenv的pyenv-virtualenv插件"><span class="toc-nav-number">3.</span> <span class="toc-nav-text">Pyenv的pyenv-virtualenv插件</span></a><ol class="toc-nav-child"><li class="toc-nav-item toc-nav-level-4"><a class="toc-nav-link" href="#安装pyenv-virtualenv插件"><span class="toc-nav-number">3.1.</span> <span class="toc-nav-text">安装pyenv-virtualenv插件</span></a><ol class="toc-nav-child"><li class="toc-nav-item toc-nav-level-5"><a class="toc-nav-link" href="#linux"><span class="toc-nav-number">3.1.1.</span> <span class="toc-nav-text">Linux</span></a></li><li class="toc-nav-item toc-nav-level-5"><a class="toc-nav-link" href="#mac"><span class="toc-nav-number">3.1.2.</span> <span class="toc-nav-text">MAC</span></a></li></ol></li><li class="toc-nav-item toc-nav-level-4"><a class="toc-nav-link" href="#添加环境变量"><span class="toc-nav-number">3.2.</span> <span class="toc-nav-text">添加环境变量</span></a></li><li class="toc-nav-item toc-nav-level-4"><a class="toc-nav-link" href="#pyenv-virtualenv使用"><span class="toc-nav-number">3.3.</span> <span class="toc-nav-text">pyenv-virtualenv使用</span></a></li></ol></li><li class="toc-nav-item toc-nav-level-3"><a class="toc-nav-link" href="#参考"><span class="toc-nav-number">4.</span> <span class="toc-nav-text">参考</span></a></li></ol>
+        
+        </div>
+      </aside>
+    
+
+                
+            <!-- Sidebar Container -->
+            <div class="
+                col-lg-8 col-lg-offset-2
+                col-md-10 col-md-offset-1
+                sidebar-container">
+
+                <!-- Featured Tags -->
+                
+                <section>
+                    <!-- no hr -->
+                    <h5><a href="/tags/">FEATURED TAGS</a></h5>
+                    <div class="tags">
+                       
+                          <a class="tag" href="/tags/#Linux" title="Linux">Linux</a>
+                        
+                          <a class="tag" href="/tags/#Python" title="Python">Python</a>
+                        
+                    </div>
+                </section>
+                
+
+                <!-- Friends Blog -->
+                
+                <hr>
+                <h5>FRIENDS</h5>
+                <ul class="list-inline">
+
+                    
+                        <li><a href="http://www.mike.org.cn/" target="_blank">简单.生活</a></li>
+                    
+                        <li><a href="http://shang.qq.com/wpa/qunwpa?idkey=ea4c43493c2269428ac6ef6141de4b6d78e5ab2d41380ca4099b833b62884ee9" target="_blank">技术交流群</a></li>
+                    
+                        <li><a href="" target="_blank"></a></li>
+                    
+                        <li><a href="" target="_blank"></a></li>
+                    
+                </ul>
+                
+            </div>
+        </div>
+    </div>
+</article>
+
+
+
+
+
+
+    <!-- 来必力City版公共JS代码 start (一个网页只需插入一次) -->
+    <script type="text/javascript">
+       (function(d, s) {
+           var j, e = d.getElementsByTagName(s)[0];
+    
+           if (typeof LivereTower === 'function') { return; }
+    
+           j = d.createElement(s);
+           j.src = 'https://cdn-city.livere.com/js/embed.dist.js';
+           j.async = true;
+    
+           e.parentNode.insertBefore(j, e);
+       })(document, 'script');
+    </script>
+    <noscript>为正常使用来必力评论功能请激活JavaScript</noscript>
+    <!-- 来必力City版 公共JS代码 end -->
+
+
+
+<!-- async load function -->
+<script>
+    function async(u, c) {
+      var d = document, t = 'script',
+          o = d.createElement(t),
+          s = d.getElementsByTagName(t)[0];
+      o.src = u;
+      if (c) { o.addEventListener('load', function (e) { c(null, e); }, false); }
+      s.parentNode.insertBefore(o, s);
+    }
+</script>
+<!-- anchor-js, Doc:http://bryanbraun.github.io/anchorjs/ -->
+<script>
+    async("https://cdn.bootcss.com/anchor-js/1.1.1/anchor.min.js",function(){
+        anchors.options = {
+          visible: 'hover',
+          placement: 'left',
+          icon: 'ℬ'
+        };
+        anchors.add().remove('.intro-header h1').remove('.subheading').remove('.sidebar-container h5');
+    })
+</script>
+<style>
+    /* place left on bigger screen */
+    @media all and (min-width: 800px) {
+        .anchorjs-link{
+            position: absolute;
+            left: -0.75em;
+            font-size: 1.1em;
+            margin-top : -0.1em;
+        }
+    }
+</style>
+
+
+
+    <!-- Footer -->
+    <!-- Footer -->
+<footer>
+    <div class="container">
+        <div class="row">
+            <div class="col-lg-8 col-lg-offset-2 col-md-10 col-md-offset-1">
+                <ul class="list-inline text-center">
+                
+                    <li>
+                        <a href="/atom.xml">
+                            <span class="fa-stack fa-lg">
+                                <i class="fa fa-circle fa-stack-2x"></i>
+                                <i class="fa fa-rss fa-stack-1x fa-inverse"></i>
+                            </span>
+                        </a>
+                    </li>
+                
+                
+                
+                    <li>
+                        <a target="_blank" href="https://www.zhihu.com/people/80imike">
+                            <span class="fa-stack fa-lg">
+                                <i class="fa fa-circle fa-stack-2x"></i>
+                                <i class="fa  fa-stack-1x fa-inverse">知</i>
+                            </span>
+                        </a>
+                    </li>
+                
+
+                
+                    <li>
+                        <a target="_blank" href="http://weibo.com/2093524665">
+                            <span class="fa-stack fa-lg">
+                                <i class="fa fa-circle fa-stack-2x"></i>
+                                <i class="fa fa-weibo fa-stack-1x fa-inverse"></i>
+                            </span>
+                        </a>
+                    </li>
+                
+
+                
+
+                
+
+                
+
+                </ul>
+                <p class="copyright text-muted">
+                    Copyright &copy; Mike 2018 | Hosted by <a href="https://pages.coding.me" style="font-weight: bold">Coding Pages</a>
+                    <br>
+                    Theme by <a href="http://beantech.org">BeanTech</a> 
+                    <span style="display: inline-block; margin: 0 5px;">
+                        <i class="fa fa-heart"></i>
+                    </span> 
+                    re-Ported by <a href="http://www.huweihuang.com">胡伟煌</a> | 
+                    <iframe
+                        style="margin-left: 2px; margin-bottom:-5px;"
+                        frameborder="0" scrolling="0" width="91px" height="20px"
+                        src="https://ghbtns.com/github-btn.html?user=huweihuang&repo=hexo-theme-huweihuang&type=star&count=true" >
+                    </iframe>
+                </p>
+            </div>
+        </div>
+    </div>
+</footer>
+
+<!-- jQuery -->
+<script src="/js/jquery.min.js"></script>
+
+<!-- Bootstrap Core JavaScript -->
+<script src="/js/bootstrap.min.js"></script>
+
+<!-- Custom Theme JavaScript -->
+<script src="/js/hux-blog.min.js"></script>
+
+
+<!-- async load function -->
+<script>
+    function async(u, c) {
+      var d = document, t = 'script',
+          o = d.createElement(t),
+          s = d.getElementsByTagName(t)[0];
+      o.src = u;
+      if (c) { o.addEventListener('load', function (e) { c(null, e); }, false); }
+      s.parentNode.insertBefore(o, s);
+    }
+</script>
+
+<!-- 
+     Because of the native support for backtick-style fenced code blocks 
+     right within the Markdown is landed in Github Pages, 
+     From V1.6, There is no need for Highlight.js, 
+     so Huxblog drops it officially.
+
+     - https://github.com/blog/2100-github-pages-now-faster-and-simpler-with-jekyll-3-0  
+     - https://help.github.com/articles/creating-and-highlighting-code-blocks/    
+-->
+<!--
+    <script>
+        async("http://cdn.bootcss.com/highlight.js/8.6/highlight.min.js", function(){
+            hljs.initHighlightingOnLoad();
+        })
+    </script>
+    <link href="http://cdn.bootcss.com/highlight.js/8.6/styles/github.min.css" rel="stylesheet">
+-->
+
+
+<!-- jquery.tagcloud.js -->
+<script>
+    // only load tagcloud.js in tag.html
+    if($('#tag_cloud').length !== 0){
+        async("http://www.hi-linux.com/js/jquery.tagcloud.js",function(){
+            $.fn.tagcloud.defaults = {
+                //size: {start: 1, end: 1, unit: 'em'},
+                color: {start: '#bbbbee', end: '#0085a1'},
+            };
+            $('#tag_cloud a').tagcloud();
+        })
+    }
+</script>
+
+<!--fastClick.js -->
+<script>
+    async("https://cdn.bootcss.com/fastclick/1.0.6/fastclick.min.js", function(){
+        var $nav = document.querySelector("nav");
+        if($nav) FastClick.attach($nav);
+    })
+</script>
+
+
+<!-- Google Analytics -->
+
+
+
+
+<!-- Baidu Tongji -->
+
+
+
+
+
+
+	<a id="rocket" href="#top" class=""></a>
+	<script type="text/javascript" src="/js/totop.js?v=1.0.0" async=""></script>
+    <script type="text/javascript" src="/js/toc.js?v=1.0.0" async=""></script>
+<!-- Image to hack wechat -->
+<img src="http://www.hi-linux.com/img/icon_wechat.png" width="0" height="0" />
+<!-- Migrate from head to bottom, no longer block render and still work -->
+
+</body>
+
+</html>

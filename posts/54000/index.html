@@ -1,0 +1,573 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<!-- Head tag -->
+<head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="google-site-verification" content="xBT4GhYoi5qRD5tr338pgPM5OWHHIDR6mNg1a3euekI" />
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="description" content="">
+    <meta name="keyword"  content="Linux,运维,Nginx,Zabbix,Centos,Ansible,MySQL,Python,Docker,ELK,Haproxy,Git,Nodejs,安全,技术">
+    <link rel="shortcut icon" href="/img/ironman-draw.png">
+    <!-- Place this tag in your head or just before your close body tag. -->
+    <script async defer src="https://buttons.github.io/buttons.js"></script>
+    <title>
+        
+          curl 酷炫技巧:使用 curl 命令发送邮件 - 运维之美
+        
+    </title>
+
+    <link rel="canonical" href="http://www.hi-linux.com/posts/54000/">
+
+    <!-- Bootstrap Core CSS -->
+    <link rel="stylesheet" href="/css/bootstrap.min.css">
+
+    <!-- Custom CSS --> 
+    <link rel="stylesheet" href="/css/beantech.min.css">
+    
+    <!-- Pygments Highlight CSS -->
+    <link rel="stylesheet" href="/css/highlight.css">
+
+    <link rel="stylesheet" href="/css/widget.css">
+
+    <link rel="stylesheet" href="/css/rocket.css">
+
+    <link rel="stylesheet" href="/css/signature.css">
+
+    <link rel="stylesheet" href="/css/toc.css">
+
+    <!-- Custom Fonts -->
+    <!-- <link href="https://maxcdn.bootstrapcdn.com/font-awesome/4.3.0/css/font-awesome.min.css" rel="stylesheet" type="text/css"> -->
+    <!-- Hux change font-awesome CDN to qiniu -->
+    <link href="https://cdn.staticfile.org/font-awesome/4.5.0/css/font-awesome.min.css" rel="stylesheet" type="text/css">
+
+
+    <!-- Hux Delete, sad but pending in China
+    <link href='http://fonts.googleapis.com/css?family=Lora:400,700,400italic,700italic' rel='stylesheet' type='text/css'>
+    <link href='http://fonts.googleapis.com/css?family=Open+Sans:300italic,400italic,600italic,700italic,800italic,400,300,600,700,800' rel='stylesheet' type='text/
+    css'>
+    -->
+
+
+    <!-- HTML5 Shim and Respond.js IE8 support of HTML5 elements and media queries -->
+    <!-- WARNING: Respond.js doesn't work if you view the page via file:// -->
+    <!--[if lt IE 9]>
+        <script src="https://oss.maxcdn.com/libs/html5shiv/3.7.0/html5shiv.js"></script>
+        <script src="https://oss.maxcdn.com/libs/respond.js/1.4.2/respond.min.js"></script>
+    <![endif]-->
+
+    <!-- ga & ba script hoook -->
+    <script></script>
+</head>
+
+
+<!-- hack iOS CSS :active style -->
+<body ontouchstart="">
+	<!-- Modified by Yu-Hsuan Yen -->
+<!-- Post Header -->
+<style type="text/css">
+    header.intro-header{
+        
+            background-image: url('/img/header_img/article.jpg')
+            /*post*/
+        
+    }
+    
+</style>
+
+<header class="intro-header" >
+    <!-- Signature -->
+    <div id="signature">
+        <div class="container">
+            <div class="row">
+                <div class="col-lg-8 col-lg-offset-2 col-md-10 col-md-offset-1">
+                
+                    <div class="post-heading">
+                        <div class="tags">
+                            
+                              <a class="tag" href="/tags/#Linux" title="Linux">Linux</a>
+                            
+                              <a class="tag" href="/tags/#CURL" title="CURL">CURL</a>
+                            
+                        </div>
+                        <h1>curl 酷炫技巧:使用 curl 命令发送邮件</h1>
+                        <h2 class="subheading"></h2>
+                        <span class="meta">
+                            Posted by Mike on
+                            2016-04-01
+                        </span>
+                    </div>
+                
+
+
+                </div>
+            </div>
+        </div>
+    </div>
+</header>
+
+	
+    <!-- Navigation -->
+<nav class="navbar navbar-default navbar-custom navbar-fixed-top">
+    <div class="container-fluid">
+        <!-- Brand and toggle get grouped for better mobile display -->
+        <div class="navbar-header page-scroll">
+            <button type="button" class="navbar-toggle">
+                <span class="sr-only">Toggle navigation</span>
+                <span class="icon-bar"></span>
+                <span class="icon-bar"></span>
+                <span class="icon-bar"></span>
+            </button>
+            <a class="navbar-brand" href="/">运维之美</a>
+        </div>
+
+        <!-- Collect the nav links, forms, and other content for toggling -->
+        <!-- Known Issue, found by Hux:
+            <nav>'s height woule be hold on by its content.
+            so, when navbar scale out, the <nav> will cover tags.
+            also mask any touch event of tags, unfortunately.
+        -->
+        <div id="huxblog_navbar">
+            <div class="navbar-collapse">
+                <ul class="nav navbar-nav navbar-right">
+                    <li>
+                        <a href="/">Home</a>
+                    </li>
+
+                    
+
+                        
+                    
+
+                        
+                    
+
+                        
+                        <li>
+                            <a href="/archive/">Archives</a>
+                        </li>
+                        
+                    
+
+                        
+                        <li>
+                            <a href="/about/">About</a>
+                        </li>
+                        
+                    
+
+                        
+                        <li>
+                            <a href="/tags/">Tags</a>
+                        </li>
+                        
+                    
+                    
+                </ul>
+            </div>
+        </div>
+        <!-- /.navbar-collapse -->
+    </div>
+    <!-- /.container -->
+</nav>
+<script>
+    // Drop Bootstarp low-performance Navbar
+    // Use customize navbar with high-quality material design animation
+    // in high-perf jank-free CSS3 implementation
+    var $body   = document.body;
+    var $toggle = document.querySelector('.navbar-toggle');
+    var $navbar = document.querySelector('#huxblog_navbar');
+    var $collapse = document.querySelector('.navbar-collapse');
+
+    $toggle.addEventListener('click', handleMagic)
+    function handleMagic(e){
+        if ($navbar.className.indexOf('in') > 0) {
+        // CLOSE
+            $navbar.className = " ";
+            // wait until animation end.
+            setTimeout(function(){
+                // prevent frequently toggle
+                if($navbar.className.indexOf('in') < 0) {
+                    $collapse.style.height = "0px"
+                }
+            },400)
+        }else{
+        // OPEN
+            $collapse.style.height = "auto"
+            $navbar.className += " in";
+        }
+    }
+</script>
+
+
+    <!-- Main Content -->
+    <!-- Modify by Yu-Hsuan Yen -->
+
+<!-- Post Content -->
+<article>
+    <div class="container">
+        <div class="row">
+
+            <!-- Post Container -->
+            <div class="
+                col-lg-8 col-lg-offset-2
+                col-md-10 col-md-offset-1
+                post-container">
+
+                <p>关于 curl，大家都知道可以用它来访问 web 页面、下载文件等等。其实它的功能远不止这么点，它支持众多协议，今天，来随凉白开看看如何使用 curl 发送邮件。</p>
+<h3 id="确认-curl-是否支持smtp">确认 curl 是否支持SMTP</h3>
+<p>首先确认你的 curl 是否支持 smtp</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">$ curl-config --protocols | grep SMTP</span><br><span class="line">SMTP</span><br><span class="line">SMTPS</span><br></pre></td></tr></table></figure>
+<p><code>curl-config</code> 命令默认是没有安装的，需要安装一下。</p>
+<ul>
+<li>CentOS / RHEL</li>
+</ul>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">$ yum install libcurl-devel</span><br></pre></td></tr></table></figure>
+<ul>
+<li>Debian / Ubuntu</li>
+</ul>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">$ apt-get install libcurl4-openssl-dev</span><br></pre></td></tr></table></figure>
+<p>如果不支持 smtp 协议，那么升级 curl (需7.20以上版本才支持)</p>
+<a id="more"></a>
+<h3 id="安装高版本curl">安装高版本CURL</h3>
+<p>使用 yum 安装的 curl 一般不支持 smtp 协议，接下来我们使用源码包来安装 curl</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line">$ <span class="built_in">cd</span> /usr/<span class="built_in">local</span>/src</span><br><span class="line">$ wget https://curl.haxx.se/download/curl-7.48.0.tar.gz</span><br><span class="line">$ tar xzvf curl-7.48.0.tar.gz</span><br><span class="line">$ <span class="built_in">cd</span> curl-7.48.0</span><br><span class="line">$ ./buildconf</span><br><span class="line">$ ./configure </span><br><span class="line">$ make &amp;&amp; make install</span><br></pre></td></tr></table></figure>
+<p>再次确认下是否支持 curl</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">$ /usr/<span class="built_in">local</span>/bin/curl-config --protocols | grep SMTP</span><br><span class="line">SMTP</span><br><span class="line">SMTPS</span><br></pre></td></tr></table></figure>
+<p>备注：默认情况下，curl 会被安装到 /usr/local/bin 下，与老版本同时存在。</p>
+<h3 id="使用-curl-发送邮件">使用 curl 发送邮件</h3>
+<p>试着给 <a href="mailto:dengyun@ttlsa.com" target="_blank" rel="noopener">dengyun@ttlsa.com</a> 发送一份邮件</p>
+<h4 id="编写邮件内容">编写邮件内容</h4>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">cat mail.txt</span><br><span class="line">From:support@ttlsa.com</span><br><span class="line">To:dengyun@ttlsa.com</span><br><span class="line">Subject: curl发送邮件标题</span><br><span class="line"></span><br><span class="line">这里是内容，上面有一个空行别忘记了</span><br></pre></td></tr></table></figure>
+<h4 id="发送邮件">发送邮件</h4>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">$ /usr/<span class="built_in">local</span>/bin/curl -s --url <span class="string">"smtp://smtp.ttlsa.com"</span> --mail-from <span class="string">"support@ttlsa.com"</span> \</span><br><span class="line">--mail-rcpt <span class="string">"dengyun@ttlsa.com"</span> --upload-file mail.txt --user <span class="string">"support@ttlsa.com:123456"</span></span><br></pre></td></tr></table></figure>
+<h4 id="参数说明">参数说明</h4>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">--url ：smtp地址</span><br><span class="line">--mail-from：发件人邮箱</span><br><span class="line">--mail-rcpt：收件人邮箱</span><br><span class="line">--upload-file：信件内容，包含发件人、收件人、标题、内容</span><br><span class="line">--user：账号密码，中间用冒号分隔</span><br></pre></td></tr></table></figure>
+<h3 id="curl-更多协议">curl 更多协议</h3>
+<p>curl 支持众多协议，想知道当前 curl 支持哪些协议，使用如下命令</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br></pre></td><td class="code"><pre><span class="line">/usr/<span class="built_in">local</span>/bin/curl-config --protocols</span><br><span class="line">DICT</span><br><span class="line">FILE</span><br><span class="line">FTP</span><br><span class="line">FTPS</span><br><span class="line">GOPHER</span><br><span class="line">HTTP</span><br><span class="line">HTTPS</span><br><span class="line">IMAP</span><br><span class="line">IMAPS</span><br><span class="line">POP3</span><br><span class="line">POP3S</span><br><span class="line">RTSP</span><br><span class="line">SMB</span><br><span class="line">SMBS</span><br><span class="line">SMTP</span><br><span class="line">SMTPS</span><br><span class="line">TELNET</span><br><span class="line">TFTP</span><br></pre></td></tr></table></figure>
+<h3 id="zabbix-curl-发邮件脚本">zabbix curl 发邮件脚本</h3>
+<p>我们通常使用 sendEmail 来发送告警，下面分享一个 zabbix 使用 curl 发送告警邮件的脚本</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br></pre></td><td class="code"><pre><span class="line">$ curl zabbix_curl_sendmail.sh</span><br><span class="line"></span><br><span class="line"><span class="meta">#!/bin/bash</span></span><br><span class="line"><span class="comment"># -------------------------------------------------------------------------------</span></span><br><span class="line"><span class="comment"># FileName:    zabbix_curl_sendmail.sh</span></span><br><span class="line"><span class="comment"># Revision:    1.0</span></span><br><span class="line"><span class="comment"># Date:        2015/11/14</span></span><br><span class="line"><span class="comment"># Author:      凉白开</span></span><br><span class="line"><span class="comment"># Email:       dengyun@ttlsa.com</span></span><br><span class="line"><span class="comment"># Website:     www.ttlsa.com</span></span><br><span class="line"><span class="comment"># Description: use curl send email</span></span><br><span class="line"><span class="comment"># Notes:       ~</span></span><br><span class="line"><span class="comment"># -------------------------------------------------------------------------------</span></span><br><span class="line"><span class="comment"># Copyright:   2015 (c) 凉白开</span></span><br><span class="line"><span class="comment"># License:     GPL</span></span><br><span class="line"></span><br><span class="line">MAIL_FROM=<span class="string">'support@ttlsa.com'</span></span><br><span class="line">MAIL_TO=<span class="variable">$1</span></span><br><span class="line">MAIL_SUBJECT=<span class="variable">$2</span></span><br><span class="line">MAIL_CONTENT=<span class="variable">$3</span></span><br><span class="line">MAIL_CONTENT_FILE=<span class="string">"/tmp/`/bin/date +%s`.txt"</span></span><br><span class="line">MAIL_SMTP=<span class="string">'smtp://smtp.ttlsa.com'</span></span><br><span class="line">MAIL_USER=<span class="string">'support@ttlsa.com'</span></span><br><span class="line">MAIL_PASSWORD=<span class="string">'123456'</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># create mail content file</span></span><br><span class="line"><span class="built_in">echo</span> <span class="string">"From:<span class="variable">$&#123;MAIL_FROM&#125;</span></span></span><br><span class="line"><span class="string">To:<span class="variable">$1</span></span></span><br><span class="line"><span class="string">Subject: <span class="variable">$MAIL_SUBJECT</span></span></span><br><span class="line"><span class="string"></span></span><br><span class="line"><span class="string"><span class="variable">$MAIL_CONTENT</span> "</span>&gt; <span class="variable">$&#123;MAIL_CONTENT_FILE&#125;</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># send mail</span></span><br><span class="line">/usr/<span class="built_in">local</span>/bin/curl -s --url <span class="string">"<span class="variable">$&#123;MAIL_SMTP&#125;</span>"</span> --mail-from <span class="string">"<span class="variable">$&#123;MAIL_FROM&#125;</span>"</span> --mail-rcpt <span class="variable">$&#123;MAIL_TO&#125;</span> \</span><br><span class="line">--upload-file <span class="variable">$&#123;MAIL_CONTENT_FILE&#125;</span> --user <span class="string">"<span class="variable">$&#123;MAIL_USER&#125;</span>:<span class="variable">$&#123;MAIL_PASSWORD&#125;</span>"</span> </span><br><span class="line"></span><br><span class="line"><span class="comment"># delete mail content file</span></span><br><span class="line">rm <span class="variable">$&#123;MAIL_CONTENT_FILE&#125;</span></span><br></pre></td></tr></table></figure>
+<h3 id="项目地址">项目地址</h3>
+<p>WEB SITE: <a href="https://curl.haxx.se/" target="_blank" rel="noopener">https://curl.haxx.se/</a><br>
+GitHub： <a href="https://github.com/bagder/curl/" target="_blank" rel="noopener">https://github.com/bagder/curl/</a></p>
+<p>转载自: <a href="https://www.ttlsa.com/linux/curl-skill-use-curl-send-email/" target="_blank" rel="noopener">https://www.ttlsa.com/linux/curl-skill-use-curl-send-email/</a></p>
+
+                
+
+                <hr>
+                <!-- Pager -->
+                <ul class="pager">
+                    
+                        <li class="previous">
+                            <a href="/posts/42392/" data-toggle="tooltip" data-placement="top" title="Linux 性能实时监测工具 NetData">&larr; Previous Post</a>
+                        </li>
+                    
+                    
+                        <li class="next">
+                            <a href="/posts/51173/" data-toggle="tooltip" data-placement="top" title="谈 MySQL 中 UTF8 和 UTF8mb4 区别">Next Post &rarr;</a>
+                        </li>
+                    
+                </ul>
+
+                <!-- duoshuo Share start -->
+                
+                <!-- 多说 Share end-->
+
+                <!-- 多说评论框 start -->
+                
+                <!-- 多说评论框 end -->
+
+                <!-- disqus comment start -->
+                
+                <!-- disqus comment end -->
+
+                
+                    <!-- disqus 评论框 start -->
+                    <div class="comment">
+                        <div id="lv-container" data-id="city" data-uid="MTAyMC8yNzg2My80NDQw"></div>
+                    </div>
+                    <!-- disqus 评论框 end -->
+                
+
+            </div>
+            
+            <!-- Tabe of Content -->
+            <!-- Table of Contents -->
+
+  
+    <style>
+      span.toc-nav-number{
+        display: none
+      }
+    </style>
+  
+    
+      <aside id="sidebar">
+        <div id="toc" class="toc-article">
+        <strong class="toc-title">Contents</strong>
+        
+          <ol class="toc-nav"><li class="toc-nav-item toc-nav-level-3"><a class="toc-nav-link" href="#确认-curl-是否支持smtp"><span class="toc-nav-number">1.</span> <span class="toc-nav-text">确认 curl 是否支持SMTP</span></a></li><li class="toc-nav-item toc-nav-level-3"><a class="toc-nav-link" href="#安装高版本curl"><span class="toc-nav-number">2.</span> <span class="toc-nav-text">安装高版本CURL</span></a></li><li class="toc-nav-item toc-nav-level-3"><a class="toc-nav-link" href="#使用-curl-发送邮件"><span class="toc-nav-number">3.</span> <span class="toc-nav-text">使用 curl 发送邮件</span></a><ol class="toc-nav-child"><li class="toc-nav-item toc-nav-level-4"><a class="toc-nav-link" href="#编写邮件内容"><span class="toc-nav-number">3.1.</span> <span class="toc-nav-text">编写邮件内容</span></a></li><li class="toc-nav-item toc-nav-level-4"><a class="toc-nav-link" href="#发送邮件"><span class="toc-nav-number">3.2.</span> <span class="toc-nav-text">发送邮件</span></a></li><li class="toc-nav-item toc-nav-level-4"><a class="toc-nav-link" href="#参数说明"><span class="toc-nav-number">3.3.</span> <span class="toc-nav-text">参数说明</span></a></li></ol></li><li class="toc-nav-item toc-nav-level-3"><a class="toc-nav-link" href="#curl-更多协议"><span class="toc-nav-number">4.</span> <span class="toc-nav-text">curl 更多协议</span></a></li><li class="toc-nav-item toc-nav-level-3"><a class="toc-nav-link" href="#zabbix-curl-发邮件脚本"><span class="toc-nav-number">5.</span> <span class="toc-nav-text">zabbix curl 发邮件脚本</span></a></li><li class="toc-nav-item toc-nav-level-3"><a class="toc-nav-link" href="#项目地址"><span class="toc-nav-number">6.</span> <span class="toc-nav-text">项目地址</span></a></li></ol>
+        
+        </div>
+      </aside>
+    
+
+                
+            <!-- Sidebar Container -->
+            <div class="
+                col-lg-8 col-lg-offset-2
+                col-md-10 col-md-offset-1
+                sidebar-container">
+
+                <!-- Featured Tags -->
+                
+                <section>
+                    <!-- no hr -->
+                    <h5><a href="/tags/">FEATURED TAGS</a></h5>
+                    <div class="tags">
+                       
+                          <a class="tag" href="/tags/#Linux" title="Linux">Linux</a>
+                        
+                          <a class="tag" href="/tags/#CURL" title="CURL">CURL</a>
+                        
+                    </div>
+                </section>
+                
+
+                <!-- Friends Blog -->
+                
+                <hr>
+                <h5>FRIENDS</h5>
+                <ul class="list-inline">
+
+                    
+                        <li><a href="http://www.mike.org.cn/" target="_blank">简单.生活</a></li>
+                    
+                        <li><a href="http://shang.qq.com/wpa/qunwpa?idkey=ea4c43493c2269428ac6ef6141de4b6d78e5ab2d41380ca4099b833b62884ee9" target="_blank">技术交流群</a></li>
+                    
+                        <li><a href="" target="_blank"></a></li>
+                    
+                        <li><a href="" target="_blank"></a></li>
+                    
+                </ul>
+                
+            </div>
+        </div>
+    </div>
+</article>
+
+
+
+
+
+
+    <!-- 来必力City版公共JS代码 start (一个网页只需插入一次) -->
+    <script type="text/javascript">
+       (function(d, s) {
+           var j, e = d.getElementsByTagName(s)[0];
+    
+           if (typeof LivereTower === 'function') { return; }
+    
+           j = d.createElement(s);
+           j.src = 'https://cdn-city.livere.com/js/embed.dist.js';
+           j.async = true;
+    
+           e.parentNode.insertBefore(j, e);
+       })(document, 'script');
+    </script>
+    <noscript>为正常使用来必力评论功能请激活JavaScript</noscript>
+    <!-- 来必力City版 公共JS代码 end -->
+
+
+
+<!-- async load function -->
+<script>
+    function async(u, c) {
+      var d = document, t = 'script',
+          o = d.createElement(t),
+          s = d.getElementsByTagName(t)[0];
+      o.src = u;
+      if (c) { o.addEventListener('load', function (e) { c(null, e); }, false); }
+      s.parentNode.insertBefore(o, s);
+    }
+</script>
+<!-- anchor-js, Doc:http://bryanbraun.github.io/anchorjs/ -->
+<script>
+    async("https://cdn.bootcss.com/anchor-js/1.1.1/anchor.min.js",function(){
+        anchors.options = {
+          visible: 'hover',
+          placement: 'left',
+          icon: 'ℬ'
+        };
+        anchors.add().remove('.intro-header h1').remove('.subheading').remove('.sidebar-container h5');
+    })
+</script>
+<style>
+    /* place left on bigger screen */
+    @media all and (min-width: 800px) {
+        .anchorjs-link{
+            position: absolute;
+            left: -0.75em;
+            font-size: 1.1em;
+            margin-top : -0.1em;
+        }
+    }
+</style>
+
+
+
+    <!-- Footer -->
+    <!-- Footer -->
+<footer>
+    <div class="container">
+        <div class="row">
+            <div class="col-lg-8 col-lg-offset-2 col-md-10 col-md-offset-1">
+                <ul class="list-inline text-center">
+                
+                    <li>
+                        <a href="/atom.xml">
+                            <span class="fa-stack fa-lg">
+                                <i class="fa fa-circle fa-stack-2x"></i>
+                                <i class="fa fa-rss fa-stack-1x fa-inverse"></i>
+                            </span>
+                        </a>
+                    </li>
+                
+                
+                
+                    <li>
+                        <a target="_blank" href="https://www.zhihu.com/people/80imike">
+                            <span class="fa-stack fa-lg">
+                                <i class="fa fa-circle fa-stack-2x"></i>
+                                <i class="fa  fa-stack-1x fa-inverse">知</i>
+                            </span>
+                        </a>
+                    </li>
+                
+
+                
+                    <li>
+                        <a target="_blank" href="http://weibo.com/2093524665">
+                            <span class="fa-stack fa-lg">
+                                <i class="fa fa-circle fa-stack-2x"></i>
+                                <i class="fa fa-weibo fa-stack-1x fa-inverse"></i>
+                            </span>
+                        </a>
+                    </li>
+                
+
+                
+
+                
+
+                
+
+                </ul>
+                <p class="copyright text-muted">
+                    Copyright &copy; Mike 2018 | Hosted by <a href="https://pages.coding.me" style="font-weight: bold">Coding Pages</a>
+                    <br>
+                    Theme by <a href="http://beantech.org">BeanTech</a> 
+                    <span style="display: inline-block; margin: 0 5px;">
+                        <i class="fa fa-heart"></i>
+                    </span> 
+                    re-Ported by <a href="http://www.huweihuang.com">胡伟煌</a> | 
+                    <iframe
+                        style="margin-left: 2px; margin-bottom:-5px;"
+                        frameborder="0" scrolling="0" width="91px" height="20px"
+                        src="https://ghbtns.com/github-btn.html?user=huweihuang&repo=hexo-theme-huweihuang&type=star&count=true" >
+                    </iframe>
+                </p>
+            </div>
+        </div>
+    </div>
+</footer>
+
+<!-- jQuery -->
+<script src="/js/jquery.min.js"></script>
+
+<!-- Bootstrap Core JavaScript -->
+<script src="/js/bootstrap.min.js"></script>
+
+<!-- Custom Theme JavaScript -->
+<script src="/js/hux-blog.min.js"></script>
+
+
+<!-- async load function -->
+<script>
+    function async(u, c) {
+      var d = document, t = 'script',
+          o = d.createElement(t),
+          s = d.getElementsByTagName(t)[0];
+      o.src = u;
+      if (c) { o.addEventListener('load', function (e) { c(null, e); }, false); }
+      s.parentNode.insertBefore(o, s);
+    }
+</script>
+
+<!-- 
+     Because of the native support for backtick-style fenced code blocks 
+     right within the Markdown is landed in Github Pages, 
+     From V1.6, There is no need for Highlight.js, 
+     so Huxblog drops it officially.
+
+     - https://github.com/blog/2100-github-pages-now-faster-and-simpler-with-jekyll-3-0  
+     - https://help.github.com/articles/creating-and-highlighting-code-blocks/    
+-->
+<!--
+    <script>
+        async("http://cdn.bootcss.com/highlight.js/8.6/highlight.min.js", function(){
+            hljs.initHighlightingOnLoad();
+        })
+    </script>
+    <link href="http://cdn.bootcss.com/highlight.js/8.6/styles/github.min.css" rel="stylesheet">
+-->
+
+
+<!-- jquery.tagcloud.js -->
+<script>
+    // only load tagcloud.js in tag.html
+    if($('#tag_cloud').length !== 0){
+        async("http://www.hi-linux.com/js/jquery.tagcloud.js",function(){
+            $.fn.tagcloud.defaults = {
+                //size: {start: 1, end: 1, unit: 'em'},
+                color: {start: '#bbbbee', end: '#0085a1'},
+            };
+            $('#tag_cloud a').tagcloud();
+        })
+    }
+</script>
+
+<!--fastClick.js -->
+<script>
+    async("https://cdn.bootcss.com/fastclick/1.0.6/fastclick.min.js", function(){
+        var $nav = document.querySelector("nav");
+        if($nav) FastClick.attach($nav);
+    })
+</script>
+
+
+<!-- Google Analytics -->
+
+
+
+
+<!-- Baidu Tongji -->
+
+
+
+
+
+
+	<a id="rocket" href="#top" class=""></a>
+	<script type="text/javascript" src="/js/totop.js?v=1.0.0" async=""></script>
+    <script type="text/javascript" src="/js/toc.js?v=1.0.0" async=""></script>
+<!-- Image to hack wechat -->
+<img src="http://www.hi-linux.com/img/icon_wechat.png" width="0" height="0" />
+<!-- Migrate from head to bottom, no longer block render and still work -->
+
+</body>
+
+</html>

@@ -1,0 +1,581 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<!-- Head tag -->
+<head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="google-site-verification" content="xBT4GhYoi5qRD5tr338pgPM5OWHHIDR6mNg1a3euekI" />
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="description" content="">
+    <meta name="keyword"  content="Linux,运维,Nginx,Zabbix,Centos,Ansible,MySQL,Python,Docker,ELK,Haproxy,Git,Nodejs,安全,技术">
+    <link rel="shortcut icon" href="/img/ironman-draw.png">
+    <!-- Place this tag in your head or just before your close body tag. -->
+    <script async defer src="https://buttons.github.io/buttons.js"></script>
+    <title>
+        
+          使用 PM2 管理 Node 应用 - 运维之美
+        
+    </title>
+
+    <link rel="canonical" href="http://www.hi-linux.com/posts/20296/">
+
+    <!-- Bootstrap Core CSS -->
+    <link rel="stylesheet" href="/css/bootstrap.min.css">
+
+    <!-- Custom CSS --> 
+    <link rel="stylesheet" href="/css/beantech.min.css">
+    
+    <!-- Pygments Highlight CSS -->
+    <link rel="stylesheet" href="/css/highlight.css">
+
+    <link rel="stylesheet" href="/css/widget.css">
+
+    <link rel="stylesheet" href="/css/rocket.css">
+
+    <link rel="stylesheet" href="/css/signature.css">
+
+    <link rel="stylesheet" href="/css/toc.css">
+
+    <!-- Custom Fonts -->
+    <!-- <link href="https://maxcdn.bootstrapcdn.com/font-awesome/4.3.0/css/font-awesome.min.css" rel="stylesheet" type="text/css"> -->
+    <!-- Hux change font-awesome CDN to qiniu -->
+    <link href="https://cdn.staticfile.org/font-awesome/4.5.0/css/font-awesome.min.css" rel="stylesheet" type="text/css">
+
+
+    <!-- Hux Delete, sad but pending in China
+    <link href='http://fonts.googleapis.com/css?family=Lora:400,700,400italic,700italic' rel='stylesheet' type='text/css'>
+    <link href='http://fonts.googleapis.com/css?family=Open+Sans:300italic,400italic,600italic,700italic,800italic,400,300,600,700,800' rel='stylesheet' type='text/
+    css'>
+    -->
+
+
+    <!-- HTML5 Shim and Respond.js IE8 support of HTML5 elements and media queries -->
+    <!-- WARNING: Respond.js doesn't work if you view the page via file:// -->
+    <!--[if lt IE 9]>
+        <script src="https://oss.maxcdn.com/libs/html5shiv/3.7.0/html5shiv.js"></script>
+        <script src="https://oss.maxcdn.com/libs/respond.js/1.4.2/respond.min.js"></script>
+    <![endif]-->
+
+    <!-- ga & ba script hoook -->
+    <script></script>
+</head>
+
+
+<!-- hack iOS CSS :active style -->
+<body ontouchstart="">
+	<!-- Modified by Yu-Hsuan Yen -->
+<!-- Post Header -->
+<style type="text/css">
+    header.intro-header{
+        
+            background-image: url('/img/header_img/article.jpg')
+            /*post*/
+        
+    }
+    
+</style>
+
+<header class="intro-header" >
+    <!-- Signature -->
+    <div id="signature">
+        <div class="container">
+            <div class="row">
+                <div class="col-lg-8 col-lg-offset-2 col-md-10 col-md-offset-1">
+                
+                    <div class="post-heading">
+                        <div class="tags">
+                            
+                              <a class="tag" href="/tags/#Linux" title="Linux">Linux</a>
+                            
+                              <a class="tag" href="/tags/#Nodejs" title="Nodejs">Nodejs</a>
+                            
+                        </div>
+                        <h1>使用 PM2 管理 Node 应用</h1>
+                        <h2 class="subheading"></h2>
+                        <span class="meta">
+                            Posted by Mike on
+                            2016-03-24
+                        </span>
+                    </div>
+                
+
+
+                </div>
+            </div>
+        </div>
+    </div>
+</header>
+
+	
+    <!-- Navigation -->
+<nav class="navbar navbar-default navbar-custom navbar-fixed-top">
+    <div class="container-fluid">
+        <!-- Brand and toggle get grouped for better mobile display -->
+        <div class="navbar-header page-scroll">
+            <button type="button" class="navbar-toggle">
+                <span class="sr-only">Toggle navigation</span>
+                <span class="icon-bar"></span>
+                <span class="icon-bar"></span>
+                <span class="icon-bar"></span>
+            </button>
+            <a class="navbar-brand" href="/">运维之美</a>
+        </div>
+
+        <!-- Collect the nav links, forms, and other content for toggling -->
+        <!-- Known Issue, found by Hux:
+            <nav>'s height woule be hold on by its content.
+            so, when navbar scale out, the <nav> will cover tags.
+            also mask any touch event of tags, unfortunately.
+        -->
+        <div id="huxblog_navbar">
+            <div class="navbar-collapse">
+                <ul class="nav navbar-nav navbar-right">
+                    <li>
+                        <a href="/">Home</a>
+                    </li>
+
+                    
+
+                        
+                    
+
+                        
+                    
+
+                        
+                        <li>
+                            <a href="/archive/">Archives</a>
+                        </li>
+                        
+                    
+
+                        
+                        <li>
+                            <a href="/about/">About</a>
+                        </li>
+                        
+                    
+
+                        
+                        <li>
+                            <a href="/tags/">Tags</a>
+                        </li>
+                        
+                    
+                    
+                </ul>
+            </div>
+        </div>
+        <!-- /.navbar-collapse -->
+    </div>
+    <!-- /.container -->
+</nav>
+<script>
+    // Drop Bootstarp low-performance Navbar
+    // Use customize navbar with high-quality material design animation
+    // in high-perf jank-free CSS3 implementation
+    var $body   = document.body;
+    var $toggle = document.querySelector('.navbar-toggle');
+    var $navbar = document.querySelector('#huxblog_navbar');
+    var $collapse = document.querySelector('.navbar-collapse');
+
+    $toggle.addEventListener('click', handleMagic)
+    function handleMagic(e){
+        if ($navbar.className.indexOf('in') > 0) {
+        // CLOSE
+            $navbar.className = " ";
+            // wait until animation end.
+            setTimeout(function(){
+                // prevent frequently toggle
+                if($navbar.className.indexOf('in') < 0) {
+                    $collapse.style.height = "0px"
+                }
+            },400)
+        }else{
+        // OPEN
+            $collapse.style.height = "auto"
+            $navbar.className += " in";
+        }
+    }
+</script>
+
+
+    <!-- Main Content -->
+    <!-- Modify by Yu-Hsuan Yen -->
+
+<!-- Post Content -->
+<article>
+    <div class="container">
+        <div class="row">
+
+            <!-- Post Container -->
+            <div class="
+                col-lg-8 col-lg-offset-2
+                col-md-10 col-md-offset-1
+                post-container">
+
+                <h3 id="简介">简介</h3>
+<p>Node.js应用能够简单地通过命令行启动，只要有Node 运行环境。对于生产环境，情况要复杂得多。不仅需要数据库等功能性组件，更对安全性、可靠性、可扩展性等方面有更高的要求。</p>
+<p>PM2是一个针对Node应用且自带负载均衡的进程管理器，拥有forever和Upstart都不具备的特性。能够管理Node 应用，使其随系统启动，出错挂掉能自动重启。还能对应用的运行状态进行监控，为应用生成SystemV, SystemD 服务启动脚本。PM2支持CoffeeScript，可以运行在Linux和OSX环境。</p>
+<p>PM2是非常优秀工具，它提供对基于node.js的项目运行托管服务。它基于命令行界面，提供很多特性：</p>
+<a id="more"></a>
+<blockquote>
+<p>内置的负载均衡器（使用nodecluster module）<br>
+以守护进程运行<br>
+0s(不间断)重启<br>
+为ubuntu/CentOS 提供启动脚本<br>
+关闭不稳定的进程（避免无限死循环）<br>
+基于控制台监控<br>
+HTTP API<br>
+远程控制以及实时监控接口<br>
+pm2使用nodecluster构建一个内置的负载均衡器。部署多个app的实例来达到分流的目的以减轻单app处理的压力。</p>
+</blockquote>
+<h3 id="安装">安装</h3>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">npm install pm2 -g</span><br><span class="line">npm install pm2@latest -g</span><br><span class="line">npm install git://github.com/Unitech/pm2<span class="comment">#master -g</span></span><br></pre></td></tr></table></figure>
+<h3 id="升级安装">升级安装</h3>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">npm install pm2@latest -g</span><br><span class="line">pm2 update  <span class="comment">#Update in memory pm2</span></span><br></pre></td></tr></table></figure>
+<h3 id="启动应用">启动应用</h3>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line">pm2 start &lt;app_name|id|all&gt;  <span class="comment">#可以指定应用名称pm2 start app,js --name=test</span></span><br><span class="line">pm2 start app.js -i 4 --name <span class="string">"episode"</span>   <span class="comment">#-i 4 表示启动四个app.js, 也可以-i max 将会最大限度利用cpu核心数目 --name 用于命名进程</span></span><br><span class="line">pm2 start app.js</span><br><span class="line">pm2 start app.js -i 1  <span class="comment">#cluster_mode</span></span><br><span class="line">pm2 start app.js -i 0  <span class="comment">#支持使用多核 CPU</span></span><br><span class="line">pm2 start big-app.js --max-memory-restart 20M</span><br><span class="line">cluster_mode 需要Node 0.11.x 以上，否则请用fork mode。</span><br></pre></td></tr></table></figure>
+<h3 id="传递参数">传递参数</h3>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">pm2 start app.js -- -p 8080 </span><br><span class="line">pm2 start app.js --node-args=<span class="string">"--debug=7001 --trace-deprecation"</span></span><br></pre></td></tr></table></figure>
+<h3 id="命名应用">命名应用</h3>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">NODE_ENV=production pm2 start index.js -n Ghost</span><br></pre></td></tr></table></figure>
+<h3 id="生成服务脚本">生成服务脚本</h3>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">pm2 startup &lt;ubuntu|centos|gentoo|systemd&gt;  <span class="comment">#产生init脚本，保持进程活着</span></span><br></pre></td></tr></table></figure>
+<h3 id="查看信息">查看信息</h3>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">pm2 list          <span class="comment"># 显示所有进程状态</span></span><br><span class="line">pm2 jlist         <span class="comment"># Print process list in raw JSON</span></span><br><span class="line">pm2 prettylist    <span class="comment"># Print process list in beautified JSON</span></span><br><span class="line">pm2 info 0        <span class="comment"># Display all informations about a specific process</span></span><br></pre></td></tr></table></figure>
+<h3 id="运行控制">运行控制</h3>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line">pm2 stop 0             <span class="comment"># 停止指定进程</span></span><br><span class="line">pm2 stop all           <span class="comment"># 停止所有进程</span></span><br><span class="line">pm2 restart 0          <span class="comment"># Restart specific process id</span></span><br><span class="line">pm2 restart all        <span class="comment"># 重启所有进程</span></span><br><span class="line">pm2 delete 0           <span class="comment"># Will remove process from pm2 list</span></span><br><span class="line">pm2 delete all         <span class="comment"># Will remove all processes from pm2 list</span></span><br><span class="line">pm2 reload 0           <span class="comment"># 类似restart，0秒重载，支持 cluster_mode</span></span><br><span class="line">pm2 reload all         <span class="comment"># Will 0s downtime reload (for NETWORKED apps)</span></span><br><span class="line">pm2 gracefulReload all <span class="comment"># Send exit message then reload (for networked apps)</span></span><br><span class="line">pm2 dump               <span class="comment"># ~/.pm2/dump.pm2</span></span><br><span class="line">pm2 <span class="built_in">kill</span>               <span class="comment"># 杀掉PM2</span></span><br><span class="line">pm2 resurrect          <span class="comment"># 复活所有进程</span></span><br></pre></td></tr></table></figure>
+<h3 id="代码监控">代码监控</h3>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">pm2 start app.js --watch  <span class="comment"># 代码修改自动重启</span></span><br><span class="line">pm2 stop 0                <span class="comment"># not stop watching</span></span><br><span class="line">pm2 stop --watch 0        <span class="comment"># stop watching</span></span><br></pre></td></tr></table></figure>
+<h3 id="运行监测">运行监测</h3>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">pm2 monit              <span class="comment"># Monitor all processes</span></span><br></pre></td></tr></table></figure>
+<h3 id="日志">日志</h3>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">pm2 logs               <span class="comment"># 显示所有进程日志</span></span><br><span class="line">pm2 ilogs              <span class="comment"># Advanced termcaps interface to display logs</span></span><br><span class="line">pm2 flush              <span class="comment"># Empty all log file</span></span><br><span class="line">pm2 reloadLogs         <span class="comment"># Reload all logs</span></span><br></pre></td></tr></table></figure>
+<h3 id="杂项">杂项</h3>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">pm2 ping  <span class="comment"># Ensure pm2 daemon has been launched</span></span><br><span class="line">pm2 reset &lt;process&gt;  <span class="comment"># Reset meta data (restarted time...)</span></span><br><span class="line">pm2 sendSignal SIGUSR2 my-app  <span class="comment"># Send system signal to script</span></span><br><span class="line">pm2 start app.js --no-daemon  <span class="comment"># run pm2 daemon in the foreground</span></span><br><span class="line">pm2 describe id|all <span class="comment">#查看启动程序的详细信息</span></span><br><span class="line">pm2 web  <span class="comment">#API(端口:9615)</span></span><br></pre></td></tr></table></figure>
+<h3 id="实例">实例</h3>
+<p>管理Ghost</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br></pre></td><td class="code"><pre><span class="line"><span class="built_in">cd</span> /path/to/ghost/folder</span><br><span class="line"><span class="built_in">echo</span> <span class="string">"export NODE_ENV=production"</span> &gt;&gt; ~/.profile</span><br><span class="line"><span class="built_in">source</span> ~/.profile</span><br><span class="line">pm2 <span class="built_in">kill</span></span><br><span class="line">pm2 start index.js --name <span class="string">"Ghost"</span></span><br><span class="line"></span><br><span class="line"><span class="comment">#Ghost已经运行在PM2管理下</span></span><br><span class="line">pm2 ls</span><br><span class="line">pm2 stop &lt;process ID&gt;</span><br><span class="line">pm2 monit</span><br><span class="line">pm2 logs</span><br><span class="line"></span><br><span class="line"><span class="comment">#生成服务启动脚本：/etc/init.d/pm2-init.sh。只会将pm2 list中的应用加入服务启动脚本，确保需要启动的应用就在其中。不要使用root账户(下面用的是ghost账户)。</span></span><br><span class="line">pm2 startup ubuntu</span><br><span class="line"></span><br><span class="line"><span class="comment">#生成命令如下：包含node路径，用户账户。执行即可</span></span><br><span class="line">sudo env PATH=<span class="variable">$PATH</span>:/usr/<span class="built_in">local</span>/bin pm2 startup ubuntu -u ghost</span><br><span class="line">pm2 save或reboot</span><br></pre></td></tr></table></figure>
+<h3 id="参考资料">参考资料</h3>
+<p><a href="http://www.google.com" target="_blank" rel="noopener">http://www.google.com</a><br>
+<a href="https://github.com/Unitech/pm2" target="_blank" rel="noopener">https://github.com/Unitech/pm2</a><br>
+<a href="http://www.allaboutghost.com/keep-ghost-running-with-pm2/" target="_blank" rel="noopener">http://www.allaboutghost.com/keep-ghost-running-with-pm2/</a></p>
+
+                
+
+                <hr>
+                <!-- Pager -->
+                <ul class="pager">
+                    
+                        <li class="previous">
+                            <a href="/posts/53649/" data-toggle="tooltip" data-placement="top" title="Centos 6 下 Codis 集群的搭建与使用">&larr; Previous Post</a>
+                        </li>
+                    
+                    
+                        <li class="next">
+                            <a href="/posts/24471/" data-toggle="tooltip" data-placement="top" title="Localtunnel 内网穿透工具的安装与使用">Next Post &rarr;</a>
+                        </li>
+                    
+                </ul>
+
+                <!-- duoshuo Share start -->
+                
+                <!-- 多说 Share end-->
+
+                <!-- 多说评论框 start -->
+                
+                <!-- 多说评论框 end -->
+
+                <!-- disqus comment start -->
+                
+                <!-- disqus comment end -->
+
+                
+                    <!-- disqus 评论框 start -->
+                    <div class="comment">
+                        <div id="lv-container" data-id="city" data-uid="MTAyMC8yNzg2My80NDQw"></div>
+                    </div>
+                    <!-- disqus 评论框 end -->
+                
+
+            </div>
+            
+            <!-- Tabe of Content -->
+            <!-- Table of Contents -->
+
+  
+    <style>
+      span.toc-nav-number{
+        display: none
+      }
+    </style>
+  
+    
+      <aside id="sidebar">
+        <div id="toc" class="toc-article">
+        <strong class="toc-title">Contents</strong>
+        
+          <ol class="toc-nav"><li class="toc-nav-item toc-nav-level-3"><a class="toc-nav-link" href="#简介"><span class="toc-nav-number">1.</span> <span class="toc-nav-text">简介</span></a></li><li class="toc-nav-item toc-nav-level-3"><a class="toc-nav-link" href="#安装"><span class="toc-nav-number">2.</span> <span class="toc-nav-text">安装</span></a></li><li class="toc-nav-item toc-nav-level-3"><a class="toc-nav-link" href="#升级安装"><span class="toc-nav-number">3.</span> <span class="toc-nav-text">升级安装</span></a></li><li class="toc-nav-item toc-nav-level-3"><a class="toc-nav-link" href="#启动应用"><span class="toc-nav-number">4.</span> <span class="toc-nav-text">启动应用</span></a></li><li class="toc-nav-item toc-nav-level-3"><a class="toc-nav-link" href="#传递参数"><span class="toc-nav-number">5.</span> <span class="toc-nav-text">传递参数</span></a></li><li class="toc-nav-item toc-nav-level-3"><a class="toc-nav-link" href="#命名应用"><span class="toc-nav-number">6.</span> <span class="toc-nav-text">命名应用</span></a></li><li class="toc-nav-item toc-nav-level-3"><a class="toc-nav-link" href="#生成服务脚本"><span class="toc-nav-number">7.</span> <span class="toc-nav-text">生成服务脚本</span></a></li><li class="toc-nav-item toc-nav-level-3"><a class="toc-nav-link" href="#查看信息"><span class="toc-nav-number">8.</span> <span class="toc-nav-text">查看信息</span></a></li><li class="toc-nav-item toc-nav-level-3"><a class="toc-nav-link" href="#运行控制"><span class="toc-nav-number">9.</span> <span class="toc-nav-text">运行控制</span></a></li><li class="toc-nav-item toc-nav-level-3"><a class="toc-nav-link" href="#代码监控"><span class="toc-nav-number">10.</span> <span class="toc-nav-text">代码监控</span></a></li><li class="toc-nav-item toc-nav-level-3"><a class="toc-nav-link" href="#运行监测"><span class="toc-nav-number">11.</span> <span class="toc-nav-text">运行监测</span></a></li><li class="toc-nav-item toc-nav-level-3"><a class="toc-nav-link" href="#日志"><span class="toc-nav-number">12.</span> <span class="toc-nav-text">日志</span></a></li><li class="toc-nav-item toc-nav-level-3"><a class="toc-nav-link" href="#杂项"><span class="toc-nav-number">13.</span> <span class="toc-nav-text">杂项</span></a></li><li class="toc-nav-item toc-nav-level-3"><a class="toc-nav-link" href="#实例"><span class="toc-nav-number">14.</span> <span class="toc-nav-text">实例</span></a></li><li class="toc-nav-item toc-nav-level-3"><a class="toc-nav-link" href="#参考资料"><span class="toc-nav-number">15.</span> <span class="toc-nav-text">参考资料</span></a></li></ol>
+        
+        </div>
+      </aside>
+    
+
+                
+            <!-- Sidebar Container -->
+            <div class="
+                col-lg-8 col-lg-offset-2
+                col-md-10 col-md-offset-1
+                sidebar-container">
+
+                <!-- Featured Tags -->
+                
+                <section>
+                    <!-- no hr -->
+                    <h5><a href="/tags/">FEATURED TAGS</a></h5>
+                    <div class="tags">
+                       
+                          <a class="tag" href="/tags/#Linux" title="Linux">Linux</a>
+                        
+                          <a class="tag" href="/tags/#Nodejs" title="Nodejs">Nodejs</a>
+                        
+                    </div>
+                </section>
+                
+
+                <!-- Friends Blog -->
+                
+                <hr>
+                <h5>FRIENDS</h5>
+                <ul class="list-inline">
+
+                    
+                        <li><a href="http://www.mike.org.cn/" target="_blank">简单.生活</a></li>
+                    
+                        <li><a href="http://shang.qq.com/wpa/qunwpa?idkey=ea4c43493c2269428ac6ef6141de4b6d78e5ab2d41380ca4099b833b62884ee9" target="_blank">技术交流群</a></li>
+                    
+                        <li><a href="" target="_blank"></a></li>
+                    
+                        <li><a href="" target="_blank"></a></li>
+                    
+                </ul>
+                
+            </div>
+        </div>
+    </div>
+</article>
+
+
+
+
+
+
+    <!-- 来必力City版公共JS代码 start (一个网页只需插入一次) -->
+    <script type="text/javascript">
+       (function(d, s) {
+           var j, e = d.getElementsByTagName(s)[0];
+    
+           if (typeof LivereTower === 'function') { return; }
+    
+           j = d.createElement(s);
+           j.src = 'https://cdn-city.livere.com/js/embed.dist.js';
+           j.async = true;
+    
+           e.parentNode.insertBefore(j, e);
+       })(document, 'script');
+    </script>
+    <noscript>为正常使用来必力评论功能请激活JavaScript</noscript>
+    <!-- 来必力City版 公共JS代码 end -->
+
+
+
+<!-- async load function -->
+<script>
+    function async(u, c) {
+      var d = document, t = 'script',
+          o = d.createElement(t),
+          s = d.getElementsByTagName(t)[0];
+      o.src = u;
+      if (c) { o.addEventListener('load', function (e) { c(null, e); }, false); }
+      s.parentNode.insertBefore(o, s);
+    }
+</script>
+<!-- anchor-js, Doc:http://bryanbraun.github.io/anchorjs/ -->
+<script>
+    async("https://cdn.bootcss.com/anchor-js/1.1.1/anchor.min.js",function(){
+        anchors.options = {
+          visible: 'hover',
+          placement: 'left',
+          icon: 'ℬ'
+        };
+        anchors.add().remove('.intro-header h1').remove('.subheading').remove('.sidebar-container h5');
+    })
+</script>
+<style>
+    /* place left on bigger screen */
+    @media all and (min-width: 800px) {
+        .anchorjs-link{
+            position: absolute;
+            left: -0.75em;
+            font-size: 1.1em;
+            margin-top : -0.1em;
+        }
+    }
+</style>
+
+
+
+    <!-- Footer -->
+    <!-- Footer -->
+<footer>
+    <div class="container">
+        <div class="row">
+            <div class="col-lg-8 col-lg-offset-2 col-md-10 col-md-offset-1">
+                <ul class="list-inline text-center">
+                
+                    <li>
+                        <a href="/atom.xml">
+                            <span class="fa-stack fa-lg">
+                                <i class="fa fa-circle fa-stack-2x"></i>
+                                <i class="fa fa-rss fa-stack-1x fa-inverse"></i>
+                            </span>
+                        </a>
+                    </li>
+                
+                
+                
+                    <li>
+                        <a target="_blank" href="https://www.zhihu.com/people/80imike">
+                            <span class="fa-stack fa-lg">
+                                <i class="fa fa-circle fa-stack-2x"></i>
+                                <i class="fa  fa-stack-1x fa-inverse">知</i>
+                            </span>
+                        </a>
+                    </li>
+                
+
+                
+                    <li>
+                        <a target="_blank" href="http://weibo.com/2093524665">
+                            <span class="fa-stack fa-lg">
+                                <i class="fa fa-circle fa-stack-2x"></i>
+                                <i class="fa fa-weibo fa-stack-1x fa-inverse"></i>
+                            </span>
+                        </a>
+                    </li>
+                
+
+                
+
+                
+
+                
+
+                </ul>
+                <p class="copyright text-muted">
+                    Copyright &copy; Mike 2018 | Hosted by <a href="https://pages.coding.me" style="font-weight: bold">Coding Pages</a>
+                    <br>
+                    Theme by <a href="http://beantech.org">BeanTech</a> 
+                    <span style="display: inline-block; margin: 0 5px;">
+                        <i class="fa fa-heart"></i>
+                    </span> 
+                    re-Ported by <a href="http://www.huweihuang.com">胡伟煌</a> | 
+                    <iframe
+                        style="margin-left: 2px; margin-bottom:-5px;"
+                        frameborder="0" scrolling="0" width="91px" height="20px"
+                        src="https://ghbtns.com/github-btn.html?user=huweihuang&repo=hexo-theme-huweihuang&type=star&count=true" >
+                    </iframe>
+                </p>
+            </div>
+        </div>
+    </div>
+</footer>
+
+<!-- jQuery -->
+<script src="/js/jquery.min.js"></script>
+
+<!-- Bootstrap Core JavaScript -->
+<script src="/js/bootstrap.min.js"></script>
+
+<!-- Custom Theme JavaScript -->
+<script src="/js/hux-blog.min.js"></script>
+
+
+<!-- async load function -->
+<script>
+    function async(u, c) {
+      var d = document, t = 'script',
+          o = d.createElement(t),
+          s = d.getElementsByTagName(t)[0];
+      o.src = u;
+      if (c) { o.addEventListener('load', function (e) { c(null, e); }, false); }
+      s.parentNode.insertBefore(o, s);
+    }
+</script>
+
+<!-- 
+     Because of the native support for backtick-style fenced code blocks 
+     right within the Markdown is landed in Github Pages, 
+     From V1.6, There is no need for Highlight.js, 
+     so Huxblog drops it officially.
+
+     - https://github.com/blog/2100-github-pages-now-faster-and-simpler-with-jekyll-3-0  
+     - https://help.github.com/articles/creating-and-highlighting-code-blocks/    
+-->
+<!--
+    <script>
+        async("http://cdn.bootcss.com/highlight.js/8.6/highlight.min.js", function(){
+            hljs.initHighlightingOnLoad();
+        })
+    </script>
+    <link href="http://cdn.bootcss.com/highlight.js/8.6/styles/github.min.css" rel="stylesheet">
+-->
+
+
+<!-- jquery.tagcloud.js -->
+<script>
+    // only load tagcloud.js in tag.html
+    if($('#tag_cloud').length !== 0){
+        async("http://www.hi-linux.com/js/jquery.tagcloud.js",function(){
+            $.fn.tagcloud.defaults = {
+                //size: {start: 1, end: 1, unit: 'em'},
+                color: {start: '#bbbbee', end: '#0085a1'},
+            };
+            $('#tag_cloud a').tagcloud();
+        })
+    }
+</script>
+
+<!--fastClick.js -->
+<script>
+    async("https://cdn.bootcss.com/fastclick/1.0.6/fastclick.min.js", function(){
+        var $nav = document.querySelector("nav");
+        if($nav) FastClick.attach($nav);
+    })
+</script>
+
+
+<!-- Google Analytics -->
+
+
+
+
+<!-- Baidu Tongji -->
+
+
+
+
+
+
+	<a id="rocket" href="#top" class=""></a>
+	<script type="text/javascript" src="/js/totop.js?v=1.0.0" async=""></script>
+    <script type="text/javascript" src="/js/toc.js?v=1.0.0" async=""></script>
+<!-- Image to hack wechat -->
+<img src="http://www.hi-linux.com/img/icon_wechat.png" width="0" height="0" />
+<!-- Migrate from head to bottom, no longer block render and still work -->
+
+</body>
+
+</html>

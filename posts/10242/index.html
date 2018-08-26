@@ -1,0 +1,687 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<!-- Head tag -->
+<head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="google-site-verification" content="xBT4GhYoi5qRD5tr338pgPM5OWHHIDR6mNg1a3euekI" />
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="description" content="">
+    <meta name="keyword"  content="Linux,运维,Nginx,Zabbix,Centos,Ansible,MySQL,Python,Docker,ELK,Haproxy,Git,Nodejs,安全,技术">
+    <link rel="shortcut icon" href="/img/ironman-draw.png">
+    <!-- Place this tag in your head or just before your close body tag. -->
+    <script async defer src="https://buttons.github.io/buttons.js"></script>
+    <title>
+        
+          MySQL 高可用方案选型参考 - 运维之美
+        
+    </title>
+
+    <link rel="canonical" href="http://www.hi-linux.com/posts/10242/">
+
+    <!-- Bootstrap Core CSS -->
+    <link rel="stylesheet" href="/css/bootstrap.min.css">
+
+    <!-- Custom CSS --> 
+    <link rel="stylesheet" href="/css/beantech.min.css">
+    
+    <!-- Pygments Highlight CSS -->
+    <link rel="stylesheet" href="/css/highlight.css">
+
+    <link rel="stylesheet" href="/css/widget.css">
+
+    <link rel="stylesheet" href="/css/rocket.css">
+
+    <link rel="stylesheet" href="/css/signature.css">
+
+    <link rel="stylesheet" href="/css/toc.css">
+
+    <!-- Custom Fonts -->
+    <!-- <link href="https://maxcdn.bootstrapcdn.com/font-awesome/4.3.0/css/font-awesome.min.css" rel="stylesheet" type="text/css"> -->
+    <!-- Hux change font-awesome CDN to qiniu -->
+    <link href="https://cdn.staticfile.org/font-awesome/4.5.0/css/font-awesome.min.css" rel="stylesheet" type="text/css">
+
+
+    <!-- Hux Delete, sad but pending in China
+    <link href='http://fonts.googleapis.com/css?family=Lora:400,700,400italic,700italic' rel='stylesheet' type='text/css'>
+    <link href='http://fonts.googleapis.com/css?family=Open+Sans:300italic,400italic,600italic,700italic,800italic,400,300,600,700,800' rel='stylesheet' type='text/
+    css'>
+    -->
+
+
+    <!-- HTML5 Shim and Respond.js IE8 support of HTML5 elements and media queries -->
+    <!-- WARNING: Respond.js doesn't work if you view the page via file:// -->
+    <!--[if lt IE 9]>
+        <script src="https://oss.maxcdn.com/libs/html5shiv/3.7.0/html5shiv.js"></script>
+        <script src="https://oss.maxcdn.com/libs/respond.js/1.4.2/respond.min.js"></script>
+    <![endif]-->
+
+    <!-- ga & ba script hoook -->
+    <script></script>
+</head>
+
+
+<!-- hack iOS CSS :active style -->
+<body ontouchstart="">
+	<!-- Modified by Yu-Hsuan Yen -->
+<!-- Post Header -->
+<style type="text/css">
+    header.intro-header{
+        
+            background-image: url('/img/header_img/article.jpg')
+            /*post*/
+        
+    }
+    
+</style>
+
+<header class="intro-header" >
+    <!-- Signature -->
+    <div id="signature">
+        <div class="container">
+            <div class="row">
+                <div class="col-lg-8 col-lg-offset-2 col-md-10 col-md-offset-1">
+                
+                    <div class="post-heading">
+                        <div class="tags">
+                            
+                              <a class="tag" href="/tags/#Linux" title="Linux">Linux</a>
+                            
+                              <a class="tag" href="/tags/#MySQL" title="MySQL">MySQL</a>
+                            
+                        </div>
+                        <h1>MySQL 高可用方案选型参考</h1>
+                        <h2 class="subheading"></h2>
+                        <span class="meta">
+                            Posted by Mike on
+                            2016-03-28
+                        </span>
+                    </div>
+                
+
+
+                </div>
+            </div>
+        </div>
+    </div>
+</header>
+
+	
+    <!-- Navigation -->
+<nav class="navbar navbar-default navbar-custom navbar-fixed-top">
+    <div class="container-fluid">
+        <!-- Brand and toggle get grouped for better mobile display -->
+        <div class="navbar-header page-scroll">
+            <button type="button" class="navbar-toggle">
+                <span class="sr-only">Toggle navigation</span>
+                <span class="icon-bar"></span>
+                <span class="icon-bar"></span>
+                <span class="icon-bar"></span>
+            </button>
+            <a class="navbar-brand" href="/">运维之美</a>
+        </div>
+
+        <!-- Collect the nav links, forms, and other content for toggling -->
+        <!-- Known Issue, found by Hux:
+            <nav>'s height woule be hold on by its content.
+            so, when navbar scale out, the <nav> will cover tags.
+            also mask any touch event of tags, unfortunately.
+        -->
+        <div id="huxblog_navbar">
+            <div class="navbar-collapse">
+                <ul class="nav navbar-nav navbar-right">
+                    <li>
+                        <a href="/">Home</a>
+                    </li>
+
+                    
+
+                        
+                    
+
+                        
+                    
+
+                        
+                        <li>
+                            <a href="/archive/">Archives</a>
+                        </li>
+                        
+                    
+
+                        
+                        <li>
+                            <a href="/about/">About</a>
+                        </li>
+                        
+                    
+
+                        
+                        <li>
+                            <a href="/tags/">Tags</a>
+                        </li>
+                        
+                    
+                    
+                </ul>
+            </div>
+        </div>
+        <!-- /.navbar-collapse -->
+    </div>
+    <!-- /.container -->
+</nav>
+<script>
+    // Drop Bootstarp low-performance Navbar
+    // Use customize navbar with high-quality material design animation
+    // in high-perf jank-free CSS3 implementation
+    var $body   = document.body;
+    var $toggle = document.querySelector('.navbar-toggle');
+    var $navbar = document.querySelector('#huxblog_navbar');
+    var $collapse = document.querySelector('.navbar-collapse');
+
+    $toggle.addEventListener('click', handleMagic)
+    function handleMagic(e){
+        if ($navbar.className.indexOf('in') > 0) {
+        // CLOSE
+            $navbar.className = " ";
+            // wait until animation end.
+            setTimeout(function(){
+                // prevent frequently toggle
+                if($navbar.className.indexOf('in') < 0) {
+                    $collapse.style.height = "0px"
+                }
+            },400)
+        }else{
+        // OPEN
+            $collapse.style.height = "auto"
+            $navbar.className += " in";
+        }
+    }
+</script>
+
+
+    <!-- Main Content -->
+    <!-- Modify by Yu-Hsuan Yen -->
+
+<!-- Post Content -->
+<article>
+    <div class="container">
+        <div class="row">
+
+            <!-- Post Container -->
+            <div class="
+                col-lg-8 col-lg-offset-2
+                col-md-10 col-md-offset-1
+                post-container">
+
+                <p>MySQL的各种高可用方案，大多是基于以下几种基础来部署的：</p>
+<blockquote>
+<p>基于主从复制；<br>
+基于Galera协议；<br>
+基于NDB引擎；<br>
+基于中间件/proxy；<br>
+基于共享存储；<br>
+基于主机高可用；</p>
+</blockquote>
+<p>在这些可选项中，最常见的就是基于主从复制的方案，其次是基于Galera的方案，我们重点说说这两种方案。其余几种方案在生产上用的并不多，我们只简单说下。<a id="more"></a></p>
+<h3 id="基于主从复制的高可用方案">基于主从复制的高可用方案</h3>
+<h4 id="双节点主从-keepalivedheartbeat">双节点主从 + keepalived/heartbeat</h4>
+<p>一般来说，中小型规模的时候，采用这种架构是最省事的。</p>
+<p>两个节点可以采用简单的一主一从模式，或者双主模式，并且放置于同一个VLAN中，在master节点发生故障后，利用keepalived/heartbeat的高可用机制实现快速切换到slave节点。</p>
+<p>在这个方案里，有几个需要注意的地方：</p>
+<ul>
+<li>
+<p>采用keepalived作为高可用方案时，两个节点最好都设置成BACKUP模式，避免因为意外情况下（比如脑裂）相互抢占导致往两个节点写入相同数据而引发冲突；</p>
+</li>
+<li>
+<p>把两个节点的auto_increment_increment（自增起始值）和auto_increment_offset（自增步长）设成不同值。其目的是为了避免master节点意外宕机时，可能会有部分binlog未能及时复制到slave上被应用，从而会导致slave新写入数据的自增值和原先master上冲突了，因此一开始就使其错开；当然了，如果有合适的容错机制能解决主从自增ID冲突的话，也可以不这么做；</p>
+</li>
+<li>
+<p>slave节点服务器配置不要太差，否则更容易导致复制延迟。作为热备节点的slave服务器，硬件配置不能低于master节点；</p>
+</li>
+<li>
+<p>如果对延迟问题很敏感的话，可考虑使用MariaDB分支版本，或者直接上线MySQL 5.7最新版本，利用多线程复制的方式可以很大程度降低复制延迟；</p>
+</li>
+<li>
+<p>对复制延迟特别敏感的另一个备选方案，是采用semi sync replication（就是所谓的半同步复制）或者后面会提到的PXC方案，基本上无延迟，不过事务并发性能会有不小程度的损失，需要综合评估再决定；</p>
+</li>
+<li>
+<p>keepalived的检测机制需要适当完善，不能仅仅只是检查mysqld进程是否存活，或者MySQL服务端口是否可通，还应该进一步做数据写入或者运算的探测，判断响应时间，如果超过设定的阈值，就可以启动切换机制；</p>
+</li>
+<li>
+<p>keepalived最终确定进行切换时，还需要判断slave的延迟程度。需要事先定好规则，以便决定在延迟情况下，采取直接切换或等待何种策略。直接切换可能因为复制延迟有些数据无法查询到而重复写入；</p>
+</li>
+<li>
+<p>keepalived或heartbeat自身都无法解决脑裂的问题，因此在进行服务异常判断时，可以调整判断脚本，通过对第三方节点补充检测来决定是否进行切换，可降低脑裂问题产生的风险。</p>
+</li>
+</ul>
+<p>双节点主从+keepalived/heartbeat方案架构示意图见下：</p>
+<p><img src="https://www.hi-linux.com/img/linux/mysqlha-2node-keepalived-wm.png" alt=""></p>
+<p>图解：MySQL双节点（单向/双向主从复制），采用keepalived实现高可用架构。</p>
+<h4 id="多节点主从mhammm">多节点主从+MHA/MMM</h4>
+<p>多节点主从，可以采用一主多从，或者双主多从的模式。<br>
+这种模式下，可以采用MHA或MMM来管理整个集群，目前MHA应用的最多，优先推荐MHA，最新的MHA也已支持MySQL 5.6的GTID模式了，是个好消息。</p>
+<p>MHA的优势很明显：</p>
+<ul>
+<li>
+<p>开源，用Perl开发，代码结构清晰，二次开发容易；</p>
+</li>
+<li>
+<p>方案成熟，故障切换时，MHA会做到较严格的判断，尽量减少数据丢失，保证数据一致性；</p>
+</li>
+<li>
+<p>提供一个通用框架，可根据自己的情况做自定义开发，尤其是判断和切换操作步骤；</p>
+</li>
+<li>
+<p>支持binlog server，可提高binlog传送效率，进一步减少数据丢失风险。</p>
+</li>
+</ul>
+<p>不过MHA也有些限制：</p>
+<ul>
+<li>
+<p>需要在各个节点间打通ssh信任，这对某些公司安全制度来说是个挑战，因为如果某个节点被黑客攻破的话，其他节点也会跟着遭殃；</p>
+</li>
+<li>
+<p>自带提供的脚本还需要进一步补充完善，当然了，一般的使用还是够用的。</p>
+</li>
+</ul>
+<h4 id="多节点主从etcdzookeeper">多节点主从+etcd/zookeeper</h4>
+<p>在大规模节点环境下，采用keepalived或者MHA作为MySQL的高可用管理还是有些复杂或麻烦。<br>
+首先，这么多节点如果没有采用配置服务来管理，必然杂乱无章，线上切换时很容易误操作。<br>
+在较大规模环境下，建议采用etcd/zookeeper管理集群，可实现快速检测切换，以及便捷的节点管理。</p>
+<h3 id="基于galera协议的高可用方案">基于Galera协议的高可用方案</h3>
+<p>Galera是Codership提供的多主数据同步复制机制，可以实现多个节点间的数据同步复制以及读写，并且可保障数据库的服务高可用及数据一致性。<br>
+基于Galera的高可用方案主要有MariaDB Galera Cluster和Percona XtraDB Cluster（简称PXC），目前PXC用的会比较多一些。</p>
+<p>PXC的架构示意图见下<br>
+<img src="https://www.hi-linux.com/img/linux/galera-overview1.png" alt=""></p>
+<p>图解：在底层采用wsrep接口实现数据在多节点间的同步复制。</p>
+<p><img src="https://www.hi-linux.com/img/linux/certificationbasedreplication1.png" alt=""><br>
+图解：在PXC中，一次数据写入在各个节点间的验证/回滚流程。</p>
+<p>PXC的优点</p>
+<ul>
+<li>
+<p>服务高可用；</p>
+</li>
+<li>
+<p>数据同步复制(并发复制)，几乎无延迟；</p>
+</li>
+<li>
+<p>多个可同时读写节点，可实现写扩展，不过最好事先进行分库分表，让各个节点分别写不同的表或者库，避免让galera解决数据冲突；</p>
+</li>
+<li>
+<p>新节点可以自动部署，部署操作简单；</p>
+</li>
+<li>
+<p>数据严格一致性，尤其适合电商类应用；</p>
+</li>
+<li>
+<p>完全兼容MySQL；</p>
+</li>
+</ul>
+<p>虽然有这么多好处，但也有些局限性：</p>
+<ul>
+<li>
+<p>只支持InnoDB引擎；</p>
+</li>
+<li>
+<p>所有表都要有主键；</p>
+</li>
+<li>
+<p>不支持LOCK TABLE等显式锁操作；</p>
+</li>
+<li>
+<p>锁冲突、死锁问题相对更多；</p>
+</li>
+<li>
+<p>不支持XA；</p>
+</li>
+<li>
+<p>集群吞吐量/性能取决于短板；</p>
+</li>
+<li>
+<p>新加入节点采用SST时代价高；</p>
+</li>
+<li>
+<p>存在写扩大问题；</p>
+</li>
+<li>
+<p>如果并发事务量很大的话，建议采用InfiniBand网络，降低网络延迟；</p>
+</li>
+<li>
+<p>事实上，采用PXC的主要目的是解决数据的一致性问题，高可用是顺带实现的。因为PXC存在写扩大以及短板效应，并发效率会有较大损失，类似semi sync replication机制。</p>
+</li>
+</ul>
+<h3 id="其他高可用方案">其他高可用方案</h3>
+<ul>
+<li>
+<p>基于NDB Cluster，由于NDB目前仍有不少缺陷和限制，不建议在生产环境上使用；</p>
+</li>
+<li>
+<p>基于共享存储，一方面需要不太差的存储设备，另外共享存储可也会成为新的单点，除非采用基于高速网络的分布式存储，类似RDS的应用场景，架构方案就更复杂了，成本也可能更高；</p>
+</li>
+<li>
+<p>基于中间件(Proxy)，现在可靠的Proxy选择并不多，而且没有通用的Proxy，都有有所针对，比如有的专注解决读写分离，有的专注分库分表等等，真正好用的Proxy一般要自行开发；</p>
+</li>
+<li>
+<p>基于主机高可用，是指采用类似RHCS构建一个高可用集群后，再部署MySQL应用的方案。老实说，我没实际用过，但从侧面了解到这种方案生产上用的并不多，可能也有些局限性所致吧；</p>
+</li>
+</ul>
+<p>转载自: <a href="http://imysql.com/2015/09/14/solutions-of-mysql-ha.shtml" target="_blank" rel="noopener">http://imysql.com/2015/09/14/solutions-of-mysql-ha.shtml</a></p>
+
+                
+
+                <hr>
+                <!-- Pager -->
+                <ul class="pager">
+                    
+                        <li class="previous">
+                            <a href="/posts/53878/" data-toggle="tooltip" data-placement="top" title="Nginx 的 try_files 指令使用实例">&larr; Previous Post</a>
+                        </li>
+                    
+                    
+                        <li class="next">
+                            <a href="/posts/50680/" data-toggle="tooltip" data-placement="top" title="让 MySQL 支持 emoji 表情符号存储">Next Post &rarr;</a>
+                        </li>
+                    
+                </ul>
+
+                <!-- duoshuo Share start -->
+                
+                <!-- 多说 Share end-->
+
+                <!-- 多说评论框 start -->
+                
+                <!-- 多说评论框 end -->
+
+                <!-- disqus comment start -->
+                
+                <!-- disqus comment end -->
+
+                
+                    <!-- disqus 评论框 start -->
+                    <div class="comment">
+                        <div id="lv-container" data-id="city" data-uid="MTAyMC8yNzg2My80NDQw"></div>
+                    </div>
+                    <!-- disqus 评论框 end -->
+                
+
+            </div>
+            
+            <!-- Tabe of Content -->
+            <!-- Table of Contents -->
+
+  
+    <style>
+      span.toc-nav-number{
+        display: none
+      }
+    </style>
+  
+    
+      <aside id="sidebar">
+        <div id="toc" class="toc-article">
+        <strong class="toc-title">Contents</strong>
+        
+          <ol class="toc-nav"><li class="toc-nav-item toc-nav-level-3"><a class="toc-nav-link" href="#基于主从复制的高可用方案"><span class="toc-nav-number">1.</span> <span class="toc-nav-text">基于主从复制的高可用方案</span></a><ol class="toc-nav-child"><li class="toc-nav-item toc-nav-level-4"><a class="toc-nav-link" href="#双节点主从-keepalivedheartbeat"><span class="toc-nav-number">1.1.</span> <span class="toc-nav-text">双节点主从 + keepalived/heartbeat</span></a></li><li class="toc-nav-item toc-nav-level-4"><a class="toc-nav-link" href="#多节点主从mhammm"><span class="toc-nav-number">1.2.</span> <span class="toc-nav-text">多节点主从+MHA/MMM</span></a></li><li class="toc-nav-item toc-nav-level-4"><a class="toc-nav-link" href="#多节点主从etcdzookeeper"><span class="toc-nav-number">1.3.</span> <span class="toc-nav-text">多节点主从+etcd/zookeeper</span></a></li></ol></li><li class="toc-nav-item toc-nav-level-3"><a class="toc-nav-link" href="#基于galera协议的高可用方案"><span class="toc-nav-number">2.</span> <span class="toc-nav-text">基于Galera协议的高可用方案</span></a></li><li class="toc-nav-item toc-nav-level-3"><a class="toc-nav-link" href="#其他高可用方案"><span class="toc-nav-number">3.</span> <span class="toc-nav-text">其他高可用方案</span></a></li></ol>
+        
+        </div>
+      </aside>
+    
+
+                
+            <!-- Sidebar Container -->
+            <div class="
+                col-lg-8 col-lg-offset-2
+                col-md-10 col-md-offset-1
+                sidebar-container">
+
+                <!-- Featured Tags -->
+                
+                <section>
+                    <!-- no hr -->
+                    <h5><a href="/tags/">FEATURED TAGS</a></h5>
+                    <div class="tags">
+                       
+                          <a class="tag" href="/tags/#Linux" title="Linux">Linux</a>
+                        
+                          <a class="tag" href="/tags/#MySQL" title="MySQL">MySQL</a>
+                        
+                    </div>
+                </section>
+                
+
+                <!-- Friends Blog -->
+                
+                <hr>
+                <h5>FRIENDS</h5>
+                <ul class="list-inline">
+
+                    
+                        <li><a href="http://www.mike.org.cn/" target="_blank">简单.生活</a></li>
+                    
+                        <li><a href="http://shang.qq.com/wpa/qunwpa?idkey=ea4c43493c2269428ac6ef6141de4b6d78e5ab2d41380ca4099b833b62884ee9" target="_blank">技术交流群</a></li>
+                    
+                        <li><a href="" target="_blank"></a></li>
+                    
+                        <li><a href="" target="_blank"></a></li>
+                    
+                </ul>
+                
+            </div>
+        </div>
+    </div>
+</article>
+
+
+
+
+
+
+    <!-- 来必力City版公共JS代码 start (一个网页只需插入一次) -->
+    <script type="text/javascript">
+       (function(d, s) {
+           var j, e = d.getElementsByTagName(s)[0];
+    
+           if (typeof LivereTower === 'function') { return; }
+    
+           j = d.createElement(s);
+           j.src = 'https://cdn-city.livere.com/js/embed.dist.js';
+           j.async = true;
+    
+           e.parentNode.insertBefore(j, e);
+       })(document, 'script');
+    </script>
+    <noscript>为正常使用来必力评论功能请激活JavaScript</noscript>
+    <!-- 来必力City版 公共JS代码 end -->
+
+
+
+<!-- async load function -->
+<script>
+    function async(u, c) {
+      var d = document, t = 'script',
+          o = d.createElement(t),
+          s = d.getElementsByTagName(t)[0];
+      o.src = u;
+      if (c) { o.addEventListener('load', function (e) { c(null, e); }, false); }
+      s.parentNode.insertBefore(o, s);
+    }
+</script>
+<!-- anchor-js, Doc:http://bryanbraun.github.io/anchorjs/ -->
+<script>
+    async("https://cdn.bootcss.com/anchor-js/1.1.1/anchor.min.js",function(){
+        anchors.options = {
+          visible: 'hover',
+          placement: 'left',
+          icon: 'ℬ'
+        };
+        anchors.add().remove('.intro-header h1').remove('.subheading').remove('.sidebar-container h5');
+    })
+</script>
+<style>
+    /* place left on bigger screen */
+    @media all and (min-width: 800px) {
+        .anchorjs-link{
+            position: absolute;
+            left: -0.75em;
+            font-size: 1.1em;
+            margin-top : -0.1em;
+        }
+    }
+</style>
+
+
+
+    <!-- Footer -->
+    <!-- Footer -->
+<footer>
+    <div class="container">
+        <div class="row">
+            <div class="col-lg-8 col-lg-offset-2 col-md-10 col-md-offset-1">
+                <ul class="list-inline text-center">
+                
+                    <li>
+                        <a href="/atom.xml">
+                            <span class="fa-stack fa-lg">
+                                <i class="fa fa-circle fa-stack-2x"></i>
+                                <i class="fa fa-rss fa-stack-1x fa-inverse"></i>
+                            </span>
+                        </a>
+                    </li>
+                
+                
+                
+                    <li>
+                        <a target="_blank" href="https://www.zhihu.com/people/80imike">
+                            <span class="fa-stack fa-lg">
+                                <i class="fa fa-circle fa-stack-2x"></i>
+                                <i class="fa  fa-stack-1x fa-inverse">知</i>
+                            </span>
+                        </a>
+                    </li>
+                
+
+                
+                    <li>
+                        <a target="_blank" href="http://weibo.com/2093524665">
+                            <span class="fa-stack fa-lg">
+                                <i class="fa fa-circle fa-stack-2x"></i>
+                                <i class="fa fa-weibo fa-stack-1x fa-inverse"></i>
+                            </span>
+                        </a>
+                    </li>
+                
+
+                
+
+                
+
+                
+
+                </ul>
+                <p class="copyright text-muted">
+                    Copyright &copy; Mike 2018 | Hosted by <a href="https://pages.coding.me" style="font-weight: bold">Coding Pages</a>
+                    <br>
+                    Theme by <a href="http://beantech.org">BeanTech</a> 
+                    <span style="display: inline-block; margin: 0 5px;">
+                        <i class="fa fa-heart"></i>
+                    </span> 
+                    re-Ported by <a href="http://www.huweihuang.com">胡伟煌</a> | 
+                    <iframe
+                        style="margin-left: 2px; margin-bottom:-5px;"
+                        frameborder="0" scrolling="0" width="91px" height="20px"
+                        src="https://ghbtns.com/github-btn.html?user=huweihuang&repo=hexo-theme-huweihuang&type=star&count=true" >
+                    </iframe>
+                </p>
+            </div>
+        </div>
+    </div>
+</footer>
+
+<!-- jQuery -->
+<script src="/js/jquery.min.js"></script>
+
+<!-- Bootstrap Core JavaScript -->
+<script src="/js/bootstrap.min.js"></script>
+
+<!-- Custom Theme JavaScript -->
+<script src="/js/hux-blog.min.js"></script>
+
+
+<!-- async load function -->
+<script>
+    function async(u, c) {
+      var d = document, t = 'script',
+          o = d.createElement(t),
+          s = d.getElementsByTagName(t)[0];
+      o.src = u;
+      if (c) { o.addEventListener('load', function (e) { c(null, e); }, false); }
+      s.parentNode.insertBefore(o, s);
+    }
+</script>
+
+<!-- 
+     Because of the native support for backtick-style fenced code blocks 
+     right within the Markdown is landed in Github Pages, 
+     From V1.6, There is no need for Highlight.js, 
+     so Huxblog drops it officially.
+
+     - https://github.com/blog/2100-github-pages-now-faster-and-simpler-with-jekyll-3-0  
+     - https://help.github.com/articles/creating-and-highlighting-code-blocks/    
+-->
+<!--
+    <script>
+        async("http://cdn.bootcss.com/highlight.js/8.6/highlight.min.js", function(){
+            hljs.initHighlightingOnLoad();
+        })
+    </script>
+    <link href="http://cdn.bootcss.com/highlight.js/8.6/styles/github.min.css" rel="stylesheet">
+-->
+
+
+<!-- jquery.tagcloud.js -->
+<script>
+    // only load tagcloud.js in tag.html
+    if($('#tag_cloud').length !== 0){
+        async("http://www.hi-linux.com/js/jquery.tagcloud.js",function(){
+            $.fn.tagcloud.defaults = {
+                //size: {start: 1, end: 1, unit: 'em'},
+                color: {start: '#bbbbee', end: '#0085a1'},
+            };
+            $('#tag_cloud a').tagcloud();
+        })
+    }
+</script>
+
+<!--fastClick.js -->
+<script>
+    async("https://cdn.bootcss.com/fastclick/1.0.6/fastclick.min.js", function(){
+        var $nav = document.querySelector("nav");
+        if($nav) FastClick.attach($nav);
+    })
+</script>
+
+
+<!-- Google Analytics -->
+
+
+
+
+<!-- Baidu Tongji -->
+
+
+
+
+
+
+	<a id="rocket" href="#top" class=""></a>
+	<script type="text/javascript" src="/js/totop.js?v=1.0.0" async=""></script>
+    <script type="text/javascript" src="/js/toc.js?v=1.0.0" async=""></script>
+<!-- Image to hack wechat -->
+<img src="http://www.hi-linux.com/img/icon_wechat.png" width="0" height="0" />
+<!-- Migrate from head to bottom, no longer block render and still work -->
+
+</body>
+
+</html>

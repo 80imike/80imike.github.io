@@ -1,0 +1,599 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<!-- Head tag -->
+<head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="google-site-verification" content="xBT4GhYoi5qRD5tr338pgPM5OWHHIDR6mNg1a3euekI" />
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="description" content="">
+    <meta name="keyword"  content="Linux,运维,Nginx,Zabbix,Centos,Ansible,MySQL,Python,Docker,ELK,Haproxy,Git,Nodejs,安全,技术">
+    <link rel="shortcut icon" href="/img/ironman-draw.png">
+    <!-- Place this tag in your head or just before your close body tag. -->
+    <script async defer src="https://buttons.github.io/buttons.js"></script>
+    <title>
+        
+          开启 ControlPersist 来大幅度提升 SSH 的连接速度 - 运维之美
+        
+    </title>
+
+    <link rel="canonical" href="http://www.hi-linux.com/posts/21998/">
+
+    <!-- Bootstrap Core CSS -->
+    <link rel="stylesheet" href="/css/bootstrap.min.css">
+
+    <!-- Custom CSS --> 
+    <link rel="stylesheet" href="/css/beantech.min.css">
+    
+    <!-- Pygments Highlight CSS -->
+    <link rel="stylesheet" href="/css/highlight.css">
+
+    <link rel="stylesheet" href="/css/widget.css">
+
+    <link rel="stylesheet" href="/css/rocket.css">
+
+    <link rel="stylesheet" href="/css/signature.css">
+
+    <link rel="stylesheet" href="/css/toc.css">
+
+    <!-- Custom Fonts -->
+    <!-- <link href="https://maxcdn.bootstrapcdn.com/font-awesome/4.3.0/css/font-awesome.min.css" rel="stylesheet" type="text/css"> -->
+    <!-- Hux change font-awesome CDN to qiniu -->
+    <link href="https://cdn.staticfile.org/font-awesome/4.5.0/css/font-awesome.min.css" rel="stylesheet" type="text/css">
+
+
+    <!-- Hux Delete, sad but pending in China
+    <link href='http://fonts.googleapis.com/css?family=Lora:400,700,400italic,700italic' rel='stylesheet' type='text/css'>
+    <link href='http://fonts.googleapis.com/css?family=Open+Sans:300italic,400italic,600italic,700italic,800italic,400,300,600,700,800' rel='stylesheet' type='text/
+    css'>
+    -->
+
+
+    <!-- HTML5 Shim and Respond.js IE8 support of HTML5 elements and media queries -->
+    <!-- WARNING: Respond.js doesn't work if you view the page via file:// -->
+    <!--[if lt IE 9]>
+        <script src="https://oss.maxcdn.com/libs/html5shiv/3.7.0/html5shiv.js"></script>
+        <script src="https://oss.maxcdn.com/libs/respond.js/1.4.2/respond.min.js"></script>
+    <![endif]-->
+
+    <!-- ga & ba script hoook -->
+    <script></script>
+</head>
+
+
+<!-- hack iOS CSS :active style -->
+<body ontouchstart="">
+	<!-- Modified by Yu-Hsuan Yen -->
+<!-- Post Header -->
+<style type="text/css">
+    header.intro-header{
+        
+            background-image: url('/img/header_img/article.jpg')
+            /*post*/
+        
+    }
+    
+</style>
+
+<header class="intro-header" >
+    <!-- Signature -->
+    <div id="signature">
+        <div class="container">
+            <div class="row">
+                <div class="col-lg-8 col-lg-offset-2 col-md-10 col-md-offset-1">
+                
+                    <div class="post-heading">
+                        <div class="tags">
+                            
+                              <a class="tag" href="/tags/#Linux" title="Linux">Linux</a>
+                            
+                              <a class="tag" href="/tags/#OpenSSH" title="OpenSSH">OpenSSH</a>
+                            
+                        </div>
+                        <h1>开启 ControlPersist 来大幅度提升 SSH 的连接速度</h1>
+                        <h2 class="subheading"></h2>
+                        <span class="meta">
+                            Posted by Mike on
+                            2016-04-13
+                        </span>
+                    </div>
+                
+
+
+                </div>
+            </div>
+        </div>
+    </div>
+</header>
+
+	
+    <!-- Navigation -->
+<nav class="navbar navbar-default navbar-custom navbar-fixed-top">
+    <div class="container-fluid">
+        <!-- Brand and toggle get grouped for better mobile display -->
+        <div class="navbar-header page-scroll">
+            <button type="button" class="navbar-toggle">
+                <span class="sr-only">Toggle navigation</span>
+                <span class="icon-bar"></span>
+                <span class="icon-bar"></span>
+                <span class="icon-bar"></span>
+            </button>
+            <a class="navbar-brand" href="/">运维之美</a>
+        </div>
+
+        <!-- Collect the nav links, forms, and other content for toggling -->
+        <!-- Known Issue, found by Hux:
+            <nav>'s height woule be hold on by its content.
+            so, when navbar scale out, the <nav> will cover tags.
+            also mask any touch event of tags, unfortunately.
+        -->
+        <div id="huxblog_navbar">
+            <div class="navbar-collapse">
+                <ul class="nav navbar-nav navbar-right">
+                    <li>
+                        <a href="/">Home</a>
+                    </li>
+
+                    
+
+                        
+                    
+
+                        
+                    
+
+                        
+                        <li>
+                            <a href="/archive/">Archives</a>
+                        </li>
+                        
+                    
+
+                        
+                        <li>
+                            <a href="/about/">About</a>
+                        </li>
+                        
+                    
+
+                        
+                        <li>
+                            <a href="/tags/">Tags</a>
+                        </li>
+                        
+                    
+                    
+                </ul>
+            </div>
+        </div>
+        <!-- /.navbar-collapse -->
+    </div>
+    <!-- /.container -->
+</nav>
+<script>
+    // Drop Bootstarp low-performance Navbar
+    // Use customize navbar with high-quality material design animation
+    // in high-perf jank-free CSS3 implementation
+    var $body   = document.body;
+    var $toggle = document.querySelector('.navbar-toggle');
+    var $navbar = document.querySelector('#huxblog_navbar');
+    var $collapse = document.querySelector('.navbar-collapse');
+
+    $toggle.addEventListener('click', handleMagic)
+    function handleMagic(e){
+        if ($navbar.className.indexOf('in') > 0) {
+        // CLOSE
+            $navbar.className = " ";
+            // wait until animation end.
+            setTimeout(function(){
+                // prevent frequently toggle
+                if($navbar.className.indexOf('in') < 0) {
+                    $collapse.style.height = "0px"
+                }
+            },400)
+        }else{
+        // OPEN
+            $collapse.style.height = "auto"
+            $navbar.className += " in";
+        }
+    }
+</script>
+
+
+    <!-- Main Content -->
+    <!-- Modify by Yu-Hsuan Yen -->
+
+<!-- Post Content -->
+<article>
+    <div class="container">
+        <div class="row">
+
+            <!-- Post Container -->
+            <div class="
+                col-lg-8 col-lg-offset-2
+                col-md-10 col-md-offset-1
+                post-container">
+
+                <p>背景介绍</p>
+<p>Ansible创建ssh通道相对很慢,虽然ansible在同一个task里面是并行的控制多台受控端.但是每一个task都需要和受控端创建ssh通道,非常影响效率。</p>
+<p>开启SSH的ControlMaster并持久化socket连接，可以加速Ansible的执行速度，不需要在每次都经历SSH认证，并且只需要修改ssh client就行了。单个服务器可能节约的时间仅在1秒左右，而上百台的服务器就能节省约1分钟左右的时间。</p>
+<p>支持这个特性需要比较新的openssh 5.6以上,CentOS6.x默认的版本太旧了并且官方yum仓库中的版本也很旧。</p>
+<p>服务器环境</p>
+<p>CentOS 6.7 x86_64 Minimal</p>
+<a id="more"></a>
+<h3 id="1-编译生成openssh-rpm">1. 编译生成OpenSSH RPM</h3>
+<h4 id="11-安装编译所需工具">1.1 安装编译所需工具</h4>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">$ sudo yum -y groupinstall <span class="string">"Development tools"</span></span><br><span class="line">$ sudo yum -y install pam-devel rpm-build rpmdevtools zlib-devel krb5-devel tcp_wrappers tcp_wrappers-devel tcp_wrappers-libs libX11-devel xmkmf libXt-devel</span><br></pre></td></tr></table></figure>
+<h4 id="12-配置rpm编译环境">1.2 配置RPM编译环境</h4>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line">$ <span class="built_in">cd</span> ~</span><br><span class="line">$ mkdir rpmbuild</span><br><span class="line">$ <span class="built_in">cd</span> rpmbuild</span><br><span class="line">$ mkdir -pv &#123;BUILD,BUILDROOT,RPMS,SOURCES,SPECS,SRPMS,TMP&#125;</span><br><span class="line"></span><br><span class="line">$ <span class="built_in">cd</span> ~</span><br><span class="line">$ vim .rpmmacros</span><br><span class="line"></span><br><span class="line">%_topdir /root/rpmbuild</span><br><span class="line">%_tmppath /root/rpmbuild/TMP</span><br></pre></td></tr></table></figure>
+<h4 id="13-升级openssl到最新">1.3 升级OpenSSL到最新</h4>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">$ sudo yum update openssl</span><br></pre></td></tr></table></figure>
+<h4 id="14-编译openssh-rpm">1.4 编译OpenSSH RPM</h4>
+<h5 id="141-下载源码包">1.4.1 下载源码包</h5>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">$ <span class="built_in">cd</span> ~/rpmbuild/SOURCES/</span><br><span class="line">$ wget http://openbsd.hk/pub/OpenBSD/OpenSSH/portable/openssh-6.6p1.tar.gz</span><br><span class="line">$ wget http://ftp.riken.jp/Linux/momonga/6/Everything/SOURCES/x11-ssh-askpass-1.2.4.1.tar.gz</span><br></pre></td></tr></table></figure>
+<h5 id="142-配置spec文件">1.4.2 配置SPEC文件</h5>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line">$ <span class="built_in">cd</span> ~/rpmbuild/SPECS</span><br><span class="line">$ tar xfz ../SOURCES/openssh-6.6p1.tar.gz openssh-6.6p1/contrib/redhat/openssh.spec</span><br><span class="line">$ mv openssh-6.6p1/contrib/redhat/openssh.spec openssh-6.6p1.spec</span><br><span class="line">$ rm -rf openssh-6.6p1</span><br><span class="line">$ sed -i -e <span class="string">"s/%define no_gnome_askpass 0/%define no_gnome_askpass 1/g"</span> openssh-6.6p1.spec</span><br><span class="line">$ sed -i -e <span class="string">"s/%define no_x11_askpass 0/%define no_x11_askpass 1/g"</span> openssh-6.6p1.spec</span><br><span class="line">$ sed -i -e <span class="string">"s/BuildPreReq/BuildRequires/g"</span> openssh-6.6p1.spec</span><br></pre></td></tr></table></figure>
+<h5 id="143-编译生成rpm">1.4.3 编译生成RPM</h5>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">$ <span class="built_in">cd</span> ~/rpmbuild/SPECS</span><br><span class="line">$ rpmbuild -ba openssh-6.6p1.spec</span><br></pre></td></tr></table></figure>
+<h5 id="144-查看生成的rpm">1.4.4 查看生成的RPM</h5>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">$ <span class="built_in">cd</span> ~/rpmbuild/RPMS/x86_64</span><br><span class="line">$ ls openssh-*</span><br><span class="line">openssh-6.6p1-1.x86_64.rpm  openssh-clients-6.6p1-1.x86_64.rpm  openssh-debuginfo-6.6p1-1.x86_64.rpm  openssh-server-6.6p1-1.x86_64.rpm</span><br></pre></td></tr></table></figure>
+<h5 id="145-安装生成的rpm">1.4.5 安装生成的RPM</h5>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br></pre></td><td class="code"><pre><span class="line">$ <span class="built_in">cd</span> ~/rpmbuild/RPMS/x86_64</span><br><span class="line">yum install openssh-server-6.6p1-1.x86_64.rpm openssh-6.6p1-1.x86_64.rpm openssh-clients-6.6p1-1.x86_64.rpm</span><br><span class="line"></span><br><span class="line">依赖关系解决</span><br><span class="line"></span><br><span class="line">========================================================================================================================================================================================================================================================================</span><br><span class="line"> 软件包                                                            架构                                                     版本                                                      仓库                                                                               大小</span><br><span class="line">========================================================================================================================================================================================================================================================================</span><br><span class="line">正在升级:</span><br><span class="line"> openssh                                                           x86_64                                                   6.6p1-1                                                   /openssh-6.6p1-1.x86_64                                                           1.7 M</span><br><span class="line"> openssh-clients                                                   x86_64                                                   6.6p1-1                                                   /openssh-clients-6.6p1-1.x86_64                                                   1.8 M</span><br><span class="line"> openssh-server                                                    x86_64                                                   6.6p1-1                                                   /openssh-server-6.6p1-1.x86_64                                                    892 k</span><br><span class="line"></span><br><span class="line">事务概要</span><br><span class="line">========================================================================================================================================================================================================================================================================</span><br><span class="line">Upgrade       3 Package(s)</span><br><span class="line"></span><br><span class="line">总文件大小：4.4 M</span><br><span class="line">确定吗？[y/N]：y</span><br><span class="line">下载软件包：</span><br><span class="line">运行 rpm_check_debug </span><br><span class="line">执行事务测试</span><br><span class="line">事务测试成功</span><br><span class="line">执行事务</span><br><span class="line">  正在升级   : openssh-6.6p1-1.x86_64                                                                                                                                                                                                                                     1/6 </span><br><span class="line">  正在升级   : openssh-clients-6.6p1-1.x86_64                                                                                                                                                                                                                             2/6 </span><br><span class="line">  正在升级   : openssh-server-6.6p1-1.x86_64                                                                                                                                                                                                                              3/6 </span><br><span class="line">warning: /etc/ssh/sshd_config created as /etc/ssh/sshd_config.rpmnew</span><br><span class="line">  清理       : openssh-server-5.3p1-112.el6_7.x86_64                                                                                                                                                                                                                      4/6 </span><br><span class="line">  清理       : openssh-clients-5.3p1-112.el6_7.x86_64                                                                                                                                                                                                                     5/6 </span><br><span class="line">  清理       : openssh-5.3p1-112.el6_7.x86_64                                                                                                                                                                                                                             6/6 </span><br><span class="line">  Verifying  : openssh-6.6p1-1.x86_64                                                                                                                                                                                                                                     1/6 </span><br><span class="line">  Verifying  : openssh-clients-6.6p1-1.x86_64                                                                                                                                                                                                                             2/6 </span><br><span class="line">  Verifying  : openssh-server-6.6p1-1.x86_64                                                                                                                                                                                                                              3/6 </span><br><span class="line">  Verifying  : openssh-clients-5.3p1-112.el6_7.x86_64                                                                                                                                                                                                                     4/6 </span><br><span class="line">  Verifying  : openssh-5.3p1-112.el6_7.x86_64                                                                                                                                                                                                                             5/6 </span><br><span class="line">  Verifying  : openssh-server-5.3p1-112.el6_7.x86_64                                                                                                                                                                                                                      6/6 </span><br><span class="line"></span><br><span class="line">更新完毕:</span><br><span class="line">  openssh.x86_64 0:6.6p1-1                                                            openssh-clients.x86_64 0:6.6p1-1                                                            openssh-server.x86_64 0:6.6p1-1</span><br><span class="line"></span><br><span class="line">完毕！</span><br></pre></td></tr></table></figure>
+<h5 id="146-更新ssh配置文件避免某些参数变更造成无法远程登录">1.4.6 更新SSH配置文件，避免某些参数变更造成无法远程登录</h5>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">$ sudo cp /etc/ssh/sshd_config.rpmnew /etc/ssh/sshd_config</span><br><span class="line">$ sudo /etc/init.d/sshd restart</span><br></pre></td></tr></table></figure>
+<h5 id="147-查看已安装的rpm">1.4.7 查看已安装的RPM</h5>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">$ sudo rpm -qa | grep openssh</span><br><span class="line">openssh-clients-6.6p1-1.x86_64</span><br><span class="line">openssh-server-6.6p1-1.x86_64</span><br><span class="line">openssh-6.6p1-1.x86_64</span><br></pre></td></tr></table></figure>
+<h3 id="2-配置controlmaster">2. 配置ControlMaster</h3>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line">$ <span class="built_in">cd</span> ~</span><br><span class="line">$ vim .ssh/config</span><br><span class="line">Host *</span><br><span class="line">  Compression yes</span><br><span class="line">  ServerAliveInterval 60</span><br><span class="line">  ServerAliveCountMax 5</span><br><span class="line">  ControlMaster auto</span><br><span class="line">  ControlPath ~/.ssh/sockets/%r@%h-%p</span><br><span class="line">  ControlPersist 4h</span><br><span class="line"></span><br><span class="line">创建目录用于存放socket文件</span><br><span class="line">mkdir ~/.ssh/sockets</span><br></pre></td></tr></table></figure>
+<h3 id="3-用cmc工具管理sockets">3. 用cmc工具管理sockets</h3>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">$ <span class="built_in">cd</span> ~</span><br><span class="line">$ sudo yum install http://dl.fedoraproject.org/pub/epel/6/x86_64/epel-release-6-8.noarch.rpm</span><br><span class="line">$ sudo yum install git</span><br><span class="line">$ git <span class="built_in">clone</span> https://github.com/ClockworkNet/cmc.git</span><br><span class="line">$ cp cmc/cmc /usr/<span class="built_in">local</span>/bin</span><br></pre></td></tr></table></figure>
+<h3 id="4-使用与测试">4. 使用与测试</h3>
+<h4 id="41-查看当前的sockets">4.1 查看当前的sockets</h4>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">$ cmc -l</span><br><span class="line">No ControlMaster connection sockets found.</span><br></pre></td></tr></table></figure>
+<h4 id="42-统计第一次的执行时间">4.2 统计第一次的执行时间</h4>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">$ time ssh root@server02 <span class="string">'hostname -s'</span></span><br><span class="line">Mike-Slave-01</span><br><span class="line">ssh root@server02 <span class="string">'hostname -s'</span>  0.01s user 0.00s system 14% cpu 0.093 total</span><br></pre></td></tr></table></figure>
+<p>耗时0.093秒</p>
+<h4 id="43-查看当前的sockets">4.3 查看当前的sockets</h4>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">$ cmc -l</span><br><span class="line">server02</span><br><span class="line">  Master running (pid=107064, cmd=ssh: /root/.ssh/sockets/root@server02-22 [mux], start=15:03:46)</span><br><span class="line">  Socket: /root/.ssh/root@server02-22</span><br></pre></td></tr></table></figure>
+<h4 id="44-统计有socket情况下的执行时间">4.4 统计有socket情况下的执行时间</h4>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">$ time ssh root@server02 <span class="string">'hostname -s'</span></span><br><span class="line">Mike-Slave-01</span><br><span class="line">ssh root@server02 <span class="string">'hostname -s'</span>  0.00s user 0.00s system 38% cpu 0.008 total</span><br></pre></td></tr></table></figure>
+<p>耗时0.008秒</p>
+<h4 id="45-删除当前所有的sockets">4.5 删除当前所有的sockets</h4>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">$ cmc -X</span><br><span class="line">server02 - Closing ControlMaster connection</span><br><span class="line">  Exit request sent.</span><br></pre></td></tr></table></figure>
+<h4 id="46-统计没有socket情况下的执行时间">4.6 统计没有socket情况下的执行时间</h4>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">$ time ssh root@server02 <span class="string">'hostname -s'</span></span><br><span class="line">Mike-Slave-01</span><br><span class="line">ssh root@server02 <span class="string">'hostname -s'</span>  0.00s user 0.00s system 9% cpu 0.090 total</span><br></pre></td></tr></table></figure>
+<p>仍然是0.090秒</p>
+<h4 id="47-用ansible验证">4.7 用Ansible验证</h4>
+<p>未持久化socket前需要1.7秒</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line">time ansible server02  -m ping                                       </span><br><span class="line">server02 | success &gt;&gt; &#123;</span><br><span class="line">    <span class="string">"changed"</span>: <span class="literal">false</span>, </span><br><span class="line">    <span class="string">"ping"</span>: <span class="string">"pong"</span></span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line">ansible server02 -m ping  0.22s user 0.29s system 29% cpu 1.736 total</span><br></pre></td></tr></table></figure>
+<p>持久化后375毫秒</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line">time ansible server02  -m ping</span><br><span class="line">server02 | success &gt;&gt; &#123;</span><br><span class="line">    <span class="string">"changed"</span>: <span class="literal">false</span>, </span><br><span class="line">    <span class="string">"ping"</span>: <span class="string">"pong"</span></span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line">ansible server02 -m ping  0.19s user 0.10s system 78% cpu 0.375 total</span><br></pre></td></tr></table></figure>
+<h3 id="5-结论">5. 结论</h3>
+<p>在开启了ControlMaster的持久化之后，SSH在建立了sockets之后，节省了每次验证和创建连接的时间。<br>
+在网络状况不是特别理想，尤其是跨互联网的情况下，所带来的性能提升是非常可观的，而即使在局域网内部使用，每台服务器节省1秒左右的时间，同时操作上百台服务器时，节省的时间也是非常可观的，非常值得拥有。</p>
+<h3 id="6总结">6.总结</h3>
+<p>在应用于线上网络更为复杂的环境中时效果更为明显,在海外美国操作新加坡一次任务从5秒优化到1秒.</p>
+<h3 id="7参考资料">7.参考资料</h3>
+<p><a href="http://www.ptudor.net/linux/openssh/" target="_blank" rel="noopener">http://www.ptudor.net/linux/openssh/</a><br>
+<a href="http://jpmens.net/2012/06/22/ssh-controlmaster/" target="_blank" rel="noopener">http://jpmens.net/2012/06/22/ssh-controlmaster/</a><br>
+<a href="https://github.com/ClockworkNet/cmc" target="_blank" rel="noopener">https://github.com/ClockworkNet/cmc</a><br>
+<a href="http://www.kisops.com/?p=77" target="_blank" rel="noopener">http://www.kisops.com/?p=77</a><br>
+<a href="http://heylinux.com/archives/3152.html" target="_blank" rel="noopener">http://heylinux.com/archives/3152.html</a></p>
+
+                
+
+                <hr>
+                <!-- Pager -->
+                <ul class="pager">
+                    
+                        <li class="previous">
+                            <a href="/posts/12788/" data-toggle="tooltip" data-placement="top" title="CentOS 6 下升级 OpenSSH 至 7.1">&larr; Previous Post</a>
+                        </li>
+                    
+                    
+                        <li class="next">
+                            <a href="/posts/39001/" data-toggle="tooltip" data-placement="top" title="利用 ControlPersist 特性自动登陆 SSH 服务器">Next Post &rarr;</a>
+                        </li>
+                    
+                </ul>
+
+                <!-- duoshuo Share start -->
+                
+                <!-- 多说 Share end-->
+
+                <!-- 多说评论框 start -->
+                
+                <!-- 多说评论框 end -->
+
+                <!-- disqus comment start -->
+                
+                <!-- disqus comment end -->
+
+                
+                    <!-- disqus 评论框 start -->
+                    <div class="comment">
+                        <div id="lv-container" data-id="city" data-uid="MTAyMC8yNzg2My80NDQw"></div>
+                    </div>
+                    <!-- disqus 评论框 end -->
+                
+
+            </div>
+            
+            <!-- Tabe of Content -->
+            <!-- Table of Contents -->
+
+  
+    <style>
+      span.toc-nav-number{
+        display: none
+      }
+    </style>
+  
+    
+      <aside id="sidebar">
+        <div id="toc" class="toc-article">
+        <strong class="toc-title">Contents</strong>
+        
+          <ol class="toc-nav"><li class="toc-nav-item toc-nav-level-3"><a class="toc-nav-link" href="#1-编译生成openssh-rpm"><span class="toc-nav-number">1.</span> <span class="toc-nav-text">1. 编译生成OpenSSH RPM</span></a><ol class="toc-nav-child"><li class="toc-nav-item toc-nav-level-4"><a class="toc-nav-link" href="#11-安装编译所需工具"><span class="toc-nav-number">1.1.</span> <span class="toc-nav-text">1.1 安装编译所需工具</span></a></li><li class="toc-nav-item toc-nav-level-4"><a class="toc-nav-link" href="#12-配置rpm编译环境"><span class="toc-nav-number">1.2.</span> <span class="toc-nav-text">1.2 配置RPM编译环境</span></a></li><li class="toc-nav-item toc-nav-level-4"><a class="toc-nav-link" href="#13-升级openssl到最新"><span class="toc-nav-number">1.3.</span> <span class="toc-nav-text">1.3 升级OpenSSL到最新</span></a></li><li class="toc-nav-item toc-nav-level-4"><a class="toc-nav-link" href="#14-编译openssh-rpm"><span class="toc-nav-number">1.4.</span> <span class="toc-nav-text">1.4 编译OpenSSH RPM</span></a><ol class="toc-nav-child"><li class="toc-nav-item toc-nav-level-5"><a class="toc-nav-link" href="#141-下载源码包"><span class="toc-nav-number">1.4.1.</span> <span class="toc-nav-text">1.4.1 下载源码包</span></a></li><li class="toc-nav-item toc-nav-level-5"><a class="toc-nav-link" href="#142-配置spec文件"><span class="toc-nav-number">1.4.2.</span> <span class="toc-nav-text">1.4.2 配置SPEC文件</span></a></li><li class="toc-nav-item toc-nav-level-5"><a class="toc-nav-link" href="#143-编译生成rpm"><span class="toc-nav-number">1.4.3.</span> <span class="toc-nav-text">1.4.3 编译生成RPM</span></a></li><li class="toc-nav-item toc-nav-level-5"><a class="toc-nav-link" href="#144-查看生成的rpm"><span class="toc-nav-number">1.4.4.</span> <span class="toc-nav-text">1.4.4 查看生成的RPM</span></a></li><li class="toc-nav-item toc-nav-level-5"><a class="toc-nav-link" href="#145-安装生成的rpm"><span class="toc-nav-number">1.4.5.</span> <span class="toc-nav-text">1.4.5 安装生成的RPM</span></a></li><li class="toc-nav-item toc-nav-level-5"><a class="toc-nav-link" href="#146-更新ssh配置文件避免某些参数变更造成无法远程登录"><span class="toc-nav-number">1.4.6.</span> <span class="toc-nav-text">1.4.6 更新SSH配置文件，避免某些参数变更造成无法远程登录</span></a></li><li class="toc-nav-item toc-nav-level-5"><a class="toc-nav-link" href="#147-查看已安装的rpm"><span class="toc-nav-number">1.4.7.</span> <span class="toc-nav-text">1.4.7 查看已安装的RPM</span></a></li></ol></li></ol></li><li class="toc-nav-item toc-nav-level-3"><a class="toc-nav-link" href="#2-配置controlmaster"><span class="toc-nav-number">2.</span> <span class="toc-nav-text">2. 配置ControlMaster</span></a></li><li class="toc-nav-item toc-nav-level-3"><a class="toc-nav-link" href="#3-用cmc工具管理sockets"><span class="toc-nav-number">3.</span> <span class="toc-nav-text">3. 用cmc工具管理sockets</span></a></li><li class="toc-nav-item toc-nav-level-3"><a class="toc-nav-link" href="#4-使用与测试"><span class="toc-nav-number">4.</span> <span class="toc-nav-text">4. 使用与测试</span></a><ol class="toc-nav-child"><li class="toc-nav-item toc-nav-level-4"><a class="toc-nav-link" href="#41-查看当前的sockets"><span class="toc-nav-number">4.1.</span> <span class="toc-nav-text">4.1 查看当前的sockets</span></a></li><li class="toc-nav-item toc-nav-level-4"><a class="toc-nav-link" href="#42-统计第一次的执行时间"><span class="toc-nav-number">4.2.</span> <span class="toc-nav-text">4.2 统计第一次的执行时间</span></a></li><li class="toc-nav-item toc-nav-level-4"><a class="toc-nav-link" href="#43-查看当前的sockets"><span class="toc-nav-number">4.3.</span> <span class="toc-nav-text">4.3 查看当前的sockets</span></a></li><li class="toc-nav-item toc-nav-level-4"><a class="toc-nav-link" href="#44-统计有socket情况下的执行时间"><span class="toc-nav-number">4.4.</span> <span class="toc-nav-text">4.4 统计有socket情况下的执行时间</span></a></li><li class="toc-nav-item toc-nav-level-4"><a class="toc-nav-link" href="#45-删除当前所有的sockets"><span class="toc-nav-number">4.5.</span> <span class="toc-nav-text">4.5 删除当前所有的sockets</span></a></li><li class="toc-nav-item toc-nav-level-4"><a class="toc-nav-link" href="#46-统计没有socket情况下的执行时间"><span class="toc-nav-number">4.6.</span> <span class="toc-nav-text">4.6 统计没有socket情况下的执行时间</span></a></li><li class="toc-nav-item toc-nav-level-4"><a class="toc-nav-link" href="#47-用ansible验证"><span class="toc-nav-number">4.7.</span> <span class="toc-nav-text">4.7 用Ansible验证</span></a></li></ol></li><li class="toc-nav-item toc-nav-level-3"><a class="toc-nav-link" href="#5-结论"><span class="toc-nav-number">5.</span> <span class="toc-nav-text">5. 结论</span></a></li><li class="toc-nav-item toc-nav-level-3"><a class="toc-nav-link" href="#6总结"><span class="toc-nav-number">6.</span> <span class="toc-nav-text">6.总结</span></a></li><li class="toc-nav-item toc-nav-level-3"><a class="toc-nav-link" href="#7参考资料"><span class="toc-nav-number">7.</span> <span class="toc-nav-text">7.参考资料</span></a></li></ol>
+        
+        </div>
+      </aside>
+    
+
+                
+            <!-- Sidebar Container -->
+            <div class="
+                col-lg-8 col-lg-offset-2
+                col-md-10 col-md-offset-1
+                sidebar-container">
+
+                <!-- Featured Tags -->
+                
+                <section>
+                    <!-- no hr -->
+                    <h5><a href="/tags/">FEATURED TAGS</a></h5>
+                    <div class="tags">
+                       
+                          <a class="tag" href="/tags/#Linux" title="Linux">Linux</a>
+                        
+                          <a class="tag" href="/tags/#OpenSSH" title="OpenSSH">OpenSSH</a>
+                        
+                    </div>
+                </section>
+                
+
+                <!-- Friends Blog -->
+                
+                <hr>
+                <h5>FRIENDS</h5>
+                <ul class="list-inline">
+
+                    
+                        <li><a href="http://www.mike.org.cn/" target="_blank">简单.生活</a></li>
+                    
+                        <li><a href="http://shang.qq.com/wpa/qunwpa?idkey=ea4c43493c2269428ac6ef6141de4b6d78e5ab2d41380ca4099b833b62884ee9" target="_blank">技术交流群</a></li>
+                    
+                        <li><a href="" target="_blank"></a></li>
+                    
+                        <li><a href="" target="_blank"></a></li>
+                    
+                </ul>
+                
+            </div>
+        </div>
+    </div>
+</article>
+
+
+
+
+
+
+    <!-- 来必力City版公共JS代码 start (一个网页只需插入一次) -->
+    <script type="text/javascript">
+       (function(d, s) {
+           var j, e = d.getElementsByTagName(s)[0];
+    
+           if (typeof LivereTower === 'function') { return; }
+    
+           j = d.createElement(s);
+           j.src = 'https://cdn-city.livere.com/js/embed.dist.js';
+           j.async = true;
+    
+           e.parentNode.insertBefore(j, e);
+       })(document, 'script');
+    </script>
+    <noscript>为正常使用来必力评论功能请激活JavaScript</noscript>
+    <!-- 来必力City版 公共JS代码 end -->
+
+
+
+<!-- async load function -->
+<script>
+    function async(u, c) {
+      var d = document, t = 'script',
+          o = d.createElement(t),
+          s = d.getElementsByTagName(t)[0];
+      o.src = u;
+      if (c) { o.addEventListener('load', function (e) { c(null, e); }, false); }
+      s.parentNode.insertBefore(o, s);
+    }
+</script>
+<!-- anchor-js, Doc:http://bryanbraun.github.io/anchorjs/ -->
+<script>
+    async("https://cdn.bootcss.com/anchor-js/1.1.1/anchor.min.js",function(){
+        anchors.options = {
+          visible: 'hover',
+          placement: 'left',
+          icon: 'ℬ'
+        };
+        anchors.add().remove('.intro-header h1').remove('.subheading').remove('.sidebar-container h5');
+    })
+</script>
+<style>
+    /* place left on bigger screen */
+    @media all and (min-width: 800px) {
+        .anchorjs-link{
+            position: absolute;
+            left: -0.75em;
+            font-size: 1.1em;
+            margin-top : -0.1em;
+        }
+    }
+</style>
+
+
+
+    <!-- Footer -->
+    <!-- Footer -->
+<footer>
+    <div class="container">
+        <div class="row">
+            <div class="col-lg-8 col-lg-offset-2 col-md-10 col-md-offset-1">
+                <ul class="list-inline text-center">
+                
+                    <li>
+                        <a href="/atom.xml">
+                            <span class="fa-stack fa-lg">
+                                <i class="fa fa-circle fa-stack-2x"></i>
+                                <i class="fa fa-rss fa-stack-1x fa-inverse"></i>
+                            </span>
+                        </a>
+                    </li>
+                
+                
+                
+                    <li>
+                        <a target="_blank" href="https://www.zhihu.com/people/80imike">
+                            <span class="fa-stack fa-lg">
+                                <i class="fa fa-circle fa-stack-2x"></i>
+                                <i class="fa  fa-stack-1x fa-inverse">知</i>
+                            </span>
+                        </a>
+                    </li>
+                
+
+                
+                    <li>
+                        <a target="_blank" href="http://weibo.com/2093524665">
+                            <span class="fa-stack fa-lg">
+                                <i class="fa fa-circle fa-stack-2x"></i>
+                                <i class="fa fa-weibo fa-stack-1x fa-inverse"></i>
+                            </span>
+                        </a>
+                    </li>
+                
+
+                
+
+                
+
+                
+
+                </ul>
+                <p class="copyright text-muted">
+                    Copyright &copy; Mike 2018 | Hosted by <a href="https://pages.coding.me" style="font-weight: bold">Coding Pages</a>
+                    <br>
+                    Theme by <a href="http://beantech.org">BeanTech</a> 
+                    <span style="display: inline-block; margin: 0 5px;">
+                        <i class="fa fa-heart"></i>
+                    </span> 
+                    re-Ported by <a href="http://www.huweihuang.com">胡伟煌</a> | 
+                    <iframe
+                        style="margin-left: 2px; margin-bottom:-5px;"
+                        frameborder="0" scrolling="0" width="91px" height="20px"
+                        src="https://ghbtns.com/github-btn.html?user=huweihuang&repo=hexo-theme-huweihuang&type=star&count=true" >
+                    </iframe>
+                </p>
+            </div>
+        </div>
+    </div>
+</footer>
+
+<!-- jQuery -->
+<script src="/js/jquery.min.js"></script>
+
+<!-- Bootstrap Core JavaScript -->
+<script src="/js/bootstrap.min.js"></script>
+
+<!-- Custom Theme JavaScript -->
+<script src="/js/hux-blog.min.js"></script>
+
+
+<!-- async load function -->
+<script>
+    function async(u, c) {
+      var d = document, t = 'script',
+          o = d.createElement(t),
+          s = d.getElementsByTagName(t)[0];
+      o.src = u;
+      if (c) { o.addEventListener('load', function (e) { c(null, e); }, false); }
+      s.parentNode.insertBefore(o, s);
+    }
+</script>
+
+<!-- 
+     Because of the native support for backtick-style fenced code blocks 
+     right within the Markdown is landed in Github Pages, 
+     From V1.6, There is no need for Highlight.js, 
+     so Huxblog drops it officially.
+
+     - https://github.com/blog/2100-github-pages-now-faster-and-simpler-with-jekyll-3-0  
+     - https://help.github.com/articles/creating-and-highlighting-code-blocks/    
+-->
+<!--
+    <script>
+        async("http://cdn.bootcss.com/highlight.js/8.6/highlight.min.js", function(){
+            hljs.initHighlightingOnLoad();
+        })
+    </script>
+    <link href="http://cdn.bootcss.com/highlight.js/8.6/styles/github.min.css" rel="stylesheet">
+-->
+
+
+<!-- jquery.tagcloud.js -->
+<script>
+    // only load tagcloud.js in tag.html
+    if($('#tag_cloud').length !== 0){
+        async("http://www.hi-linux.com/js/jquery.tagcloud.js",function(){
+            $.fn.tagcloud.defaults = {
+                //size: {start: 1, end: 1, unit: 'em'},
+                color: {start: '#bbbbee', end: '#0085a1'},
+            };
+            $('#tag_cloud a').tagcloud();
+        })
+    }
+</script>
+
+<!--fastClick.js -->
+<script>
+    async("https://cdn.bootcss.com/fastclick/1.0.6/fastclick.min.js", function(){
+        var $nav = document.querySelector("nav");
+        if($nav) FastClick.attach($nav);
+    })
+</script>
+
+
+<!-- Google Analytics -->
+
+
+
+
+<!-- Baidu Tongji -->
+
+
+
+
+
+
+	<a id="rocket" href="#top" class=""></a>
+	<script type="text/javascript" src="/js/totop.js?v=1.0.0" async=""></script>
+    <script type="text/javascript" src="/js/toc.js?v=1.0.0" async=""></script>
+<!-- Image to hack wechat -->
+<img src="http://www.hi-linux.com/img/icon_wechat.png" width="0" height="0" />
+<!-- Migrate from head to bottom, no longer block render and still work -->
+
+</body>
+
+</html>

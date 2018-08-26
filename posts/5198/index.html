@@ -1,0 +1,699 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<!-- Head tag -->
+<head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="google-site-verification" content="xBT4GhYoi5qRD5tr338pgPM5OWHHIDR6mNg1a3euekI" />
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="description" content="">
+    <meta name="keyword"  content="Linux,运维,Nginx,Zabbix,Centos,Ansible,MySQL,Python,Docker,ELK,Haproxy,Git,Nodejs,安全,技术">
+    <link rel="shortcut icon" href="/img/ironman-draw.png">
+    <!-- Place this tag in your head or just before your close body tag. -->
+    <script async defer src="https://buttons.github.io/buttons.js"></script>
+    <title>
+        
+          Linux 系统性能监控工具 Tsar - 运维之美
+        
+    </title>
+
+    <link rel="canonical" href="http://www.hi-linux.com/posts/5198/">
+
+    <!-- Bootstrap Core CSS -->
+    <link rel="stylesheet" href="/css/bootstrap.min.css">
+
+    <!-- Custom CSS --> 
+    <link rel="stylesheet" href="/css/beantech.min.css">
+    
+    <!-- Pygments Highlight CSS -->
+    <link rel="stylesheet" href="/css/highlight.css">
+
+    <link rel="stylesheet" href="/css/widget.css">
+
+    <link rel="stylesheet" href="/css/rocket.css">
+
+    <link rel="stylesheet" href="/css/signature.css">
+
+    <link rel="stylesheet" href="/css/toc.css">
+
+    <!-- Custom Fonts -->
+    <!-- <link href="https://maxcdn.bootstrapcdn.com/font-awesome/4.3.0/css/font-awesome.min.css" rel="stylesheet" type="text/css"> -->
+    <!-- Hux change font-awesome CDN to qiniu -->
+    <link href="https://cdn.staticfile.org/font-awesome/4.5.0/css/font-awesome.min.css" rel="stylesheet" type="text/css">
+
+
+    <!-- Hux Delete, sad but pending in China
+    <link href='http://fonts.googleapis.com/css?family=Lora:400,700,400italic,700italic' rel='stylesheet' type='text/css'>
+    <link href='http://fonts.googleapis.com/css?family=Open+Sans:300italic,400italic,600italic,700italic,800italic,400,300,600,700,800' rel='stylesheet' type='text/
+    css'>
+    -->
+
+
+    <!-- HTML5 Shim and Respond.js IE8 support of HTML5 elements and media queries -->
+    <!-- WARNING: Respond.js doesn't work if you view the page via file:// -->
+    <!--[if lt IE 9]>
+        <script src="https://oss.maxcdn.com/libs/html5shiv/3.7.0/html5shiv.js"></script>
+        <script src="https://oss.maxcdn.com/libs/respond.js/1.4.2/respond.min.js"></script>
+    <![endif]-->
+
+    <!-- ga & ba script hoook -->
+    <script></script>
+</head>
+
+
+<!-- hack iOS CSS :active style -->
+<body ontouchstart="">
+	<!-- Modified by Yu-Hsuan Yen -->
+<!-- Post Header -->
+<style type="text/css">
+    header.intro-header{
+        
+            background-image: url('/img/header_img/article.jpg')
+            /*post*/
+        
+    }
+    
+</style>
+
+<header class="intro-header" >
+    <!-- Signature -->
+    <div id="signature">
+        <div class="container">
+            <div class="row">
+                <div class="col-lg-8 col-lg-offset-2 col-md-10 col-md-offset-1">
+                
+                    <div class="post-heading">
+                        <div class="tags">
+                            
+                              <a class="tag" href="/tags/#Linux" title="Linux">Linux</a>
+                            
+                              <a class="tag" href="/tags/#Tsar" title="Tsar">Tsar</a>
+                            
+                        </div>
+                        <h1>Linux 系统性能监控工具 Tsar</h1>
+                        <h2 class="subheading"></h2>
+                        <span class="meta">
+                            Posted by Mike on
+                            2016-05-18
+                        </span>
+                    </div>
+                
+
+
+                </div>
+            </div>
+        </div>
+    </div>
+</header>
+
+	
+    <!-- Navigation -->
+<nav class="navbar navbar-default navbar-custom navbar-fixed-top">
+    <div class="container-fluid">
+        <!-- Brand and toggle get grouped for better mobile display -->
+        <div class="navbar-header page-scroll">
+            <button type="button" class="navbar-toggle">
+                <span class="sr-only">Toggle navigation</span>
+                <span class="icon-bar"></span>
+                <span class="icon-bar"></span>
+                <span class="icon-bar"></span>
+            </button>
+            <a class="navbar-brand" href="/">运维之美</a>
+        </div>
+
+        <!-- Collect the nav links, forms, and other content for toggling -->
+        <!-- Known Issue, found by Hux:
+            <nav>'s height woule be hold on by its content.
+            so, when navbar scale out, the <nav> will cover tags.
+            also mask any touch event of tags, unfortunately.
+        -->
+        <div id="huxblog_navbar">
+            <div class="navbar-collapse">
+                <ul class="nav navbar-nav navbar-right">
+                    <li>
+                        <a href="/">Home</a>
+                    </li>
+
+                    
+
+                        
+                    
+
+                        
+                    
+
+                        
+                        <li>
+                            <a href="/archive/">Archives</a>
+                        </li>
+                        
+                    
+
+                        
+                        <li>
+                            <a href="/about/">About</a>
+                        </li>
+                        
+                    
+
+                        
+                        <li>
+                            <a href="/tags/">Tags</a>
+                        </li>
+                        
+                    
+                    
+                </ul>
+            </div>
+        </div>
+        <!-- /.navbar-collapse -->
+    </div>
+    <!-- /.container -->
+</nav>
+<script>
+    // Drop Bootstarp low-performance Navbar
+    // Use customize navbar with high-quality material design animation
+    // in high-perf jank-free CSS3 implementation
+    var $body   = document.body;
+    var $toggle = document.querySelector('.navbar-toggle');
+    var $navbar = document.querySelector('#huxblog_navbar');
+    var $collapse = document.querySelector('.navbar-collapse');
+
+    $toggle.addEventListener('click', handleMagic)
+    function handleMagic(e){
+        if ($navbar.className.indexOf('in') > 0) {
+        // CLOSE
+            $navbar.className = " ";
+            // wait until animation end.
+            setTimeout(function(){
+                // prevent frequently toggle
+                if($navbar.className.indexOf('in') < 0) {
+                    $collapse.style.height = "0px"
+                }
+            },400)
+        }else{
+        // OPEN
+            $collapse.style.height = "auto"
+            $navbar.className += " in";
+        }
+    }
+</script>
+
+
+    <!-- Main Content -->
+    <!-- Modify by Yu-Hsuan Yen -->
+
+<!-- Post Content -->
+<article>
+    <div class="container">
+        <div class="row">
+
+            <!-- Post Container -->
+            <div class="
+                col-lg-8 col-lg-offset-2
+                col-md-10 col-md-offset-1
+                post-container">
+
+                <h3 id="tsar简介">Tsar简介</h3>
+<ul>
+<li>Tsar是淘宝自己开发的一个采集工具，主要用来收集服务器的系统信息(如cpu，io，mem，tcp等)，以及应用数据(如squid haproxy nginx等)。</li>
+<li>收集到的数据存储在磁盘上，可以随时查询历史信息，输出方式灵活多样，另外支持将数据存储到mysql中，也可以将数据发送到nagios报警服务器。</li>
+<li>Tsar在展示数据时，可以指定模块，并且可以对多条信息的数据进行merge输出，带–live参数可以输出秒级的实时信息。</li>
+<li>Tsar能够比较方便的增加模块，只需要按照tsar的要求编写数据的采集函数和展现函数，就可以把自定义的模块加入到Tsar中。</li>
+</ul>
+<a id="more"></a>
+<p><strong>总体架构</strong></p>
+<ul>
+<li>Tsar是基于模块化设计的程序，程序有两部分组成：框架和模块。</li>
+<li>框架程序源代码主要在src目录，而模块源代码主要在modules目录中。</li>
+<li>框架提供对配置文件的解析，模块的加载，命令行参数的解析，应用模块的接口对模块原始数据的解析与输出。 模块提供接口给框架调用。</li>
+<li>Tsar依赖与cron每分钟执行采集数据，因此它需要系统安装并启用crond，安装后，tsar每分钟会执行<code>tsar --cron</code>来定时采集信息，并且记录到原始日志文件。</li>
+</ul>
+<p><strong>Tsar的运行流程图</strong></p>
+<p><img src="https://www.hi-linux.com/img/linux/tsar.png" alt=""></p>
+<p>主要执行流程</p>
+<blockquote>
+<p>1.解析输入<br>
+根据用户的输入，初始化一些全局信息，如间隔时间，是否merge，是否指定模块，运行模式</p>
+</blockquote>
+<blockquote>
+<p>2.读取配置文件信息<br>
+主要解析tsar的配置文件，如果include生效，则会解析include的配置文件<br>
+配置文件用来获得tsar需要加载的模块，输出方式，每一类输出方式包含的模块，和此输出方式的接收信息<br>
+如mod_cpu on代表采集cpu的信息<br>
+output_interface file,nagios表示向文件和nagios服务器发送采集信息和报警信息</p>
+</blockquote>
+<blockquote>
+<p>3.加载相应模块<br>
+根据配置文件的模块开启关闭情况，将模块的动态库load到系统</p>
+</blockquote>
+<blockquote>
+<p>4.tsar的三种运行模式<br>
+tsar在运行的时候有三种模式：<br>
+print模式仅仅输出指定的模块信息，默认显示最近一天的；<br>
+live模式是输出当前信息，可以精确到秒级<br>
+cron模式，此一般是crontab定时执行，每一分钟采集一次所有配置的模块信息，并将数据写入原始文件，在cron运行的时候 会判断是否配置输出到db或者nagios，如果配置则将相应格式的数据输出到对应接口。</p>
+</blockquote>
+<blockquote>
+<p>5.释放资源<br>
+程序最后，释放动态库，程序结束</p>
+</blockquote>
+<p>项目地址: <a href="https://github.com/alibaba/tsar" target="_blank" rel="noopener">https://github.com/alibaba/tsar</a></p>
+<h3 id="tsar安装">Tsar安装</h3>
+<p><strong>从github上检出代码</strong></p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">$ git clone git://github.com/alibaba/tsar.git</span><br><span class="line">$ cd tsar</span><br><span class="line">$ make</span><br><span class="line">$ make install</span><br></pre></td></tr></table></figure>
+<p><strong>从github上下载源码</strong></p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">$ wget -O tsar.zip https://github.com/alibaba/tsar/archive/master.zip --no-check-certificate</span><br><span class="line">$ unzip tsar.zip</span><br><span class="line">$ cd tsar</span><br><span class="line">$ make</span><br><span class="line">$ make install</span><br></pre></td></tr></table></figure>
+<p><strong>安装后生成的文件</strong></p>
+<blockquote>
+<p>Tsar配置文件路径：/etc/tsar/tsar.conf，tsar的采集模块和输出的具体配置；<br>
+定时任务配置:/etc/cron.d/tsar，负责每分钟调用tsar执行采集任务；<br>
+日志文件轮转配置:/etc/logrotate.d/tsar，每个月会把tsar的本地存储进行轮转；<br>
+模块路径：/usr/local/tsar/modules，各个模块的动态库so文件；</p>
+</blockquote>
+<h3 id="tsar配置">Tsar配置</h3>
+<p><strong>Tsar配置文件介绍</strong></p>
+<ul>
+<li>定时任务配置</li>
+</ul>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">$ cat  /etc/cron.d/tsar</span><br><span class="line"># cron tsar collect once per minute</span><br><span class="line">MAILTO=&quot;&quot;</span><br><span class="line">* * * * * root /usr/bin/tsar --cron &gt; /dev/null 2&gt;&amp;1</span><br></pre></td></tr></table></figure>
+<p>如上所示，<code>/etc/cron.d/tsar</code>里面负责每分钟以root用户的角色调用tsar命令来执行数据采集。</p>
+<ul>
+<li>日志文件轮转</li>
+</ul>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br></pre></td><td class="code"><pre><span class="line">$ cat /etc/logrotate.d/tsar </span><br><span class="line">/var/log/tsar.data</span><br><span class="line">&#123;</span><br><span class="line">monthly</span><br><span class="line">rotate 120</span><br><span class="line">create</span><br><span class="line">nocompress</span><br><span class="line">nodateext</span><br><span class="line">notifempty</span><br><span class="line">prerotate</span><br><span class="line">/usr/bin/chattr -a /var/log/tsar.data</span><br><span class="line">endscript</span><br><span class="line">postrotate</span><br><span class="line">/usr/bin/chattr +a /var/log/tsar.data</span><br><span class="line">endscript</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>在日志文件轮转配置中，每个月会把tsar的本地存储进行轮转，此外这里也设定了数据在<code>/var/log/tsar.data</code>下</p>
+<ul>
+<li>配置文件</li>
+</ul>
+<p><code>/etc/tsar/tsar.conf</code>负责tsar的采集模块和输出的具体配置；在这里配置启用哪些模块，输出等内容。</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br><span class="line">70</span><br><span class="line">71</span><br><span class="line">72</span><br><span class="line">73</span><br><span class="line">74</span><br><span class="line">75</span><br><span class="line">76</span><br><span class="line">77</span><br></pre></td><td class="code"><pre><span class="line">$ cat /etc/tsar/tsar.conf</span><br><span class="line">####debug_level(INFO DEBUG WARN ERROR FATAL)</span><br><span class="line">debug_level ERROR</span><br><span class="line">####[module]</span><br><span class="line">mod_cpu on</span><br><span class="line">mod_mem on</span><br><span class="line">mod_swap on</span><br><span class="line">mod_tcp on</span><br><span class="line">mod_udp on</span><br><span class="line">mod_traffic on</span><br><span class="line">mod_io on</span><br><span class="line">mod_pcsw on</span><br><span class="line">mod_partition on</span><br><span class="line">mod_tcpx on</span><br><span class="line">mod_load on</span><br><span class="line">mod_apache off</span><br><span class="line">mod_lvs off</span><br><span class="line">mod_haproxy off</span><br><span class="line">mod_squid off</span><br><span class="line">mod_nginx off</span><br><span class="line">mod_nginx_multiport off</span><br><span class="line">mod_nginx_live off</span><br><span class="line">#mod_nginx_sys_mport on 80 8080</span><br><span class="line">mod_swift off</span><br><span class="line">mod_swift_code off</span><br><span class="line">mod_swift_domain off</span><br><span class="line">mod_swift_esi off</span><br><span class="line">mod_swift_fwd off</span><br><span class="line">mod_swift_store off</span><br><span class="line">mod_swift_swapdir off</span><br><span class="line">mod_swift_purge off</span><br><span class="line">mod_swift_sys off</span><br><span class="line">mod_swift_tcmalloc off</span><br><span class="line">mod_tmd off</span><br><span class="line">mod_percpu off</span><br><span class="line">mod_tcprt off</span><br><span class="line">mod_proc off pidname</span><br><span class="line">mod_pharos off</span><br><span class="line">mod_tmd4 off</span><br><span class="line">mod_keyserver off</span><br><span class="line">#mod_erpc on /etc/tsar/erpc.conf</span><br><span class="line">#mod_search on</span><br><span class="line"></span><br><span class="line">####output_interface file,db,nagios</span><br><span class="line">output_interface file</span><br><span class="line"></span><br><span class="line">####[output_file] original data to store</span><br><span class="line">output_file_path /var/log/tsar.data</span><br><span class="line"></span><br><span class="line">####[output_stdio] these mod will be show as using tsar command</span><br><span class="line">output_stdio_mod mod_swap,mod_partition,mod_cpu,mod_mem,mod_lvs,mod_haproxy,mod_traffic,mod_squid,mod_load,mod_tcp,mod_udp,mod_tcpx,mod_apache,mod_pcsw,mod_io,mod_percpu</span><br><span class="line"></span><br><span class="line">####[output_db]</span><br><span class="line">#output_db_mod mod_swap,mod_partition,mod_cpu,mod_mem,mod_traffic,mod_load,mod_tcp,mod_udp,mod_pcsw,mod_io</span><br><span class="line">#output_db_addr console2:56677</span><br><span class="line"></span><br><span class="line">####[output_tcp]</span><br><span class="line">#output_tcp_mod mod_swap,mod_cpu</span><br><span class="line">#output_tcp_addr localhost:9666</span><br><span class="line">#output_tcp_merge on</span><br><span class="line"></span><br><span class="line">####support include other mod conf</span><br><span class="line">include /etc/tsar/conf.d/*.conf</span><br><span class="line"></span><br><span class="line">####The IP address or the host running the NSCA daemon</span><br><span class="line">#server_addr nagios.server.com</span><br><span class="line">####The port on which the daemon is running - default is 5667</span><br><span class="line">#server_port 8086</span><br><span class="line">####The cycle of send alert to nagios</span><br><span class="line">#cycle_time 300</span><br><span class="line">####nsca client program</span><br><span class="line">#send_nsca_cmd /usr/bin/send_nsca</span><br><span class="line">#send_nsca_conf /home/a/conf/amon/send_nsca.conf</span><br><span class="line"></span><br><span class="line">####tsar mod alert config file</span><br><span class="line">####threshold servicename.key;w-min;w-max;c-min;cmax;</span><br><span class="line">#threshold cpu.util;N;N;N;N;</span><br></pre></td></tr></table></figure>
+<p><strong>常用参数说明</strong></p>
+<blockquote>
+<p>debug_level       指定tsar的运行级别，主要用来调试使用<br>
+mod_xxx on/off    开启指定模块<br>
+out_interface     设置输出类型，支持file，nagios，db<br>
+out_stdio_mod     设置用户终端默认显示的模块<br>
+output_db_mod     设置哪些模块输出到数据库<br>
+output_db_addr    数据库的ip和端口<br>
+output_nagios_mod 设置哪些模块输出到nagios<br>
+include           支持include配置，主要用来加载用户的自定义模块<br>
+cycle_time        指定上报的间隔时间，由于tsar每一分钟采集一次，上报时会判断是否符合时间间隔，如设置300的话，则在0，5等整点分钟会上报nagios<br>
+threshold         设置某个要报警项的阀值,前面是模块和要监控的具体名称，后面的四个数据代表报警的范围，warn和critical的范围</p>
+</blockquote>
+<ul>
+<li>自定义模块配置文件</li>
+</ul>
+<p><code>/etc/tsar/conf.d/</code>这个目录下是用户的自定义模块配置文件,配置基本在用户开发自定义模块时确定，主要包含模块的开启，输出类型和报警范围</p>
+<h3 id="tsar使用介绍">Tsar使用介绍</h3>
+<p>在Tsar的使用中，可以参考下面的帮助信息，完成对应的监控。</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br></pre></td><td class="code"><pre><span class="line">$ tsar -h</span><br><span class="line">Usage: tsar [options]</span><br><span class="line">Options:</span><br><span class="line">    -check         查看最后一次的采集数据</span><br><span class="line">    --check/-C     查看最后一次tsar的提醒信息，如：tsar --check / tsar --check --cpu --io</span><br><span class="line">    --cron/-c      使用crond模式来进行tsar监控</span><br><span class="line">    --interval/-i  指明tsar的间隔时间，默认单位分钟,默认显示间隔5分钟；带上--live参数则单位是秒，默认是5秒。 </span><br><span class="line">    --list/-L      列出启用的模块</span><br><span class="line">    --live/-l      启用实时模式，类似iostat等，可以配合-i参数和模块参数使用。</span><br><span class="line">    --file/-f      指定输入文件</span><br><span class="line">    --ndays/-n     控制显示多长时间的历史数据，默认1天</span><br><span class="line">    --date/-d      指定日期,YYYYMMDD或者n代表n天前</span><br><span class="line">    --detail/-D    能够指定查看主要字段还是模块的所有字段</span><br><span class="line">    --spec/-s      指定字段,tsar –cpu -s sys,util</span><br><span class="line">    --watch/-w     显示最后多少分钟的记录. 如:tsar --watch 30 / tsar --watch 30 --cpu --io</span><br><span class="line">    --merge/-m     对有多个数据的展示，进行汇总，如机器上跑了3个squid，可以用 tsar –squid -m的放式进行展示汇总。</span><br><span class="line">    --item/-I      显示指定项目数据, 如:tsar --io -I sda</span><br><span class="line">    -–help/-h      显示提示信息和模块信息</span><br><span class="line">Modules Enabled:</span><br><span class="line">    --cpu          列出cpu相关的监控计数</span><br><span class="line">    --mem          物理内存的使用情况</span><br><span class="line">    --swap         虚拟内存的使用情况</span><br><span class="line">    --tcp          TCP协议IPV4的使用情况</span><br><span class="line">    --udp          UDP协议IPV4的使用情况</span><br><span class="line">    --traffic      网络传出的使用情况</span><br><span class="line">    --io           Linux IO的情况</span><br><span class="line">    --pcsw         进程和上下文切换</span><br><span class="line">    --partition    磁盘使用情况</span><br><span class="line">    --tcpx         TCP连接相关的数据参数</span><br><span class="line">    --load         系统负载情况</span><br></pre></td></tr></table></figure>
+<ul>
+<li>tsar命令行主要担负显示历史数据和实时数据的功能，因此有控制展示模块和格式化输出的参数，默认不带任何参数/选项的情况下，tsar打印汇总信息。</li>
+<li>tsar命令行主要显示给人看的，所以数据展示中都进行了k/m/g等的进位。</li>
+<li>tsar命令会在显示20行数据后再次打印各个列的列头，以利于用户理解数据的含义。</li>
+<li>tsar的列头信息包括2行，第一行为模块名，第二行为列名。</li>
+<li>tsar输出最后会作min/avg/max的汇总统计，统计所展示中的最小/平均/最大数据。</li>
+</ul>
+<h3 id="tsar使用实例">Tsar使用实例</h3>
+<h4 id="tsar监控系统">Tsar监控系统</h4>
+<p>查看可用的模块列表</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line">$ tsar -L</span><br><span class="line">tsar enable follow modules:</span><br><span class="line">    cpu</span><br><span class="line">    mem</span><br><span class="line">    swap</span><br><span class="line">    tcp</span><br><span class="line">    udp</span><br><span class="line">    traffic</span><br><span class="line">    io</span><br><span class="line">    pcsw</span><br><span class="line">    partition</span><br><span class="line">    tcpx</span><br><span class="line">    load</span><br></pre></td></tr></table></figure>
+<p>查看指定模块的运行状况,模块是指<code>tsar -L</code>列出来的名称。如查看CPU运行情况</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br></pre></td><td class="code"><pre><span class="line">$ tsar --cpu</span><br><span class="line">Time           -----------------------cpu---------------------- </span><br><span class="line">Time             user     sys    wait    hirq    sirq    util   </span><br><span class="line">18/05/16-09:20   0.03    0.08    0.01    0.00    0.02    0.12   </span><br><span class="line">18/05/16-09:25   0.00    0.02    0.00    0.00    0.01    0.04   </span><br><span class="line">18/05/16-09:30   0.00    0.02    0.00    0.00    0.02    0.05   </span><br><span class="line">18/05/16-09:35   0.00    0.87    2.06    0.00    0.02    0.90   </span><br><span class="line">18/05/16-09:40   0.00    0.03    0.00    0.00    0.02    0.05   </span><br><span class="line">18/05/16-09:45   0.00    0.02    0.00    0.00    0.02    0.04   </span><br><span class="line">18/05/16-09:50   0.00    0.02    0.00    0.00    0.02    0.04   </span><br><span class="line">18/05/16-09:55   0.01    0.02    0.00    0.00    0.02    0.05   </span><br><span class="line">18/05/16-10:00   0.00    0.02    0.00    0.00    0.02    0.05   </span><br><span class="line">18/05/16-10:05   0.07    0.16    0.00    0.00    0.02    0.24   </span><br><span class="line">18/05/16-10:10   0.12    0.32    0.04    0.00    0.02    0.46   </span><br><span class="line">18/05/16-10:15   0.02    0.09    0.00    0.00    0.02    0.13   </span><br><span class="line">18/05/16-10:20   0.04    0.15    0.00    0.00    0.02    0.20   </span><br><span class="line">18/05/16-10:25   0.03    0.07    0.00    0.00    0.02    0.11   </span><br><span class="line">18/05/16-10:30   0.01    0.03    0.00    0.00    0.02    0.05   </span><br><span class="line">18/05/16-10:35   0.00    0.02    0.00    0.00    0.02    0.04   </span><br><span class="line">18/05/16-10:40   0.01    0.03    0.00    0.00    0.02    0.05   </span><br><span class="line">18/05/16-10:45   0.00    0.02    0.00    0.00    0.02    0.05   </span><br><span class="line">18/05/16-10:50   0.00    0.03    0.00    0.00    0.02    0.05   </span><br><span class="line">Time           -----------------------cpu---------------------- </span><br><span class="line">Time             user     sys    wait    hirq    sirq    util   </span><br><span class="line">18/05/16-10:55   0.07    0.10    0.00    0.00    0.02    0.19   </span><br><span class="line">18/05/16-11:00   0.02    0.07    0.00    0.00    0.02    0.10   </span><br><span class="line">18/05/16-11:05   0.02    0.05    0.00    0.00    0.01    0.09   </span><br><span class="line">18/05/16-11:10   0.01    0.03    0.00    0.00    0.01    0.06   </span><br><span class="line">18/05/16-11:15   0.01    0.03    0.00    0.00    0.01    0.05   </span><br><span class="line">18/05/16-11:20   0.01    0.03    0.00    0.00    0.02    0.06   </span><br><span class="line">18/05/16-11:25   0.01    0.03    0.00    0.00    0.01    0.05   </span><br><span class="line"></span><br><span class="line">MAX              0.03    0.87    2.06    0.00    0.02    0.90   </span><br><span class="line">MEAN             0.02    0.09    0.08    0.00    0.02    0.13   </span><br><span class="line">MIN              0.03    0.08    0.01    0.00    0.02    0.12</span><br></pre></td></tr></table></figure>
+<p>查看实时数据</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line">$ tsar -l   </span><br><span class="line">Time              ---cpu-- ---mem-- ---tcp-- -----traffic---- --sda--- --dm-0-- --dm-1-- --dm-2--  ---load- </span><br><span class="line">Time                util     util   retran    bytin  bytout     util     util     util     util     load1   </span><br><span class="line">18/05/16-11:27:47   0.05    33.16     0.00    24.00   74.00     0.04     0.04     0.00     0.00      0.00   </span><br><span class="line">18/05/16-11:27:52   0.05    33.15     0.00    30.00   52.00     0.06     0.06     0.00     0.00      0.00   </span><br><span class="line">18/05/16-11:27:57   0.20    33.15     0.00    12.00   40.00     0.02     0.02     0.00     0.00      0.00   </span><br><span class="line">18/05/16-11:28:02   0.50    33.18     0.00    12.00   40.00     0.00     0.00     0.00     0.00      0.00   </span><br><span class="line">18/05/16-11:28:07   0.15    33.18     0.00    85.00   40.00     0.04     0.04     0.00     0.00      0.00   </span><br><span class="line">18/05/16-11:28:12   0.15    33.18     0.00   159.00   40.00     0.00     0.00     0.00     0.00      0.00   </span><br><span class="line">18/05/16-11:28:17   0.05    33.18     0.00    12.00   40.00     0.06     0.06     0.00     0.00      0.00   </span><br><span class="line">18/05/16-11:28:22   0.10    33.18     0.00    24.00   52.00     0.00     0.00     0.00     0.00      0.00   </span><br><span class="line">18/05/16-11:28:27   0.15    33.17     0.00    48.00   40.00     0.00     0.00     0.00     0.00      0.00</span><br></pre></td></tr></table></figure>
+<p>显示1天内的历史汇总(summury)信息，以默认5分钟为间隔</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br></pre></td><td class="code"><pre><span class="line">$ tsar</span><br><span class="line">Time           ---cpu-- ---mem-- ---tcp-- -----traffic---- --sda--- --dm-0-- --dm-1-- --dm-2--  ---load- </span><br><span class="line">Time             util     util   retran    bytin  bytout     util     util     util     util     load1   </span><br><span class="line">18/05/16-09:20   0.12    24.61     0.00    42.00   33.00     0.07     0.07     0.00     0.00      0.00   </span><br><span class="line">18/05/16-09:25   0.04    24.58     0.00    12.00    2.00     0.03     0.03     0.00     0.00      0.00   </span><br><span class="line">18/05/16-09:30   0.05    24.62     0.00     6.00    3.00     0.03     0.03     0.00     0.00      0.00   </span><br><span class="line">18/05/16-09:35   0.90    32.99     0.00     3.00    2.00    11.16    11.05     0.00     0.11      0.35   </span><br><span class="line">18/05/16-09:40   0.05    32.98     0.00     8.00    2.00     0.14     0.14     0.00     0.00      0.00   </span><br><span class="line">18/05/16-09:45   0.04    32.98     0.00    16.00    2.00     0.01     0.01     0.00     0.00      0.00   </span><br><span class="line">18/05/16-09:50   0.04    33.03     0.00    11.00    3.00     0.03     0.03     0.00     0.00      0.00   </span><br><span class="line">18/05/16-09:55   0.05    32.95     0.00     8.00    2.00     0.03     0.03     0.00     0.00      0.00   </span><br><span class="line">18/05/16-10:00   0.05    33.00     0.00     9.00    2.00     0.02     0.02     0.00     0.00      0.00   </span><br><span class="line">18/05/16-10:05   0.24    33.00     0.00    77.00  167.00     0.05     0.05     0.00     0.00      0.00   </span><br><span class="line">18/05/16-10:10   0.46    33.50     0.00   146.00  377.00     0.23     0.23     0.00     0.00      0.00   </span><br><span class="line">18/05/16-10:15   0.13    33.01     0.00    31.00   60.00     0.04     0.04     0.00     0.00      0.00   </span><br><span class="line">18/05/16-10:20   0.20    33.03     0.00    51.00  120.00     0.05     0.05     0.00     0.00      0.00   </span><br><span class="line">18/05/16-10:25   0.11    33.01     0.00    27.00   26.00     0.04     0.04     0.00     0.00      0.01   </span><br><span class="line">18/05/16-10:30   0.05    33.04     0.00     2.00    3.00     0.02     0.02     0.00     0.00      0.00   </span><br><span class="line">18/05/16-10:35   0.04    32.99     0.00    10.00    2.00     0.01     0.01     0.00     0.00      0.00   </span><br><span class="line">18/05/16-10:40   0.05    33.03     0.00    22.00    2.00     0.02     0.02     0.00     0.00      0.00   </span><br><span class="line">18/05/16-10:45   0.05    33.00     0.00    10.00    3.00     0.03     0.03     0.00     0.00      0.00   </span><br><span class="line">18/05/16-10:50   0.05    33.01     0.00    16.00    3.00     0.02     0.02     0.00     0.00      0.00   </span><br><span class="line">Time           ---cpu-- ---mem-- ---tcp-- -----traffic---- --sda--- --dm-0-- --dm-1-- --dm-2--  ---load- </span><br><span class="line">Time             util     util   retran    bytin  bytout     util     util     util     util     load1   </span><br><span class="line">18/05/16-10:55   0.19    33.02     0.00    45.00   63.00     0.02     0.02     0.00     0.00      0.00   </span><br><span class="line">18/05/16-11:00   0.10    33.04     0.00    21.00   30.00     0.02     0.02     0.00     0.00      0.00   </span><br><span class="line">18/05/16-11:05   0.09    33.01     0.00    32.00   23.00     0.03     0.03     0.00     0.00      0.00   </span><br><span class="line">18/05/16-11:10   0.06    33.04     0.00    14.00    3.00     0.01     0.01     0.00     0.00      0.01   </span><br><span class="line">18/05/16-11:15   0.05    33.02     0.00    12.00    2.00     0.01     0.01     0.00     0.00      0.00   </span><br><span class="line">18/05/16-11:20   0.06    33.03     0.00    10.00    2.00     0.04     0.04     0.00     0.00      0.03   </span><br><span class="line">18/05/16-11:25   0.05    33.03     0.00     7.00    2.00     0.01     0.01     0.00     0.00      0.03   </span><br><span class="line"></span><br><span class="line">MAX              0.90    33.50     0.00   146.00  377.00    11.16    11.05     0.00     0.11      0.35   </span><br><span class="line">MEAN             0.13    32.36     0.00    24.24   36.24     0.48     0.48     0.00     0.00      0.02   </span><br><span class="line">MIN              0.12    24.61     0.00     2.00    2.00     0.07     0.07     0.00     0.00      0.00</span><br></pre></td></tr></table></figure>
+<p>以1秒钟为间隔，实时打印tsar的概述数据</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br></pre></td><td class="code"><pre><span class="line">$ tsar -i 1 -l</span><br><span class="line">Time              ---cpu-- ---mem-- ---tcp-- -----traffic---- --sda--- --dm-0-- --dm-1-- --dm-2--  ---load- </span><br><span class="line">Time                util     util   retran    bytin  bytout     util     util     util     util     load1   </span><br><span class="line">18/05/16-10:17:17   0.25    33.13     0.00    60.00  314.00     0.00     0.00     0.00     0.00      0.00   </span><br><span class="line">18/05/16-10:17:18   0.00    33.13     0.00    60.00  202.00     0.50     0.50     0.00     0.00      0.00   </span><br><span class="line">18/05/16-10:17:19   0.49    33.13     0.00    60.00  202.00     0.00     0.00     0.00     0.00      0.00   </span><br><span class="line">18/05/16-10:17:21   0.00    33.13     0.00    60.00  202.00     0.00     0.00     0.00     0.00      0.00   </span><br><span class="line">18/05/16-10:17:22   0.49    33.13     0.00    60.00  202.00     0.00     0.00     0.00     0.00      0.00   </span><br><span class="line">18/05/16-10:17:23   0.25    33.13     0.00   120.00  262.00     0.20     0.20     0.00     0.00      0.00   </span><br><span class="line">18/05/16-10:17:24   0.25    33.13     0.00    60.00  202.00     0.40     0.40     0.00     0.00      0.00   </span><br><span class="line">18/05/16-10:17:25   0.00    33.13     0.00    60.00  202.00     0.00     0.00     0.00     0.00      0.00   </span><br><span class="line">18/05/16-10:17:26   0.00    33.13     0.00    60.00  202.00     0.00     0.00     0.00     0.00      0.00   </span><br><span class="line">18/05/16-10:17:27   0.49    33.13     0.00    60.00  202.00     0.00     0.00     0.00     0.00      0.00   </span><br><span class="line">18/05/16-10:17:28   0.25    33.13     0.00    60.00  202.00     0.00     0.00     0.00     0.00      0.00   </span><br><span class="line">18/05/16-10:17:29   0.25    33.13     0.00    60.00  202.00     0.00     0.00     0.00     0.00      0.00</span><br></pre></td></tr></table></figure>
+<p>tsar cpu监控</p>
+<p>使用参数<code>-–cpu</code>可以监控系统的cpu，参数user表示用户空间cpu, sys内核空间cpu使用情况，wait是IO对应的cpu使用情况，hirq,sirq分别是硬件中断，软件中断的使用情况，util是系统使用cpu的总计情况。</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br></pre></td><td class="code"><pre><span class="line">$ tsar  --cpu</span><br><span class="line">Time           -----------------------cpu---------------------- </span><br><span class="line">Time             user     sys    wait    hirq    sirq    util   </span><br><span class="line">18/05/16-09:20   0.03    0.08    0.01    0.00    0.02    0.12   </span><br><span class="line">18/05/16-09:25   0.00    0.02    0.00    0.00    0.01    0.04   </span><br><span class="line">18/05/16-09:30   0.00    0.02    0.00    0.00    0.02    0.05   </span><br><span class="line">18/05/16-09:35   0.00    0.87    2.06    0.00    0.02    0.90   </span><br><span class="line">18/05/16-09:40   0.00    0.03    0.00    0.00    0.02    0.05   </span><br><span class="line">18/05/16-09:45   0.00    0.02    0.00    0.00    0.02    0.04   </span><br><span class="line">18/05/16-09:50   0.00    0.02    0.00    0.00    0.02    0.04   </span><br><span class="line">18/05/16-09:55   0.01    0.02    0.00    0.00    0.02    0.05   </span><br><span class="line">18/05/16-10:00   0.00    0.02    0.00    0.00    0.02    0.05   </span><br><span class="line">18/05/16-10:05   0.07    0.16    0.00    0.00    0.02    0.24   </span><br><span class="line">18/05/16-10:10   0.12    0.32    0.04    0.00    0.02    0.46   </span><br><span class="line">18/05/16-10:15   0.02    0.09    0.00    0.00    0.02    0.13   </span><br><span class="line">18/05/16-10:20   0.04    0.15    0.00    0.00    0.02    0.20   </span><br><span class="line">18/05/16-10:25   0.03    0.07    0.00    0.00    0.02    0.11   </span><br><span class="line">18/05/16-10:30   0.01    0.03    0.00    0.00    0.02    0.05   </span><br><span class="line">18/05/16-10:35   0.00    0.02    0.00    0.00    0.02    0.04   </span><br><span class="line">18/05/16-10:40   0.01    0.03    0.00    0.00    0.02    0.05   </span><br><span class="line">18/05/16-10:45   0.00    0.02    0.00    0.00    0.02    0.05   </span><br><span class="line">18/05/16-10:50   0.00    0.03    0.00    0.00    0.02    0.05   </span><br><span class="line">Time           -----------------------cpu---------------------- </span><br><span class="line">Time             user     sys    wait    hirq    sirq    util   </span><br><span class="line">18/05/16-10:55   0.07    0.10    0.00    0.00    0.02    0.19   </span><br><span class="line">18/05/16-11:00   0.02    0.07    0.00    0.00    0.02    0.10   </span><br><span class="line">18/05/16-11:05   0.02    0.05    0.00    0.00    0.01    0.09   </span><br><span class="line">18/05/16-11:10   0.01    0.03    0.00    0.00    0.01    0.06   </span><br><span class="line">18/05/16-11:15   0.01    0.03    0.00    0.00    0.01    0.05   </span><br><span class="line">18/05/16-11:20   0.01    0.03    0.00    0.00    0.02    0.06   </span><br><span class="line">18/05/16-11:25   0.01    0.03    0.00    0.00    0.01    0.05   </span><br><span class="line"></span><br><span class="line">MAX              0.03    0.87    2.06    0.00    0.02    0.90   </span><br><span class="line">MEAN             0.02    0.09    0.08    0.00    0.02    0.13   </span><br><span class="line">MIN              0.03    0.08    0.01    0.00    0.02    0.12</span><br></pre></td></tr></table></figure>
+<p>显示一天内的cpu和内存历史数据，以1分钟为间隔</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br></pre></td><td class="code"><pre><span class="line">$ tsar --cpu --mem -i 1</span><br><span class="line">Time           -----------------------cpu---------------------- -----------------------mem---------------------- </span><br><span class="line">Time             user     sys    wait    hirq    sirq    util     free    used    buff    cach   total    util   </span><br><span class="line">18/05/16-09:14   0.00    0.02    0.00    0.00    0.01    0.04     1.2G  456.9M   35.9M   95.8M    1.8G   24.54   </span><br><span class="line">18/05/16-09:15   0.01    0.02    0.00    0.00    0.02    0.05     1.2G  456.9M   35.9M   95.8M    1.8G   24.53   </span><br><span class="line">18/05/16-09:16   0.00    0.02    0.00    0.00    0.01    0.04     1.2G  456.8M   36.0M   95.8M    1.8G   24.53   </span><br><span class="line">18/05/16-09:17   0.01    0.03    0.00    0.00    0.02    0.06     1.2G  456.6M   36.0M   95.8M    1.8G   24.52   </span><br><span class="line">18/05/16-09:18   0.19    0.46    0.08    0.00    0.02    0.67     1.2G  458.8M   36.7M   95.8M    1.8G   24.64   </span><br><span class="line">18/05/16-09:19   0.00    0.03    0.00    0.00    0.02    0.05     1.2G  457.9M   36.8M   95.8M    1.8G   24.59   </span><br><span class="line">18/05/16-09:20   0.00    0.02    0.00    0.00    0.02    0.05     1.2G  458.3M   36.8M   95.8M    1.8G   24.61   </span><br><span class="line">18/05/16-09:21   0.00    0.02    0.00    0.00    0.01    0.04     1.2G  457.8M   36.8M   95.8M    1.8G   24.58   </span><br><span class="line">18/05/16-09:22   0.01    0.02    0.00    0.00    0.02    0.05     1.2G  457.5M   36.8M   95.8M    1.8G   24.57   </span><br><span class="line">18/05/16-09:23   0.00    0.03    0.00    0.00    0.02    0.05     1.2G  457.6M   36.9M   95.8M    1.8G   24.57   </span><br><span class="line">18/05/16-09:24   0.00    0.02    0.00    0.00    0.02    0.05     1.2G  457.7M   36.9M   95.8M    1.8G   24.58   </span><br><span class="line">18/05/16-09:25   0.00    0.02    0.00    0.00    0.01    0.04     1.2G  457.7M   36.9M   95.8M    1.8G   24.58   </span><br><span class="line">18/05/16-09:26   0.00    0.02    0.00    0.00    0.02    0.05     1.2G  457.7M   36.9M   95.9M    1.8G   24.58   </span><br><span class="line">18/05/16-09:27   0.01    0.03    0.00    0.00    0.02    0.06     1.2G  457.4M   36.9M   95.9M    1.8G   24.56   </span><br><span class="line">18/05/16-09:28   0.00    0.02    0.00    0.00    0.02    0.04     1.2G  457.5M   36.9M   95.9M    1.8G   24.57   </span><br><span class="line">18/05/16-09:29   0.00    0.02    0.00    0.00    0.02    0.03     1.2G  457.5M   37.0M   95.9M    1.8G   24.57   </span><br><span class="line">18/05/16-09:30   0.00    0.03    0.00    0.00    0.02    0.05     1.2G  458.4M   37.0M   95.8M    1.8G   24.62   </span><br><span class="line">18/05/16-09:31   0.00    0.02    0.01    0.00    0.02    0.05     1.2G  457.5M   37.0M   95.9M    1.8G   24.57   </span><br><span class="line">18/05/16-09:32   0.00    0.02    0.00    0.00    0.02    0.04     1.2G  457.5M   37.0M   95.9M    1.8G   24.57</span><br></pre></td></tr></table></figure>
+<p>显示一天内cpu的历史信息，以1分钟为间隔</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br></pre></td><td class="code"><pre><span class="line">$ tsar --cpu -i 1</span><br><span class="line">Time           -----------------------cpu---------------------- -----------------------mem---------------------- </span><br><span class="line">Time             user     sys    wait    hirq    sirq    util     free    used    buff    cach   total    util   </span><br><span class="line">18/05/16-09:14   0.00    0.02    0.00    0.00    0.01    0.04     1.2G  456.9M   35.9M   95.8M    1.8G   24.54   </span><br><span class="line">18/05/16-09:15   0.01    0.02    0.00    0.00    0.02    0.05     1.2G  456.9M   35.9M   95.8M    1.8G   24.53   </span><br><span class="line">18/05/16-09:16   0.00    0.02    0.00    0.00    0.01    0.04     1.2G  456.8M   36.0M   95.8M    1.8G   24.53   </span><br><span class="line">18/05/16-09:17   0.01    0.03    0.00    0.00    0.02    0.06     1.2G  456.6M   36.0M   95.8M    1.8G   24.52   </span><br><span class="line">18/05/16-09:18   0.19    0.46    0.08    0.00    0.02    0.67     1.2G  458.8M   36.7M   95.8M    1.8G   24.64   </span><br><span class="line">18/05/16-09:19   0.00    0.03    0.00    0.00    0.02    0.05     1.2G  457.9M   36.8M   95.8M    1.8G   24.59   </span><br><span class="line">18/05/16-09:20   0.00    0.02    0.00    0.00    0.02    0.05     1.2G  458.3M   36.8M   95.8M    1.8G   24.61   </span><br><span class="line">18/05/16-09:21   0.00    0.02    0.00    0.00    0.01    0.04     1.2G  457.8M   36.8M   95.8M    1.8G   24.58   </span><br><span class="line">18/05/16-09:22   0.01    0.02    0.00    0.00    0.02    0.05     1.2G  457.5M   36.8M   95.8M    1.8G   24.57   </span><br><span class="line">18/05/16-09:23   0.00    0.03    0.00    0.00    0.02    0.05     1.2G  457.6M   36.9M   95.8M    1.8G   24.57   </span><br><span class="line">18/05/16-09:24   0.00    0.02    0.00    0.00    0.02    0.05     1.2G  457.7M   36.9M   95.8M    1.8G   24.58   </span><br><span class="line">18/05/16-09:25   0.00    0.02    0.00    0.00    0.01    0.04     1.2G  457.7M   36.9M   95.8M    1.8G   24.58   </span><br><span class="line">18/05/16-09:26   0.00    0.02    0.00    0.00    0.02    0.05     1.2G  457.7M   36.9M   95.9M    1.8G   24.58   </span><br><span class="line">18/05/16-09:27   0.01    0.03    0.00    0.00    0.02    0.06     1.2G  457.4M   36.9M   95.9M    1.8G   24.56   </span><br><span class="line">18/05/16-09:28   0.00    0.02    0.00    0.00    0.02    0.04     1.2G  457.5M   36.9M   95.9M    1.8G   24.57   </span><br><span class="line">18/05/16-09:29   0.00    0.02    0.00    0.00    0.02    0.03     1.2G  457.5M   37.0M   95.9M    1.8G   24.57   </span><br><span class="line">18/05/16-09:30   0.00    0.03    0.00    0.00    0.02    0.05     1.2G  458.4M   37.0M   95.8M    1.8G   24.62   </span><br><span class="line">18/05/16-09:31   0.00    0.02    0.01    0.00    0.02    0.05     1.2G  457.5M   37.0M   95.9M    1.8G   24.57   </span><br><span class="line">18/05/16-09:32   0.00    0.02    0.00    0.00    0.02    0.04     1.2G  457.5M   37.0M   95.9M    1.8G   24.57</span><br></pre></td></tr></table></figure>
+<p>tsar监控虚拟内存和load情况</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br></pre></td><td class="code"><pre><span class="line">$ tsar  --swap --load</span><br><span class="line">Time           ---------------swap------------- -------------------load----------------- </span><br><span class="line">Time            swpin  swpout   total    util    load1   load5  load15    runq    plit   </span><br><span class="line">18/05/16-09:20   0.00    0.00    1.9G    0.00     0.00    0.00    0.00    0.00  147.00   </span><br><span class="line">18/05/16-09:25   0.00    0.00    1.9G    0.00     0.00    0.00    0.00    0.00  147.00   </span><br><span class="line">18/05/16-09:30   0.00    0.00    1.9G    0.00     0.00    0.00    0.00    0.00  149.00   </span><br><span class="line">18/05/16-09:35   0.00    0.00    1.9G    0.00     0.35    0.11    0.04    0.00  147.00   </span><br><span class="line">18/05/16-09:40   0.00    0.00    1.9G    0.00     0.00    0.03    0.01    0.00  147.00   </span><br><span class="line">18/05/16-09:45   0.00    0.00    1.9G    0.00     0.00    0.00    0.00    0.00  147.00   </span><br><span class="line">18/05/16-09:50   0.00    0.00    1.9G    0.00     0.00    0.00    0.00    0.00  147.00   </span><br><span class="line">18/05/16-09:55   0.00    0.00    1.9G    0.00     0.00    0.00    0.00    0.00  146.00   </span><br><span class="line">18/05/16-10:00   0.00    0.00    1.9G    0.00     0.00    0.00    0.00    0.00  146.00   </span><br><span class="line">18/05/16-10:05   0.00    0.00    1.9G    0.00     0.00    0.00    0.00    0.00  146.00   </span><br><span class="line">18/05/16-10:10   0.00    0.00    1.9G    0.00     0.00    0.00    0.00    0.00  147.00   </span><br><span class="line">18/05/16-10:15   0.00    0.00    1.9G    0.00     0.00    0.00    0.00    0.00  146.00   </span><br><span class="line">18/05/16-10:20   0.00    0.00    1.9G    0.00     0.00    0.00    0.00    1.00  148.00   </span><br><span class="line">18/05/16-10:25   0.00    0.00    1.9G    0.00     0.01    0.01    0.00    0.00  146.00   </span><br><span class="line">18/05/16-10:30   0.00    0.00    1.9G    0.00     0.00    0.00    0.00    0.00  146.00   </span><br><span class="line">18/05/16-10:35   0.00    0.00    1.9G    0.00     0.00    0.00    0.00    0.00  146.00   </span><br><span class="line">18/05/16-10:40   0.00    0.00    1.9G    0.00     0.00    0.00    0.00    0.00  146.00   </span><br><span class="line">18/05/16-10:45   0.00    0.00    1.9G    0.00     0.00    0.00    0.00    0.00  146.00   </span><br><span class="line">18/05/16-10:50   0.00    0.00    1.9G    0.00     0.00    0.00    0.00    0.00  146.00</span><br></pre></td></tr></table></figure>
+<p>tsar监控内存使用情况</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line">$ tsar  --mem</span><br><span class="line">Time           -----------------------mem---------------------- </span><br><span class="line">Time             free    used    buff    cach   total    util   </span><br><span class="line">23/08/15-21:25   2.1G    5.7G    0.00  164.0M    8.0G   71.44   </span><br><span class="line">23/08/15-21:30   2.1G    5.7G    0.00  181.4M    8.0G   71.43   </span><br><span class="line">23/08/15-21:35   2.1G    5.7G    0.00  213.9M    8.0G   71.42   </span><br><span class="line">23/08/15-21:40   2.1G    5.7G    0.00  233.8M    8.0G   71.43   </span><br><span class="line">23/08/15-21:45   1.4G    5.7G    0.00  924.6M    8.0G   71.43   </span><br><span class="line">23/08/15-21:50   1.4G    5.7G    0.00  889.4M    8.0G   71.42</span><br></pre></td></tr></table></figure>
+<p>以2秒钟为间隔，实时打印mem的数据</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line">$ tsar --live --mem -i 2</span><br><span class="line">Time              -----------------------mem---------------------- </span><br><span class="line">Time                free    used    buff    cach   total    util   </span><br><span class="line">18/05/16-11:30:59 905.8M  617.2M  219.4M  119.8M    1.8G   33.14   </span><br><span class="line">18/05/16-11:31:01 904.9M  618.1M  219.4M  119.8M    1.8G   33.19   </span><br><span class="line">18/05/16-11:31:03 904.9M  618.1M  219.4M  119.8M    1.8G   33.19   </span><br><span class="line">18/05/16-11:31:05 904.9M  618.0M  219.4M  119.8M    1.8G   33.19   </span><br><span class="line">18/05/16-11:31:07 904.9M  618.0M  219.4M  119.8M    1.8G   33.19   </span><br><span class="line">18/05/16-11:31:09 905.0M  618.0M  219.4M  119.8M    1.8G   33.19</span><br></pre></td></tr></table></figure>
+<p>tsar监控io使用情况</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line">$ tsar --io</span><br><span class="line">Time           ------------------------------------------sda-------------------------------------------  </span><br><span class="line">Time            rrqms   wrqms      rs      ws   rsecs   wsecs  rqsize  qusize   await   svctm    util    </span><br><span class="line">18/08/16-21:25   0.28    3.4K  184.40  389.25    4.9K   15.0K   35.47    3.00    6.35    0.29   16.44   </span><br><span class="line">18/08/16-21:30   0.00    3.2K  109.71  382.74    2.5K   14.5K   35.27    3.00    7.33    0.30   14.68   </span><br><span class="line">18/08/16-21:35   0.15    3.1K  156.91  342.16    3.8K   13.8K   36.15    3.00    6.60    0.29   14.37   </span><br><span class="line">18/08/16-21:40   0.86    3.3K  234.00  371.43    6.9K   14.6K   36.43    3.00    5.93    0.28   16.83   </span><br><span class="line">18/08/16-21:45   0.72    3.4K  376.80  357.13   11.7K   14.8K   37.03    3.00    4.84    0.25   18.50</span><br></pre></td></tr></table></figure>
+<p>tsar监控网络监控统计</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br></pre></td><td class="code"><pre><span class="line">$ tsar  --traffic</span><br><span class="line">Time           ---------------------traffic-------------------- </span><br><span class="line">Time            bytin  bytout   pktin  pktout  pkterr  pktdrp   </span><br><span class="line">18/05/16-09:20  42.00   33.00    0.00    0.00    0.00    0.00   </span><br><span class="line">18/05/16-09:25  12.00    2.00    0.00    0.00    0.00    0.00   </span><br><span class="line">18/05/16-09:30   6.00    3.00    0.00    0.00    0.00    0.00   </span><br><span class="line">18/05/16-09:35   3.00    2.00    0.00    0.00    0.00    0.00   </span><br><span class="line">18/05/16-09:40   8.00    2.00    0.00    0.00    0.00    0.00   </span><br><span class="line">18/05/16-09:45  16.00    2.00    0.00    0.00    0.00    0.00   </span><br><span class="line">18/05/16-09:50  11.00    3.00    0.00    0.00    0.00    0.00   </span><br><span class="line">18/05/16-09:55   8.00    2.00    0.00    0.00    0.00    0.00   </span><br><span class="line">18/05/16-10:00   9.00    2.00    0.00    0.00    0.00    0.00   </span><br><span class="line">18/05/16-10:05  77.00  167.00    1.00    0.00    0.00    0.00   </span><br><span class="line">18/05/16-10:10 146.00  377.00    2.00    1.00    0.00    0.00   </span><br><span class="line">18/05/16-10:15  31.00   60.00    0.00    0.00    0.00    0.00   </span><br><span class="line">18/05/16-10:20  51.00  120.00    0.00    0.00    0.00    0.00   </span><br><span class="line">18/05/16-10:25  27.00   26.00    0.00    0.00    0.00    0.00   </span><br><span class="line">18/05/16-10:30   2.00    3.00    0.00    0.00    0.00    0.00   </span><br><span class="line">18/05/16-10:35  10.00    2.00    0.00    0.00    0.00    0.00   </span><br><span class="line">18/05/16-10:40  22.00    2.00    0.00    0.00    0.00    0.00   </span><br><span class="line">18/05/16-10:45  10.00    3.00    0.00    0.00    0.00    0.00   </span><br><span class="line">18/05/16-10:50  16.00    3.00    0.00    0.00    0.00    0.00   </span><br><span class="line">Time           ---------------------traffic-------------------- </span><br><span class="line">Time            bytin  bytout   pktin  pktout  pkterr  pktdrp   </span><br><span class="line">18/05/16-10:55  45.00   63.00    0.00    0.00    0.00    0.00   </span><br><span class="line">18/05/16-11:00  21.00   30.00    0.00    0.00    0.00    0.00   </span><br><span class="line">18/05/16-11:05  32.00   23.00    0.00    0.00    0.00    0.00   </span><br><span class="line">18/05/16-11:10  14.00    3.00    0.00    0.00    0.00    0.00   </span><br><span class="line">18/05/16-11:15  12.00    2.00    0.00    0.00    0.00    0.00   </span><br><span class="line">18/05/16-11:20  10.00    2.00    0.00    0.00    0.00    0.00   </span><br><span class="line">18/05/16-11:25   7.00    2.00    0.00    0.00    0.00    0.00   </span><br><span class="line">18/05/16-11:30  97.00  241.00    1.00    1.00    0.00    0.00   </span><br><span class="line"></span><br><span class="line">MAX            146.00  377.00    2.00    1.00    0.00    0.00   </span><br><span class="line">MEAN            27.04   44.12    0.15    0.08    0.00    0.00   </span><br><span class="line">MIN              2.00    2.00    0.00    0.00    0.00    0.00</span><br></pre></td></tr></table></figure>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line">$ tsar --tcp --udp -d 1</span><br><span class="line">Time           -------------------------------tcp------------------------------ ---------------udp-------------- </span><br><span class="line">Time           active  pasive    iseg  outseg  EstRes  AtmpFa  CurrEs  retran     idgm    odgm  noport  idmerr   </span><br><span class="line">18/05/16-00:05   0.79    1.52    1.6K    2.1K    0.00    0.03    3.4K    0.02     0.00    2.00    0.00    0.00   </span><br><span class="line">18/05/16-00:10   0.73    1.40  884.25  921.56    0.00    0.03    3.4K    0.01     0.00    3.00    0.00    0.00   </span><br><span class="line">18/05/16-00:15   0.77    1.46  959.62    1.0K    0.00    0.03    3.4K    0.01     0.00    3.00    0.00    0.00   </span><br><span class="line">18/05/16-00:20   0.69    1.43    1.0K    1.0K    0.00    0.03    3.4K    0.01     0.00    3.00    0.00    0.00   </span><br><span class="line">18/05/16-00:25   0.72    1.42    1.2K    1.1K    0.00    0.03    3.4K    0.00     0.00    3.00    0.00    0.00</span><br></pre></td></tr></table></figure>
+<p>tsar监控查看系统tcp连接情况，5秒刷新一次</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line">$ tsar --tcp -l 5</span><br><span class="line">Time              -------------------------------tcp------------------------------ </span><br><span class="line">Time              active  pasive    iseg  outseg  EstRes  AtmpFa  CurrEs  retran   </span><br><span class="line">18/05/16-11:34:01   0.00    0.00    0.20    0.20    0.00    0.00    1.00    0.00   </span><br><span class="line">18/05/16-11:34:06   0.00    0.20    6.20    4.60    0.00    0.00    2.00    0.00   </span><br><span class="line">18/05/16-11:34:11   0.00    0.00    4.60    2.80    0.00    0.00    2.00    0.00   </span><br><span class="line">18/05/16-11:34:16   0.20    0.00    1.20    1.20    0.00    0.00    2.00    0.00   </span><br><span class="line">18/05/16-11:34:21   0.40    0.00    1.40    1.80    0.00    0.00    4.00    0.00</span><br></pre></td></tr></table></figure>
+<p>tsar检查告警信息</p>
+<p>查看最后一次tsar的提醒信息,这里包括了系统的cpu,io的告警情况。</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">$ tsar --check --cpu --io</span><br><span class="line">localhost.localdomain       tsar    cpu:user=25.0 cpu:sys=2.1 cpu:wait=0.1 cpu:hirq=0.0 cpu:sirq=0.2 cpu:util=27.4 io:sda:rrqms=0.0 io:sda:wrqms=4172.4 io:sda:rs=80.3 io:sda:ws=493.0 io:sda:rsecs=1664.0 io:sda:wsecs=18661.7 io:sda:rqsize=35.5 io:sda:qusize=4.0 io:sda:await=7.7 io:sda:svctm=0.3 io:sda:util=18.5</span><br></pre></td></tr></table></figure>
+<p>tsar历史数据回溯</p>
+<p>通过参数<code>-d 2</code>可以查出两天前到现在的数据，<code>-i 1</code>表示以每次1分钟作为采集显示。</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line">$ tsar -d 2 -i 1 </span><br><span class="line">Time           ---cpu-- ---mem-- ---tcp-- -----traffic---- --sda---  ---load- </span><br><span class="line">Time             util     util   retran    bytin  bytout     util     load1   </span><br><span class="line">15/05/16-00:02 ------    71.40     0.03   754.2K  421.4K    14.38     1.59   </span><br><span class="line">15/05/16-00:03  34.55    71.41     0.01   773.7K  400.9K    13.39     1.42   </span><br><span class="line">15/05/16-00:04  31.80    71.41     0.03   708.6K  391.9K    12.88     1.54   </span><br><span class="line">15/05/16-00:05  28.70    71.40     0.00   544.5K  305.9K    11.32     1.68   </span><br><span class="line">15/05/16-00:06  25.83    71.41     0.02   521.1K  280.4K    13.32     1.48   </span><br><span class="line">15/05/16-00:07  25.68    71.42     0.00   495.0K  265.2K    12.08     1.21   </span><br><span class="line">15/05/16-00:08  30.89    71.41     0.01   811.0K  280.1K    14.92     0.92   </span><br><span class="line">15/05/16-00:09  23.83    71.41     0.03   636.7K  349.4K    11.81     1.47</span><br></pre></td></tr></table></figure>
+<p>tsar查看指定日期的数据</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br></pre></td><td class="code"><pre><span class="line">$ tsar  --load  -d 20160518 #指定日期,格式YYYYMMDD</span><br><span class="line">Time           -------------------load----------------- </span><br><span class="line">Time            load1   load5  load15    runq    plit   </span><br><span class="line">18/05/16-09:20   0.00    0.00    0.00    0.00  147.00   </span><br><span class="line">18/05/16-09:25   0.00    0.00    0.00    0.00  147.00   </span><br><span class="line">18/05/16-09:30   0.00    0.00    0.00    0.00  149.00   </span><br><span class="line">18/05/16-09:35   0.35    0.11    0.04    0.00  147.00   </span><br><span class="line">18/05/16-09:40   0.00    0.03    0.01    0.00  147.00   </span><br><span class="line">18/05/16-09:45   0.00    0.00    0.00    0.00  147.00   </span><br><span class="line">18/05/16-09:50   0.00    0.00    0.00    0.00  147.00   </span><br><span class="line">18/05/16-09:55   0.00    0.00    0.00    0.00  146.00   </span><br><span class="line">18/05/16-10:00   0.00    0.00    0.00    0.00  146.00   </span><br><span class="line">18/05/16-10:05   0.00    0.00    0.00    0.00  146.00   </span><br><span class="line">18/05/16-10:10   0.00    0.00    0.00    0.00  147.00   </span><br><span class="line">18/05/16-10:15   0.00    0.00    0.00    0.00  146.00   </span><br><span class="line">18/05/16-10:20   0.00    0.00    0.00    1.00  148.00   </span><br><span class="line">18/05/16-10:25   0.01    0.01    0.00    0.00  146.00   </span><br><span class="line">18/05/16-10:30   0.00    0.00    0.00    0.00  146.00   </span><br><span class="line">18/05/16-10:35   0.00    0.00    0.00    0.00  146.00   </span><br><span class="line">18/05/16-10:40   0.00    0.00    0.00    0.00  146.00   </span><br><span class="line">18/05/16-10:45   0.00    0.00    0.00    0.00  146.00   </span><br><span class="line">18/05/16-10:50   0.00    0.00    0.00    0.00  146.00</span><br></pre></td></tr></table></figure>
+<p>tsar查看所有字段</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line">$ tsar --mem -D</span><br><span class="line">Time           -----------------------mem---------------------- </span><br><span class="line">Time             free    used    buff    cach   total    util   </span><br><span class="line">18/05/16-09:20 1333063680.00  480555008.00  38567936.00  100483072.00  1952669696.00   24.61   </span><br><span class="line">18/05/16-09:25 1333542912.00  479940608.00  38682624.00  100503552.00  1952669696.00   24.58   </span><br><span class="line">18/05/16-09:30 1332707328.00  480657408.00  38801408.00  100503552.00  1952669696.00   24.62   </span><br><span class="line">18/05/16-09:35 961646592.00  644251648.00  227205120.00  119566336.00  1952669696.00   32.99   </span><br><span class="line">18/05/16-09:40 961708032.00  644059136.00  227336192.00  119566336.00  1952669696.00   32.98   </span><br><span class="line">18/05/16-09:45 961646592.00  643997696.00  227434496.00  119590912.00  1952669696.00   32.98   </span><br><span class="line">18/05/16-09:50 960610304.00  644898816.00  227569664.00  119590912.00  1952669696.00   33.03</span><br></pre></td></tr></table></figure>
+<p>查看fstab指定挂在的系统目录的使用情况 ，<code>-I</code>指定查看某个目录</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br></pre></td><td class="code"><pre><span class="line">$ tsar --partition -I /</span><br><span class="line">Time           ---------------------------/----------------------------  </span><br><span class="line">Time            bfree   bused   btotl    util   ifree   itotl   iutil    </span><br><span class="line">18/05/16-09:20  27.5G   19.1G   49.1G   42.00    2.7M    3.1M   14.71    </span><br><span class="line">18/05/16-09:25  27.5G   19.1G   49.1G   42.00    2.7M    3.1M   14.71    </span><br><span class="line">18/05/16-09:30  27.5G   19.1G   49.1G   42.00    2.7M    3.1M   14.71    </span><br><span class="line">18/05/16-09:35  27.5G   19.1G   49.1G   42.00    2.7M    3.1M   14.71    </span><br><span class="line">18/05/16-09:40  27.5G   19.1G   49.1G   42.00    2.7M    3.1M   14.71    </span><br><span class="line">18/05/16-09:45  27.5G   19.1G   49.1G   42.00    2.7M    3.1M   14.71    </span><br><span class="line">18/05/16-09:50  27.5G   19.1G   49.1G   42.00    2.7M    3.1M   14.71    </span><br><span class="line">18/05/16-09:55  27.5G   19.1G   49.1G   42.00    2.7M    3.1M   14.71    </span><br><span class="line">18/05/16-10:00  27.5G   19.1G   49.1G   42.00    2.7M    3.1M   14.71    </span><br><span class="line">18/05/16-10:05  27.5G   19.1G   49.1G   42.00    2.7M    3.1M   14.71    </span><br><span class="line">18/05/16-10:10  27.5G   19.1G   49.1G   42.00    2.7M    3.1M   14.71    </span><br><span class="line">18/05/16-10:15  27.5G   19.1G   49.1G   42.00    2.7M    3.1M   14.71    </span><br><span class="line">18/05/16-10:20  27.5G   19.1G   49.1G   42.00    2.7M    3.1M   14.71    </span><br><span class="line">18/05/16-10:25  27.5G   19.1G   49.1G   42.00    2.7M    3.1M   14.71    </span><br><span class="line">18/05/16-10:30  27.5G   19.1G   49.1G   42.00    2.7M    3.1M   14.71    </span><br><span class="line">18/05/16-10:35  27.5G   19.1G   49.1G   42.00    2.7M    3.1M   14.71    </span><br><span class="line">18/05/16-10:40  27.5G   19.1G   49.1G   42.00    2.7M    3.1M   14.71    </span><br><span class="line">18/05/16-10:45  27.5G   19.1G   49.1G   42.00    2.7M    3.1M   14.71    </span><br><span class="line">18/05/16-10:50  27.5G   19.1G   49.1G   42.00    2.7M    3.1M   14.71    </span><br><span class="line">Time           ---------------------------/----------------------------  </span><br><span class="line">Time            bfree   bused   btotl    util   ifree   itotl   iutil    </span><br><span class="line">18/05/16-10:55  27.5G   19.1G   49.1G   42.00    2.7M    3.1M   14.71    </span><br><span class="line">18/05/16-11:00  27.5G   19.1G   49.1G   42.00    2.7M    3.1M   14.71    </span><br><span class="line">18/05/16-11:05  27.5G   19.1G   49.1G   42.00    2.7M    3.1M   14.71    </span><br><span class="line">18/05/16-11:10  27.5G   19.1G   49.1G   42.00    2.7M    3.1M   14.71    </span><br><span class="line">18/05/16-11:15  27.5G   19.1G   49.1G   42.00    2.7M    3.1M   14.71    </span><br><span class="line">18/05/16-11:20  27.5G   19.1G   49.1G   42.00    2.7M    3.1M   14.71    </span><br><span class="line">18/05/16-11:25  27.5G   19.1G   49.1G   42.00    2.7M    3.1M   14.71    </span><br><span class="line">18/05/16-11:30  27.5G   19.1G   49.1G   42.00    2.7M    3.1M   14.71    </span><br><span class="line">18/05/16-11:35  27.5G   19.1G   49.1G   42.00    2.7M    3.1M   14.71    </span><br><span class="line"></span><br><span class="line">MAX             27.5G   19.1G   49.1G   42.00    2.7M    3.1M   14.71    </span><br><span class="line">MEAN            27.5G   19.1G   49.1G   42.00    2.7M    3.1M   14.71    </span><br><span class="line">MIN             27.5G   19.1G   49.1G   42.00    2.7M    3.1M   14.71</span><br></pre></td></tr></table></figure>
+<h4 id="tsar监控应用">Tsar监控应用</h4>
+<p>Tsar默认支持的模块,如下</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">$ ls /usr/local/tsar/modules    </span><br><span class="line">mod_apache.so  mod_haproxy.so  mod_load.so  mod_mem.so   mod_nginx.so      mod_pcsw.so    mod_pernic.so  mod_squid.so  mod_tcp.so   mod_traffic.so</span><br><span class="line">mod_cpu.so     mod_io.so       mod_lvs.so   mod_ncpu.so  mod_partition.so  mod_percpu.so  mod_proc.so    mod_swap.so   mod_tcpx.so  mod_udp.so</span><br></pre></td></tr></table></figure>
+<p>默认安装完后，只启用了系统相关的模块。如要监控应用就需手动启用相应模块，以Nginx为例</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">$ vim /etc/tsar/tsar.conf</span><br><span class="line">mod_nginx on</span><br></pre></td></tr></table></figure>
+<p>验证Nginx模块是否启用</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">$ tsar -L|grep nginx</span><br><span class="line">    nginx</span><br></pre></td></tr></table></figure>
+<p>配置Nginx</p>
+<p>该配置主要是为nginx开启status统计页面,给tsar提供http数据。Tsar统计的原理是通过获取status页面的输出结果，并对输出内容进行统计和计算得出的结果。而且其获取状态页的url默认是http://127.0.0.1/nginx_status ，所以在nginx上你必须有如下的配置</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">location /nginx_status &#123;</span><br><span class="line">          stub_status on;</span><br><span class="line">          access_log   off;</span><br><span class="line">          allow 127.0.0.1;</span><br><span class="line">          deny all;</span><br><span class="line">        &#125;</span><br></pre></td></tr></table></figure>
+<p>注：以上的url并非不能更改，可以修改环境变量实现。其自带的几个环境变量如下。</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">export NGX_TSAR_HOST=192.168.0.1</span><br><span class="line">export NGX_TSAR_PORT=8080</span><br><span class="line">export NGX_TSAR_SERVER_NAME=status.taobao.com</span><br><span class="line">export NGX_TSAR_URI=/nginx_status</span><br></pre></td></tr></table></figure>
+<p>监控Nginx状态</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line">$ tsar --nginx -l -i 2</span><br><span class="line">Time              ----------------------------------------------nginx--------------------------------------------- </span><br><span class="line">Time              accept  handle    reqs  active    read   write    wait     qps      rt  sslqps  spdyps  sslhst   </span><br><span class="line">18/05/16-13:11:30   1.00    1.00    1.00    1.00    0.00    1.00    0.00    0.20    0.00    0.00    0.00    0.00   </span><br><span class="line">18/05/16-13:11:35   1.00    1.00    1.00    1.00    0.00    1.00    0.00    0.20    0.00    0.00    0.00    0.00   </span><br><span class="line">18/05/16-13:11:40   1.00    1.00    1.00    1.00    0.00    1.00    0.00    0.20    0.00    0.00    0.00    0.00   </span><br><span class="line">18/05/16-13:11:45   1.4K    1.4K    1.4K    1.00    0.00    1.00    0.00  280.40    0.00    0.00    0.00    0.00   </span><br><span class="line">18/05/16-13:11:50   1.00    1.00    1.00    1.00    0.00    1.00    0.00    0.20    0.00    0.00    0.00    0.00   </span><br><span class="line">18/05/16-13:11:55   1.00    1.00    1.00    1.00    0.00    1.00    0.00    0.20    0.00    0.00    0.00    0.00   </span><br><span class="line">18/05/16-13:12:00  10.1K   10.1K   10.1K    1.00    0.00    1.00    0.00    2.0K    0.00    0.00    0.00    0.00   </span><br><span class="line">18/05/16-13:12:05   2.00    2.00    2.00    1.00    0.00    1.00    0.00    0.40    0.00    0.00    0.00    0.00   </span><br><span class="line">18/05/16-13:12:10   1.00    1.00    1.00    1.00    0.00    1.00    0.00    0.20    0.00    0.00    0.00    0.00</span><br></pre></td></tr></table></figure>
+<h3 id="参考文档">参考文档</h3>
+<p><a href="http://www.google.com" target="_blank" rel="noopener">http://www.google.com</a><br>
+<a href="http://code.taobao.org/p/tsar/wiki/index/" target="_blank" rel="noopener">http://code.taobao.org/p/tsar/wiki/index/</a><br>
+<a href="http://blog.csdn.net/Road_long/article/details/47959221" target="_blank" rel="noopener">http://blog.csdn.net/Road_long/article/details/47959221</a><br>
+<a href="http://blog.itpub.net/22664653/viewspace-1273519/" target="_blank" rel="noopener">http://blog.itpub.net/22664653/viewspace-1273519/</a><br>
+<a href="http://www.361way.com/tsar-nginx/2308.html" target="_blank" rel="noopener">http://www.361way.com/tsar-nginx/2308.html</a></p>
+
+                
+
+                <hr>
+                <!-- Pager -->
+                <ul class="pager">
+                    
+                        <li class="previous">
+                            <a href="/posts/23030/" data-toggle="tooltip" data-placement="top" title="MySQL 的增强型语法高亮终端 MyCli">&larr; Previous Post</a>
+                        </li>
+                    
+                    
+                        <li class="next">
+                            <a href="/posts/56953/" data-toggle="tooltip" data-placement="top" title="用 HTTPing 测试 WEB 页面响应时间">Next Post &rarr;</a>
+                        </li>
+                    
+                </ul>
+
+                <!-- duoshuo Share start -->
+                
+                <!-- 多说 Share end-->
+
+                <!-- 多说评论框 start -->
+                
+                <!-- 多说评论框 end -->
+
+                <!-- disqus comment start -->
+                
+                <!-- disqus comment end -->
+
+                
+                    <!-- disqus 评论框 start -->
+                    <div class="comment">
+                        <div id="lv-container" data-id="city" data-uid="MTAyMC8yNzg2My80NDQw"></div>
+                    </div>
+                    <!-- disqus 评论框 end -->
+                
+
+            </div>
+            
+            <!-- Tabe of Content -->
+            <!-- Table of Contents -->
+
+  
+    <style>
+      span.toc-nav-number{
+        display: none
+      }
+    </style>
+  
+    
+      <aside id="sidebar">
+        <div id="toc" class="toc-article">
+        <strong class="toc-title">Contents</strong>
+        
+          <ol class="toc-nav"><li class="toc-nav-item toc-nav-level-3"><a class="toc-nav-link" href="#tsar简介"><span class="toc-nav-number">1.</span> <span class="toc-nav-text">Tsar简介</span></a></li><li class="toc-nav-item toc-nav-level-3"><a class="toc-nav-link" href="#tsar安装"><span class="toc-nav-number">2.</span> <span class="toc-nav-text">Tsar安装</span></a></li><li class="toc-nav-item toc-nav-level-3"><a class="toc-nav-link" href="#tsar配置"><span class="toc-nav-number">3.</span> <span class="toc-nav-text">Tsar配置</span></a></li><li class="toc-nav-item toc-nav-level-3"><a class="toc-nav-link" href="#tsar使用介绍"><span class="toc-nav-number">4.</span> <span class="toc-nav-text">Tsar使用介绍</span></a></li><li class="toc-nav-item toc-nav-level-3"><a class="toc-nav-link" href="#tsar使用实例"><span class="toc-nav-number">5.</span> <span class="toc-nav-text">Tsar使用实例</span></a><ol class="toc-nav-child"><li class="toc-nav-item toc-nav-level-4"><a class="toc-nav-link" href="#tsar监控系统"><span class="toc-nav-number">5.1.</span> <span class="toc-nav-text">Tsar监控系统</span></a></li><li class="toc-nav-item toc-nav-level-4"><a class="toc-nav-link" href="#tsar监控应用"><span class="toc-nav-number">5.2.</span> <span class="toc-nav-text">Tsar监控应用</span></a></li></ol></li><li class="toc-nav-item toc-nav-level-3"><a class="toc-nav-link" href="#参考文档"><span class="toc-nav-number">6.</span> <span class="toc-nav-text">参考文档</span></a></li></ol>
+        
+        </div>
+      </aside>
+    
+
+                
+            <!-- Sidebar Container -->
+            <div class="
+                col-lg-8 col-lg-offset-2
+                col-md-10 col-md-offset-1
+                sidebar-container">
+
+                <!-- Featured Tags -->
+                
+                <section>
+                    <!-- no hr -->
+                    <h5><a href="/tags/">FEATURED TAGS</a></h5>
+                    <div class="tags">
+                       
+                          <a class="tag" href="/tags/#Linux" title="Linux">Linux</a>
+                        
+                          <a class="tag" href="/tags/#Tsar" title="Tsar">Tsar</a>
+                        
+                    </div>
+                </section>
+                
+
+                <!-- Friends Blog -->
+                
+                <hr>
+                <h5>FRIENDS</h5>
+                <ul class="list-inline">
+
+                    
+                        <li><a href="http://www.mike.org.cn/" target="_blank">简单.生活</a></li>
+                    
+                        <li><a href="http://shang.qq.com/wpa/qunwpa?idkey=ea4c43493c2269428ac6ef6141de4b6d78e5ab2d41380ca4099b833b62884ee9" target="_blank">技术交流群</a></li>
+                    
+                        <li><a href="" target="_blank"></a></li>
+                    
+                        <li><a href="" target="_blank"></a></li>
+                    
+                </ul>
+                
+            </div>
+        </div>
+    </div>
+</article>
+
+
+
+
+
+
+    <!-- 来必力City版公共JS代码 start (一个网页只需插入一次) -->
+    <script type="text/javascript">
+       (function(d, s) {
+           var j, e = d.getElementsByTagName(s)[0];
+    
+           if (typeof LivereTower === 'function') { return; }
+    
+           j = d.createElement(s);
+           j.src = 'https://cdn-city.livere.com/js/embed.dist.js';
+           j.async = true;
+    
+           e.parentNode.insertBefore(j, e);
+       })(document, 'script');
+    </script>
+    <noscript>为正常使用来必力评论功能请激活JavaScript</noscript>
+    <!-- 来必力City版 公共JS代码 end -->
+
+
+
+<!-- async load function -->
+<script>
+    function async(u, c) {
+      var d = document, t = 'script',
+          o = d.createElement(t),
+          s = d.getElementsByTagName(t)[0];
+      o.src = u;
+      if (c) { o.addEventListener('load', function (e) { c(null, e); }, false); }
+      s.parentNode.insertBefore(o, s);
+    }
+</script>
+<!-- anchor-js, Doc:http://bryanbraun.github.io/anchorjs/ -->
+<script>
+    async("https://cdn.bootcss.com/anchor-js/1.1.1/anchor.min.js",function(){
+        anchors.options = {
+          visible: 'hover',
+          placement: 'left',
+          icon: 'ℬ'
+        };
+        anchors.add().remove('.intro-header h1').remove('.subheading').remove('.sidebar-container h5');
+    })
+</script>
+<style>
+    /* place left on bigger screen */
+    @media all and (min-width: 800px) {
+        .anchorjs-link{
+            position: absolute;
+            left: -0.75em;
+            font-size: 1.1em;
+            margin-top : -0.1em;
+        }
+    }
+</style>
+
+
+
+    <!-- Footer -->
+    <!-- Footer -->
+<footer>
+    <div class="container">
+        <div class="row">
+            <div class="col-lg-8 col-lg-offset-2 col-md-10 col-md-offset-1">
+                <ul class="list-inline text-center">
+                
+                    <li>
+                        <a href="/atom.xml">
+                            <span class="fa-stack fa-lg">
+                                <i class="fa fa-circle fa-stack-2x"></i>
+                                <i class="fa fa-rss fa-stack-1x fa-inverse"></i>
+                            </span>
+                        </a>
+                    </li>
+                
+                
+                
+                    <li>
+                        <a target="_blank" href="https://www.zhihu.com/people/80imike">
+                            <span class="fa-stack fa-lg">
+                                <i class="fa fa-circle fa-stack-2x"></i>
+                                <i class="fa  fa-stack-1x fa-inverse">知</i>
+                            </span>
+                        </a>
+                    </li>
+                
+
+                
+                    <li>
+                        <a target="_blank" href="http://weibo.com/2093524665">
+                            <span class="fa-stack fa-lg">
+                                <i class="fa fa-circle fa-stack-2x"></i>
+                                <i class="fa fa-weibo fa-stack-1x fa-inverse"></i>
+                            </span>
+                        </a>
+                    </li>
+                
+
+                
+
+                
+
+                
+
+                </ul>
+                <p class="copyright text-muted">
+                    Copyright &copy; Mike 2018 | Hosted by <a href="https://pages.coding.me" style="font-weight: bold">Coding Pages</a>
+                    <br>
+                    Theme by <a href="http://beantech.org">BeanTech</a> 
+                    <span style="display: inline-block; margin: 0 5px;">
+                        <i class="fa fa-heart"></i>
+                    </span> 
+                    re-Ported by <a href="http://www.huweihuang.com">胡伟煌</a> | 
+                    <iframe
+                        style="margin-left: 2px; margin-bottom:-5px;"
+                        frameborder="0" scrolling="0" width="91px" height="20px"
+                        src="https://ghbtns.com/github-btn.html?user=huweihuang&repo=hexo-theme-huweihuang&type=star&count=true" >
+                    </iframe>
+                </p>
+            </div>
+        </div>
+    </div>
+</footer>
+
+<!-- jQuery -->
+<script src="/js/jquery.min.js"></script>
+
+<!-- Bootstrap Core JavaScript -->
+<script src="/js/bootstrap.min.js"></script>
+
+<!-- Custom Theme JavaScript -->
+<script src="/js/hux-blog.min.js"></script>
+
+
+<!-- async load function -->
+<script>
+    function async(u, c) {
+      var d = document, t = 'script',
+          o = d.createElement(t),
+          s = d.getElementsByTagName(t)[0];
+      o.src = u;
+      if (c) { o.addEventListener('load', function (e) { c(null, e); }, false); }
+      s.parentNode.insertBefore(o, s);
+    }
+</script>
+
+<!-- 
+     Because of the native support for backtick-style fenced code blocks 
+     right within the Markdown is landed in Github Pages, 
+     From V1.6, There is no need for Highlight.js, 
+     so Huxblog drops it officially.
+
+     - https://github.com/blog/2100-github-pages-now-faster-and-simpler-with-jekyll-3-0  
+     - https://help.github.com/articles/creating-and-highlighting-code-blocks/    
+-->
+<!--
+    <script>
+        async("http://cdn.bootcss.com/highlight.js/8.6/highlight.min.js", function(){
+            hljs.initHighlightingOnLoad();
+        })
+    </script>
+    <link href="http://cdn.bootcss.com/highlight.js/8.6/styles/github.min.css" rel="stylesheet">
+-->
+
+
+<!-- jquery.tagcloud.js -->
+<script>
+    // only load tagcloud.js in tag.html
+    if($('#tag_cloud').length !== 0){
+        async("http://www.hi-linux.com/js/jquery.tagcloud.js",function(){
+            $.fn.tagcloud.defaults = {
+                //size: {start: 1, end: 1, unit: 'em'},
+                color: {start: '#bbbbee', end: '#0085a1'},
+            };
+            $('#tag_cloud a').tagcloud();
+        })
+    }
+</script>
+
+<!--fastClick.js -->
+<script>
+    async("https://cdn.bootcss.com/fastclick/1.0.6/fastclick.min.js", function(){
+        var $nav = document.querySelector("nav");
+        if($nav) FastClick.attach($nav);
+    })
+</script>
+
+
+<!-- Google Analytics -->
+
+
+
+
+<!-- Baidu Tongji -->
+
+
+
+
+
+
+	<a id="rocket" href="#top" class=""></a>
+	<script type="text/javascript" src="/js/totop.js?v=1.0.0" async=""></script>
+    <script type="text/javascript" src="/js/toc.js?v=1.0.0" async=""></script>
+<!-- Image to hack wechat -->
+<img src="http://www.hi-linux.com/img/icon_wechat.png" width="0" height="0" />
+<!-- Migrate from head to bottom, no longer block render and still work -->
+
+</body>
+
+</html>
