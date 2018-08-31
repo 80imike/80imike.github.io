@@ -1,0 +1,582 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<!-- Head tag -->
+<head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="google-site-verification" content="xBT4GhYoi5qRD5tr338pgPM5OWHHIDR6mNg1a3euekI" />
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="description" content="">
+    <meta name="keyword"  content="Linux,运维,Nginx,Zabbix,Centos,Ansible,MySQL,Python,Docker,ELK,Haproxy,Git,Nodejs,安全,技术">
+    <link rel="shortcut icon" href="/img/ironman-draw.png">
+    <!-- Place this tag in your head or just before your close body tag. -->
+    <script async defer src="https://buttons.github.io/buttons.js"></script>
+    <title>
+        
+          使用 IPVS 实现 Kubernetes 入口流量负载均衡 - 运维之美
+        
+    </title>
+
+    <link rel="canonical" href="https://www.hi-linux.com/posts/29792.html">
+
+    <!-- Bootstrap Core CSS -->
+    <link rel="stylesheet" href="/css/bootstrap.min.css">
+
+    <!-- Custom CSS --> 
+    <link rel="stylesheet" href="/css/beantech.min.css">
+    
+    <!-- Pygments Highlight CSS -->
+    <link rel="stylesheet" href="/css/highlight.css">
+
+    <link rel="stylesheet" href="/css/widget.css">
+
+    <link rel="stylesheet" href="/css/rocket.css">
+
+    <link rel="stylesheet" href="/css/signature.css">
+
+    <link rel="stylesheet" href="/css/toc.css">
+
+    <!-- Custom Fonts -->
+    <!-- <link href="https://maxcdn.bootstrapcdn.com/font-awesome/4.3.0/css/font-awesome.min.css" rel="stylesheet" type="text/css"> -->
+    <!-- Hux change font-awesome CDN to qiniu -->
+    <link href="https://cdn.staticfile.org/font-awesome/4.5.0/css/font-awesome.min.css" rel="stylesheet" type="text/css">
+
+
+    <!-- Hux Delete, sad but pending in China
+    <link href='http://fonts.googleapis.com/css?family=Lora:400,700,400italic,700italic' rel='stylesheet' type='text/css'>
+    <link href='http://fonts.googleapis.com/css?family=Open+Sans:300italic,400italic,600italic,700italic,800italic,400,300,600,700,800' rel='stylesheet' type='text/
+    css'>
+    -->
+
+
+    <!-- HTML5 Shim and Respond.js IE8 support of HTML5 elements and media queries -->
+    <!-- WARNING: Respond.js doesn't work if you view the page via file:// -->
+    <!--[if lt IE 9]>
+        <script src="https://oss.maxcdn.com/libs/html5shiv/3.7.0/html5shiv.js"></script>
+        <script src="https://oss.maxcdn.com/libs/respond.js/1.4.2/respond.min.js"></script>
+    <![endif]-->
+
+    <!-- ga & ba script hoook -->
+    <script></script>
+</head>
+
+
+<!-- hack iOS CSS :active style -->
+<body ontouchstart="">
+	<!-- Modified by Yu-Hsuan Yen -->
+<!-- Post Header -->
+<style type="text/css">
+    header.intro-header{
+        
+            background-image: url('/img/header_img/building.jpg')
+            /*post*/
+        
+    }
+    
+</style>
+
+<header class="intro-header" >
+    <!-- Signature -->
+    <div id="signature">
+        <div class="container">
+            <div class="row">
+                <div class="col-lg-8 col-lg-offset-2 col-md-10 col-md-offset-1">
+                
+                    <div class="post-heading">
+                        <div class="tags">
+                            
+                              <a class="tag" href="/tags/#Linux" title="Linux">Linux</a>
+                            
+                              <a class="tag" href="/tags/#Kubernetes" title="Kubernetes">Kubernetes</a>
+                            
+                        </div>
+                        <h1>使用 IPVS 实现 Kubernetes 入口流量负载均衡</h1>
+                        <h2 class="subheading"></h2>
+                        <span class="meta">
+                            Posted by Mike on
+                            2018-08-27
+                        </span>
+                    </div>
+                
+
+
+                </div>
+            </div>
+        </div>
+    </div>
+</header>
+
+	
+    <!-- Navigation -->
+<nav class="navbar navbar-default navbar-custom navbar-fixed-top">
+    <div class="container-fluid">
+        <!-- Brand and toggle get grouped for better mobile display -->
+        <div class="navbar-header page-scroll">
+            <button type="button" class="navbar-toggle">
+                <span class="sr-only">Toggle navigation</span>
+                <span class="icon-bar"></span>
+                <span class="icon-bar"></span>
+                <span class="icon-bar"></span>
+            </button>
+            <a class="navbar-brand" href="/">运维之美</a>
+        </div>
+
+        <!-- Collect the nav links, forms, and other content for toggling -->
+        <!-- Known Issue, found by Hux:
+            <nav>'s height woule be hold on by its content.
+            so, when navbar scale out, the <nav> will cover tags.
+            also mask any touch event of tags, unfortunately.
+        -->
+        <div id="huxblog_navbar">
+            <div class="navbar-collapse">
+                <ul class="nav navbar-nav navbar-right">
+                    <li>
+                        <a href="/">Home</a>
+                    </li>
+
+                    
+
+                        
+                    
+
+                        
+                    
+
+                        
+                        <li>
+                            <a href="/about/">About</a>
+                        </li>
+                        
+                    
+
+                        
+                        <li>
+                            <a href="/archive/">Archives</a>
+                        </li>
+                        
+                    
+
+                        
+                        <li>
+                            <a href="/tags/">Tags</a>
+                        </li>
+                        
+                    
+                    
+                </ul>
+            </div>
+        </div>
+        <!-- /.navbar-collapse -->
+    </div>
+    <!-- /.container -->
+</nav>
+<script>
+    // Drop Bootstarp low-performance Navbar
+    // Use customize navbar with high-quality material design animation
+    // in high-perf jank-free CSS3 implementation
+    var $body   = document.body;
+    var $toggle = document.querySelector('.navbar-toggle');
+    var $navbar = document.querySelector('#huxblog_navbar');
+    var $collapse = document.querySelector('.navbar-collapse');
+
+    $toggle.addEventListener('click', handleMagic)
+    function handleMagic(e){
+        if ($navbar.className.indexOf('in') > 0) {
+        // CLOSE
+            $navbar.className = " ";
+            // wait until animation end.
+            setTimeout(function(){
+                // prevent frequently toggle
+                if($navbar.className.indexOf('in') < 0) {
+                    $collapse.style.height = "0px"
+                }
+            },400)
+        }else{
+        // OPEN
+            $collapse.style.height = "auto"
+            $navbar.className += " in";
+        }
+    }
+</script>
+
+
+    <!-- Main Content -->
+    <!-- Modify by Yu-Hsuan Yen -->
+
+<!-- Post Content -->
+<article>
+    <div class="container">
+        <div class="row">
+
+            <!-- Post Container -->
+            <div class="
+                col-lg-8 col-lg-offset-2
+                col-md-10 col-md-offset-1
+                post-container">
+
+                <p>新搭建的 Kubernetes 集群如何承接外部访问的流量，是刚上手 Kubernetes 时常常会遇到的问题。 在公有云上，官方给出了比较直接的答案，使用 LoadBalancer 类型的 Service，利用公有云提供的负载均衡服务来承接流量，同时在多台服务器之间进行负载均衡。</p>
+<p>而在私有环境中，如何正确的将外部流量引入到集群内部，却暂时没有标准的做法。 本文将介绍一种基于 IPVS 来承接流量并实现负载均衡的方法，供大家参考。在阅读本文前建议先了解文中相关基础知识点，推荐阅读下「<a href="https://mp.weixin.qq.com/s?__biz=MzI3MTI2NzkxMA==&amp;mid=2247486130&amp;idx=1&amp;sn=41ee30f02113dac86398653f542a3c70&amp;chksm=eac52b9bddb2a28d6472d23eb764b6af0c8c290782e11c792dffde1a8f63c60ed7430445e0a3&amp;token=1694324409&amp;lang=zh_CN#rd" target="_blank" rel="noopener">浅析从外部访问 Kubernetes 集群中应用的几种方式</a>」一文。</p>
+<h3 id="ipvs">IPVS</h3>
+<p>IPVS 是 LVS 项目的一部分，是一款运行在 Linux kernel 当中的 4 层负载均衡器，性能异常优秀。 根据<a href="https://www.lvtao.net/server/taobao-linux-kernel.html" target="_blank" rel="noopener">这篇文章</a>的介绍，使用调优后的内核，可以轻松处理每秒 10 万次以上的转发请求。目前在中大型互联网项目中，IPVS 被广泛的使用，用于承接网站入口处的流量。</p>
+<h3 id="kubernetes-service">Kubernetes Service</h3>
+<p><a href="https://mp.weixin.qq.com/s?__biz=MzI3MTI2NzkxMA==&amp;mid=2247486130&amp;idx=1&amp;sn=41ee30f02113dac86398653f542a3c70&amp;chksm=eac52b9bddb2a28d6472d23eb764b6af0c8c290782e11c792dffde1a8f63c60ed7430445e0a3&amp;token=1694324409&amp;lang=zh_CN#rd" target="_blank" rel="noopener">Service</a> 是 Kubernetes 的基础概念之一，它将一组 Pod 抽象成为一项服务，统一的对外提供服务，在各个 Pod 之间实现负载均衡。 Service 有多种类型，最基本的 ClusterIP 类型解决了集群内部访问服务的需求，NodePort 类型通过 Node 节点的端口暴露服务， 再配合上 LoadBalancer 类型所定义的负载均衡器，实现了流量经过前端负载均衡器分发到各个 Node 节点暴露出的端口， 再通过 IPtables进行一次负载均衡，最终分发到实际的 Pod 上这个过程。</p>
+<p>在 Service 的 Spec 中，externalIPs 字段平常鲜有人提到，当把 IP 地址填入这个字段后，Kube-Proxy 会增加对应的 IPtables 规则，当有以对应 IP 为目标的流量发送到 Node节点时，IPtables将进行 NAT，将流量转发到对应的服务上。一般情况下，很少会遇到服务器接受非自身绑定 IP 流量的情况，所以 externalIPs 不常被使用，但配合网络层的其他工具，它可以实现给 Service 绑定外部 IP 的效果。</p>
+<p>今天我们将使用 externalIPs 配合 IPVS 的 DR(Direct Routing )模式实现将外部流量引入到集群内部，同时实现负载均衡。</p>
+<a id="more"></a>
+<h3 id="环境搭建">环境搭建</h3>
+<p>为了演示，我们搭建了 4 台服务器组成的集群。一台服务器运行 IPVS，扮演负载均衡器的作用。一台服务器运行 Kubernetes Master 组件，其他两台服务器作为 Node 加入到 Kubernetes 集群当中。搭建过程这里不详细介绍，大家可以参考相关文档，比如：「<a href="https://k8s-install.opsnull.com/" target="_blank" rel="noopener">和我一步步部署 kubernetes 集群</a>」。</p>
+<p>所有服务器在 172.17.8.0/24 这个网段中，服务的 VIP 我们设定为 172.17.8.201。整体架构如下图所示：</p>
+<p><img src="https://www.hi-linux.com/img/linux/ipvs-kubernetes.png" alt=""></p>
+<p>接下来让我们来配置 IPVS 和 Kubernetes。</p>
+<h4 id="使用-externalips-暴露-kubernetes-service">使用 externalIPs 暴露 Kubernetes Service</h4>
+<p>首先在集群内部运行 2 个 nginx Pod 用作演示。</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">$ kubectl run nginx --image=nginx --replicas=2</span><br></pre></td></tr></table></figure>
+<p>再将它暴露为 Service，同时设定 externalIPs 字段</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">$ kubectl expose deployment nginx --port 80 --external-ip 172.17.8.201</span><br></pre></td></tr></table></figure>
+<p>查看 IPtables 配置，确认对应的 IPtables 规则已经被加入。</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line">$ sudo iptables -t nat -L KUBE-SERVICES -n</span><br><span class="line">Chain KUBE-SERVICES (2 references)</span><br><span class="line">target     prot opt source               destination</span><br><span class="line">KUBE-SVC-4N57TFCL4MD7ZTDA  tcp  --  0.0.0.0/0            10.3.0.156           /* default/nginx: cluster IP */ tcp dpt:80</span><br><span class="line">KUBE-MARK-MASQ  tcp  --  0.0.0.0/0            172.17.8.201         /* default/nginx: external IP */ tcp dpt:80</span><br><span class="line">KUBE-SVC-4N57TFCL4MD7ZTDA  tcp  --  0.0.0.0/0            172.17.8.201         /* default/nginx: external IP */ tcp dpt:80 PHYSDEV match ! --physdev-is-in ADDRTYPE match src-type !LOCAL</span><br><span class="line">KUBE-SVC-4N57TFCL4MD7ZTDA  tcp  --  0.0.0.0/0            172.17.8.201         /* default/nginx: external IP */ tcp dpt:80 ADDRTYPE match dst-type LOCAL</span><br><span class="line">KUBE-SVC-NPX46M4PTMTKRN6Y  tcp  --  0.0.0.0/0            10.3.0.1             /* default/kubernetes:https cluster IP */ tcp dpt:443</span><br><span class="line">KUBE-NODEPORTS  all  --  0.0.0.0/0            0.0.0.0/0            /* kubernetes service nodeports; NOTE: this must be the last rule in this chain */ ADDRTYPE match dst-type LOCAL</span><br></pre></td></tr></table></figure>
+<h4 id="配置-ipvs-实现流量转发">配置 IPVS 实现流量转发</h4>
+<p>首先在 IPVS 服务器上，打开 ipv4_forward。</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">$ sudo sysctl -w net.ipv4.ip_forward=1</span><br></pre></td></tr></table></figure>
+<p>接下来加载 IPVS 内核模块。</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">$ sudo modprobe ip_vs</span><br></pre></td></tr></table></figure>
+<p>将 VIP 绑定在网卡上。</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">$ sudo ifconfig eth0:0 172.17.8.201 netmask 255.255.255.0 broadcast 172.17.8.255</span><br></pre></td></tr></table></figure>
+<p>再使用 ipvsadm 来配置 IPVS，这里我们直接使用 Docker 镜像，避免和特定发行版绑定。</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br></pre></td><td class="code"><pre><span class="line">$ docker run --privileged -it --rm --net host luizbafilho/ipvsadm</span><br><span class="line">/ # ipvsadm</span><br><span class="line">IP Virtual Server version 1.2.1 (size=4096)</span><br><span class="line">Prot LocalAddress:Port Scheduler Flags</span><br><span class="line">  -&gt; RemoteAddress:Port           Forward Weight ActiveConn InActConn</span><br><span class="line">/ # ipvsadm -A -t 172.17.8.201:80</span><br><span class="line">/ # ipvsadm -a -t 172.17.8.201:80 -r 172.17.8.11:80 -g</span><br><span class="line">/ # ipvsadm -a -t 172.17.8.201:80 -r 172.17.8.12:80 -g</span><br><span class="line">/ # ipvsadm</span><br><span class="line">IP Virtual Server version 1.2.1 (size=4096)</span><br><span class="line">Prot LocalAddress:Port Scheduler Flags</span><br><span class="line">  -&gt; RemoteAddress:Port           Forward Weight ActiveConn InActConn</span><br><span class="line">TCP  172.17.8.201:http wlc</span><br><span class="line">  -&gt; 172.17.8.11:http             Route   1      0          0</span><br><span class="line">  -&gt; 172.17.8.12:http             Route   1      0          0</span><br></pre></td></tr></table></figure>
+<p>可以看到，我们成功建立了从 VIP 到后端服务器的转发。</p>
+<h4 id="验证转发效果">验证转发效果</h4>
+<p>首先使用 curl 来测试是否能够正常访问 Nginx 服务。</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br></pre></td><td class="code"><pre><span class="line">$ curl http://172.17.8.201</span><br><span class="line">&lt;!DOCTYPE html&gt;</span><br><span class="line">&lt;html&gt;</span><br><span class="line">&lt;head&gt;</span><br><span class="line">&lt;title&gt;Welcome to nginx!&lt;/title&gt;</span><br><span class="line">&lt;style&gt;</span><br><span class="line">    body &#123;</span><br><span class="line">        width: 35em;</span><br><span class="line">        margin: 0 auto;</span><br><span class="line">        font-family: Tahoma, Verdana, Arial, sans-serif;</span><br><span class="line">    &#125;</span><br><span class="line">&lt;/style&gt;</span><br><span class="line">&lt;/head&gt;</span><br><span class="line">&lt;body&gt;</span><br><span class="line">&lt;h1&gt;Welcome to nginx!&lt;/h1&gt;</span><br><span class="line">&lt;p&gt;If you see this page, the nginx web server is successfully installed and</span><br><span class="line">working. Further configuration is required.&lt;/p&gt;</span><br><span class="line"></span><br><span class="line">&lt;p&gt;For online documentation and support please refer to</span><br><span class="line">&lt;a href=&quot;http://nginx.org/&quot;&gt;nginx.org&lt;/a&gt;.&lt;br/&gt;</span><br><span class="line">Commercial support is available at</span><br><span class="line">&lt;a href=&quot;http://nginx.com/&quot;&gt;nginx.com&lt;/a&gt;.&lt;/p&gt;</span><br><span class="line"></span><br><span class="line">&lt;p&gt;&lt;em&gt;Thank you for using nginx.&lt;/em&gt;&lt;/p&gt;</span><br><span class="line">&lt;/body&gt;</span><br><span class="line">&lt;/html&gt;</span><br></pre></td></tr></table></figure>
+<p>接下来在 172.17.8.11 上抓包来确认 IPVS 的工作情况。</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line">$ sudo tcpdump -i any port 80</span><br><span class="line">tcpdump: verbose output suppressed, use -v or -vv for full protocol decode</span><br><span class="line">listening on any, link-type LINUX_SLL (Linux cooked), capture size 262144 bytes</span><br><span class="line">04:09:07.503858 IP 172.17.8.1.51921 &gt; 172.17.8.201.http: Flags [S], seq 2747628840, win 65535, options [mss 1460,nop,wscale 5,nop,nop,TS val 1332071005 ecr 0,sackOK,eol], length 0</span><br><span class="line">04:09:07.504241 IP 10.2.0.1.51921 &gt; 10.2.0.3.http: Flags [S], seq 2747628840, win 65535, options [mss 1460,nop,wscale 5,nop,nop,TS val 1332071005 ecr 0,sackOK,eol], length 0</span><br><span class="line">04:09:07.504498 IP 10.2.0.1.51921 &gt; 10.2.0.3.http: Flags [S], seq 2747628840, win 65535, options [mss 1460,nop,wscale 5,nop,nop,TS val 1332071005 ecr 0,sackOK,eol], length 0</span><br><span class="line">04:09:07.504827 IP 10.2.0.3.http &gt; 10.2.0.1.51921: Flags [S.], seq 3762638044, ack 2747628841, win 28960, options [mss 1460,sackOK,TS val 153786592 ecr 1332071005,nop,wscale 7], length 0</span><br><span class="line">04:09:07.504827 IP 10.2.0.3.http &gt; 172.17.8.1.51921: Flags [S.], seq 3762638044, ack 2747628841, win 28960, options [mss 1460,sackOK,TS val 153786592 ecr 1332071005,nop,wscale 7], length 0</span><br><span class="line">04:09:07.504888 IP 172.17.8.201.http &gt; 172.17.8.1.51921: Flags [S.], seq 3762638044, ack 2747628841, win 28960, options [mss 1460,sackOK,TS val 153786592 ecr 1332071005,nop,wscale 7], length 0</span><br><span class="line">04:09:07.505599 IP 172.17.8.1.51921 &gt; 172.17.8.201.http: Flags [.], ack 1, win 4117, options [nop,nop,TS val 1332071007 ecr 153786592], length 0</span><br></pre></td></tr></table></figure>
+<p>可以看到，由客户端 172.17.8.1 发送给 172.17.8.201 的封包，经过 IPVS 的中转发送给了 172.17.8.11 这台服务器，并经过 NAT 后发送给了 10.2.0.3 这个 Pod。返回的封包不经过 IPVS 服务器直接从 172.17.8.11 发送给了 172.17.8.1。 说明 IPVS 的 DR 模式工作正常。重复多次测试可以看到流量分别从 172.17.8.11 和 172.17.8.12 进入，再分发给不同的 Pod，说明负载均衡工作正常。</p>
+<p>与传统的 IPVS DR 模式配置不同的是，我们并未在承接流量的服务器上执行绑定 VIP，再关闭 ARP 的操作。 那是因为对 VIP 的处理直接发生在 IPtables上，我们无需在服务器上运行程序来承接流量，IPtables 会将流量转发到对应的 Pod 上。</p>
+<p>使用这种方法来承接流量，仅需要配置 externalIPs 为 VIP 即可，无需对服务器做任何特殊的设置，使用起来相当方便。</p>
+<h3 id="总结">总结</h3>
+<p>在本文中演示了使用 IPVS 配合 externalIPs 实现将外部流量导入到 Kubernetes 集群中，并实现负载均衡的方法。 希望可以帮助大家理解 IPVS 和 externalIPs 的工作原理，以便在恰当的场景下合理使用这两项技术解决问题。 实际部署时，还需要考虑后台服务器可用性检查，IPVS 节点主从备份，水平扩展等问题。在这里就不详细介绍了。</p>
+<p>在 Kubernetes 中还有许多与 externalIPs 类似的非常用功能，有些甚至是使用 Annotation 来进行配置，将来有机会再进一步分享。</p>
+<blockquote>
+<p>来源：极术<br>
+原文：<a href="http://t.cn/RX8vzvC" target="_blank" rel="noopener">http://t.cn/RX8vzvC</a><br>
+题图：来自谷歌图片搜索<br>
+版权：本文版权归原作者所有</p>
+</blockquote>
+
+                
+
+                <hr>
+                <!-- Pager -->
+                <ul class="pager">
+                    
+                        <li class="previous">
+                            <a href="/posts/28535.html" data-toggle="tooltip" data-placement="top" title="初识 Istio">&larr; Previous Post</a>
+                        </li>
+                    
+                    
+                        <li class="next">
+                            <a href="/posts/14136.html" data-toggle="tooltip" data-placement="top" title="浅谈 Kubernetes 数据持久化方案">Next Post &rarr;</a>
+                        </li>
+                    
+                </ul>
+
+                <!-- duoshuo Share start -->
+                
+                <!-- 多说 Share end-->
+
+                <!-- 多说评论框 start -->
+                
+                <!-- 多说评论框 end -->
+
+                <!-- disqus comment start -->
+                
+                <!-- disqus comment end -->
+
+                
+                    <!-- disqus 评论框 start -->
+                    <div class="comment">
+                        <div id="lv-container" data-id="city" data-uid="MTAyMC8yNzg2My80NDQw"></div>
+                    </div>
+                    <!-- disqus 评论框 end -->
+                
+
+            </div>
+            
+            <!-- Tabe of Content -->
+            <!-- Table of Contents -->
+
+  
+    <style>
+      span.toc-nav-number{
+        display: none
+      }
+    </style>
+  
+    
+      <aside id="sidebar">
+        <div id="toc" class="toc-article">
+        <strong class="toc-title">Contents</strong>
+        
+          <ol class="toc-nav"><li class="toc-nav-item toc-nav-level-3"><a class="toc-nav-link" href="#ipvs"><span class="toc-nav-number">1.</span> <span class="toc-nav-text">IPVS</span></a></li><li class="toc-nav-item toc-nav-level-3"><a class="toc-nav-link" href="#kubernetes-service"><span class="toc-nav-number">2.</span> <span class="toc-nav-text">Kubernetes Service</span></a></li><li class="toc-nav-item toc-nav-level-3"><a class="toc-nav-link" href="#环境搭建"><span class="toc-nav-number">3.</span> <span class="toc-nav-text">环境搭建</span></a><ol class="toc-nav-child"><li class="toc-nav-item toc-nav-level-4"><a class="toc-nav-link" href="#使用-externalips-暴露-kubernetes-service"><span class="toc-nav-number">3.1.</span> <span class="toc-nav-text">使用 externalIPs 暴露 Kubernetes Service</span></a></li><li class="toc-nav-item toc-nav-level-4"><a class="toc-nav-link" href="#配置-ipvs-实现流量转发"><span class="toc-nav-number">3.2.</span> <span class="toc-nav-text">配置 IPVS 实现流量转发</span></a></li><li class="toc-nav-item toc-nav-level-4"><a class="toc-nav-link" href="#验证转发效果"><span class="toc-nav-number">3.3.</span> <span class="toc-nav-text">验证转发效果</span></a></li></ol></li><li class="toc-nav-item toc-nav-level-3"><a class="toc-nav-link" href="#总结"><span class="toc-nav-number">4.</span> <span class="toc-nav-text">总结</span></a></li></ol>
+        
+        </div>
+      </aside>
+    
+
+                
+            <!-- Sidebar Container -->
+            <div class="
+                col-lg-8 col-lg-offset-2
+                col-md-10 col-md-offset-1
+                sidebar-container">
+
+                <!-- Featured Tags -->
+                
+                <section>
+                    <!-- no hr -->
+                    <h5><a href="/tags/">FEATURED TAGS</a></h5>
+                    <div class="tags">
+                       
+                          <a class="tag" href="/tags/#Linux" title="Linux">Linux</a>
+                        
+                          <a class="tag" href="/tags/#Kubernetes" title="Kubernetes">Kubernetes</a>
+                        
+                    </div>
+                </section>
+                
+
+                <!-- Friends Blog -->
+                
+                <hr>
+                <h5>FRIENDS</h5>
+                <ul class="list-inline">
+
+                    
+                        <li><a href="http://www.mike.org.cn/" target="_blank">简单.生活</a></li>
+                    
+                        <li><a href="http://shang.qq.com/wpa/qunwpa?idkey=ea4c43493c2269428ac6ef6141de4b6d78e5ab2d41380ca4099b833b62884ee9" target="_blank">技术交流群</a></li>
+                    
+                        <li><a href="" target="_blank"></a></li>
+                    
+                        <li><a href="" target="_blank"></a></li>
+                    
+                </ul>
+                
+            </div>
+        </div>
+    </div>
+</article>
+
+
+
+
+
+
+    <!-- 来必力City版公共JS代码 start (一个网页只需插入一次) -->
+    <script type="text/javascript">
+       (function(d, s) {
+           var j, e = d.getElementsByTagName(s)[0];
+    
+           if (typeof LivereTower === 'function') { return; }
+    
+           j = d.createElement(s);
+           j.src = 'https://cdn-city.livere.com/js/embed.dist.js';
+           j.async = true;
+    
+           e.parentNode.insertBefore(j, e);
+       })(document, 'script');
+    </script>
+    <noscript>为正常使用来必力评论功能请激活JavaScript</noscript>
+    <!-- 来必力City版 公共JS代码 end -->
+
+
+
+<!-- async load function -->
+<script>
+    function async(u, c) {
+      var d = document, t = 'script',
+          o = d.createElement(t),
+          s = d.getElementsByTagName(t)[0];
+      o.src = u;
+      if (c) { o.addEventListener('load', function (e) { c(null, e); }, false); }
+      s.parentNode.insertBefore(o, s);
+    }
+</script>
+<!-- anchor-js, Doc:http://bryanbraun.github.io/anchorjs/ -->
+<script>
+    async("https://cdn.bootcss.com/anchor-js/1.1.1/anchor.min.js",function(){
+        anchors.options = {
+          visible: 'hover',
+          placement: 'left',
+          icon: 'ℬ'
+        };
+        anchors.add().remove('.intro-header h1').remove('.subheading').remove('.sidebar-container h5');
+    })
+</script>
+<style>
+    /* place left on bigger screen */
+    @media all and (min-width: 800px) {
+        .anchorjs-link{
+            position: absolute;
+            left: -0.75em;
+            font-size: 1.1em;
+            margin-top : -0.1em;
+        }
+    }
+</style>
+
+
+
+    <!-- Footer -->
+    <!-- Footer -->
+<footer>
+    <div class="container">
+        <div class="row">
+            <div class="col-lg-8 col-lg-offset-2 col-md-10 col-md-offset-1">
+                <ul class="list-inline text-center">
+                
+                    <li>
+                        <a href="/atom.xml">
+                            <span class="fa-stack fa-lg">
+                                <i class="fa fa-circle fa-stack-2x"></i>
+                                <i class="fa fa-rss fa-stack-1x fa-inverse"></i>
+                            </span>
+                        </a>
+                    </li>
+                
+                
+                
+                    <li>
+                        <a target="_blank" href="https://www.zhihu.com/people/80imike">
+                            <span class="fa-stack fa-lg">
+                                <i class="fa fa-circle fa-stack-2x"></i>
+                                <i class="fa  fa-stack-1x fa-inverse">知</i>
+                            </span>
+                        </a>
+                    </li>
+                
+
+                
+                    <li>
+                        <a target="_blank" href="http://weibo.com/2093524665">
+                            <span class="fa-stack fa-lg">
+                                <i class="fa fa-circle fa-stack-2x"></i>
+                                <i class="fa fa-weibo fa-stack-1x fa-inverse"></i>
+                            </span>
+                        </a>
+                    </li>
+                
+
+                
+
+                
+
+                
+
+                </ul>
+                <p class="copyright text-muted">
+                    Copyright &copy; Mike 2018 | Hosted by <a href="https://pages.coding.me" style="font-weight: bold">Coding Pages</a>
+                    <br>
+                    Theme by <a href="http://beantech.org">BeanTech</a> 
+                    <span style="display: inline-block; margin: 0 5px;">
+                        <i class="fa fa-heart"></i>
+                    </span> 
+                    re-Ported by <a href="http://www.huweihuang.com">胡伟煌</a> | 
+                    <iframe
+                        style="margin-left: 2px; margin-bottom:-5px;"
+                        frameborder="0" scrolling="0" width="91px" height="20px"
+                        src="https://ghbtns.com/github-btn.html?user=huweihuang&repo=hexo-theme-huweihuang&type=star&count=true" >
+                    </iframe>
+                </p>
+            </div>
+        </div>
+    </div>
+</footer>
+
+<!-- jQuery -->
+<script src="/js/jquery.min.js"></script>
+
+<!-- Bootstrap Core JavaScript -->
+<script src="/js/bootstrap.min.js"></script>
+
+<!-- Custom Theme JavaScript -->
+<script src="/js/hux-blog.min.js"></script>
+
+
+<!-- async load function -->
+<script>
+    function async(u, c) {
+      var d = document, t = 'script',
+          o = d.createElement(t),
+          s = d.getElementsByTagName(t)[0];
+      o.src = u;
+      if (c) { o.addEventListener('load', function (e) { c(null, e); }, false); }
+      s.parentNode.insertBefore(o, s);
+    }
+</script>
+
+<!-- 
+     Because of the native support for backtick-style fenced code blocks 
+     right within the Markdown is landed in Github Pages, 
+     From V1.6, There is no need for Highlight.js, 
+     so Huxblog drops it officially.
+
+     - https://github.com/blog/2100-github-pages-now-faster-and-simpler-with-jekyll-3-0  
+     - https://help.github.com/articles/creating-and-highlighting-code-blocks/    
+-->
+<!--
+    <script>
+        async("http://cdn.bootcss.com/highlight.js/8.6/highlight.min.js", function(){
+            hljs.initHighlightingOnLoad();
+        })
+    </script>
+    <link href="http://cdn.bootcss.com/highlight.js/8.6/styles/github.min.css" rel="stylesheet">
+-->
+
+
+<!-- jquery.tagcloud.js -->
+<script>
+    // only load tagcloud.js in tag.html
+    if($('#tag_cloud').length !== 0){
+        async("https://www.hi-linux.com/js/jquery.tagcloud.js",function(){
+            $.fn.tagcloud.defaults = {
+                //size: {start: 1, end: 1, unit: 'em'},
+                color: {start: '#bbbbee', end: '#0085a1'},
+            };
+            $('#tag_cloud a').tagcloud();
+        })
+    }
+</script>
+
+<!--fastClick.js -->
+<script>
+    async("https://cdn.bootcss.com/fastclick/1.0.6/fastclick.min.js", function(){
+        var $nav = document.querySelector("nav");
+        if($nav) FastClick.attach($nav);
+    })
+</script>
+
+
+<!-- Google Analytics -->
+
+
+
+
+<!-- Baidu Tongji -->
+
+
+
+
+
+
+	<a id="rocket" href="#top" class=""></a>
+	<script type="text/javascript" src="/js/totop.js?v=1.0.0" async=""></script>
+    <script type="text/javascript" src="/js/toc.js?v=1.0.0" async=""></script>
+<!-- Image to hack wechat -->
+<img src="https://www.hi-linux.com/img/icon_wechat.png" width="0" height="0" />
+<!-- Migrate from head to bottom, no longer block render and still work -->
+
+</body>
+
+</html>
