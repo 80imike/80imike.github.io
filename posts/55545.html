@@ -1,0 +1,579 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<!-- Head tag -->
+<head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="google-site-verification" content="xBT4GhYoi5qRD5tr338pgPM5OWHHIDR6mNg1a3euekI" />
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="description" content="">
+    <meta name="keyword"  content="Linux,运维,Nginx,Zabbix,Centos,Ansible,MySQL,Python,Docker,ELK,Haproxy,Git,Nodejs,安全,技术">
+    <link rel="shortcut icon" href="/img/ironman-draw.png">
+    <!-- Place this tag in your head or just before your close body tag. -->
+    <script async defer src="https://buttons.github.io/buttons.js"></script>
+    <title>
+        
+          Docker 最佳实践之多阶段构建 - 运维之美
+        
+    </title>
+
+    <link rel="canonical" href="https://www.hi-linux.com/posts/55545.html">
+
+    <!-- Bootstrap Core CSS -->
+    <link rel="stylesheet" href="/css/bootstrap.min.css">
+
+    <!-- Custom CSS --> 
+    <link rel="stylesheet" href="/css/beantech.min.css">
+    
+    <!-- Pygments Highlight CSS -->
+    <link rel="stylesheet" href="/css/highlight.css">
+
+    <link rel="stylesheet" href="/css/widget.css">
+
+    <link rel="stylesheet" href="/css/rocket.css">
+
+    <link rel="stylesheet" href="/css/signature.css">
+
+    <link rel="stylesheet" href="/css/toc.css">
+
+    <!-- Custom Fonts -->
+    <!-- <link href="https://maxcdn.bootstrapcdn.com/font-awesome/4.3.0/css/font-awesome.min.css" rel="stylesheet" type="text/css"> -->
+    <!-- Hux change font-awesome CDN to qiniu -->
+    <link href="https://cdn.staticfile.org/font-awesome/4.5.0/css/font-awesome.min.css" rel="stylesheet" type="text/css">
+
+
+    <!-- Hux Delete, sad but pending in China
+    <link href='http://fonts.googleapis.com/css?family=Lora:400,700,400italic,700italic' rel='stylesheet' type='text/css'>
+    <link href='http://fonts.googleapis.com/css?family=Open+Sans:300italic,400italic,600italic,700italic,800italic,400,300,600,700,800' rel='stylesheet' type='text/
+    css'>
+    -->
+
+
+    <!-- HTML5 Shim and Respond.js IE8 support of HTML5 elements and media queries -->
+    <!-- WARNING: Respond.js doesn't work if you view the page via file:// -->
+    <!--[if lt IE 9]>
+        <script src="https://oss.maxcdn.com/libs/html5shiv/3.7.0/html5shiv.js"></script>
+        <script src="https://oss.maxcdn.com/libs/respond.js/1.4.2/respond.min.js"></script>
+    <![endif]-->
+
+    <!-- ga & ba script hoook -->
+    <script></script>
+</head>
+
+
+<!-- hack iOS CSS :active style -->
+<body ontouchstart="">
+	<!-- Modified by Yu-Hsuan Yen -->
+<!-- Post Header -->
+<style type="text/css">
+    header.intro-header{
+        
+            background-image: url('/img/header_img/building.jpg')
+            /*post*/
+        
+    }
+    
+</style>
+
+<header class="intro-header" >
+    <!-- Signature -->
+    <div id="signature">
+        <div class="container">
+            <div class="row">
+                <div class="col-lg-8 col-lg-offset-2 col-md-10 col-md-offset-1">
+                
+                    <div class="post-heading">
+                        <div class="tags">
+                            
+                              <a class="tag" href="/tags/#Linux" title="Linux">Linux</a>
+                            
+                              <a class="tag" href="/tags/#Docker" title="Docker">Docker</a>
+                            
+                        </div>
+                        <h1>Docker 最佳实践之多阶段构建</h1>
+                        <h2 class="subheading"></h2>
+                        <span class="meta">
+                            Posted by Mike on
+                            2018-09-03
+                        </span>
+                    </div>
+                
+
+
+                </div>
+            </div>
+        </div>
+    </div>
+</header>
+
+	
+    <!-- Navigation -->
+<nav class="navbar navbar-default navbar-custom navbar-fixed-top">
+    <div class="container-fluid">
+        <!-- Brand and toggle get grouped for better mobile display -->
+        <div class="navbar-header page-scroll">
+            <button type="button" class="navbar-toggle">
+                <span class="sr-only">Toggle navigation</span>
+                <span class="icon-bar"></span>
+                <span class="icon-bar"></span>
+                <span class="icon-bar"></span>
+            </button>
+            <a class="navbar-brand" href="/">运维之美</a>
+        </div>
+
+        <!-- Collect the nav links, forms, and other content for toggling -->
+        <!-- Known Issue, found by Hux:
+            <nav>'s height woule be hold on by its content.
+            so, when navbar scale out, the <nav> will cover tags.
+            also mask any touch event of tags, unfortunately.
+        -->
+        <div id="huxblog_navbar">
+            <div class="navbar-collapse">
+                <ul class="nav navbar-nav navbar-right">
+                    <li>
+                        <a href="/">Home</a>
+                    </li>
+
+                    
+
+                        
+                    
+
+                        
+                    
+
+                        
+                        <li>
+                            <a href="/about/">About</a>
+                        </li>
+                        
+                    
+
+                        
+                        <li>
+                            <a href="/archive/">Archives</a>
+                        </li>
+                        
+                    
+
+                        
+                        <li>
+                            <a href="/tags/">Tags</a>
+                        </li>
+                        
+                    
+                    
+                </ul>
+            </div>
+        </div>
+        <!-- /.navbar-collapse -->
+    </div>
+    <!-- /.container -->
+</nav>
+<script>
+    // Drop Bootstarp low-performance Navbar
+    // Use customize navbar with high-quality material design animation
+    // in high-perf jank-free CSS3 implementation
+    var $body   = document.body;
+    var $toggle = document.querySelector('.navbar-toggle');
+    var $navbar = document.querySelector('#huxblog_navbar');
+    var $collapse = document.querySelector('.navbar-collapse');
+
+    $toggle.addEventListener('click', handleMagic)
+    function handleMagic(e){
+        if ($navbar.className.indexOf('in') > 0) {
+        // CLOSE
+            $navbar.className = " ";
+            // wait until animation end.
+            setTimeout(function(){
+                // prevent frequently toggle
+                if($navbar.className.indexOf('in') < 0) {
+                    $collapse.style.height = "0px"
+                }
+            },400)
+        }else{
+        // OPEN
+            $collapse.style.height = "auto"
+            $navbar.className += " in";
+        }
+    }
+</script>
+
+
+    <!-- Main Content -->
+    <!-- Modify by Yu-Hsuan Yen -->
+
+<!-- Post Content -->
+<article>
+    <div class="container">
+        <div class="row">
+
+            <!-- Post Container -->
+            <div class="
+                col-lg-8 col-lg-offset-2
+                col-md-10 col-md-offset-1
+                post-container">
+
+                <p>Docker 目前在容器市场可以说是占领了大部分市场，Docker 掀起了容器革命，同时也改变了现代化云平台的构建方式。尽管 Docker 很强大，但使用过程当中也遇到了一些问题。比如:我想要构建一个编译型语言镜像，需要先在一个 Dockerfile 中编译，然后再使用另外一个 Dockerfile 把编译好的文件放到镜像中。这样无形当中就增大了 CI/CD 的复杂度。</p>
+<blockquote>
+<p>Docker 多阶段构建是 17.05 以后引入的新特性，旨在解决编译和构建复杂的问题。因此要使用多阶段构建特性必须使用高于或等于 17.05 的 Docker。</p>
+</blockquote>
+<h3 id="多阶段构建出现之前">多阶段构建出现之前</h3>
+<ul>
+<li>构建镜像最具挑战性的一点是使镜像大小尽可能的小。Dockerfile 中的每条指令都为镜像添加了一个镜像层，您需要记住在移动到下一个镜像层之前清理任何不需要的组件。</li>
+<li>为了编写一个真正高效的 Dockerfile，传统上需要使用 Shell 技巧和其它逻辑来保持镜像层尽可能小，并确保每个镜像层都具有前一层所需的组件而不是其它任何东西。</li>
+</ul>
+<p>很多时候我们用一个 Dockerfile 维护开发环境（包含构建应用程序所需的所有内容），用另一个 Dockerfile 维护生产环境（只包含您的应用程序以及运行它所需的内容）。实际上同时维护两个 Dockerfiles 并不是一种理想的构建模式，这种模式被称为建造者模式。</p>
+<p>我们来看一个例子，这是一个 Dockerfile.build 和 Dockerfile 的例子，它遵循上面的模式。</p>
+<p><strong>Dockerfile.build</strong></p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">FROM golang:1.7.3</span><br><span class="line">WORKDIR /go/src/github.com/alexellis/href-counter/</span><br><span class="line">COPY app.go .</span><br><span class="line">RUN go get -d -v golang.org/x/net/html \</span><br><span class="line">  &amp;&amp; CGO_ENABLED=0 GOOS=linux go build -a -installsuffix cgo -o app .</span><br></pre></td></tr></table></figure>
+<p>请注意，此示例使用 Bash <code>&amp;&amp;</code> 运算符人为合并两个 RUN 命令，以避免在 Image 中创建出其它层。这种方法很容易出错并且难以维护。</p>
+<a id="more"></a>
+<p><strong>Dockerfile</strong></p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">FROM alpine:latest  </span><br><span class="line">RUN apk --no-cache add ca-certificates</span><br><span class="line">WORKDIR /root/</span><br><span class="line">COPY app .</span><br><span class="line">CMD [&quot;./app&quot;]</span><br></pre></td></tr></table></figure>
+<p><strong><a href="http://build.sh" target="_blank" rel="noopener">build.sh</a></strong></p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">#!/bin/sh</span></span><br><span class="line"><span class="built_in">echo</span> Building alexellis2/href-counter:build</span><br><span class="line">docker build --build-arg https_proxy=<span class="variable">$https_proxy</span> --build-arg http_proxy=<span class="variable">$http_proxy</span> \  </span><br><span class="line">    -t alexellis2/href-counter:build . -f Dockerfile.build</span><br><span class="line">docker container create --name extract alexellis2/href-counter:build  </span><br><span class="line">docker container cp extract:/go/src/github.com/alexellis/href-counter/app ./app  </span><br><span class="line">docker container rm -f extract</span><br><span class="line"><span class="built_in">echo</span> Building alexellis2/href-counter:latest</span><br><span class="line">docker build --no-cache -t alexellis2/href-counter:latest .</span><br><span class="line">rm ./app</span><br></pre></td></tr></table></figure>
+<p>当您运行 <code>build.sh</code> 脚本时，它首先会构建第一个 Image 并从创建容器中复制编译好的程序到本地。然后在第二个 Image 中将构建好的程序运行起来。</p>
+<h3 id="使用多阶段构建">使用多阶段构建</h3>
+<p>从上面的过程中可以看到过程是非常复杂且容易出错的，多阶段构建的出现就大大简化了这种情况！</p>
+<p>对于多阶段构建，您可以在 Dockerfile 中使用多个 FROM 语句。每个 FROM 指令可以使用不同的基础镜像，并且每个 FROM 指令都会开始一个新的构建阶段。您可以选择性地将各构建阶段中的内容从一个阶段复制到另一个阶段，从而在最终 Image 中只留下您想要的内容。</p>
+<p>为了说明这是如何工作的，我们调整上述示例中的 Dockerfile 使用多阶段方式来构建。</p>
+<p><strong>Dockerfile</strong></p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line">FROM golang:1.7.3</span><br><span class="line">WORKDIR /go/src/github.com/alexellis/href-counter/</span><br><span class="line">RUN go get -d -v golang.org/x/net/html  </span><br><span class="line">COPY app.go .</span><br><span class="line">RUN CGO_ENABLED=0 GOOS=linux go build -a -installsuffix cgo -o app .</span><br><span class="line"></span><br><span class="line">FROM alpine:latest  </span><br><span class="line">RUN apk --no-cache add ca-certificates</span><br><span class="line">WORKDIR /root/</span><br><span class="line">COPY --from=0 /go/src/github.com/alexellis/href-counter/app .</span><br><span class="line">CMD [&quot;./app&quot;]</span><br></pre></td></tr></table></figure>
+<p>可以看到您只需要单个 Dockerfile 并且不需要任何的单独构建脚本，就可以构建出上面相同的 Image。</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">$ docker build -t app:latest .</span><br></pre></td></tr></table></figure>
+<p>通过 <code>docker build</code> 构建后，最终结果是产生与之前相同大小的 Image，但复杂性显著降低。您不需要创建任何中间 Image，也不需要将任何编译结果临时提取到本地系统。</p>
+<p>哪它是如何工作的呢？关键就在 <code>COPY --from=0</code> 这个指令上。Dockerfile 中第二个 FROM 指令以 alpine:latest 为基础镜像开始了一个新的构建阶段，并通过 <code>COPY --from=0</code> 仅将前一阶段的构建文件复制到此阶段。前一构建阶段中产生的 Go SDK 和任何中间层都会在此阶段中被舍弃，而不是保存在最终 Image 中。</p>
+<h3 id="为多构建阶段命名">为多构建阶段命名</h3>
+<p>默认情况下，构建阶段是未命名的。您可以通过一个整数值来引用它们，默认是从第 0 个 FROM 指令开始的。 为了方便管理，您也可以通过向 FROM 指令添加 as NAME 来命名您的各个构建阶段。下面的示例就通过命名各个构建阶段并在 COPY 指令中使用名称来访问指定的构建阶段。</p>
+<p>这样做的好处就是即使稍后重新排序 Dockerfile 中的指令，COPY 指令一样能找到对应的构建阶段。</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line">FROM golang:1.7.3 as builder</span><br><span class="line">WORKDIR /go/src/github.com/alexellis/href-counter/</span><br><span class="line">RUN go get -d -v golang.org/x/net/html  </span><br><span class="line">COPY app.go    .</span><br><span class="line">RUN CGO_ENABLED=0 GOOS=linux go build -a -installsuffix cgo -o app .</span><br><span class="line"></span><br><span class="line">FROM alpine:latest  </span><br><span class="line">RUN apk --no-cache add ca-certificates</span><br><span class="line">WORKDIR /root/</span><br><span class="line">COPY --from=builder /go/src/github.com/alexellis/href-counter/app .</span><br><span class="line">CMD [&quot;./app&quot;]</span><br></pre></td></tr></table></figure>
+<h3 id="停在特定的构建阶段">停在特定的构建阶段</h3>
+<p>构建镜像时，不一定需要构建整个 Dockerfile 中每个阶段，您也可以指定需要构建的阶段。比如：您只构建 Dockerfile 中名为 builder 的阶段：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">$ docker build --target builder -t alexellis2/href-counter:latest .</span><br></pre></td></tr></table></figure>
+<p>此功能适合以下场景：</p>
+<ul>
+<li>调试特定的构建阶段。</li>
+<li>在 Debug 阶段，启用所有程序调试模式或调试工具，而在生产阶段尽量精简。</li>
+<li>在 Testing 阶段，您的应用程序使用测试数据，但在生产阶段则使用生产数据。</li>
+</ul>
+<h3 id="使用外部镜像作为构建阶段">使用外部镜像作为构建阶段</h3>
+<p>使用多阶段构建时，您不仅可以从 Dockerfile 中创建的镜像中进行复制。您还可以使用 <code>COPY --from</code> 指令从单独的 Image 中复制，支持使用本地 Image 名称、本地或 Docker 注册中心可用的标记或标记 ID。</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">COPY --from=nginx:latest /etc/nginx/nginx.conf /nginx.conf</span><br></pre></td></tr></table></figure>
+<blockquote>
+<p>本文在 「Docker 最佳实践之多阶段构建 」的基础上整理和修改，原文地址：<a href="http://t.cn/RFx6ML2" target="_blank" rel="noopener">http://t.cn/RFx6ML2</a> 。</p>
+</blockquote>
+
+                
+
+                <hr>
+                <!-- Pager -->
+                <ul class="pager">
+                    
+                    
+                        <li class="next">
+                            <a href="/posts/28535.html" data-toggle="tooltip" data-placement="top" title="初识 Istio">Next Post &rarr;</a>
+                        </li>
+                    
+                </ul>
+
+                <!-- duoshuo Share start -->
+                
+                <!-- 多说 Share end-->
+
+                <!-- 多说评论框 start -->
+                
+                <!-- 多说评论框 end -->
+
+                <!-- disqus comment start -->
+                
+                <!-- disqus comment end -->
+
+                
+                    <!-- disqus 评论框 start -->
+                    <div class="comment">
+                        <div id="lv-container" data-id="city" data-uid="MTAyMC8yNzg2My80NDQw"></div>
+                    </div>
+                    <!-- disqus 评论框 end -->
+                
+
+            </div>
+            
+            <!-- Tabe of Content -->
+            <!-- Table of Contents -->
+
+  
+    <style>
+      span.toc-nav-number{
+        display: none
+      }
+    </style>
+  
+    
+      <aside id="sidebar">
+        <div id="toc" class="toc-article">
+        <strong class="toc-title">Contents</strong>
+        
+          <ol class="toc-nav"><li class="toc-nav-item toc-nav-level-3"><a class="toc-nav-link" href="#多阶段构建出现之前"><span class="toc-nav-number">1.</span> <span class="toc-nav-text">多阶段构建出现之前</span></a></li><li class="toc-nav-item toc-nav-level-3"><a class="toc-nav-link" href="#使用多阶段构建"><span class="toc-nav-number">2.</span> <span class="toc-nav-text">使用多阶段构建</span></a></li><li class="toc-nav-item toc-nav-level-3"><a class="toc-nav-link" href="#为多构建阶段命名"><span class="toc-nav-number">3.</span> <span class="toc-nav-text">为多构建阶段命名</span></a></li><li class="toc-nav-item toc-nav-level-3"><a class="toc-nav-link" href="#停在特定的构建阶段"><span class="toc-nav-number">4.</span> <span class="toc-nav-text">停在特定的构建阶段</span></a></li><li class="toc-nav-item toc-nav-level-3"><a class="toc-nav-link" href="#使用外部镜像作为构建阶段"><span class="toc-nav-number">5.</span> <span class="toc-nav-text">使用外部镜像作为构建阶段</span></a></li></ol>
+        
+        </div>
+      </aside>
+    
+
+                
+            <!-- Sidebar Container -->
+            <div class="
+                col-lg-8 col-lg-offset-2
+                col-md-10 col-md-offset-1
+                sidebar-container">
+
+                <!-- Featured Tags -->
+                
+                <section>
+                    <!-- no hr -->
+                    <h5><a href="/tags/">FEATURED TAGS</a></h5>
+                    <div class="tags">
+                       
+                          <a class="tag" href="/tags/#Linux" title="Linux">Linux</a>
+                        
+                          <a class="tag" href="/tags/#Docker" title="Docker">Docker</a>
+                        
+                    </div>
+                </section>
+                
+
+                <!-- Friends Blog -->
+                
+                <hr>
+                <h5>FRIENDS</h5>
+                <ul class="list-inline">
+
+                    
+                        <li><a href="http://www.mike.org.cn/" target="_blank">简单.生活</a></li>
+                    
+                        <li><a href="http://shang.qq.com/wpa/qunwpa?idkey=ea4c43493c2269428ac6ef6141de4b6d78e5ab2d41380ca4099b833b62884ee9" target="_blank">技术交流群</a></li>
+                    
+                        <li><a href="" target="_blank"></a></li>
+                    
+                        <li><a href="" target="_blank"></a></li>
+                    
+                </ul>
+                
+            </div>
+        </div>
+    </div>
+</article>
+
+
+
+
+
+
+    <!-- 来必力City版公共JS代码 start (一个网页只需插入一次) -->
+    <script type="text/javascript">
+       (function(d, s) {
+           var j, e = d.getElementsByTagName(s)[0];
+    
+           if (typeof LivereTower === 'function') { return; }
+    
+           j = d.createElement(s);
+           j.src = 'https://cdn-city.livere.com/js/embed.dist.js';
+           j.async = true;
+    
+           e.parentNode.insertBefore(j, e);
+       })(document, 'script');
+    </script>
+    <noscript>为正常使用来必力评论功能请激活JavaScript</noscript>
+    <!-- 来必力City版 公共JS代码 end -->
+
+
+
+<!-- async load function -->
+<script>
+    function async(u, c) {
+      var d = document, t = 'script',
+          o = d.createElement(t),
+          s = d.getElementsByTagName(t)[0];
+      o.src = u;
+      if (c) { o.addEventListener('load', function (e) { c(null, e); }, false); }
+      s.parentNode.insertBefore(o, s);
+    }
+</script>
+<!-- anchor-js, Doc:http://bryanbraun.github.io/anchorjs/ -->
+<script>
+    async("https://cdn.bootcss.com/anchor-js/1.1.1/anchor.min.js",function(){
+        anchors.options = {
+          visible: 'hover',
+          placement: 'left',
+          icon: 'ℬ'
+        };
+        anchors.add().remove('.intro-header h1').remove('.subheading').remove('.sidebar-container h5');
+    })
+</script>
+<style>
+    /* place left on bigger screen */
+    @media all and (min-width: 800px) {
+        .anchorjs-link{
+            position: absolute;
+            left: -0.75em;
+            font-size: 1.1em;
+            margin-top : -0.1em;
+        }
+    }
+</style>
+
+
+
+    <!-- Footer -->
+    <!-- Footer -->
+<footer>
+    <div class="container">
+        <div class="row">
+            <div class="col-lg-8 col-lg-offset-2 col-md-10 col-md-offset-1">
+                <ul class="list-inline text-center">
+                
+                    <li>
+                        <a href="/atom.xml">
+                            <span class="fa-stack fa-lg">
+                                <i class="fa fa-circle fa-stack-2x"></i>
+                                <i class="fa fa-rss fa-stack-1x fa-inverse"></i>
+                            </span>
+                        </a>
+                    </li>
+                
+                
+                
+                    <li>
+                        <a target="_blank" href="https://www.zhihu.com/people/80imike">
+                            <span class="fa-stack fa-lg">
+                                <i class="fa fa-circle fa-stack-2x"></i>
+                                <i class="fa  fa-stack-1x fa-inverse">知</i>
+                            </span>
+                        </a>
+                    </li>
+                
+
+                
+                    <li>
+                        <a target="_blank" href="http://weibo.com/2093524665">
+                            <span class="fa-stack fa-lg">
+                                <i class="fa fa-circle fa-stack-2x"></i>
+                                <i class="fa fa-weibo fa-stack-1x fa-inverse"></i>
+                            </span>
+                        </a>
+                    </li>
+                
+
+                
+
+                
+
+                
+
+                </ul>
+                <p class="copyright text-muted">
+                    Copyright &copy; Mike 2018 | Hosted by <a href="https://pages.coding.me" style="font-weight: bold">Coding Pages</a>
+                    <br>
+                    Theme by <a href="http://beantech.org">BeanTech</a> 
+                    <span style="display: inline-block; margin: 0 5px;">
+                        <i class="fa fa-heart"></i>
+                    </span> 
+                    re-Ported by <a href="http://www.huweihuang.com">胡伟煌</a> | 
+                    <iframe
+                        style="margin-left: 2px; margin-bottom:-5px;"
+                        frameborder="0" scrolling="0" width="91px" height="20px"
+                        src="https://ghbtns.com/github-btn.html?user=huweihuang&repo=hexo-theme-huweihuang&type=star&count=true" >
+                    </iframe>
+                </p>
+            </div>
+        </div>
+    </div>
+</footer>
+
+<!-- jQuery -->
+<script src="/js/jquery.min.js"></script>
+
+<!-- Bootstrap Core JavaScript -->
+<script src="/js/bootstrap.min.js"></script>
+
+<!-- Custom Theme JavaScript -->
+<script src="/js/hux-blog.min.js"></script>
+
+
+<!-- async load function -->
+<script>
+    function async(u, c) {
+      var d = document, t = 'script',
+          o = d.createElement(t),
+          s = d.getElementsByTagName(t)[0];
+      o.src = u;
+      if (c) { o.addEventListener('load', function (e) { c(null, e); }, false); }
+      s.parentNode.insertBefore(o, s);
+    }
+</script>
+
+<!-- 
+     Because of the native support for backtick-style fenced code blocks 
+     right within the Markdown is landed in Github Pages, 
+     From V1.6, There is no need for Highlight.js, 
+     so Huxblog drops it officially.
+
+     - https://github.com/blog/2100-github-pages-now-faster-and-simpler-with-jekyll-3-0  
+     - https://help.github.com/articles/creating-and-highlighting-code-blocks/    
+-->
+<!--
+    <script>
+        async("http://cdn.bootcss.com/highlight.js/8.6/highlight.min.js", function(){
+            hljs.initHighlightingOnLoad();
+        })
+    </script>
+    <link href="http://cdn.bootcss.com/highlight.js/8.6/styles/github.min.css" rel="stylesheet">
+-->
+
+
+<!-- jquery.tagcloud.js -->
+<script>
+    // only load tagcloud.js in tag.html
+    if($('#tag_cloud').length !== 0){
+        async("https://www.hi-linux.com/js/jquery.tagcloud.js",function(){
+            $.fn.tagcloud.defaults = {
+                //size: {start: 1, end: 1, unit: 'em'},
+                color: {start: '#bbbbee', end: '#0085a1'},
+            };
+            $('#tag_cloud a').tagcloud();
+        })
+    }
+</script>
+
+<!--fastClick.js -->
+<script>
+    async("https://cdn.bootcss.com/fastclick/1.0.6/fastclick.min.js", function(){
+        var $nav = document.querySelector("nav");
+        if($nav) FastClick.attach($nav);
+    })
+</script>
+
+
+<!-- Google Analytics -->
+
+
+
+
+<!-- Baidu Tongji -->
+
+
+
+
+
+
+	<a id="rocket" href="#top" class=""></a>
+	<script type="text/javascript" src="/js/totop.js?v=1.0.0" async=""></script>
+    <script type="text/javascript" src="/js/toc.js?v=1.0.0" async=""></script>
+<!-- Image to hack wechat -->
+<img src="https://www.hi-linux.com/img/icon_wechat.png" width="0" height="0" />
+<!-- Migrate from head to bottom, no longer block render and still work -->
+
+</body>
+
+</html>
