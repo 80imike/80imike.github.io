@@ -14,11 +14,11 @@
     <script async defer src="https://buttons.github.io/buttons.js"></script>
     <title>
         
-          Nginx技巧:在 Server_Name 指令中使用正则表达式 - 运维之美
+          关于 Kubernetes Master 高可用的一些策略 - 运维之美
         
     </title>
 
-    <link rel="canonical" href="https://www.hi-linux.com/posts/54148.html">
+    <link rel="canonical" href="https://www.hi-linux.com/posts/2897.html">
 
     <!-- Bootstrap Core CSS -->
     <link rel="stylesheet" href="/css/bootstrap.min.css">
@@ -69,7 +69,7 @@
 <style type="text/css">
     header.intro-header{
         
-            background-image: url('/img/header_img/article.jpg')
+            background-image: url('/img/header_img/building.jpg')
             /*post*/
         
     }
@@ -86,18 +86,16 @@
                     <div class="post-heading">
                         <div class="tags">
                             
-                              <a class="tag" href="/tags/#Nginx" title="Nginx">Nginx</a>
-                            
                               <a class="tag" href="/tags/#Linux" title="Linux">Linux</a>
                             
-                              <a class="tag" href="/tags/#技巧" title="技巧">技巧</a>
+                              <a class="tag" href="/tags/#Kubernetes" title="Kubernetes">Kubernetes</a>
                             
                         </div>
-                        <h1>Nginx技巧:在 Server_Name 指令中使用正则表达式</h1>
+                        <h1>关于 Kubernetes Master 高可用的一些策略</h1>
                         <h2 class="subheading"></h2>
                         <span class="meta">
                             Posted by Mike on
-                            2016-03-15
+                            2018-09-05
                         </span>
                     </div>
                 
@@ -217,39 +215,57 @@
                 col-md-10 col-md-offset-1
                 post-container">
 
-                <h4 id="server_name-的匹配顺序">server_name 的匹配顺序</h4>
-<p>nginx中的server_name指令主要用于配置基于名称虚拟主机，server_name指令在接到请求后的匹配顺序分别为：</p>
-<p>1、准确的server_name匹配，例如：</p>
-<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">server &#123;</span><br><span class="line">    listen       80;</span><br><span class="line">    server_name  howtocn.org  www.howtocn.org;</span><br><span class="line">    ...</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+                <p><a href="https://kubernetes.io/" target="_blank" rel="noopener">Kubernetes</a> 高可用也许是完成了初步的技术评估，打算将生产环境迁移进 Kubernetes 集群之前普遍面临的问题。 为了减少因为服务器当机引起的业务中断，生产环境中的业务系统往往已经做好了高可用，而当引入 Kubernetes 这一套新的集群管理系统之后，服务器不再是单一的个体，位于中央位置的 Kubernetes Master 一旦中断服务，将导致所有 Node 节点均不可控，有可能造成严重的事故。</p>
+<p>总体来讲这是一个<a href="https://kubernetes.io/docs/admin/high-availability/" target="_blank" rel="noopener">被多次讨论</a>，但暂时<a href="https://kubernetes.io/docs/tasks/administer-cluster/highly-available-master/" target="_blank" rel="noopener">没有形成统一解决方案</a>的话题。今天主要介绍一些 Kubernetes Master 高可用的策略，供大家参考。</p>
+<h3 id="一个小目标">一个小目标</h3>
+<p>高可用是复杂的系统工程。出于篇幅的考虑以及能力的限制，今天我们先关注一个小目标：所有的 Kubernetes Master 服务器没有单点故障，任何一台服务器当机均不影响 Kubernetes 的正常工作。</p>
+<p>实现这一目标带来的直接收益是我们可以在不影响业务正常运行的前提下实现所有服务器的滚动升级，有助于完成系统组件升级以及安全补丁的下发。</p>
+<p>为了实现没有单点故障的目标，需要为以下几个组件建立高可用方案：</p>
+<ul>
+<li><a href="https://github.com/coreos/etcd" target="_blank" rel="noopener">etcd</a></li>
+<li><a href="https://kubernetes.io/docs/admin/kube-apiserver/" target="_blank" rel="noopener">kube-apiserver</a></li>
+<li><a href="https://kubernetes.io/docs/admin/kube-controller-manager/" target="_blank" rel="noopener">kube-controller-manager</a> 与 <a href="https://kubernetes.io/docs/admin/kube-scheduler/" target="_blank" rel="noopener">kube-scheduler</a></li>
+<li><a href="https://github.com/kubernetes/dns" target="_blank" rel="noopener">kube-dns</a></li>
+</ul>
+<p>这些组件的关系可参考下面这张集群架构示意图。</p>
+<p><img src="https://www.hi-linux.com/img/linux/kubernetes-architecture.png" alt=""></p>
+<p>下面为大家逐个详细介绍各个组件的高可用策略。</p>
 <a id="more"></a>
-<p>2、以 <code>*</code> 通配符开始的字符串。</p>
-<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">server &#123;</span><br><span class="line">    listen       80;</span><br><span class="line">    server_name  *.howtocn.org;</span><br><span class="line">    ...</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-<p>3、以 <code>*</code> 通配符结束的字符串。</p>
-<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">server &#123;</span><br><span class="line">    listen       80;</span><br><span class="line">    server_name  www.*;</span><br><span class="line">    ...</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-<p>4、匹配正则表达式</p>
-<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">server &#123;</span><br><span class="line">    listen       80;</span><br><span class="line">    server_name  ~^(?&lt;www&gt;.+)\.howtocn\.org$;</span><br><span class="line">    ...</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-<p>nginx将按照1,2,3,4的顺序对server name进行匹配，只有有一项匹配以后就会停止搜索，所以我们在使用这个指令的时候一定要分清楚它的匹配顺序（类似于location指令）。</p>
-<p>server_name指令一项很实用的功能便是可以在使用正则表达式的捕获功能，这样可以尽量精简配置文件，毕竟太长的配置文件日常维护也很不方便。</p>
-<h4 id="实例">实例</h4>
-<p>下面是2个具体的应用：</p>
-<p>1、在一个server块中配置多个站点</p>
-<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line">server</span><br><span class="line">  &#123;</span><br><span class="line">    listen       80;</span><br><span class="line">    server_name  ~^(www\.)?(.+)$;</span><br><span class="line">    index index.php index.html;</span><br><span class="line">    root  /data/wwwsite/<span class="variable">$2</span>;</span><br><span class="line">  &#125;</span><br></pre></td></tr></table></figure>
-<p>站点的主目录应该类似于这样的结构：</p>
-<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">/data/wwwsite/howtocn.org</span><br><span class="line">/data/wwwsite/linuxtone.org</span><br><span class="line">/data/wwwsite/baidu.com</span><br><span class="line">/data/wwwsite/google.com</span><br></pre></td></tr></table></figure>
-<p>这样就可以只使用一个server块来完成多个站点的配置。</p>
-<p>2、在一个server块中为一个站点配置多个二级域名</p>
-<p>实际网站目录结构中我们通常会为站点的二级域名独立创建一个目录，同样我们可以使用正则的捕获来实现在一个server块中配置多个二级域名：</p>
-<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line">server</span><br><span class="line">  &#123;</span><br><span class="line">    listen       80;</span><br><span class="line">    server_name  ~^(.+)?\.howtocn\.org$;</span><br><span class="line">    index index.html;</span><br><span class="line">    <span class="keyword">if</span> (<span class="variable">$host</span> = howtocn.org)&#123;</span><br><span class="line">        rewrite ^ http://www.howtocn.org permanent;</span><br><span class="line">    &#125;</span><br><span class="line">    root  /data/wwwsite/howtocn.org/<span class="variable">$1</span>/;</span><br><span class="line">  &#125;</span><br></pre></td></tr></table></figure>
-<p>站点的目录结构应该如下：</p>
-<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">/data/wwwsite/howtocn.org/www/</span><br><span class="line">/data/wwwsite/howtocn.org/nginx/</span><br></pre></td></tr></table></figure>
-<p>这样访问<code>http://www.howtocn.org</code>时root目录为<code>/data/wwwsite/howtocn.org/www/</code>，<code>http://nginx.howtocn.org</code>时为<code>/data/wwwsite/howtocn.org/nginx/</code>，以此类推。</p>
-<p>后面if语句的作用是将howtocn.org的方位重定向到<code>http://www.howtocn.org</code>，这样既解决了网站的主目录访问，又可以增加seo中对<code>http://www.howtocn.org</code>的域名权重。</p>
-<p>3、多个正则表达式</p>
-<p>如果你在server_name中用了正则，而下面的location字段又使用了正则匹配，这样将无法使用$1，$2这样的引用，解决方法是通过set指令将其赋值给一个命名的变量：</p>
-<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line">server</span><br><span class="line">   &#123;</span><br><span class="line">     listen      80;</span><br><span class="line">     server_name ~^(.+)?\.howtocn\.org$;</span><br><span class="line">     <span class="built_in">set</span> <span class="variable">$www_root</span> <span class="variable">$1</span>;</span><br><span class="line">     root /data/wwwsite/howtocn.org/<span class="variable">$www_root</span>/;</span><br><span class="line">     location ~ .*\.php?$ &#123;</span><br><span class="line">         fastcgi_pass   127.0.0.1:9000;</span><br><span class="line">         fastcgi_index  index.php;</span><br><span class="line">         fastcgi_param  SCRIPT_FILENAME /data/wwwsite/howtocn.org/<span class="variable">$fastcgi_script_name</span>;</span><br><span class="line">         include        fastcgi_params;</span><br><span class="line">         &#125;</span><br><span class="line">   &#125;</span><br></pre></td></tr></table></figure>
-<h4 id="参考资料">参考资料</h4>
-<p><a href="http://nginx.org/en/docs/http/server_names.html" target="_blank" rel="noopener">http://nginx.org/en/docs/http/server_names.html</a><br>
-<a href="http://www.howtocn.org/nginx:server_name_how_to" target="_blank" rel="noopener">http://www.howtocn.org/nginx:server_name_how_to</a></p>
+<h3 id="etcd高可用">etcd高可用</h3>
+<p>etcd 是 Kubernetes 当中唯一带状态的服务，也是高可用的难点。Kubernetes 选用 etcd 作为它的后端数据存储仓库正是看重了其使用分布式架构，没有单点故障的特性。</p>
+<p>虽然单节点的 etcd 也可以正常运行。但是推荐的部署方案均是采用 3 个或者 5 个节点组成 etcd 集群，供 Kubernetes 使用。</p>
+<p>大家常使用的 <a href="https://kubernetes.io/docs/setup/independent/create-cluster-kubeadm/" target="_blank" rel="noopener">kubeadm</a> 工具默认是在一个单节点上启动 etcd 以及所有的 Master 组件。虽然使用起来非常方便，但是要用到生产环境还是要注意这个节点当机的风险。</p>
+<p>etcd 的高可用基本有三种思路：</p>
+<p>一是使用独立的 etcd 集群，使用 3 台或者 5 台服务器只运行 etcd，独立维护和升级。甚至可以使用 CoreOS 的 update-engine 和 locksmith 让服务器完全自主的完成升级。这个 etcd 集群将作为基石用于构建整个集群。采用这项策略的主要动机是 etcd 集群的节点增减都需要显式的通知集群，保证 etcd 集群节点稳定可以更方便的用程序完成集群滚动升级，减轻维护负担。</p>
+<p>二是在 Kubernetes Master 上用 static pod 的形式来运行 etcd，并将多台 Kubernetes Master 上的 etcd 组成集群。 在这一模式下，各个服务器的 etcd 实例被注册进了 Kubernetes 当中，虽然无法直接使用 kubectl 来管理这部分实例，但是监控以及日志搜集组件均可正常工作。在这一模式运行下的 etcd 可管理性更强。</p>
+<p>三是使用 CoreOS 提出的 <a href="https://github.com/kubernetes-incubator/bootkube/issues/31" target="_blank" rel="noopener">self-hosted etcd</a> 方案，将本应在底层为 Kubernetes 提供服务的 etcd 运行在 Kubernetes 之上。 实现 Kubernetes 对自身依赖组件的管理。在这一模式下的 etcd 集群可以直接使用 <a href="https://github.com/coreos/etcd-operator" target="_blank" rel="noopener">etcd-operator</a> 来自动化运维，最符合 Kubernetes 的使用习惯。</p>
+<p>这三种思路均可以实现 etcd 高可用的目标，但是在选择过程中却要根据实际情况做出一些判断。简单来讲预算充足但保守的项目选方案一， 想一步到位并愿意承担一定风险的项目选方案三。折中一点选方案二。各个方案的优劣以及做选择过程中的取舍在这里就不详细展开了，对这块有疑问的朋友可以私下联系交流。</p>
+<h3 id="kube-apiserver-高可用">kube-apiserver 高可用</h3>
+<p>apiserver 本身是一个无状态服务，要实现其高可用相对要容易一些，难点在于如何将运行在多台服务器上的 apiserver 用一个统一的外部入口暴露给所有 Node 节点。</p>
+<p>说是难点，其实对于这种无状态服务的高可用，我们在设计业务系统的高可用方案时已经有了相当多的经验积累。需要注意的是 apiserver 所使用的 SSL 证书要包含外部入口的地址，不然 Node 节点无法正常访问 apiserver。</p>
+<p>apiserver 的高可用也有三种基本思路：</p>
+<p>一是使用外部负载均衡器，不管是使用公有云提供的负载均衡器服务或是在私有云中使用 LVS 或者 HaProxy 自建负载均衡器都可以归到这一类。 负载均衡器是非常成熟的方案，在这里略过不做过多介绍。如何保证负载均衡器的高可用，则是选择这一方案需要考虑的新问题。</p>
+<p>二是在网络层做负载均衡。比如在 Master 节点上用 BGP 做 ECMP，或者在 Node 节点上用 iptables 做 NAT 都可以实现。采用这一方案不需要额外的外部服务，但是对网络配置有一定的要求。</p>
+<p>三是在 Node 节点上使用反向代理对多个 Master 做负载均衡。这一方案同样不需要依赖外部的组件，但是当 Master 节点有增减时，如何动态配置 Node 节点上的负载均衡器成为了另外一个需要解决的问题。</p>
+<p>从目前各个集群管理工具的选择来看，这三种模式都有被使用，目前还没有明确的推荐方案产生。建议在公有云上的集群多考虑第一种模式，在私有云环境中由于维护额外的负载均衡器也是一项负担，建议考虑第二种或是第三种方案。</p>
+<h3 id="kube-controller-manager-与-kube-scheduler-高可用">kube-controller-manager 与 kube-scheduler 高可用</h3>
+<p>这两项服务是 Master 节点的一部分，他们的高可用相对容易，仅需要运行多份实例即可。这些实例会通过向 apiserver 中的 Endpoint 加锁的方式来进行 leader election， 当目前拿到 leader 的实例无法正常工作时，别的实例会拿到锁，变为新的 leader。</p>
+<p>目前在多个 Master 节点上采用 static pod 模式部署这两项服务的方案比较常见，激进一点也可以采用 self-hosted 的模式，在 Kubernetes 之上用 DaemonSet 或者 Deployment 来部署。</p>
+<h3 id="kube-dns-高可用">Kube-dns 高可用</h3>
+<p>严格来说 kube-dns 并不算是 Master 组件的一部分，因为它是可以跑在 Node 节点上，并用 Service 向集群内部提供服务的。但在实际环境中，由于默认配置只运行了一份 kube-dns 实例，在其升级或是所在节点当机时，会出现集群内部 dns 服务不可用的情况，严重时会影响到线上服务的正常运行。</p>
+<p>为了避免故障，请将 kube-dns 的 replicas 值设为 2 或者更多，并用 anti-affinity 将他们部署在不同的 Node 节点上。这项操作比较容易被疏忽，直到出现故障时才发现原来是 kube-dns 只运行了一份实例导致的故障。</p>
+<h3 id="总结">总结</h3>
+<p>上面介绍了 Kubernetes Master 各个组件高可用可以采用的策略。其中 etcd 和 kube-apiserver 的高可用是整个方案的重点。由于存在多种高可用方案，集群管理员应当根据集群所处环境以及其他限制条件选择适合的方案。</p>
+<p>这种没有绝对的通用方案，需要集群建设者根据不同的现状在多个方案中做选择的情况在 Kubernetes 集群建设过程中频频出现， 也是整个建设过程中最有挑战的一部分。容器网络方案的选型作为 Kubernetes 建设过程中需要面对的另外一个大问题也属于这种情况，今后有机会再来分享这个话题。</p>
+<p>在实际建设过程中，在完成了上述四个组件的高可用之后，最好采取实际关机检验的方式来验证高可用方案的可靠性，并根据检验的结果不断调整和优化整个方案。</p>
+<p>此外将高可用方案与系统自动化升级方案结合在一起考虑，实现高可用下的系统自动升级，将大大减轻集群的日常运维负担，值得投入精力去研究。</p>
+<p>虽然本篇主要在讲 Kubernetes Master 高可用的方案，但需要指出的是高可用也并不是必须的，为了实现高可用所付出的代价并不低， 需要有相应的收益来平衡。对于大量的小规模集群来说，业务系统并没有实现高可用，贸然去做集群的高可用收益有限。这时采用单 Master 节点的方案，做好 etcd 的数据备份，不失为理性的选择。</p>
+<blockquote>
+<p>来源：极术<br>
+原文：<a href="http://t.cn/Rs72Axn" target="_blank" rel="noopener">http://t.cn/Rs72Axn</a><br>
+题图：来自谷歌图片搜索<br>
+版权：本文版权归原作者所有</p>
+</blockquote>
 
                 
 
@@ -257,13 +273,9 @@
                 <!-- Pager -->
                 <ul class="pager">
                     
-                        <li class="previous">
-                            <a href="/posts/27459.html" data-toggle="tooltip" data-placement="top" title="Debian/Ubuntu 下 IPtables 管理脚本">&larr; Previous Post</a>
-                        </li>
-                    
                     
                         <li class="next">
-                            <a href="/posts/18762.html" data-toggle="tooltip" data-placement="top" title="CentOS 下配置 Apache HTTPS">Next Post &rarr;</a>
+                            <a href="/posts/55545.html" data-toggle="tooltip" data-placement="top" title="Docker 最佳实践之多阶段构建">Next Post &rarr;</a>
                         </li>
                     
                 </ul>
@@ -305,7 +317,7 @@
         <div id="toc" class="toc-article">
         <strong class="toc-title">Contents</strong>
         
-          <ol class="toc-nav"><li class="toc-nav-item toc-nav-level-4"><a class="toc-nav-link" href="#server_name-的匹配顺序"><span class="toc-nav-number">1.</span> <span class="toc-nav-text">server_name 的匹配顺序</span></a></li><li class="toc-nav-item toc-nav-level-4"><a class="toc-nav-link" href="#实例"><span class="toc-nav-number">2.</span> <span class="toc-nav-text">实例</span></a></li><li class="toc-nav-item toc-nav-level-4"><a class="toc-nav-link" href="#参考资料"><span class="toc-nav-number">3.</span> <span class="toc-nav-text">参考资料</span></a></li></ol>
+          <ol class="toc-nav"><li class="toc-nav-item toc-nav-level-3"><a class="toc-nav-link" href="#一个小目标"><span class="toc-nav-number">1.</span> <span class="toc-nav-text">一个小目标</span></a></li><li class="toc-nav-item toc-nav-level-3"><a class="toc-nav-link" href="#etcd高可用"><span class="toc-nav-number">2.</span> <span class="toc-nav-text">etcd高可用</span></a></li><li class="toc-nav-item toc-nav-level-3"><a class="toc-nav-link" href="#kube-apiserver-高可用"><span class="toc-nav-number">3.</span> <span class="toc-nav-text">kube-apiserver 高可用</span></a></li><li class="toc-nav-item toc-nav-level-3"><a class="toc-nav-link" href="#kube-controller-manager-与-kube-scheduler-高可用"><span class="toc-nav-number">4.</span> <span class="toc-nav-text">kube-controller-manager 与 kube-scheduler 高可用</span></a></li><li class="toc-nav-item toc-nav-level-3"><a class="toc-nav-link" href="#kube-dns-高可用"><span class="toc-nav-number">5.</span> <span class="toc-nav-text">Kube-dns 高可用</span></a></li><li class="toc-nav-item toc-nav-level-3"><a class="toc-nav-link" href="#总结"><span class="toc-nav-number">6.</span> <span class="toc-nav-text">总结</span></a></li></ol>
         
         </div>
       </aside>
@@ -325,11 +337,9 @@
                     <h5><a href="/tags/">FEATURED TAGS</a></h5>
                     <div class="tags">
                        
-                          <a class="tag" href="/tags/#Nginx" title="Nginx">Nginx</a>
-                        
                           <a class="tag" href="/tags/#Linux" title="Linux">Linux</a>
                         
-                          <a class="tag" href="/tags/#技巧" title="技巧">技巧</a>
+                          <a class="tag" href="/tags/#Kubernetes" title="Kubernetes">Kubernetes</a>
                         
                     </div>
                 </section>
