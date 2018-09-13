@@ -1,0 +1,648 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<!-- Head tag -->
+<head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="google-site-verification" content="xBT4GhYoi5qRD5tr338pgPM5OWHHIDR6mNg1a3euekI" />
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="description" content="">
+    <meta name="keyword"  content="Linux,运维,Nginx,Zabbix,Centos,Ansible,MySQL,Python,Docker,ELK,Haproxy,Git,Nodejs,安全,技术">
+    <link rel="shortcut icon" href="/img/ironman-draw.png">
+    <!-- Place this tag in your head or just before your close body tag. -->
+    <script async defer src="https://buttons.github.io/buttons.js"></script>
+    <title>
+        
+          手把手教你打造高效的 Kubernetes 命令行终端 - 运维之美
+        
+    </title>
+
+    <link rel="canonical" href="https://www.hi-linux.com/posts/44953.html">
+
+    <!-- Bootstrap Core CSS -->
+    <link rel="stylesheet" href="/css/bootstrap.min.css">
+
+    <!-- Custom CSS --> 
+    <link rel="stylesheet" href="/css/beantech.min.css">
+    
+    <!-- Pygments Highlight CSS -->
+    <link rel="stylesheet" href="/css/highlight.css">
+
+    <link rel="stylesheet" href="/css/widget.css">
+
+    <link rel="stylesheet" href="/css/rocket.css">
+
+    <link rel="stylesheet" href="/css/signature.css">
+
+    <link rel="stylesheet" href="/css/toc.css">
+
+    <!-- Custom Fonts -->
+    <!-- <link href="https://maxcdn.bootstrapcdn.com/font-awesome/4.3.0/css/font-awesome.min.css" rel="stylesheet" type="text/css"> -->
+    <!-- Hux change font-awesome CDN to qiniu -->
+    <link href="https://cdn.staticfile.org/font-awesome/4.5.0/css/font-awesome.min.css" rel="stylesheet" type="text/css">
+
+
+    <!-- Hux Delete, sad but pending in China
+    <link href='http://fonts.googleapis.com/css?family=Lora:400,700,400italic,700italic' rel='stylesheet' type='text/css'>
+    <link href='http://fonts.googleapis.com/css?family=Open+Sans:300italic,400italic,600italic,700italic,800italic,400,300,600,700,800' rel='stylesheet' type='text/
+    css'>
+    -->
+
+
+    <!-- HTML5 Shim and Respond.js IE8 support of HTML5 elements and media queries -->
+    <!-- WARNING: Respond.js doesn't work if you view the page via file:// -->
+    <!--[if lt IE 9]>
+        <script src="https://oss.maxcdn.com/libs/html5shiv/3.7.0/html5shiv.js"></script>
+        <script src="https://oss.maxcdn.com/libs/respond.js/1.4.2/respond.min.js"></script>
+    <![endif]-->
+
+    <!-- ga & ba script hoook -->
+    <script></script>
+</head>
+
+
+<!-- hack iOS CSS :active style -->
+<body ontouchstart="">
+	<!-- Modified by Yu-Hsuan Yen -->
+<!-- Post Header -->
+<style type="text/css">
+    header.intro-header{
+        
+            background-image: url('/img/header_img/building.jpg')
+            /*post*/
+        
+    }
+    
+</style>
+
+<header class="intro-header" >
+    <!-- Signature -->
+    <div id="signature">
+        <div class="container">
+            <div class="row">
+                <div class="col-lg-8 col-lg-offset-2 col-md-10 col-md-offset-1">
+                
+                    <div class="post-heading">
+                        <div class="tags">
+                            
+                              <a class="tag" href="/tags/#Linux" title="Linux">Linux</a>
+                            
+                              <a class="tag" href="/tags/#Kubernetes" title="Kubernetes">Kubernetes</a>
+                            
+                        </div>
+                        <h1>手把手教你打造高效的 Kubernetes 命令行终端</h1>
+                        <h2 class="subheading"></h2>
+                        <span class="meta">
+                            Posted by Mike on
+                            2018-09-13
+                        </span>
+                    </div>
+                
+
+
+                </div>
+            </div>
+        </div>
+    </div>
+</header>
+
+	
+    <!-- Navigation -->
+<nav class="navbar navbar-default navbar-custom navbar-fixed-top">
+    <div class="container-fluid">
+        <!-- Brand and toggle get grouped for better mobile display -->
+        <div class="navbar-header page-scroll">
+            <button type="button" class="navbar-toggle">
+                <span class="sr-only">Toggle navigation</span>
+                <span class="icon-bar"></span>
+                <span class="icon-bar"></span>
+                <span class="icon-bar"></span>
+            </button>
+            <a class="navbar-brand" href="/">运维之美</a>
+        </div>
+
+        <!-- Collect the nav links, forms, and other content for toggling -->
+        <!-- Known Issue, found by Hux:
+            <nav>'s height woule be hold on by its content.
+            so, when navbar scale out, the <nav> will cover tags.
+            also mask any touch event of tags, unfortunately.
+        -->
+        <div id="huxblog_navbar">
+            <div class="navbar-collapse">
+                <ul class="nav navbar-nav navbar-right">
+                    <li>
+                        <a href="/">Home</a>
+                    </li>
+
+                    
+
+                        
+                    
+
+                        
+                    
+
+                        
+                        <li>
+                            <a href="/about/">About</a>
+                        </li>
+                        
+                    
+
+                        
+                        <li>
+                            <a href="/archive/">Archives</a>
+                        </li>
+                        
+                    
+
+                        
+                        <li>
+                            <a href="/tags/">Tags</a>
+                        </li>
+                        
+                    
+                    
+                </ul>
+            </div>
+        </div>
+        <!-- /.navbar-collapse -->
+    </div>
+    <!-- /.container -->
+</nav>
+<script>
+    // Drop Bootstarp low-performance Navbar
+    // Use customize navbar with high-quality material design animation
+    // in high-perf jank-free CSS3 implementation
+    var $body   = document.body;
+    var $toggle = document.querySelector('.navbar-toggle');
+    var $navbar = document.querySelector('#huxblog_navbar');
+    var $collapse = document.querySelector('.navbar-collapse');
+
+    $toggle.addEventListener('click', handleMagic)
+    function handleMagic(e){
+        if ($navbar.className.indexOf('in') > 0) {
+        // CLOSE
+            $navbar.className = " ";
+            // wait until animation end.
+            setTimeout(function(){
+                // prevent frequently toggle
+                if($navbar.className.indexOf('in') < 0) {
+                    $collapse.style.height = "0px"
+                }
+            },400)
+        }else{
+        // OPEN
+            $collapse.style.height = "auto"
+            $navbar.className += " in";
+        }
+    }
+</script>
+
+
+    <!-- Main Content -->
+    <!-- Modify by Yu-Hsuan Yen -->
+
+<!-- Post Content -->
+<article>
+    <div class="container">
+        <div class="row">
+
+            <!-- Post Container -->
+            <div class="
+                col-lg-8 col-lg-offset-2
+                col-md-10 col-md-offset-1
+                post-container">
+
+                <p>Kubernetes 作为云原生时代的操作系统，熟悉和使用它是每名用户的必备技能。本文将介绍一些提高操作 Kubernetes 效率的技巧以及如何打造一个高效的 Kubernetes 命令行终端的方法。</p>
+<h3 id="kubectl-自动补全">Kubectl 自动补全</h3>
+<p>Kubectl 这个命令行工具非常重要，与之相关的命令也很多。我们也记不住那么多的命令，而且也会经常写错，所以命令行自动补全是很有必要的。Kubectl 工具本身就支持自动补全，只需简单设置一下即可。</p>
+<ul>
+<li>Bash 用户</li>
+</ul>
+<p>大多数用户的 Shell 使用的是 Bash，Linux 系统可以通过下面的命令来设置：</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">$ <span class="built_in">echo</span> <span class="string">"source &lt;(kubectl completion bash)"</span> &gt;&gt; ~/.bashrc</span><br><span class="line">$ <span class="built_in">source</span> ~/.bashrc</span><br></pre></td></tr></table></figure>
+<p>如果发现不能自动补全，可以尝试安装 <code>bash-completion</code> 然后刷新即可！</p>
+<ul>
+<li>ZSH 用户</li>
+</ul>
+<p>如果你使用的 Shell 是 ZSH，可以通过下面的命令来设置：</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">$ <span class="built_in">echo</span> <span class="string">"source &lt;(kubectl completion zsh)"</span> &gt;&gt; ~/.zshrc</span><br><span class="line">$ <span class="built_in">source</span> ~/.zshrc</span><br></pre></td></tr></table></figure>
+<a id="more"></a>
+<h3 id="交互式-kubernetes-客户端">交互式 Kubernetes 客户端</h3>
+<h4 id="kube-prompt">Kube-prompt</h4>
+<p>Kube-prompt 可以让你在命令行下接受与 Kubectl 相同的命令，并且不需要提供 Kubectl前缀。Kube-prompt 还提了交互式会话下的命令提示、自动补全等功能。</p>
+<p>项目地址：<a href="https://github.com/c-bata/kube-prompt" target="_blank" rel="noopener">https://github.com/c-bata/kube-prompt</a></p>
+<p><strong>安装 Kube-prompt</strong></p>
+<p>Kube-prompt 使用 Go 语言开发，天生良好的跨平台性。安装起来非常简单，只需下载各平台对应的二进制版本就可以开箱即用。</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line"># Linux</span><br><span class="line">$ wget https://github.com/c-bata/kube-prompt/releases/download/v1.0.3/kube-prompt_v1.0.3_linux_amd64.zip</span><br><span class="line">$ unzip kube-prompt_v1.0.3_linux_amd64.zip</span><br><span class="line"></span><br><span class="line"># macOS (darwin)</span><br><span class="line">$ wget https://github.com/c-bata/kube-prompt/releases/download/v1.0.3/kube-prompt_v1.0.3_darwin_amd64.zip</span><br><span class="line">$ unzip kube-prompt_v1.0.3_darwin_amd64.zip</span><br><span class="line"></span><br><span class="line"># 给 kube-prompt 加上执行权限并移动常用的可搜索路径。</span><br><span class="line">$ chmod +x kube-prompt</span><br><span class="line">$ sudo mv ./kube-prompt /usr/local/bin/kube-prompt</span><br></pre></td></tr></table></figure>
+<p><strong>Kube-prompt 使用效果图</strong></p>
+<p><img src="https://www.hi-linux.com/img/linux/kube-prompt.gif" alt=""></p>
+<h4 id="kube-shell">Kube-shell</h4>
+<p>Kube-shell 可以为 Kubectl 提供自动的命令提示和补全，Kube-shell 与 Kube-prompt 的使用方法类似。</p>
+<p>项目地址：<a href="https://github.com/cloudnativelabs/kube-shell" target="_blank" rel="noopener">https://github.com/cloudnativelabs/kube-shell</a></p>
+<p><strong>Kube-shell 特性</strong></p>
+<ul>
+<li>命令提示，给出命令的使用说明。</li>
+<li>自动补全，列出可选命令并可以通过 TAB 键自动补全，支持模糊搜索。</li>
+<li>支持语法高亮。</li>
+<li>使用 TAB 键可以列出可选的对象。</li>
+<li>支持 VIM 模式。</li>
+</ul>
+<p><strong>安装 Kube-shell</strong></p>
+<p>Kube-shell 安装非常的简单，使用 PIP 就可以一键安装了。</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">$ pip install kube-shell</span><br></pre></td></tr></table></figure>
+<blockquote>
+<p>注：kube-shell 必须用 root 用户运行。如果是普通用户运行会报 <code>/bin/sh: 1: kubectl: not found</code> 错误。即使使用了 <code>sudo kube-shell</code> 同样也是不行的。</p>
+</blockquote>
+<p><strong>Kube-shell 使用效果图</strong></p>
+<p><img src="https://www.hi-linux.com/img/linux/kube-shell.gif" alt=""></p>
+<blockquote>
+<p>注：Kube-prompt 和 Kube-shell 我都使用过，更推荐 Kube-prompt。Go 的原生性更好一些，并且 Kube-prompt 也不需要 root 权限。</p>
+</blockquote>
+<h3 id="kubectl-aliases">Kubectl Aliases</h3>
+<p>Kubectl Aliases 是一个通过编程方式生成的 Kubectl 别名脚本。如果你需要频繁地使用 Kubectl 和 Kubernetes API 进行交互，使用别名将会为你节省大量的时间。</p>
+<p>项目地址: <a href="https://github.com/ahmetb/kubectl-aliases" target="_blank" rel="noopener">https://github.com/ahmetb/kubectl-aliases</a></p>
+<p><strong>安装 Kubectl Aliases</strong></p>
+<p>Kubectl Aliases 就只是一个 SHELL 脚本，你只需直接下载 <code>.kubectl_aliases</code> 文件并将其保存在 <code>$HOME</code> 目录中，然后在 <code>SHELL</code> 配置文件中调用即可。</p>
+<ul>
+<li>下载脚本</li>
+</ul>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">$ <span class="built_in">cd</span> <span class="variable">$HOME</span></span><br><span class="line">$ wget https://raw.githubusercontent.com/ahmetb/kubectl-alias/master/.kubectl_aliases</span><br></pre></td></tr></table></figure>
+<ul>
+<li>配置 SHELL</li>
+</ul>
+<p>Bash 用户</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">$ vim ~/.bashrc</span><br><span class="line"></span><br><span class="line">[ -f ~/.kubectl_aliases ] &amp;&amp; <span class="built_in">source</span> ~/.kubectl_aliases</span><br></pre></td></tr></table></figure>
+<p>ZSH 用户</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">$ vim ~/.zshrc</span><br><span class="line"></span><br><span class="line">[ -f ~/.kubectl_aliases ] &amp;&amp; <span class="built_in">source</span> ~/.kubectl_aliases</span><br></pre></td></tr></table></figure>
+<p>如果你想在运行之前打印完整的 Kubectl 命令，可以加上以下行。</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">function</span> <span class="function"><span class="title">kubectl</span></span>() &#123; <span class="built_in">echo</span> <span class="string">"+ kubectl <span class="variable">$@</span>"</span>; <span class="built_in">command</span> kubectl <span class="variable">$@</span>; &#125;</span><br></pre></td></tr></table></figure>
+<p><strong>Kubectl 别名生成规则</strong></p>
+<p><img src="https://www.hi-linux.com/img/linux/kubectl-alias.jpeg" alt=""></p>
+<p><strong>Kubectl 别名使用示例</strong></p>
+<ul>
+<li>简单别名示例</li>
+</ul>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">$ kd → kubectl describe</span><br></pre></td></tr></table></figure>
+<ul>
+<li>高级别名示例</li>
+</ul>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">$ kgdepallw → kubectl get deployment –all-namespaces –watch</span><br></pre></td></tr></table></figure>
+<h3 id="kubeval">Kubeval</h3>
+<p>如果你手动写 Kubernetes manifest 文件，检查 manifest 文件的语法是否有误是很困难的，特别是当你有多个不同版本的 Kubernetes 集群时，确认配置文件语法是否正确更是难上加难。</p>
+<p>Kubeval 是一个用于校验 Kubernetes YAML 或 JSON 配置文件的工具，支持多个 Kubernetes 版本，可以帮助我们解决不少的麻烦。</p>
+<p>项目地址：<a href="https://github.com/garethr/kubeval" target="_blank" rel="noopener">https://github.com/garethr/kubeval</a></p>
+<p><strong>Kubeval 安装</strong></p>
+<p>Kubeval 同样是一款使用 Go 语言开发，天生良好的跨平台性。安装起来非常简单，只需下载各平台对应的二进制版本就可以开箱即用。</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line"># Linux</span><br><span class="line">$ wget https://github.com/garethr/kubeval/releases/download/0.7.1/kubeval-linux-amd64.tar.gz</span><br><span class="line">$ tar xf kubeval-linux-amd64.tar.gz</span><br><span class="line"></span><br><span class="line"># macOS (darwin)</span><br><span class="line">$ wget https://github.com/garethr/kubeval/releases/download/0.7.1/kubeval-darwin-amd64.tar.gz</span><br><span class="line">$ tar xf kubeval-darwin-amd64.tar.gz</span><br><span class="line"></span><br><span class="line"># 给 kubeval 加上执行权限并移动常用的可搜索路径。</span><br><span class="line">$ chmod +x kubeval</span><br><span class="line">$ sudo mv kubeval /usr/local/bin</span><br></pre></td></tr></table></figure>
+<p><strong>Kubeval 使用示例</strong></p>
+<ul>
+<li>Kubernetes manifest 文件正常的情况</li>
+</ul>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">$ kubeval nginx-deployment.yaml</span><br><span class="line">The document nginx-deployment.yaml contains a valid Deployment</span><br></pre></td></tr></table></figure>
+<ul>
+<li>Kubernetes manifest 文件不正常的情况</li>
+</ul>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">$ kubeval nginx.yaml</span><br><span class="line"></span><br><span class="line">The document nginx.yaml contains an invalid Deployment</span><br><span class="line">---&gt; spec.replicas: Invalid type. Expected: integer, given: string</span><br></pre></td></tr></table></figure>
+<h3 id="其它一些实用工具">其它一些实用工具</h3>
+<p>下面这几个工具也挺不错的，使用起来都很简单。就不展开讲了，如果有兴趣可以去看下官方文档具体的使用方法。</p>
+<ul>
+<li>Kube-ps1</li>
+</ul>
+<p>该工具主要作用为命令行终端增加一个提示符。</p>
+<p>项目地址：<a href="https://github.com/jonmosco/kube-ps1" target="_blank" rel="noopener">https://github.com/jonmosco/kube-ps1</a></p>
+<p>Kube-ps1 使用效果图</p>
+<p><img src="https://www.hi-linux.com/img/linux/kube-ps1.gif" alt=""></p>
+<ul>
+<li>Kubectx</li>
+</ul>
+<p>该工具主要作用是快速在多个 Kubernetes 集群中切换。</p>
+<p>项目地址：<a href="https://github.com/ahmetb/kubectx" target="_blank" rel="noopener">https://github.com/ahmetb/kubectx</a></p>
+<p>Kubectx 使用效果图</p>
+<p><img src="https://www.hi-linux.com/img/linux/kubectx-demo.gif" alt=""></p>
+<ul>
+<li>Kubens</li>
+</ul>
+<p>该工具可以帮助您快速的在 Kubernetes 的多个命名空间之间切换。</p>
+<p>项目地址：<a href="https://github.com/ahmetb/kubectx" target="_blank" rel="noopener">https://github.com/ahmetb/kubectx</a></p>
+<p>Kubens 使用效果图</p>
+<p><img src="https://www.hi-linux.com/img/linux/kubens-demo.gif" alt=""></p>
+<h3 id="参考文档">参考文档</h3>
+<p><a href="http://www.google.com" target="_blank" rel="noopener">http://www.google.com</a><br>
+<a href="http://t.cn/RD6vxGf" target="_blank" rel="noopener">http://t.cn/RD6vxGf</a><br>
+<a href="http://t.cn/RD6vbc1" target="_blank" rel="noopener">http://t.cn/RD6vbc1</a></p>
+
+                
+
+                <hr>
+                <!-- Pager -->
+                <ul class="pager">
+                    
+                    
+                        <li class="next">
+                            <a href="/posts/35699.html" data-toggle="tooltip" data-placement="top" title="使用 TC 和 Netem 模拟网络异常">Next Post &rarr;</a>
+                        </li>
+                    
+                </ul>
+
+                <!-- duoshuo Share start -->
+                
+                <!-- 多说 Share end-->
+
+                <!-- 多说评论框 start -->
+                
+                <!-- 多说评论框 end -->
+
+                <!-- disqus comment start -->
+                
+                <!-- disqus comment end -->
+
+                
+                    <!-- disqus 评论框 start -->
+                    <div class="comment">
+                        <div id="lv-container" data-id="city" data-uid="MTAyMC8yNzg2My80NDQw"></div>
+                    </div>
+                    <!-- disqus 评论框 end -->
+                
+
+            </div>
+            
+            <!-- Tabe of Content -->
+            <!-- Table of Contents -->
+
+  
+    <style>
+      span.toc-nav-number{
+        display: none
+      }
+    </style>
+  
+    
+      <aside id="sidebar">
+        <div id="toc" class="toc-article">
+        <strong class="toc-title">Contents</strong>
+        
+          <ol class="toc-nav"><li class="toc-nav-item toc-nav-level-3"><a class="toc-nav-link" href="#kubectl-自动补全"><span class="toc-nav-number">1.</span> <span class="toc-nav-text">Kubectl 自动补全</span></a></li><li class="toc-nav-item toc-nav-level-3"><a class="toc-nav-link" href="#交互式-kubernetes-客户端"><span class="toc-nav-number">2.</span> <span class="toc-nav-text">交互式 Kubernetes 客户端</span></a><ol class="toc-nav-child"><li class="toc-nav-item toc-nav-level-4"><a class="toc-nav-link" href="#kube-prompt"><span class="toc-nav-number">2.1.</span> <span class="toc-nav-text">Kube-prompt</span></a></li><li class="toc-nav-item toc-nav-level-4"><a class="toc-nav-link" href="#kube-shell"><span class="toc-nav-number">2.2.</span> <span class="toc-nav-text">Kube-shell</span></a></li></ol></li><li class="toc-nav-item toc-nav-level-3"><a class="toc-nav-link" href="#kubectl-aliases"><span class="toc-nav-number">3.</span> <span class="toc-nav-text">Kubectl Aliases</span></a></li><li class="toc-nav-item toc-nav-level-3"><a class="toc-nav-link" href="#kubeval"><span class="toc-nav-number">4.</span> <span class="toc-nav-text">Kubeval</span></a></li><li class="toc-nav-item toc-nav-level-3"><a class="toc-nav-link" href="#其它一些实用工具"><span class="toc-nav-number">5.</span> <span class="toc-nav-text">其它一些实用工具</span></a></li><li class="toc-nav-item toc-nav-level-3"><a class="toc-nav-link" href="#参考文档"><span class="toc-nav-number">6.</span> <span class="toc-nav-text">参考文档</span></a></li></ol>
+        
+        </div>
+      </aside>
+    
+
+                
+            <!-- Sidebar Container -->
+            <div class="
+                col-lg-8 col-lg-offset-2
+                col-md-10 col-md-offset-1
+                sidebar-container">
+
+                <!-- Featured Tags -->
+                
+                <section>
+                    <!-- no hr -->
+                    <h5><a href="/tags/">FEATURED TAGS</a></h5>
+                    <div class="tags">
+                       
+                          <a class="tag" href="/tags/#Linux" title="Linux">Linux</a>
+                        
+                          <a class="tag" href="/tags/#Kubernetes" title="Kubernetes">Kubernetes</a>
+                        
+                    </div>
+                </section>
+                
+
+                <!-- Friends Blog -->
+                
+                <hr>
+                <h5>FRIENDS</h5>
+                <ul class="list-inline">
+
+                    
+                        <li><a href="http://www.mike.org.cn/" target="_blank">简单.生活</a></li>
+                    
+                        <li><a href="http://shang.qq.com/wpa/qunwpa?idkey=ea4c43493c2269428ac6ef6141de4b6d78e5ab2d41380ca4099b833b62884ee9" target="_blank">技术交流群</a></li>
+                    
+                        <li><a href="" target="_blank"></a></li>
+                    
+                        <li><a href="" target="_blank"></a></li>
+                    
+                </ul>
+                
+            </div>
+        </div>
+    </div>
+</article>
+
+
+
+
+
+
+    <!-- 来必力City版公共JS代码 start (一个网页只需插入一次) -->
+    <script type="text/javascript">
+       (function(d, s) {
+           var j, e = d.getElementsByTagName(s)[0];
+    
+           if (typeof LivereTower === 'function') { return; }
+    
+           j = d.createElement(s);
+           j.src = 'https://cdn-city.livere.com/js/embed.dist.js';
+           j.async = true;
+    
+           e.parentNode.insertBefore(j, e);
+       })(document, 'script');
+    </script>
+    <noscript>为正常使用来必力评论功能请激活JavaScript</noscript>
+    <!-- 来必力City版 公共JS代码 end -->
+
+
+
+<!-- async load function -->
+<script>
+    function async(u, c) {
+      var d = document, t = 'script',
+          o = d.createElement(t),
+          s = d.getElementsByTagName(t)[0];
+      o.src = u;
+      if (c) { o.addEventListener('load', function (e) { c(null, e); }, false); }
+      s.parentNode.insertBefore(o, s);
+    }
+</script>
+<!-- anchor-js, Doc:http://bryanbraun.github.io/anchorjs/ -->
+<script>
+    async("https://cdn.bootcss.com/anchor-js/1.1.1/anchor.min.js",function(){
+        anchors.options = {
+          visible: 'hover',
+          placement: 'left',
+          icon: 'ℬ'
+        };
+        anchors.add().remove('.intro-header h1').remove('.subheading').remove('.sidebar-container h5');
+    })
+</script>
+<style>
+    /* place left on bigger screen */
+    @media all and (min-width: 800px) {
+        .anchorjs-link{
+            position: absolute;
+            left: -0.75em;
+            font-size: 1.1em;
+            margin-top : -0.1em;
+        }
+    }
+</style>
+
+
+
+    <!-- Footer -->
+    <!-- Footer -->
+<footer>
+    <div class="container">
+        <div class="row">
+            <div class="col-lg-8 col-lg-offset-2 col-md-10 col-md-offset-1">
+                <ul class="list-inline text-center">
+                
+                    <li>
+                        <a href="/atom.xml">
+                            <span class="fa-stack fa-lg">
+                                <i class="fa fa-circle fa-stack-2x"></i>
+                                <i class="fa fa-rss fa-stack-1x fa-inverse"></i>
+                            </span>
+                        </a>
+                    </li>
+                
+                
+                
+                    <li>
+                        <a target="_blank" href="https://www.zhihu.com/people/80imike">
+                            <span class="fa-stack fa-lg">
+                                <i class="fa fa-circle fa-stack-2x"></i>
+                                <i class="fa  fa-stack-1x fa-inverse">知</i>
+                            </span>
+                        </a>
+                    </li>
+                
+
+                
+                    <li>
+                        <a target="_blank" href="http://weibo.com/2093524665">
+                            <span class="fa-stack fa-lg">
+                                <i class="fa fa-circle fa-stack-2x"></i>
+                                <i class="fa fa-weibo fa-stack-1x fa-inverse"></i>
+                            </span>
+                        </a>
+                    </li>
+                
+
+                
+
+                
+
+                
+
+                </ul>
+                <p class="copyright text-muted">
+                    Copyright &copy; Mike 2018 | Hosted by <a href="https://pages.coding.me" style="font-weight: bold">Coding Pages</a>
+                    <br>
+                    Theme by <a href="http://beantech.org">BeanTech</a> 
+                    <span style="display: inline-block; margin: 0 5px;">
+                        <i class="fa fa-heart"></i>
+                    </span> 
+                    re-Ported by <a href="http://www.huweihuang.com">胡伟煌</a> | 
+                    <iframe
+                        style="margin-left: 2px; margin-bottom:-5px;"
+                        frameborder="0" scrolling="0" width="91px" height="20px"
+                        src="https://ghbtns.com/github-btn.html?user=huweihuang&repo=hexo-theme-huweihuang&type=star&count=true" >
+                    </iframe>
+                </p>
+            </div>
+        </div>
+    </div>
+</footer>
+
+<!-- jQuery -->
+<script src="/js/jquery.min.js"></script>
+
+<!-- Bootstrap Core JavaScript -->
+<script src="/js/bootstrap.min.js"></script>
+
+<!-- Custom Theme JavaScript -->
+<script src="/js/hux-blog.min.js"></script>
+
+
+<!-- async load function -->
+<script>
+    function async(u, c) {
+      var d = document, t = 'script',
+          o = d.createElement(t),
+          s = d.getElementsByTagName(t)[0];
+      o.src = u;
+      if (c) { o.addEventListener('load', function (e) { c(null, e); }, false); }
+      s.parentNode.insertBefore(o, s);
+    }
+</script>
+
+<!-- 
+     Because of the native support for backtick-style fenced code blocks 
+     right within the Markdown is landed in Github Pages, 
+     From V1.6, There is no need for Highlight.js, 
+     so Huxblog drops it officially.
+
+     - https://github.com/blog/2100-github-pages-now-faster-and-simpler-with-jekyll-3-0  
+     - https://help.github.com/articles/creating-and-highlighting-code-blocks/    
+-->
+<!--
+    <script>
+        async("http://cdn.bootcss.com/highlight.js/8.6/highlight.min.js", function(){
+            hljs.initHighlightingOnLoad();
+        })
+    </script>
+    <link href="http://cdn.bootcss.com/highlight.js/8.6/styles/github.min.css" rel="stylesheet">
+-->
+
+
+<!-- jquery.tagcloud.js -->
+<script>
+    // only load tagcloud.js in tag.html
+    if($('#tag_cloud').length !== 0){
+        async("https://www.hi-linux.com/js/jquery.tagcloud.js",function(){
+            $.fn.tagcloud.defaults = {
+                //size: {start: 1, end: 1, unit: 'em'},
+                color: {start: '#bbbbee', end: '#0085a1'},
+            };
+            $('#tag_cloud a').tagcloud();
+        })
+    }
+</script>
+
+<!--fastClick.js -->
+<script>
+    async("https://cdn.bootcss.com/fastclick/1.0.6/fastclick.min.js", function(){
+        var $nav = document.querySelector("nav");
+        if($nav) FastClick.attach($nav);
+    })
+</script>
+
+
+<!-- Google Analytics -->
+
+
+
+
+<!-- Baidu Tongji -->
+
+
+
+
+
+
+	<a id="rocket" href="#top" class=""></a>
+	<script type="text/javascript" src="/js/totop.js?v=1.0.0" async=""></script>
+    <script type="text/javascript" src="/js/toc.js?v=1.0.0" async=""></script>
+<!-- Image to hack wechat -->
+<img src="https://www.hi-linux.com/img/icon_wechat.png" width="0" height="0" />
+<!-- Migrate from head to bottom, no longer block render and still work -->
+
+</body>
+
+</html>
