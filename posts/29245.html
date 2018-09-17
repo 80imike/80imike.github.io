@@ -1,0 +1,1144 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<!-- Head tag -->
+<head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="google-site-verification" content="xBT4GhYoi5qRD5tr338pgPM5OWHHIDR6mNg1a3euekI" />
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="description" content="">
+    <meta name="keyword"  content="Linux,运维,Nginx,Zabbix,Centos,Ansible,MySQL,Python,Docker,ELK,Haproxy,Git,Nodejs,安全,技术">
+    <link rel="shortcut icon" href="/img/ironman-draw.png">
+    <!-- Place this tag in your head or just before your close body tag. -->
+    <script async defer src="https://buttons.github.io/buttons.js"></script>
+    <title>
+        
+          推荐一款命令行下最快的文本搜索神器 RipGrep - 运维之美
+        
+    </title>
+
+    <link rel="canonical" href="https://www.hi-linux.com/posts/29245.html">
+
+    <!-- Bootstrap Core CSS -->
+    <link rel="stylesheet" href="/css/bootstrap.min.css">
+
+    <!-- Custom CSS --> 
+    <link rel="stylesheet" href="/css/beantech.min.css">
+    
+    <!-- Pygments Highlight CSS -->
+    <link rel="stylesheet" href="/css/highlight.css">
+
+    <link rel="stylesheet" href="/css/widget.css">
+
+    <link rel="stylesheet" href="/css/rocket.css">
+
+    <link rel="stylesheet" href="/css/signature.css">
+
+    <link rel="stylesheet" href="/css/toc.css">
+
+    <!-- Custom Fonts -->
+    <!-- <link href="https://maxcdn.bootstrapcdn.com/font-awesome/4.3.0/css/font-awesome.min.css" rel="stylesheet" type="text/css"> -->
+    <!-- Hux change font-awesome CDN to qiniu -->
+    <link href="https://cdn.staticfile.org/font-awesome/4.5.0/css/font-awesome.min.css" rel="stylesheet" type="text/css">
+
+
+    <!-- Hux Delete, sad but pending in China
+    <link href='http://fonts.googleapis.com/css?family=Lora:400,700,400italic,700italic' rel='stylesheet' type='text/css'>
+    <link href='http://fonts.googleapis.com/css?family=Open+Sans:300italic,400italic,600italic,700italic,800italic,400,300,600,700,800' rel='stylesheet' type='text/
+    css'>
+    -->
+
+
+    <!-- HTML5 Shim and Respond.js IE8 support of HTML5 elements and media queries -->
+    <!-- WARNING: Respond.js doesn't work if you view the page via file:// -->
+    <!--[if lt IE 9]>
+        <script src="https://oss.maxcdn.com/libs/html5shiv/3.7.0/html5shiv.js"></script>
+        <script src="https://oss.maxcdn.com/libs/respond.js/1.4.2/respond.min.js"></script>
+    <![endif]-->
+
+    <!-- ga & ba script hoook -->
+    <script></script>
+</head>
+
+
+<!-- hack iOS CSS :active style -->
+<body ontouchstart="">
+	<!-- Modified by Yu-Hsuan Yen -->
+<!-- Post Header -->
+<style type="text/css">
+    header.intro-header{
+        
+            background-image: url('/img/header_img/building.jpg')
+            /*post*/
+        
+    }
+    
+</style>
+
+<header class="intro-header" >
+    <!-- Signature -->
+    <div id="signature">
+        <div class="container">
+            <div class="row">
+                <div class="col-lg-8 col-lg-offset-2 col-md-10 col-md-offset-1">
+                
+                    <div class="post-heading">
+                        <div class="tags">
+                            
+                              <a class="tag" href="/tags/#Linux" title="Linux">Linux</a>
+                            
+                              <a class="tag" href="/tags/#技巧" title="技巧">技巧</a>
+                            
+                        </div>
+                        <h1>推荐一款命令行下最快的文本搜索神器 RipGrep</h1>
+                        <h2 class="subheading"></h2>
+                        <span class="meta">
+                            Posted by Mike on
+                            2018-09-17
+                        </span>
+                    </div>
+                
+
+
+                </div>
+            </div>
+        </div>
+    </div>
+</header>
+
+	
+    <!-- Navigation -->
+<nav class="navbar navbar-default navbar-custom navbar-fixed-top">
+    <div class="container-fluid">
+        <!-- Brand and toggle get grouped for better mobile display -->
+        <div class="navbar-header page-scroll">
+            <button type="button" class="navbar-toggle">
+                <span class="sr-only">Toggle navigation</span>
+                <span class="icon-bar"></span>
+                <span class="icon-bar"></span>
+                <span class="icon-bar"></span>
+            </button>
+            <a class="navbar-brand" href="/">运维之美</a>
+        </div>
+
+        <!-- Collect the nav links, forms, and other content for toggling -->
+        <!-- Known Issue, found by Hux:
+            <nav>'s height woule be hold on by its content.
+            so, when navbar scale out, the <nav> will cover tags.
+            also mask any touch event of tags, unfortunately.
+        -->
+        <div id="huxblog_navbar">
+            <div class="navbar-collapse">
+                <ul class="nav navbar-nav navbar-right">
+                    <li>
+                        <a href="/">Home</a>
+                    </li>
+
+                    
+
+                        
+                    
+
+                        
+                    
+
+                        
+                        <li>
+                            <a href="/about/">About</a>
+                        </li>
+                        
+                    
+
+                        
+                        <li>
+                            <a href="/archive/">Archives</a>
+                        </li>
+                        
+                    
+
+                        
+                        <li>
+                            <a href="/tags/">Tags</a>
+                        </li>
+                        
+                    
+                    
+                </ul>
+            </div>
+        </div>
+        <!-- /.navbar-collapse -->
+    </div>
+    <!-- /.container -->
+</nav>
+<script>
+    // Drop Bootstarp low-performance Navbar
+    // Use customize navbar with high-quality material design animation
+    // in high-perf jank-free CSS3 implementation
+    var $body   = document.body;
+    var $toggle = document.querySelector('.navbar-toggle');
+    var $navbar = document.querySelector('#huxblog_navbar');
+    var $collapse = document.querySelector('.navbar-collapse');
+
+    $toggle.addEventListener('click', handleMagic)
+    function handleMagic(e){
+        if ($navbar.className.indexOf('in') > 0) {
+        // CLOSE
+            $navbar.className = " ";
+            // wait until animation end.
+            setTimeout(function(){
+                // prevent frequently toggle
+                if($navbar.className.indexOf('in') < 0) {
+                    $collapse.style.height = "0px"
+                }
+            },400)
+        }else{
+        // OPEN
+            $collapse.style.height = "auto"
+            $navbar.className += " in";
+        }
+    }
+</script>
+
+
+    <!-- Main Content -->
+    <!-- Modify by Yu-Hsuan Yen -->
+
+<!-- Post Content -->
+<article>
+    <div class="container">
+        <div class="row">
+
+            <!-- Post Container -->
+            <div class="
+                col-lg-8 col-lg-offset-2
+                col-md-10 col-md-offset-1
+                post-container">
+
+                <p>Ripgrep 是命令行下一个基于行的搜索工具，RipGrep 使用 Rust 开发，可以在多平台下运行，支持 Mac、Linux 和 Windows 等平台。RipGrep 与 The Silver Searcher、Ack 和 GNU Grep 的功能类似。</p>
+<p>RipGrep 官方号称比其它类似工具在搜索速度上快上 N 倍，VSCode 也从 <a href="https://code.visualstudio.com/updates/v1_11#_text-search-improvements" target="_blank" rel="noopener">1.11 版本</a>开始默认将 RipGrep 做为其搜索工具，由此其功能强大可见一斑。</p>
+<p>项目地址：<a href="https://github.com/BurntSushi/ripgrep" target="_blank" rel="noopener">https://github.com/BurntSushi/ripgrep</a></p>
+<p><strong>Ripgrep 支持的一些特性</strong></p>
+<ul>
+<li>自动递归搜索 （grep 需要 -R）。</li>
+<li>自动忽略 .gitignore 中的文件以及二进制文件和隐藏文件。</li>
+<li>可以搜索指定文件类型，如：<code>rg -tpy foo</code> 则限定只搜索 Python 文件，<code>rg -Tjs foo</code> 则排除掉 JS 文件。</li>
+<li>支持大部分 Grep 的 特性，例如：显示搜索结果的上下文、支持多个模式搜索、高亮匹配的搜索结果以及支持 Unicode 等。</li>
+<li>支持各种文本编码格式，如：UTF-8、UTF-16、latin-1、GBK、EUC-JP、Shift_JIS 等。</li>
+<li>支持搜索常见格式的压缩文件，如：gzip、xz、lzma、bzip2、lz4 等。</li>
+<li>自动高亮匹配的结果。</li>
+</ul>
+<a id="more"></a>
+<p><strong>Ripgrep 官方性能基准测试结果</strong></p>
+<ul>
+<li>搜索整个 Linux 内核源代码</li>
+</ul>
+<table>
+<thead>
+<tr>
+<th>Tool</th>
+<th>Command</th>
+<th>Line count</th>
+<th>Time</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>ripgrep (Unicode)</td>
+<td><code>rg -n -w '[A-Z]+_SUSPEND'</code></td>
+<td>450</td>
+<td><strong>0.106s</strong></td>
+</tr>
+<tr>
+<td><a href="https://www.kernel.org/pub/software/scm/git/docs/git-grep.html" target="_blank" rel="noopener">git grep</a></td>
+<td><code>LC_ALL=C git grep -E -n -w '[A-Z]+_SUSPEND'</code></td>
+<td>450</td>
+<td>0.553s</td>
+</tr>
+<tr>
+<td><a href="https://github.com/ggreer/the_silver_searcher" target="_blank" rel="noopener">The Silver Searcher</a></td>
+<td><code>ag -w '[A-Z]+_SUSPEND'</code></td>
+<td>450</td>
+<td>0.589s</td>
+</tr>
+<tr>
+<td><a href="https://www.kernel.org/pub/software/scm/git/docs/git-grep.html" target="_blank" rel="noopener">git grep (Unicode)</a></td>
+<td><code>LC_ALL=en_US.UTF-8 git grep -E -n -w '[A-Z]+_SUSPEND'</code></td>
+<td>450</td>
+<td>2.266s</td>
+</tr>
+<tr>
+<td><a href="https://github.com/svent/sift" target="_blank" rel="noopener">sift</a></td>
+<td><code>sift --git -n -w '[A-Z]+_SUSPEND'</code></td>
+<td>450</td>
+<td>3.505s</td>
+</tr>
+<tr>
+<td><a href="https://github.com/petdance/ack2" target="_blank" rel="noopener">ack</a></td>
+<td><code>ack -w '[A-Z]+_SUSPEND'</code></td>
+<td>1878</td>
+<td>6.823s</td>
+</tr>
+<tr>
+<td><a href="https://github.com/monochromegane/the_platinum_searcher" target="_blank" rel="noopener">The Platinum Searcher</a></td>
+<td><code>pt -w -e '[A-Z]+_SUSPEND'</code></td>
+<td>450</td>
+<td>14.208s</td>
+</tr>
+</tbody>
+</table>
+<table>
+<thead>
+<tr>
+<th>Tool</th>
+<th>Command</th>
+<th>Line count</th>
+<th>Time</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>ripgrep</td>
+<td><code>rg -L -u -tc -n -w '[A-Z]+_SUSPEND'</code></td>
+<td>404</td>
+<td><strong>0.079s</strong></td>
+</tr>
+<tr>
+<td><a href="https://github.com/gvansickle/ucg" target="_blank" rel="noopener">ucg</a></td>
+<td><code>ucg --type=cc -w '[A-Z]+_SUSPEND'</code></td>
+<td>390</td>
+<td>0.163s</td>
+</tr>
+<tr>
+<td><a href="https://www.gnu.org/software/grep/" target="_blank" rel="noopener">GNU grep</a></td>
+<td><code>egrep -R -n --include='*.c' --include='*.h' -w '[A-Z]+_SUSPEND'</code></td>
+<td>404</td>
+<td>0.611s</td>
+</tr>
+</tbody>
+</table>
+<ul>
+<li>在单个大文件上对 Ripgrep 和 GNU Grep 进行比较，文件大小大约 9.3G。</li>
+</ul>
+<table>
+<thead>
+<tr>
+<th>Tool</th>
+<th>Command</th>
+<th>Line count</th>
+<th>Time</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>ripgrep</td>
+<td><code>rg -w 'Sherlock [A-Z]\w+'</code></td>
+<td>5268</td>
+<td><strong>2.108s</strong></td>
+</tr>
+<tr>
+<td><a href="https://www.gnu.org/software/grep/" target="_blank" rel="noopener">GNU grep</a></td>
+<td><code>LC_ALL=C egrep -w 'Sherlock [A-Z]\w+'</code></td>
+<td>5268</td>
+<td>7.014s</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Ripgrep 效果图</strong></p>
+<p><img src="https://www.hi-linux.com/img/linux/ripgrep.png" alt=""></p>
+<h3 id="安装-ripgrep">安装 Ripgrep</h3>
+<p>Ripgrep 具有良好跨平台特性，支持在 Linux、macOS、Windows 等多种平台下安装。官方也提供了各平台对应的二进制版本，下面我们以 Linux 平台为例使用二进制版本进行安装。</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">$ wget  https://github.com/BurntSushi/ripgrep/releases/download/0.10.0/ripgrep-0.10.0-x86_64-unknown-linux-musl.tar.gz</span><br><span class="line">$ tar xzvf ripgrep-0.10.0-x86_64-unknown-linux-musl.tar.gz</span><br><span class="line">$ cp ripgrep-0.10.0-x86_64-unknown-linux-musl/rg  /usr/<span class="built_in">local</span>/bin/</span><br></pre></td></tr></table></figure>
+<p>如果你使用其它平台，方法与其类似。你可根据实际情况在官方<a href="https://github.com/BurntSushi/ripgrep/releases" target="_blank" rel="noopener">下载页面</a>下载对应版本进行安装。当然官方也提供了其它多种多样的安装方式，具体可参考官方<a href="https://github.com/BurntSushi/ripgrep#installation" target="_blank" rel="noopener">安装文档</a>。</p>
+<h3 id="ripgrep-语法格式">Ripgrep 语法格式</h3>
+<ul>
+<li>整体语法格式</li>
+</ul>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br></pre></td><td class="code"><pre><span class="line">USAGE:</span><br><span class="line"></span><br><span class="line">    rg [OPTIONS] PATTERN [PATH ...]</span><br><span class="line">    rg [OPTIONS] [-e PATTERN ...] [-f PATTERNFILE ...] [PATH ...]</span><br><span class="line">    rg [OPTIONS] --files [PATH ...]</span><br><span class="line">    rg [OPTIONS] --<span class="built_in">type</span>-list</span><br><span class="line">    <span class="built_in">command</span> | rg [OPTIONS] PATTERN</span><br><span class="line"></span><br><span class="line">ARGS:</span><br><span class="line">    &lt;PATTERN&gt;</span><br><span class="line">            A regular expression used <span class="keyword">for</span> searching. To match a pattern beginning with a</span><br><span class="line">            dash, use the -e/--regexp flag.</span><br><span class="line"></span><br><span class="line">            For example, to search <span class="keyword">for</span> the literal <span class="string">'-foo'</span>, you can use this flag:</span><br><span class="line"></span><br><span class="line">                rg -e -foo</span><br><span class="line"></span><br><span class="line">            You can also use the special <span class="string">'--'</span> delimiter to indicate that no more flags</span><br><span class="line">            will be provided. Namely, the following is equivalent to the above:</span><br><span class="line"></span><br><span class="line">                rg -- -foo</span><br><span class="line"></span><br><span class="line">    &lt;PATH&gt;...</span><br><span class="line">            A file or directory to search. Directories are searched recursively. Paths specified on</span><br><span class="line">            the <span class="built_in">command</span> line override glob and ignore rules.</span><br></pre></td></tr></table></figure>
+<ul>
+<li>支持的命令行选项</li>
+</ul>
+<p>这里我们把一些常用选项做下介绍。</p>
+<table>
+<thead>
+<tr>
+<th>选项</th>
+<th>说明</th>
+<th>备注</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>-A, --after-context <code>&lt;NUM&gt;</code></td>
+<td>显示匹配内容后的 <code>&lt;NUM&gt;</code> 行。</td>
+<td>会覆盖 <code>--context</code> 选项。</td>
+</tr>
+<tr>
+<td>-B, --before-context <code>&lt;NUM&gt;</code></td>
+<td>显示匹配内容前的 <code>&lt;NUM&gt;</code> 行。</td>
+<td>会覆盖 <code>--context</code> 选项。</td>
+</tr>
+<tr>
+<td>-b, --byte-offset</td>
+<td>显示匹配内容在文件中的字节偏移。</td>
+<td>和 <code>-o</code> 一起使用时只打印偏移。</td>
+</tr>
+<tr>
+<td>-s, --case-sensitive</td>
+<td>启用大小写敏感。</td>
+<td>会覆盖 <code>-i(--ignore case)</code> 和 <code>-S(--smart case)</code> 选项。</td>
+</tr>
+<tr>
+<td>–color <code>&lt;WHEN&gt;</code></td>
+<td>什么时候使用颜色，默认值为：auto。可选值有：never、auto、always、ansi。</td>
+<td>如果 <code>--vimgre</code> 选项被使用，那么默认值是 never。</td>
+</tr>
+<tr>
+<td>–column</td>
+<td>显示匹配所在列数 (从 1 开始)。</td>
+<td>如果不显示列号可用 <code>--no-column</code> 取消掉。</td>
+</tr>
+<tr>
+<td>-C, --context <code>&lt;NUM&gt;</code></td>
+<td>显示匹配内容的前面和后面的 <code>&lt;NUM&gt;</code> 行。</td>
+<td>该选项会覆盖 <code>-B</code> 和 <code>-A</code> 选项。</td>
+</tr>
+<tr>
+<td>–context-separator <code>&lt;SEPARATOR&gt;</code></td>
+<td>在输出结果中分隔非连续的输出行 。</td>
+<td>可以使用<code>\x7F</code> 或 <code>\t</code>，默认是 <code>--</code>。</td>
+</tr>
+<tr>
+<td>-c, --count</td>
+<td>只显示匹配结果的总行数。</td>
+<td>如果只有一个文件给 Ripgrep，那么只打印匹配结果的总行数。可以用 <code>--with-filename</code> 来强制打印文件名，该选项会覆盖 <code>--count-matches</code> 选项。</td>
+</tr>
+<tr>
+<td>–count-matches</td>
+<td>只显示匹配结果的总次数。</td>
+<td>可以用 <code>--with-filename</code> 来强制在只有一个文件时也输出文件名。</td>
+</tr>
+<tr>
+<td>–debug</td>
+<td>显示调试信息。</td>
+<td></td>
+</tr>
+<tr>
+<td>–dfa-size-limit <code>&lt;NUM+SUFFIX?&gt;</code></td>
+<td>指定正则表达式 DFA 的上限，默认为 10M。</td>
+<td>该选项允许接受与 <code>--max-filesize</code> 相同大小的后缀标志。</td>
+</tr>
+<tr>
+<td>-E, --encoding <code>&lt;ENCODING&gt;</code></td>
+<td>指定文本编码格式, 默认是 auto。</td>
+<td>更多编码格式参考：<a href="https://encoding.spec.whatwg.org/#concept-encoding-get" target="_blank" rel="noopener">https://encoding.spec.whatwg.org/#concept-encoding-get</a></td>
+</tr>
+<tr>
+<td>-f, --file <code>&lt;PATTERNFILE&gt;</code>…</td>
+<td>从文件中读入搜索模式, 一行一个模式。</td>
+<td>结合 <code>-e/--regexp</code> 参数可多个文件一起组合使用，所有组合会被匹配。</td>
+</tr>
+<tr>
+<td>–files</td>
+<td>打印所有将被搜索的文件路径。</td>
+<td>以 <code>rg &lt;options&gt; --files [PATH...]</code> 方式使用，不能增加搜索模式。</td>
+</tr>
+<tr>
+<td>-l, --files-with-matches</td>
+<td>只打印有匹配的文件名。</td>
+<td>该选项会覆盖 <code>--files-without-match</code>。</td>
+</tr>
+<tr>
+<td>–files-without-match</td>
+<td>只打印无匹配的文件名。</td>
+<td>该选项会覆盖 <code>--file-with-matches</code>。</td>
+</tr>
+<tr>
+<td>-F, --fixed-strings</td>
+<td>把搜索模式当成常规文字而非正则表达式。</td>
+<td>该选项可以用<code>--no-fixed-strings</code> 来禁止。</td>
+</tr>
+<tr>
+<td>-L, --follow</td>
+<td>该选项会递归搜索符号链接，默认是关闭的。</td>
+<td>该选项可以用 <code>--no-follow</code> 选项来手动关闭。</td>
+</tr>
+<tr>
+<td>-g, --glob <code>&lt;GLOB&gt;</code>…</td>
+<td>包含或排除用于搜索匹配给定的文件和目录，可以用 ! 来取反。</td>
+<td>该选项可以多次使用，会匹配 .gitignore 中的规则。</td>
+</tr>
+<tr>
+<td>-h, --help</td>
+<td>打印帮助信息。</td>
+<td></td>
+</tr>
+<tr>
+<td>–heading</td>
+<td>打印文件名到匹配内容的上方而不是在同一行。</td>
+<td>该选项是默认启用的，可以用 <code>--no-heading</code> 来关闭。</td>
+</tr>
+<tr>
+<td>–hidden</td>
+<td>启用搜索隐藏文件和文件夹。</td>
+<td>默认情况下是忽略搜索隐藏文件和文件夹的, 可用 <code>--no-hidden</code> 来关闭。</td>
+</tr>
+<tr>
+<td>–iglob <code>&lt;GLOB&gt;</code>…</td>
+<td>作用同 <code>--glob</code>, 但这个选项大小写不敏感。</td>
+<td></td>
+</tr>
+<tr>
+<td>-i, --ignore-case</td>
+<td>指定搜索模式中的大小写不敏感。</td>
+<td>该选项会被 <code>-s/--case-sensitive</code> 或 <code>-S/--smart-case</code> 覆盖。</td>
+</tr>
+<tr>
+<td>–ignore-file <code>&lt;PATH&gt;</code>…</td>
+<td>指定搜索时需忽略的路径，格式同 <code>.gitignore</code>, 可同时指定多个。</td>
+<td>如果存在多个 <code>--ignore-file</code> 标记时，后面优先级会更高。</td>
+</tr>
+<tr>
+<td>-v, --invert-match</td>
+<td>反向匹配，显示与给定模式不匹配的行。</td>
+<td></td>
+</tr>
+<tr>
+<td>-n, --line-number</td>
+<td>显示匹配内容所在文件的行数，该选项默认是打开的。</td>
+<td></td>
+</tr>
+<tr>
+<td>-x, --line-regexp</td>
+<td>只显示整行都匹配搜索模式的行。</td>
+<td>该选项会覆盖 <code>--word-regexp</code>。</td>
+</tr>
+<tr>
+<td>-M, --max-columns <code>&lt;NUM&gt;</code></td>
+<td>不打印长于 <code>&lt;NUM&gt;</code> 中指定节字大小的匹配行内容，只显示该行的匹配数。</td>
+<td></td>
+</tr>
+<tr>
+<td>-m, --max-count <code>&lt;NUM&gt;</code></td>
+<td>限制一个文件中最多 <code>&lt;NUM&gt;</code> 行被匹配。</td>
+<td></td>
+</tr>
+<tr>
+<td>–max-depth <code>&lt;NUM&gt;</code></td>
+<td>限制文件夹递归搜索深度。</td>
+<td>如：<code>rg --max-depth 0 dir/</code> 则表示不执行任何搜索。</td>
+</tr>
+<tr>
+<td>–max-filesize <code>&lt;NUM+SUFFIX?&gt;</code></td>
+<td>搜索时忽略大于 <code>&lt;NUM&gt;</code> byte 的文件。</td>
+<td>SUFFIX 的单位可以是：K、M、G，默认是：byte。</td>
+</tr>
+<tr>
+<td>–mmap</td>
+<td>尽量使用 Memory Maps 进行搜索，这样速度会更快。该选项是默认行为。</td>
+<td>如果使用 <code>--mmap</code> 搜索文件时 Ripgrep 发生意外中止，可使用 <code>--no-mmap</code> 选项关闭它。</td>
+</tr>
+<tr>
+<td>–no-config</td>
+<td>不读取 configuration 文件, 并忽略 RIPGREP_CONFIG_PATH 变量。</td>
+<td></td>
+</tr>
+<tr>
+<td>–no-filename</td>
+<td>不要打印匹配文件的文件名。</td>
+<td></td>
+</tr>
+<tr>
+<td>–no-heading</td>
+<td>不在每个匹配行上方打印文件名，而是在匹配行的同一行上打印。</td>
+<td></td>
+</tr>
+<tr>
+<td>–no-ignore</td>
+<td>不读取忽略文件，如：.gitignore、.ignore 等。</td>
+<td>该选项可以用 <code>--ignore</code> 关闭。</td>
+</tr>
+<tr>
+<td>–no-ignore-global</td>
+<td>不读取全局的 ignore 文件，比如: <code>$HOME/.config/git/ignore</code>。</td>
+<td>该选项可以用 <code>--ignore-global</code> 关闭。</td>
+</tr>
+<tr>
+<td>–no-ignore-messages</td>
+<td>取消解析 .ignroe、.gitignore 文件中相关错误信息。</td>
+<td>该选项可通过 <code>--ignore-messages</code> 关闭。</td>
+</tr>
+<tr>
+<td>–no-ignore-parent</td>
+<td>不读取父文件夹里的 .gitignore、.ignore 文件。</td>
+<td>该选项可通过 <code>--ignore-parent</code> 关闭。</td>
+</tr>
+<tr>
+<td>–no-ignore-vcs</td>
+<td>不读取版本控制器中的 .ignore 文件。</td>
+<td>该选项可通过 <code>--ignore-vcs</code> 关闭。</td>
+</tr>
+<tr>
+<td>-N, --no-line-number</td>
+<td>不打印匹配行数。</td>
+<td></td>
+</tr>
+<tr>
+<td>–no-messages</td>
+<td>不打印打开和读取文件时相关错误信息。</td>
+<td></td>
+</tr>
+<tr>
+<td>-0, --null</td>
+<td>在打印的文件路径后加一个 NUL 字符。</td>
+<td>这对于结合 Xargs 使用时是非常有用的。</td>
+</tr>
+<tr>
+<td>-o, --only-matching</td>
+<td>只打印匹配的内容，而不是整行。</td>
+<td></td>
+</tr>
+<tr>
+<td>–passthru</td>
+<td>同时打印文件中匹配和不匹配的行。</td>
+<td></td>
+</tr>
+<tr>
+<td>–path-separator <code>&lt;SEPARATOR&gt;</code></td>
+<td>路径分隔符，在 Linux 上默认是 /，Windows 上默认是 \ 。</td>
+<td></td>
+</tr>
+<tr>
+<td>–pre <code>&lt;COMMAND&gt;</code></td>
+<td>用 <code>&lt;COMMAND&gt;</code> 处理文件后，并将结果传递给 Ripgrep。</td>
+<td>该选项存在一定的性能损耗。</td>
+</tr>
+<tr>
+<td>-p, --pretty</td>
+<td>该选项是 <code>--color always --heading --line-number</code> 的别名。</td>
+<td></td>
+</tr>
+<tr>
+<td>-q, --quiet</td>
+<td>该选项不会打印到标准输出, 如果匹配发现时就停止搜索。</td>
+<td>当 RipGrep 用于 exit 代码时该选项非常有用。</td>
+</tr>
+<tr>
+<td>–regex-size-limit <code>&lt;NUM+SUFFIX?&gt;</code></td>
+<td>设置已编译正则表达式的上限，默认限制为10M。</td>
+<td></td>
+</tr>
+<tr>
+<td>-e, --regexp <code>&lt;PATTERN&gt;</code>…</td>
+<td>使用正则来匹配搜索条件。</td>
+<td>该选项可以多次使用，可打印匹配任何模式的行。</td>
+</tr>
+<tr>
+<td>-r, --replace <code>&lt;REPLACEMENT_TEXT&gt;</code></td>
+<td>用相应文件内容代替匹配内容打印出来。</td>
+<td></td>
+</tr>
+<tr>
+<td>-z, --search-zip</td>
+<td>在 gz、bz2、xz、lzma、lz4 文件类型中搜索。</td>
+<td>该选项可通过 <code>--no-search-zip</code> 关闭。</td>
+</tr>
+<tr>
+<td>-S, --smart-case</td>
+<td>如果全小写，则大小写不敏感，否则大小写敏感。</td>
+<td>该选项可通过 <code>-s/--case-sensitive</code> 和 <code>-i/--ignore-case</code> 来关闭。</td>
+</tr>
+<tr>
+<td>–sort <code>&lt;SORTBY&gt;</code></td>
+<td>将输出结果按升序进行排序，可排序类型有：path、modified、accessed、created 。</td>
+<td></td>
+</tr>
+<tr>
+<td>–sortr <code>&lt;SORTBY&gt;</code></td>
+<td>将输出结果按降序进行排序，可排序类型有：path、modified、accessed、created 。</td>
+<td></td>
+</tr>
+<tr>
+<td>–stats</td>
+<td>打印出统计结果。</td>
+<td></td>
+</tr>
+<tr>
+<td>-a, --text</td>
+<td>搜索二进制文件。</td>
+<td>该选项可通过 <code>--no-text</code> 关闭。</td>
+</tr>
+<tr>
+<td>-j, --threads <code>&lt;NUM&gt;</code></td>
+<td>搜索时要使用的线程数。</td>
+<td></td>
+</tr>
+<tr>
+<td>-t, --type <code>&lt;TYPE&gt;</code>…</td>
+<td>只搜索指定的文件类型。</td>
+<td>可以通过 <code>--type-list</code> 来列出支持的文件类型。</td>
+</tr>
+<tr>
+<td>–type-add <code>&lt;TYPE_SPEC&gt;</code>…</td>
+<td>添加一种文件类型。</td>
+<td></td>
+</tr>
+<tr>
+<td>–type-clear <code>&lt;TYPE&gt;</code>…</td>
+<td>清除默认的文件类型。</td>
+<td></td>
+</tr>
+<tr>
+<td>–type-list</td>
+<td>列出所有内置文件类型。</td>
+<td></td>
+</tr>
+<tr>
+<td>-T, --type-not <code>&lt;TYPE&gt;</code>…</td>
+<td>不要搜索某种文件类型。</td>
+<td></td>
+</tr>
+<tr>
+<td>-u, --unrestricted</td>
+<td><code>-u</code> 搜索.gitignore 里的文件, <code>-uu</code> 搜索隐藏文件，<code>-uuu</code> 搜索二进制文件。</td>
+<td></td>
+</tr>
+<tr>
+<td>-V, --version</td>
+<td>打印版本信息。</td>
+<td></td>
+</tr>
+<tr>
+<td>–vimgrep</td>
+<td>每一次匹配都单独打印一行，如果一行有多次匹配会打印成多行。</td>
+<td></td>
+</tr>
+<tr>
+<td>-H, --with-filename</td>
+<td>打印匹配的文件路径，该选项默认打开。</td>
+<td>该选项可通过 <code>--no-filename</code> 关闭。</td>
+</tr>
+<tr>
+<td>-w, --word-regexp</td>
+<td>把搜索参数作为单独单词匹配。</td>
+<td>该选项会覆盖 <code>--line-regexp</code> 选项。</td>
+</tr>
+</tbody>
+</table>
+<p>更多命令行选项，可通过 <code>rg --help</code> 自行查看。</p>
+<h3 id="ripgrep-使用实例">Ripgrep 使用实例</h3>
+<h4 id="搜索指定文件中包含关键字的内容">搜索指定文件中包含关键字的内容</h4>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br></pre></td><td class="code"><pre><span class="line">$ rg <span class="string">'github.com'</span>  README.md</span><br><span class="line">1:&lt;h1 align=<span class="string">"center"</span>&gt;&lt;a title=<span class="string">"New «NexT» 6.0.0 version [Reloaded]"</span> href=<span class="string">"https://github.com/theme-next/hexo-theme-next"</span>&gt;NexT&lt;/a&gt;&lt;/h1&gt;</span><br><span class="line">6:[![mnt-image]](https://github.com/theme-next/hexo-theme-next)</span><br><span class="line">21:More NexT examples [here](https://github.com/iissnan/hexo-theme-next/issues/119).</span><br><span class="line">41:   $ curl -s https://api.github.com/repos/iissnan/hexo-theme-next/releases/latest | grep tarball_url | cut -d <span class="string">'"'</span> -f 4 | wget -i - -O- | tar -zx -C themes/next --strip-components=1</span><br><span class="line">51:   $ curl -L https://api.github.com/repos/iissnan/hexo-theme-next/tarball/v5.1.2 | tar -zxv -C themes/next --strip-components=1</span><br><span class="line">57:   $ git <span class="built_in">clone</span> --branch v5.1.2 https://github.com/iissnan/hexo-theme-next themes/next</span><br><span class="line">67:   $ curl -L https://api.github.com/repos/iissnan/hexo-theme-next/tarball | tar -zxv -C themes/next --strip-components=1</span><br><span class="line">73:   $ git <span class="built_in">clone</span> https://github.com/iissnan/hexo-theme-next themes/next</span><br><span class="line">110:For those who also encounter **Error: Cannot find module <span class="string">'hexo-util'</span>** [issue](https://github.com/iissnan/hexo-theme-next/issues/1490), please check your NPM version.</span><br><span class="line">128:<span class="comment">### Theme configurations using Hexo data files ([#328](https://github.com/iissnan/hexo-theme-next/issues/328))</span></span><br><span class="line">282:NexT uses [Tomorrow Theme](https://github.com/chriskempson/tomorrow-theme) with 5 themes <span class="keyword">for</span> you to choose from.</span><br><span class="line">288:Head over to [Tomorrow Theme](https://github.com/chriskempson/tomorrow-theme) <span class="keyword">for</span> more details.</span><br><span class="line">367:[download-latest-url]: https://github.com/iissnan/hexo-theme-next/archive/master.zip</span><br><span class="line">368:[releases-latest-url]: https://github.com/iissnan/hexo-theme-next/releases/latest</span><br><span class="line">369:[releases-url]: https://github.com/iissnan/hexo-theme-next/releases</span><br><span class="line">370:[tags-url]: https://github.com/iissnan/hexo-theme-next/tags</span><br><span class="line">371:[commits-url]: https://github.com/iissnan/hexo-theme-next/commits/master</span><br></pre></td></tr></table></figure>
+<h4 id="搜索指定文件中包含以关键字开头的单词的内容">搜索指定文件中包含以关键字开头的单词的内容</h4>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br></pre></td><td class="code"><pre><span class="line">$ rg <span class="string">'lang\w+'</span> README.md</span><br><span class="line">154:<span class="comment">### Multiple languages support, including:</span></span><br><span class="line">168:Default language is English.</span><br><span class="line">171:language: en</span><br><span class="line">172:<span class="comment"># language: zh-Hans</span></span><br><span class="line">173:<span class="comment"># language: zh-hk</span></span><br><span class="line">174:<span class="comment"># language: zh-tw</span></span><br><span class="line">175:<span class="comment"># language: ru</span></span><br><span class="line">176:<span class="comment"># language: fr-FR</span></span><br><span class="line">177:<span class="comment"># language: de</span></span><br><span class="line">178:<span class="comment"># language: ja</span></span><br><span class="line">179:<span class="comment"># language: id</span></span><br><span class="line">180:<span class="comment"># language: pt</span></span><br><span class="line">181:<span class="comment"># language: pt-BR</span></span><br></pre></td></tr></table></figure>
+<h4 id="搜索指定文件中包含以关键字开头的内容">搜索指定文件中包含以关键字开头的内容</h4>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line">$ rg <span class="string">'hexo\w*'</span> README.md</span><br><span class="line">1:&lt;h1 align=<span class="string">"center"</span>&gt;&lt;a title=<span class="string">"New «NexT» 6.0.0 version [Reloaded]"</span> href=<span class="string">"https://github.com/theme-next/hexo-theme-next"</span>&gt;NexT&lt;/a&gt;&lt;/h1&gt;</span><br><span class="line">3:&lt;p align=<span class="string">"center"</span>&gt;NexT is a high quality elegant &lt;a href=<span class="string">"http://hexo.io"</span>&gt;Hexo&lt;/a&gt; theme. It is crafted from scratch, with love.&lt;/p&gt;</span><br><span class="line">6:[![mnt-image]](https://github.com/theme-next/hexo-theme-next)</span><br><span class="line">9:[![hexo-image]][hexo-url]</span><br><span class="line">21:More NexT examples [here](https://github.com/iissnan/hexo-theme-next/issues/119).</span><br><span class="line">25:**1.** Change dir to **hexo root** directory. There must be `node_modules`, `<span class="built_in">source</span>`, `themes` and other directories:</span><br><span class="line">27:   $ <span class="built_in">cd</span> hexo</span><br><span class="line">41:   $ curl -s https://api.github.com/repos/iissnan/hexo-theme-next/releases/latest | grep tarball_url | cut -d <span class="string">'"'</span> -f 4 | wget -i - -O- | tar -zx -C themes/next --strip-components=1</span><br><span class="line">51:   $ curl -L https://api.github.com/repos/iissnan/hexo-theme-next/tarball/v5.1.2 | tar -zxv -C themes/next --strip-components=1</span><br><span class="line">57:   $ git <span class="built_in">clone</span> --branch v5.1.2 https://github.com/iissnan/hexo-theme-next themes/next</span><br></pre></td></tr></table></figure>
+<h4 id="搜索指定目录及子目中包含关键字的内容">搜索指定目录及子目中包含关键字的内容</h4>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line">$ rg <span class="string">'github.com'</span> ./</span><br><span class="line">./src/scrollspy.js</span><br><span class="line">6:* Licensed under MIT (https://github.com/twbs/bootstrap/blob/master/LICENSE)</span><br><span class="line"></span><br><span class="line">./src/affix.js</span><br><span class="line">6: * Licensed under MIT (https://github.com/twbs/bootstrap/blob/master/LICENSE)</span><br><span class="line"></span><br><span class="line">./src/js.cookie.js</span><br><span class="line">3: * https://github.com/js-cookie/js-cookie</span><br></pre></td></tr></table></figure>
+<h4 id="搜索以关键字为独立单词的内容">搜索以关键字为独立单词的内容</h4>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line">$ rg -w <span class="string">'github.com'</span> ./</span><br><span class="line">./bower.json</span><br><span class="line">36:    <span class="string">"url"</span> : <span class="string">"http://github.com/julianshapiro/velocity.git"</span></span><br><span class="line"></span><br><span class="line">./velocity.ui.js</span><br><span class="line">58:        var abortError = <span class="string">"Velocity UI Pack: You need to update Velocity (jquery.velocity.js) to a newer version. Visit http://github.com/julianshapiro/velocity."</span>;</span><br><span class="line"></span><br><span class="line">./velocity.js</span><br><span class="line">442:    /* IE detection. Gist: https://gist.github.com/julianshapiro/9098609 */</span><br><span class="line">463:    /* rAF shim. Gist: https://gist.github.com/julianshapiro/9497513 */</span><br><span class="line">472:            /* Technique by Erik Moller. MIT license: https://gist.github.com/paulirish/1579671 */</span><br><span class="line">480:    /* Array compacting. Copyright Lo-Dash. MIT License: https://github.com/lodash/lodash/blob/master/LICENSE.txt */</span><br><span class="line">522:        /* Copyright Martin Bohm. MIT License: https://gist.github.com/Tomalak/818a78a226a0738eaade */</span><br></pre></td></tr></table></figure>
+<h4 id="搜索包含关键字内容的文件并且只打印文件名">搜索包含关键字内容的文件并且只打印文件名</h4>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">$ rg -w <span class="string">'github.com'</span> ./ -l</span><br><span class="line">./velocity.js</span><br><span class="line">./bower.json</span><br><span class="line">./velocity.ui.js</span><br><span class="line">./velocity.ui.min.js</span><br></pre></td></tr></table></figure>
+<h4 id="在指定文件类型格式为-js-的文件中搜索包含关键字的内容">在指定文件类型格式为 JS 的文件中搜索包含关键字的内容</h4>
+<p>RipGrep 实现的方式存在多种多样，这里介绍比较常用的两种。</p>
+<ul>
+<li>第一种：使用 <code>--type</code> 选项指定文件类型。</li>
+</ul>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">$ rg <span class="string">'function writeOnCanvas'</span> --<span class="built_in">type</span> js</span><br><span class="line"><span class="built_in">source</span>/lib/Han/dist/han.js</span><br><span class="line">1726:<span class="keyword">function</span> writeOnCanvas( text, font ) &#123;</span><br></pre></td></tr></table></figure>
+<ul>
+<li>第二种：使用 <code>--glob</code> 选项来通配需要的文件类型。</li>
+</ul>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">$ rg  <span class="string">'function writeOnCanvas'</span> -g <span class="string">'*.js'</span></span><br><span class="line"><span class="built_in">source</span>/lib/Han/dist/han.js</span><br><span class="line">1726:<span class="keyword">function</span> writeOnCanvas( text, font ) &#123;</span><br></pre></td></tr></table></figure>
+<p>如果要同时搜索多个文件类型可以写成下面这样。</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br></pre></td><td class="code"><pre><span class="line">$ rg <span class="string">'Hanzi'</span> -g <span class="string">'*.&#123;js,css&#125;'</span></span><br><span class="line">han.min.js</span><br><span class="line">2:/*! Han.css: the CSS typography framework optimised <span class="keyword">for</span> Hanzi */</span><br><span class="line"></span><br><span class="line">han.js</span><br><span class="line">3: * Han.css: the CSS typography framework optimised <span class="keyword">for</span> Hanzi</span><br><span class="line">48:  // Address Hanzi and Western script mixed spacing</span><br><span class="line">426:    /* Hanzi and Western mixed spacing </span><br><span class="line"></span><br><span class="line">han.css</span><br><span class="line">4:/*! Han.css: the CSS typography framework optimised <span class="keyword">for</span> Hanzi */</span><br><span class="line"></span><br><span class="line">han.min.css</span><br><span class="line">4:/*! Han.css: the CSS typography framework optimised <span class="keyword">for</span> Hanzi */</span><br></pre></td></tr></table></figure>
+<h4 id="在当前目下并且不包含文件类型格式为-css-的文件中搜索包含关键字的内容">在当前目下并且不包含文件类型格式为 CSS 的文件中搜索包含关键字的内容</h4>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line">$ rg <span class="string">'revertVowel'</span> --<span class="built_in">type</span>-not css</span><br><span class="line"><span class="built_in">source</span>/lib/Han/dist/han.min.js</span><br><span class="line">(this[<span class="string">"comb-liga-zhuyin"</span>]=O.substZhuyinCombLiga(this.context)),this&#125;,revertVowelCombLiga:<span class="function"><span class="title">function</span></span>()&#123;try&#123;this[<span class="string">"comb-liga-vowel"</span>].revert(<span class="string">"all"</span>)&#125;catch(a)&#123;&#125;<span class="built_in">return</span> this&#125;,revertVowelICombLiga:<span class="function"><span class="title">function</span></span>()&#123;try&#123;this[<span class="string">"comb-liga-vowel-i"</span>].revert(<span class="string">"all"</span>)&#125;catch(a)&#123;&#125;<span class="built_in">return</span> this&#125;,revertZhuyinCombLiga:<span class="function"><span class="title">function</span></span>()&#123;try&#123;this[<span class="string">"comb-liga-zhuyin"</span>].revert(<span class="string">"all"</span>)&#125;catch(a)&#123;&#125;<span class="built_in">return</span> this&#125;,revertCombLigaWithPUA:<span class="function"><span class="title">function</span></span>()&#123;try&#123;this[<span class="string">"comb-liga-vowel"</span>].revert(<span class="string">"all"</span>),this[<span class="string">"comb-liga-vowel-i"</span>].revert(<span class="string">"all"</span>),this[<span class="string">"comb-liga-zhuyin"</span>].revert(<span class="string">"all"</span>)&#125;catch(a)&#123;&#125;<span class="built_in">return</span> this&#125;,substInaccurateChar:<span class="function"><span class="title">function</span></span>()&#123;<span class="built_in">return</span> this[<span class="string">"inaccurate-char"</span>]=O.substInaccurateChar(this.context),this&#125;,revertInaccurateChar:<span class="function"><span class="title">function</span></span>()&#123;try&#123;this[<span class="string">"inaccurate-char"</span>].revert(<span class="string">"all"</span>)&#125;catch(a)&#123;&#125;<span class="built_in">return</span> this&#125;&#125;),a.addEventListener(<span class="string">"DOMContentLoaded"</span>,<span class="function"><span class="title">function</span></span>()&#123;var a;K.classList.contains(<span class="string">"han-init"</span>)?O.init():(a=J.querySelector(<span class="string">".han-init-context"</span>))&amp;&amp;(O.init=O(a).render())&#125;),(<span class="string">"undefined"</span>==typeof b||b===!1)&amp;&amp;(a.Han=O),O&#125;);</span><br><span class="line"></span><br><span class="line"><span class="built_in">source</span>/lib/Han/dist/han.js</span><br><span class="line">2939:  revertVowelCombLiga: <span class="function"><span class="title">function</span></span>() &#123;</span><br><span class="line">2946:  revertVowelICombLiga: <span class="function"><span class="title">function</span></span>() &#123;</span><br></pre></td></tr></table></figure>
+<p>你也可以用下面的更简洁的写法来达到同样的效果。</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">$ rg &apos;revertVowel&apos; -Tcss</span><br></pre></td></tr></table></figure>
+<h4 id="使用正则表达式进行关键字搜索">使用正则表达式进行关键字搜索</h4>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line">$ rg -e <span class="string">"noConf.*lict"</span> ./</span><br><span class="line">./js.cookie.js</span><br><span class="line">21:		api.noConflict = <span class="function"><span class="title">function</span></span> () &#123;</span><br><span class="line"></span><br><span class="line">./scrollspy.js</span><br><span class="line">166:  $.fn.scrollspy.noConflict = <span class="function"><span class="title">function</span></span> () &#123;</span><br><span class="line"></span><br><span class="line">./affix.js</span><br><span class="line">139:  $.fn.affix.noConflict = <span class="function"><span class="title">function</span></span> () &#123;</span><br></pre></td></tr></table></figure>
+<h4 id="搜索匹配关键字的内容及显示其上下内容各两行">搜索匹配关键字的内容及显示其上下内容各两行</h4>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br></pre></td><td class="code"><pre><span class="line">$  rg -e <span class="string">"noConf.*lict"</span>  -C2</span><br><span class="line">js.cookie.js</span><br><span class="line">19-		var OldCookies = window.Cookies;</span><br><span class="line">20-		var api = window.Cookies = factory();</span><br><span class="line">21:		api.noConflict = <span class="function"><span class="title">function</span></span> () &#123;</span><br><span class="line">22-			window.Cookies = OldCookies;</span><br><span class="line">23-			<span class="built_in">return</span> api;</span><br><span class="line"></span><br><span class="line">scrollspy.js</span><br><span class="line">164-  // =====================</span><br><span class="line">165-</span><br><span class="line">166:  $.fn.scrollspy.noConflict = <span class="function"><span class="title">function</span></span> () &#123;</span><br><span class="line">167-    $.fn.scrollspy = old</span><br><span class="line">168-    <span class="built_in">return</span> this</span><br><span class="line"></span><br><span class="line">affix.js</span><br><span class="line">137-  // =================</span><br><span class="line">138-</span><br><span class="line">139:  $.fn.affix.noConflict = <span class="function"><span class="title">function</span></span> () &#123;</span><br><span class="line">140-    $.fn.affix = old</span><br><span class="line">141-    <span class="built_in">return</span> this</span><br></pre></td></tr></table></figure>
+<h4 id="搜索不包含关键字的内容">搜索不包含关键字的内容</h4>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br></pre></td><td class="code"><pre><span class="line">$ rg -v <span class="string">"hexo"</span> merge-configs.js</span><br><span class="line">2:</span><br><span class="line">3:var merge = require(<span class="string">'./merge'</span>);</span><br><span class="line">4:</span><br><span class="line">5:/**</span><br><span class="line">8: */</span><br><span class="line">12:    <span class="keyword">if</span> ( data &amp;&amp; data.next ) &#123;</span><br><span class="line">13:      <span class="keyword">if</span> ( data.next.override ) &#123;</span><br><span class="line">15:      &#125; <span class="keyword">else</span> &#123;</span><br><span class="line">17:      &#125;</span><br><span class="line">18:    &#125;</span><br><span class="line">19:  &#125;</span><br><span class="line">20:&#125;);</span><br><span class="line">21:</span><br><span class="line">30:&#125;);</span><br></pre></td></tr></table></figure>
+<h4 id="搜索关键字并只显示关键字部分的内容">搜索关键字并只显示关键字部分的内容</h4>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br></pre></td><td class="code"><pre><span class="line">$ rg -e <span class="string">"hexo.*warn"</span> -o ./</span><br><span class="line">./tags/lazy-image.js</span><br><span class="line">12:hexo.log.warn</span><br><span class="line"></span><br><span class="line">./merge-configs.js</span><br><span class="line">23:hexo.log.warn</span><br><span class="line">24:hexo.log.warn</span><br><span class="line">25:hexo.log.warn</span><br><span class="line">26:hexo.log.warn</span><br><span class="line">27:hexo.log.warn</span><br><span class="line">28:hexo.log.warn</span><br><span class="line">29:hexo.log.warn</span><br><span class="line"></span><br><span class="line">./tags/button.js</span><br><span class="line">13:hexo.log.warn</span><br><span class="line"></span><br><span class="line">./tags/full-image.js</span><br><span class="line">12:hexo.log.warn</span><br></pre></td></tr></table></figure>
+<h4 id="搜索关键字并忽略关键字大小写的内容">搜索关键字并忽略关键字大小写的内容</h4>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line">$ rg -ie &quot;Return.*&quot; merge.js</span><br><span class="line">103:var root = freeGlobal || freeSelf || Function(&apos;return this&apos;)();</span><br><span class="line">120:    return freeProcess &amp;&amp; freeProcess.binding(&apos;util&apos;);</span><br><span class="line">134: * @returns &#123;Object&#125; Returns `map`.</span><br><span class="line">137:  // Don&apos;t return `map.set` because it&apos;s not chainable in IE 11.</span><br><span class="line">139:  return map;</span><br><span class="line">148: * @returns &#123;Object&#125; Returns `set`.</span><br><span class="line">151:  // Don&apos;t return `set.add` because it&apos;s not chainable in IE 11.</span><br></pre></td></tr></table></figure>
+<h4 id="把关键字当成常量字符进行搜索">把关键字当成常量字符进行搜索</h4>
+<p>关键字中包含 <code>.(){}*+</code> 类似字符时，不需要手动转义。</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line">$ rg -F <span class="string">"i++)"</span> ./</span><br><span class="line">./tags/exturl.js</span><br><span class="line">27:  <span class="keyword">for</span> (; i &lt; len; i++) &#123;</span><br><span class="line"></span><br><span class="line">./tags/group-pictures.js</span><br><span class="line">795:    <span class="keyword">for</span> (var i = 0; i &lt; rows; i++) &#123;</span><br><span class="line">805:    <span class="keyword">for</span> (var i = 0; i &lt; rows.length; i++) &#123;</span><br><span class="line">825:    <span class="keyword">for</span> (var i = 0; i &lt; pictures.length; i++) &#123;</span><br></pre></td></tr></table></figure>
+<p>如果要搜索的字符是以 <code>-</code> 开头时，要用 <code>--</code> 来作为分隔符。</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line">$ rg -- -1 merge.js</span><br><span class="line">190:  var index = -1,</span><br><span class="line">210:  var index = -1,</span><br><span class="line">233:  var index = -1,</span><br><span class="line">255:  var index = -1,</span><br><span class="line">317:  var index = -1,</span><br><span class="line">348:  var index = -1,</span><br><span class="line">435:  var index = -1,</span><br><span class="line">533:  var index = -1,</span><br><span class="line">605:  return assocIndexOf(this.__data__, key) &gt; -1;</span><br><span class="line">645:  var index = -1,</span><br><span class="line">889: * @returns &#123;number&#125; Returns the index of the matched value, else `-1`.</span><br><span class="line">898:  return -1;</span><br></pre></td></tr></table></figure>
+<p>或者使用 <code>-e</code> 参数也可以达到类似目的。</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line">$ rg -e <span class="string">"-1"</span> <span class="built_in">source</span>/js</span><br><span class="line"><span class="built_in">source</span>/js/src/js.cookie.js</span><br><span class="line">113:					cookie = cookie.slice(1, -1);</span><br><span class="line">155:				expires: -1</span><br><span class="line"></span><br><span class="line"><span class="built_in">source</span>/js/src/motion.js</span><br><span class="line">190:    cursor: -1,</span><br><span class="line">223:        getMistLineSettings(<span class="variable">$logoLineBottom</span>, <span class="string">'-100%'</span>)</span><br></pre></td></tr></table></figure>
+<h4 id="打印当前目下所有将被搜索的文件列表">打印当前目下所有将被搜索的文件列表</h4>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line">$ rg --files</span><br><span class="line">merge.js</span><br><span class="line">merge-configs.js</span><br><span class="line">tags/lazy-image.js</span><br><span class="line">tags/center-quote.js</span><br><span class="line">tags/tabs.js</span><br><span class="line">tags/note.js</span><br><span class="line">tags/button.js</span><br><span class="line">tags/full-image.js</span><br><span class="line">tags/group-pictures.js</span><br><span class="line">tags/label.js</span><br><span class="line">tags/exturl.js</span><br></pre></td></tr></table></figure>
+<h4 id="输出所有内置可识别文件类型">输出所有内置可识别文件类型</h4>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br></pre></td><td class="code"><pre><span class="line">$ rg --type-list</span><br><span class="line">agda: *.agda, *.lagda</span><br><span class="line">aidl: *.aidl</span><br><span class="line">amake: *.bp, *.mk</span><br><span class="line">asciidoc: *.adoc, *.asc, *.asciidoc</span><br><span class="line">asm: *.S, *.asm, *.s</span><br><span class="line">ats: *.ats, *.dats, *.hats, *.sats</span><br><span class="line">avro: *.avdl, *.avpr, *.avsc</span><br><span class="line">awk: *.awk</span><br><span class="line">bazel: *.bzl, BUILD, WORKSPACE</span><br><span class="line">bitbake: *.bb, *.bbappend, *.bbclass, *.conf, *.inc</span><br><span class="line">bzip2: *.bz2</span><br><span class="line">c: *.H, *.c, *.cats, *.h</span><br><span class="line">cabal: *.cabal</span><br><span class="line">cbor: *.cbor</span><br><span class="line">ceylon: *.ceylon</span><br><span class="line">clojure: *.clj, *.cljc, *.cljs, *.cljx</span><br><span class="line">cmake: *.cmake, CMakeLists.txt</span><br><span class="line">coffeescript: *.coffee</span><br><span class="line">config: *.cfg, *.conf, *.config, *.ini</span><br><span class="line">cpp: *.C, *.H, *.cc, *.cpp, *.cxx, *.h, *.hh, *.hpp, *.hxx, *.inl</span><br><span class="line">creole: *.creole</span><br><span class="line">crystal: *.cr, Projectfile</span><br><span class="line">cs: *.cs</span><br><span class="line">......</span><br></pre></td></tr></table></figure>
+<h4 id="自定义搜索文件类型">自定义搜索文件类型</h4>
+<p>默认情况下，Ripgrep 附带了一堆预定义的类型。 通常，这些类型对应于众所周知的公共格式。 您也可以定义自己的类型，例如：您可能经常搜索 Web 类型文件，其中包含 Javascript、HTML 和 CSS 类型的文件。</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line">$ rg --type-add &apos;web:*.html&apos; --type-add &apos;web:*.css&apos; --type-add &apos;web:*.js&apos; -tweb display</span><br><span class="line">han.css</span><br><span class="line">28:  display: block;</span><br><span class="line">34:  display: inline-block;</span><br><span class="line">37:  display: none;</span><br><span class="line">45:  display: none;</span><br><span class="line">174:  display: table; /* 1 */</span><br><span class="line"></span><br><span class="line">han.js</span><br><span class="line">442:    // The feature displays the following characters</span><br><span class="line">446:    &apos;display-as&apos;: &#123;</span><br><span class="line">1732:  canvas.style.display = &apos;none&apos;</span><br></pre></td></tr></table></figure>
+<p>也可以直接简写成</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">$ rg --type-add &apos;web:*.&#123;html,css,js&#125;&apos; -tweb display</span><br></pre></td></tr></table></figure>
+<p>不过有一点是要注意的，上面增加的 Web 类型文件是临时的，只对当前命令有效。如果需要长期使用自定义的类型，你可以新增一个别名来在每次运行 RipGrep 时自动增加对应的文件类型。</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">$ alias rg=&quot;rg --type-add &apos;web:*.&#123;html,css,js&#125;&apos;&quot;</span><br></pre></td></tr></table></figure>
+<p>当然还有另一种方法来达到类似的目的，那就是使用 RipGrep 的配置文件，RipGrep 的配置文件默认为 <code>$HOME/.ripgreprc</code>。</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br></pre></td><td class="code"><pre><span class="line">$ cat <span class="variable">$HOME</span>/.ripgreprc</span><br><span class="line"><span class="comment"># Don't let ripgrep vomit really long lines to my terminal.</span></span><br><span class="line">--max-columns=150</span><br><span class="line"></span><br><span class="line"><span class="comment"># Add my 'web' type.</span></span><br><span class="line">--<span class="built_in">type</span>-add</span><br><span class="line">web:*.&#123;html,css,js&#125;*</span><br><span class="line"></span><br><span class="line"><span class="comment"># Using glob patterns to include/exclude files or folders</span></span><br><span class="line">--glob=!git/*</span><br><span class="line"></span><br><span class="line"><span class="comment"># or</span></span><br><span class="line">--glob</span><br><span class="line">!git/*</span><br><span class="line"></span><br><span class="line"><span class="comment"># Set the colors.</span></span><br><span class="line">--colors=line:none</span><br><span class="line">--colors=line:style:bold</span><br><span class="line"></span><br><span class="line"><span class="comment"># Because who cares about case!?</span></span><br><span class="line">--smart-case</span><br></pre></td></tr></table></figure>
+<h4 id="将包含关键字的内容在查找结果中进行替换">将包含关键字的内容在查找结果中进行替换</h4>
+<p>RipGrep 提供了一个在查找过程中直接将关键字内容进行替换的功能，下面我们来看一个将关键字中部分内容的小写字母转大写字母的例子。</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line">$ rg browse README.md --replace Browse</span><br><span class="line">305:<span class="comment"># can be any image format supported by web Browsers (JPEG,PNG,GIF,SVG,..)</span></span><br><span class="line">322:![Browser-image]</span><br><span class="line">324:[![Browser Stack](.github/Browserstack_logo.png)](https://www.Browserstack.com/)</span><br><span class="line">325:&gt;**BrowserStack** is a cloud-based cross-Browser testing tool that enables developers to <span class="built_in">test</span> their websites across various Browsers on different operating systems and mobile devices, without requiring users to install virtual machines, devices or emulators.</span><br><span class="line">343:[Browser-image]: https://img.shields.io/badge/Browser-%20chrome%20%7C%20firefox%20%7C%20opera%20%7C%20safari%20%7C%20ie%20%3E%3D%209-lightgrey.svg</span><br><span class="line">344:[Browser-url]: https://www.Browserstack.com</span><br></pre></td></tr></table></figure>
+<p>上面的结果实质上只是在标准输出中进行替换，并不会对实际文件进行修改。如果你需要对实际文件进行修改，你可以结合 Sed 命令来达到目的。</p>
+<ul>
+<li>如果你使用 GNU Sed (CentOS、Ubuntu 等各种 Linux 发行版)，可以使用以下命令。</li>
+</ul>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">$ rg browse --files-with-matches | xargs sed -i <span class="string">'s/browse/Browse/g'</span></span><br></pre></td></tr></table></figure>
+<ul>
+<li>如果您使用 BSD Sed（ macOS 和 FreeBSD），则必须将以上命令修改为以下命令。</li>
+</ul>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">$ rg browse --files-with-matches | xargs sed -i <span class="string">''</span> <span class="string">'s/browse/Browse/g'</span></span><br></pre></td></tr></table></figure>
+<blockquote>
+<p>BSD Sed 中的 -i 标志需要提供文件扩展名以对所有已修改的文件进行备份，这里指定空字符串可防止进行文件备份。</p>
+</blockquote>
+<ul>
+<li>如果您的文件路径中包含空格，则需要使用 NUL 终结符分隔文件路径。这里就需要使用 <code>-0</code> 参数来告诉 Ripgrep 在每个路径之间输出 NUL 字节，并告诉 Xargs 读取由 NUL 字节分隔的路径。</li>
+</ul>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">$ rg Browse --files-with-matches -0 | xargs -0 sed -i &apos;&apos; &apos;s/Browse/browse/g&apos;</span><br></pre></td></tr></table></figure>
+<h4 id="直接在压缩文件中搜索包含关键字的内容">直接在压缩文件中搜索包含关键字的内容</h4>
+<p>Ripgrep 目前仅支持 gzip、bzip2、lzma、lz4 和 xz 这几种压缩格式，并且需要在系统上已安装相应的 gzip，bzip2 和 xz 工具包。也就是说，Ripgrep 是通过 Shelling 到另一个进程来进行解压缩的。</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">$ rg -z license UNLICENSE.gz</span><br><span class="line">24:For more information, please refer to &lt;http://unlicense.org/&gt;</span><br></pre></td></tr></table></figure>
+<blockquote>
+<p>Ripgrep 目前不会搜索存档格式，因此会跳过 *.tar.gz 文件。</p>
+</blockquote>
+<h4 id="自动补全功能">自动补全功能</h4>
+<p>RipGrep 提供的二进制包中默认提供了 SHELL 自动补全功能，只需根据不同 SHELL 放到对应目录即可使用了。</p>
+<ul>
+<li>Bash</li>
+</ul>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">$ mv rg.bash <span class="variable">$XDG_CONFIG_HOME</span>/bash_completion/</span><br><span class="line">或者</span><br><span class="line">$ mv rg.bash /etc/bash_completion.d/</span><br></pre></td></tr></table></figure>
+<ul>
+<li>ZSH</li>
+</ul>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">$ mv _rg <span class="variable">$fpath</span>/</span><br></pre></td></tr></table></figure>
+<ul>
+<li>Fish</li>
+</ul>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">$ mv rg.fish <span class="variable">$HOME</span>/.config/fish/completions/</span><br></pre></td></tr></table></figure>
+<h3 id="参考文档">参考文档</h3>
+<p><a href="http://www.google.com" target="_blank" rel="noopener">http://www.google.com</a><br>
+<a href="http://t.cn/ROI5tMv" target="_blank" rel="noopener">http://t.cn/ROI5tMv</a><br>
+<a href="http://t.cn/Rs3caWW" target="_blank" rel="noopener">http://t.cn/Rs3caWW</a><br>
+<a href="http://t.cn/Rs3F6Ty" target="_blank" rel="noopener">http://t.cn/Rs3F6Ty</a></p>
+
+                
+
+                <hr>
+                <!-- Pager -->
+                <ul class="pager">
+                    
+                    
+                        <li class="next">
+                            <a href="/posts/44953.html" data-toggle="tooltip" data-placement="top" title="手把手教你打造高效的 Kubernetes 命令行终端">Next Post &rarr;</a>
+                        </li>
+                    
+                </ul>
+
+                <!-- duoshuo Share start -->
+                
+                <!-- 多说 Share end-->
+
+                <!-- 多说评论框 start -->
+                
+                <!-- 多说评论框 end -->
+
+                <!-- disqus comment start -->
+                
+                <!-- disqus comment end -->
+
+                
+                    <!-- disqus 评论框 start -->
+                    <div class="comment">
+                        <div id="lv-container" data-id="city" data-uid="MTAyMC8yNzg2My80NDQw"></div>
+                    </div>
+                    <!-- disqus 评论框 end -->
+                
+
+            </div>
+            
+            <!-- Tabe of Content -->
+            <!-- Table of Contents -->
+
+  
+    <style>
+      span.toc-nav-number{
+        display: none
+      }
+    </style>
+  
+    
+      <aside id="sidebar">
+        <div id="toc" class="toc-article">
+        <strong class="toc-title">Contents</strong>
+        
+          <ol class="toc-nav"><li class="toc-nav-item toc-nav-level-3"><a class="toc-nav-link" href="#安装-ripgrep"><span class="toc-nav-number">1.</span> <span class="toc-nav-text">安装 Ripgrep</span></a></li><li class="toc-nav-item toc-nav-level-3"><a class="toc-nav-link" href="#ripgrep-语法格式"><span class="toc-nav-number">2.</span> <span class="toc-nav-text">Ripgrep 语法格式</span></a></li><li class="toc-nav-item toc-nav-level-3"><a class="toc-nav-link" href="#ripgrep-使用实例"><span class="toc-nav-number">3.</span> <span class="toc-nav-text">Ripgrep 使用实例</span></a><ol class="toc-nav-child"><li class="toc-nav-item toc-nav-level-4"><a class="toc-nav-link" href="#搜索指定文件中包含关键字的内容"><span class="toc-nav-number">3.1.</span> <span class="toc-nav-text">搜索指定文件中包含关键字的内容</span></a></li><li class="toc-nav-item toc-nav-level-4"><a class="toc-nav-link" href="#搜索指定文件中包含以关键字开头的单词的内容"><span class="toc-nav-number">3.2.</span> <span class="toc-nav-text">搜索指定文件中包含以关键字开头的单词的内容</span></a></li><li class="toc-nav-item toc-nav-level-4"><a class="toc-nav-link" href="#搜索指定文件中包含以关键字开头的内容"><span class="toc-nav-number">3.3.</span> <span class="toc-nav-text">搜索指定文件中包含以关键字开头的内容</span></a></li><li class="toc-nav-item toc-nav-level-4"><a class="toc-nav-link" href="#搜索指定目录及子目中包含关键字的内容"><span class="toc-nav-number">3.4.</span> <span class="toc-nav-text">搜索指定目录及子目中包含关键字的内容</span></a></li><li class="toc-nav-item toc-nav-level-4"><a class="toc-nav-link" href="#搜索以关键字为独立单词的内容"><span class="toc-nav-number">3.5.</span> <span class="toc-nav-text">搜索以关键字为独立单词的内容</span></a></li><li class="toc-nav-item toc-nav-level-4"><a class="toc-nav-link" href="#搜索包含关键字内容的文件并且只打印文件名"><span class="toc-nav-number">3.6.</span> <span class="toc-nav-text">搜索包含关键字内容的文件并且只打印文件名</span></a></li><li class="toc-nav-item toc-nav-level-4"><a class="toc-nav-link" href="#在指定文件类型格式为-js-的文件中搜索包含关键字的内容"><span class="toc-nav-number">3.7.</span> <span class="toc-nav-text">在指定文件类型格式为 JS 的文件中搜索包含关键字的内容</span></a></li><li class="toc-nav-item toc-nav-level-4"><a class="toc-nav-link" href="#在当前目下并且不包含文件类型格式为-css-的文件中搜索包含关键字的内容"><span class="toc-nav-number">3.8.</span> <span class="toc-nav-text">在当前目下并且不包含文件类型格式为 CSS 的文件中搜索包含关键字的内容</span></a></li><li class="toc-nav-item toc-nav-level-4"><a class="toc-nav-link" href="#使用正则表达式进行关键字搜索"><span class="toc-nav-number">3.9.</span> <span class="toc-nav-text">使用正则表达式进行关键字搜索</span></a></li><li class="toc-nav-item toc-nav-level-4"><a class="toc-nav-link" href="#搜索匹配关键字的内容及显示其上下内容各两行"><span class="toc-nav-number">3.10.</span> <span class="toc-nav-text">搜索匹配关键字的内容及显示其上下内容各两行</span></a></li><li class="toc-nav-item toc-nav-level-4"><a class="toc-nav-link" href="#搜索不包含关键字的内容"><span class="toc-nav-number">3.11.</span> <span class="toc-nav-text">搜索不包含关键字的内容</span></a></li><li class="toc-nav-item toc-nav-level-4"><a class="toc-nav-link" href="#搜索关键字并只显示关键字部分的内容"><span class="toc-nav-number">3.12.</span> <span class="toc-nav-text">搜索关键字并只显示关键字部分的内容</span></a></li><li class="toc-nav-item toc-nav-level-4"><a class="toc-nav-link" href="#搜索关键字并忽略关键字大小写的内容"><span class="toc-nav-number">3.13.</span> <span class="toc-nav-text">搜索关键字并忽略关键字大小写的内容</span></a></li><li class="toc-nav-item toc-nav-level-4"><a class="toc-nav-link" href="#把关键字当成常量字符进行搜索"><span class="toc-nav-number">3.14.</span> <span class="toc-nav-text">把关键字当成常量字符进行搜索</span></a></li><li class="toc-nav-item toc-nav-level-4"><a class="toc-nav-link" href="#打印当前目下所有将被搜索的文件列表"><span class="toc-nav-number">3.15.</span> <span class="toc-nav-text">打印当前目下所有将被搜索的文件列表</span></a></li><li class="toc-nav-item toc-nav-level-4"><a class="toc-nav-link" href="#输出所有内置可识别文件类型"><span class="toc-nav-number">3.16.</span> <span class="toc-nav-text">输出所有内置可识别文件类型</span></a></li><li class="toc-nav-item toc-nav-level-4"><a class="toc-nav-link" href="#自定义搜索文件类型"><span class="toc-nav-number">3.17.</span> <span class="toc-nav-text">自定义搜索文件类型</span></a></li><li class="toc-nav-item toc-nav-level-4"><a class="toc-nav-link" href="#将包含关键字的内容在查找结果中进行替换"><span class="toc-nav-number">3.18.</span> <span class="toc-nav-text">将包含关键字的内容在查找结果中进行替换</span></a></li><li class="toc-nav-item toc-nav-level-4"><a class="toc-nav-link" href="#直接在压缩文件中搜索包含关键字的内容"><span class="toc-nav-number">3.19.</span> <span class="toc-nav-text">直接在压缩文件中搜索包含关键字的内容</span></a></li><li class="toc-nav-item toc-nav-level-4"><a class="toc-nav-link" href="#自动补全功能"><span class="toc-nav-number">3.20.</span> <span class="toc-nav-text">自动补全功能</span></a></li></ol></li><li class="toc-nav-item toc-nav-level-3"><a class="toc-nav-link" href="#参考文档"><span class="toc-nav-number">4.</span> <span class="toc-nav-text">参考文档</span></a></li></ol>
+        
+        </div>
+      </aside>
+    
+
+                
+            <!-- Sidebar Container -->
+            <div class="
+                col-lg-8 col-lg-offset-2
+                col-md-10 col-md-offset-1
+                sidebar-container">
+
+                <!-- Featured Tags -->
+                
+                <section>
+                    <!-- no hr -->
+                    <h5><a href="/tags/">FEATURED TAGS</a></h5>
+                    <div class="tags">
+                       
+                          <a class="tag" href="/tags/#Linux" title="Linux">Linux</a>
+                        
+                          <a class="tag" href="/tags/#技巧" title="技巧">技巧</a>
+                        
+                    </div>
+                </section>
+                
+
+                <!-- Friends Blog -->
+                
+                <hr>
+                <h5>FRIENDS</h5>
+                <ul class="list-inline">
+
+                    
+                        <li><a href="http://www.mike.org.cn/" target="_blank">简单.生活</a></li>
+                    
+                        <li><a href="http://shang.qq.com/wpa/qunwpa?idkey=ea4c43493c2269428ac6ef6141de4b6d78e5ab2d41380ca4099b833b62884ee9" target="_blank">技术交流群</a></li>
+                    
+                        <li><a href="" target="_blank"></a></li>
+                    
+                        <li><a href="" target="_blank"></a></li>
+                    
+                </ul>
+                
+            </div>
+        </div>
+    </div>
+</article>
+
+
+
+
+
+
+    <!-- 来必力City版公共JS代码 start (一个网页只需插入一次) -->
+    <script type="text/javascript">
+       (function(d, s) {
+           var j, e = d.getElementsByTagName(s)[0];
+    
+           if (typeof LivereTower === 'function') { return; }
+    
+           j = d.createElement(s);
+           j.src = 'https://cdn-city.livere.com/js/embed.dist.js';
+           j.async = true;
+    
+           e.parentNode.insertBefore(j, e);
+       })(document, 'script');
+    </script>
+    <noscript>为正常使用来必力评论功能请激活JavaScript</noscript>
+    <!-- 来必力City版 公共JS代码 end -->
+
+
+
+<!-- async load function -->
+<script>
+    function async(u, c) {
+      var d = document, t = 'script',
+          o = d.createElement(t),
+          s = d.getElementsByTagName(t)[0];
+      o.src = u;
+      if (c) { o.addEventListener('load', function (e) { c(null, e); }, false); }
+      s.parentNode.insertBefore(o, s);
+    }
+</script>
+<!-- anchor-js, Doc:http://bryanbraun.github.io/anchorjs/ -->
+<script>
+    async("https://cdn.bootcss.com/anchor-js/1.1.1/anchor.min.js",function(){
+        anchors.options = {
+          visible: 'hover',
+          placement: 'left',
+          icon: 'ℬ'
+        };
+        anchors.add().remove('.intro-header h1').remove('.subheading').remove('.sidebar-container h5');
+    })
+</script>
+<style>
+    /* place left on bigger screen */
+    @media all and (min-width: 800px) {
+        .anchorjs-link{
+            position: absolute;
+            left: -0.75em;
+            font-size: 1.1em;
+            margin-top : -0.1em;
+        }
+    }
+</style>
+
+
+
+    <!-- Footer -->
+    <!-- Footer -->
+<footer>
+    <div class="container">
+        <div class="row">
+            <div class="col-lg-8 col-lg-offset-2 col-md-10 col-md-offset-1">
+                <ul class="list-inline text-center">
+                
+                    <li>
+                        <a href="/atom.xml">
+                            <span class="fa-stack fa-lg">
+                                <i class="fa fa-circle fa-stack-2x"></i>
+                                <i class="fa fa-rss fa-stack-1x fa-inverse"></i>
+                            </span>
+                        </a>
+                    </li>
+                
+                
+                
+                    <li>
+                        <a target="_blank" href="https://www.zhihu.com/people/80imike">
+                            <span class="fa-stack fa-lg">
+                                <i class="fa fa-circle fa-stack-2x"></i>
+                                <i class="fa  fa-stack-1x fa-inverse">知</i>
+                            </span>
+                        </a>
+                    </li>
+                
+
+                
+                    <li>
+                        <a target="_blank" href="http://weibo.com/2093524665">
+                            <span class="fa-stack fa-lg">
+                                <i class="fa fa-circle fa-stack-2x"></i>
+                                <i class="fa fa-weibo fa-stack-1x fa-inverse"></i>
+                            </span>
+                        </a>
+                    </li>
+                
+
+                
+
+                
+
+                
+
+                </ul>
+                <p class="copyright text-muted">
+                    Copyright &copy; Mike 2018 | Hosted by <a href="https://pages.coding.me" style="font-weight: bold">Coding Pages</a>
+                    <br>
+                    Theme by <a href="http://beantech.org">BeanTech</a> 
+                    <span style="display: inline-block; margin: 0 5px;">
+                        <i class="fa fa-heart"></i>
+                    </span> 
+                    re-Ported by <a href="http://www.huweihuang.com">胡伟煌</a> | 
+                    <iframe
+                        style="margin-left: 2px; margin-bottom:-5px;"
+                        frameborder="0" scrolling="0" width="91px" height="20px"
+                        src="https://ghbtns.com/github-btn.html?user=huweihuang&repo=hexo-theme-huweihuang&type=star&count=true" >
+                    </iframe>
+                </p>
+            </div>
+        </div>
+    </div>
+</footer>
+
+<!-- jQuery -->
+<script src="/js/jquery.min.js"></script>
+
+<!-- Bootstrap Core JavaScript -->
+<script src="/js/bootstrap.min.js"></script>
+
+<!-- Custom Theme JavaScript -->
+<script src="/js/hux-blog.min.js"></script>
+
+
+<!-- async load function -->
+<script>
+    function async(u, c) {
+      var d = document, t = 'script',
+          o = d.createElement(t),
+          s = d.getElementsByTagName(t)[0];
+      o.src = u;
+      if (c) { o.addEventListener('load', function (e) { c(null, e); }, false); }
+      s.parentNode.insertBefore(o, s);
+    }
+</script>
+
+<!-- 
+     Because of the native support for backtick-style fenced code blocks 
+     right within the Markdown is landed in Github Pages, 
+     From V1.6, There is no need for Highlight.js, 
+     so Huxblog drops it officially.
+
+     - https://github.com/blog/2100-github-pages-now-faster-and-simpler-with-jekyll-3-0  
+     - https://help.github.com/articles/creating-and-highlighting-code-blocks/    
+-->
+<!--
+    <script>
+        async("http://cdn.bootcss.com/highlight.js/8.6/highlight.min.js", function(){
+            hljs.initHighlightingOnLoad();
+        })
+    </script>
+    <link href="http://cdn.bootcss.com/highlight.js/8.6/styles/github.min.css" rel="stylesheet">
+-->
+
+
+<!-- jquery.tagcloud.js -->
+<script>
+    // only load tagcloud.js in tag.html
+    if($('#tag_cloud').length !== 0){
+        async("https://www.hi-linux.com/js/jquery.tagcloud.js",function(){
+            $.fn.tagcloud.defaults = {
+                //size: {start: 1, end: 1, unit: 'em'},
+                color: {start: '#bbbbee', end: '#0085a1'},
+            };
+            $('#tag_cloud a').tagcloud();
+        })
+    }
+</script>
+
+<!--fastClick.js -->
+<script>
+    async("https://cdn.bootcss.com/fastclick/1.0.6/fastclick.min.js", function(){
+        var $nav = document.querySelector("nav");
+        if($nav) FastClick.attach($nav);
+    })
+</script>
+
+
+<!-- Google Analytics -->
+
+
+
+
+<!-- Baidu Tongji -->
+
+
+
+
+
+
+	<a id="rocket" href="#top" class=""></a>
+	<script type="text/javascript" src="/js/totop.js?v=1.0.0" async=""></script>
+    <script type="text/javascript" src="/js/toc.js?v=1.0.0" async=""></script>
+<!-- Image to hack wechat -->
+<img src="https://www.hi-linux.com/img/icon_wechat.png" width="0" height="0" />
+<!-- Migrate from head to bottom, no longer block render and still work -->
+
+</body>
+
+</html>
