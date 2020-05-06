@@ -21,21 +21,35 @@
     <link rel="canonical" href="https://www.hi-linux.com/posts/17101.html">
 
     <!-- Bootstrap Core CSS -->
-    <link rel="stylesheet" href="/css/bootstrap.min.css">
+    
+<link rel="stylesheet" href="/css/bootstrap.min.css">
+
 
     <!-- Custom CSS --> 
-    <link rel="stylesheet" href="/css/beantech.min.css">
+    
+<link rel="stylesheet" href="/css/beantech.min.css">
+
     
     <!-- Pygments Highlight CSS -->
-    <link rel="stylesheet" href="/css/highlight.css">
+    
+<link rel="stylesheet" href="/css/highlight.css">
 
-    <link rel="stylesheet" href="/css/widget.css">
 
-    <link rel="stylesheet" href="/css/rocket.css">
+    
+<link rel="stylesheet" href="/css/widget.css">
 
-    <link rel="stylesheet" href="/css/signature.css">
 
-    <link rel="stylesheet" href="/css/toc.css">
+    
+<link rel="stylesheet" href="/css/rocket.css">
+
+
+    
+<link rel="stylesheet" href="/css/signature.css">
+
+
+    
+<link rel="stylesheet" href="/css/toc.css">
+
 
     <!-- Custom Fonts -->
     <!-- <link href="https://maxcdn.bootstrapcdn.com/font-awesome/4.3.0/css/font-awesome.min.css" rel="stylesheet" type="text/css"> -->
@@ -59,6 +73,7 @@
 
     <!-- ga & ba script hoook -->
     <script></script>
+<meta name="generator" content="Hexo 4.2.0"><link rel="alternate" href="/atom.xml" title="运维之美" type="application/atom+xml">
 </head>
 
 
@@ -145,14 +160,14 @@
 
                         
                         <li>
-                            <a href="/about/">About</a>
+                            <a href="/archive/">Archives</a>
                         </li>
                         
                     
 
                         
                         <li>
-                            <a href="/archive/">Archives</a>
+                            <a href="/about/">About</a>
                         </li>
                         
                     
@@ -251,7 +266,7 @@
 <p>对于总是把 <code>Dockerfile</code> 当做 <code>bash</code> 文件来用的人，会发现很快由于太多的 <code>RUN</code> 导致镜像有特别多的层，镜像超级臃肿，而且甚至会碰到超出最大层数限制的问题。这些人往往不从自身找问题，反而去寻找旁门左道，比如导出镜像做一些特殊处理，合并为一层，然后再导入等等，这种做法是很错误的，除了导致构建缓存失败外，还导致 <code>docker history</code> 丢失，导致镜像变为黑箱镜像。其实正确的做法是遵循 <code>Dockerfile</code> 最佳实践，应该把多个命令合并为一个 <code>RUN</code>，每一个 <code>RUN</code> 要精心设计，确保安装构建最后进行清理。这样才可以降低镜像体积，以及最大化的利用构建缓存。</p>
 <p>在 Docker 1.13 中，为了应对这群用户，实验性的提供了一个 <code>--squash</code> 参数给 <code>docker build</code>，其功能就是如上所说，将 <code>Dockerfile</code> 中所有的操作，压缩为一层。不过，与旁门左道不同，它保留了 <code>docker history</code>。</p>
 <p>比如如下的 <code>Dockerfile</code>：</p>
-<figure class="highlight dockerfile"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">FROM</span> busybox</span><br><span class="line"><span class="keyword">RUN</span><span class="bash"> <span class="built_in">echo</span> hello &gt; /hello</span></span><br><span class="line"><span class="bash">RUN <span class="built_in">echo</span> world &gt;&gt; /hello</span></span><br><span class="line"><span class="bash">RUN touch remove_me /remove_me</span></span><br><span class="line"><span class="bash">ENV HELLO world</span></span><br><span class="line"><span class="bash">RUN rm /remove_me</span></span><br></pre></td></tr></table></figure>
+<figure class="highlight dockerfile"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">FROM</span> busybox</span><br><span class="line"><span class="keyword">RUN</span><span class="bash"> <span class="built_in">echo</span> hello &gt; /hello</span></span><br><span class="line"><span class="keyword">RUN</span><span class="bash"> <span class="built_in">echo</span> world &gt;&gt; /hello</span></span><br><span class="line"><span class="keyword">RUN</span><span class="bash"> touch remove_me /remove_me</span></span><br><span class="line"><span class="keyword">ENV</span> HELLO world</span><br><span class="line"><span class="keyword">RUN</span><span class="bash"> rm /remove_me</span></span><br></pre></td></tr></table></figure>
 <p>如果我们正常的构建的话，比如 <code>docker build -t my-not-squash .</code>，其 <code>history</code> 是这样子的：</p>
 <figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line">$ docker <span class="built_in">history</span> my-not-squash</span><br><span class="line">IMAGE               CREATED              CREATED BY                                      SIZE                COMMENT</span><br><span class="line">305297a526e2        About a minute ago   /bin/sh -c rm /remove_me                        0 B</span><br><span class="line">60b8e896d443        About a minute ago   /bin/sh -c <span class="comment">#(nop)  ENV HELLO=world              0 B</span></span><br><span class="line">a21f3c75b6b0        About a minute ago   /bin/sh -c touch remove_me /remove_me           0 B</span><br><span class="line">038bca5b58cb        About a minute ago   /bin/sh -c <span class="built_in">echo</span> world &gt;&gt; /hello                 12 B</span><br><span class="line">f81b1006f556        About a minute ago   /bin/sh -c <span class="built_in">echo</span> hello &gt; /hello                  6 B</span><br><span class="line">e02e811dd08f        5 weeks ago          /bin/sh -c <span class="comment">#(nop)  CMD ["sh"]                   0 B</span></span><br><span class="line">&lt;missing&gt;           5 weeks ago          /bin/sh -c <span class="comment">#(nop) ADD file:ced3aa7577c8f97...   1.09 MB</span></span><br></pre></td></tr></table></figure>
 <p>而如果我们用 <code>--squash</code> 构建：</p>
@@ -271,10 +286,10 @@
 <figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">1.2.3.4  example.com</span><br></pre></td></tr></table></figure>
 <p>如果我们如同以往，使用默认网络进行构建。那么结果会是这样：</p>
 <figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br></pre></td><td class="code"><pre><span class="line">$ docker build --no-cache -t build-network .</span><br><span class="line">Sending build context to Docker daemon 2.048 kB</span><br><span class="line">Step 1/2 : FROM ubuntu</span><br><span class="line"> ---&gt; 104bec311bcd</span><br><span class="line">Step 2/2 : RUN cat /etc/hosts</span><br><span class="line"> ---&gt; Running <span class="keyword">in</span> 42f0c014500f</span><br><span class="line">127.0.0.1	localhost</span><br><span class="line">::1	localhost ip6-localhost ip6-loopback</span><br><span class="line">fe00::0	ip6-localnet</span><br><span class="line">ff00::0	ip6-mcastprefix</span><br><span class="line">ff02::1	ip6-allnodes</span><br><span class="line">ff02::2	ip6-allrouters</span><br><span class="line">172.17.0.2	2866979c4d77</span><br><span class="line"> ---&gt; 5f0b3dd56a32</span><br><span class="line">Removing intermediate container 42f0c014500f</span><br><span class="line">Successfully built 5f0b3dd56a32</span><br></pre></td></tr></table></figure>
-<p>可以注意到，这次构建所看到的是容器默认网络的 <code>/etc/hosts</code>，其内没有宿主上添加的条目 <code>1.2.3.4 example.com</code>。</p>
+<p>可以注意到，这次构建所看到的是容器默认网络的 <code>/etc/hosts</code>，其内没有宿主上添加的条目 <code>1.2.3.4  example.com</code>。</p>
 <p>然后我们使用 <code>docker build --network=host</code> 来使用宿主网络构建：</p>
 <figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br></pre></td><td class="code"><pre><span class="line">$ docker build --no-cache -t build-network --network=host .</span><br><span class="line">Sending build context to Docker daemon 2.048 kB</span><br><span class="line">Step 1/2 : FROM ubuntu</span><br><span class="line"> ---&gt; 104bec311bcd</span><br><span class="line">Step 2/2 : RUN cat /etc/hosts</span><br><span class="line"> ---&gt; Running <span class="keyword">in</span> b990c4e55424</span><br><span class="line"><span class="comment"># Your system has configured 'manage_etc_hosts' as True.</span></span><br><span class="line"><span class="comment"># As a result, if you wish for changes to this file to persist</span></span><br><span class="line"><span class="comment"># then you will need to either</span></span><br><span class="line"><span class="comment"># a.) make changes to the master file in /etc/cloud/templates/hosts.tmpl</span></span><br><span class="line"><span class="comment"># b.) change or remove the value of 'manage_etc_hosts' in</span></span><br><span class="line"><span class="comment">#     /etc/cloud/cloud.cfg or cloud-config from user-data</span></span><br><span class="line"><span class="comment">#</span></span><br><span class="line">127.0.1.1 d1.localdomain d1</span><br><span class="line">127.0.0.1 localhost</span><br><span class="line"></span><br><span class="line"><span class="comment"># The following lines are desirable for IPv6 capable hosts</span></span><br><span class="line">::1 ip6-localhost ip6-loopback</span><br><span class="line">fe00::0 ip6-localnet</span><br><span class="line">ff00::0 ip6-mcastprefix</span><br><span class="line">ff02::1 ip6-allnodes</span><br><span class="line">ff02::2 ip6-allrouters</span><br><span class="line">ff02::3 ip6-allhosts</span><br><span class="line"></span><br><span class="line">1.2.3.4  example.com</span><br><span class="line"></span><br><span class="line"> ---&gt; 63ef6cb93316</span><br><span class="line">Removing intermediate container b990c4e55424</span><br><span class="line">Successfully built 63ef6cb93316</span><br></pre></td></tr></table></figure>
-<p>这次由于使用了 <code>--network=host</code> 参数，于是使用的是宿主的网络命名空间，因此 <code>/etc/hosts</code> 也是宿主的内容。我们可以在其中看到 <code>1.2.3.4 example.com</code> 条目。</p>
+<p>这次由于使用了 <code>--network=host</code> 参数，于是使用的是宿主的网络命名空间，因此 <code>/etc/hosts</code> 也是宿主的内容。我们可以在其中看到 <code>1.2.3.4  example.com</code> 条目。</p>
 <h2 id="开始允许-docker-build-中定义-dockerfile-未使用的参数arg">开始允许 <code>docker build</code> 中定义 <code>Dockerfile</code> 未使用的参数（ARG）</h2>
 <p><a href="https://github.com/docker/docker/pull/27412" target="_blank" rel="noopener">https://github.com/docker/docker/pull/27412</a></p>
 <p>我们都知道镜像构建时可以用 <code>--build-arg</code> 来定义参数，这样 <code>Dockerfile</code> 就会使用这个参数的值来进行构建。这对于 CI/CD 系统很重要，我们可以使用一套 <code>Dockerfile</code> 来构建不同条件下的镜像。</p>
@@ -461,9 +476,9 @@
 <p>具体差异可以看官方文档：<a href="https://github.com/docker/docker.github.io/blob/vnext-compose/compose/compose-file.md#upgrading" target="_blank" rel="noopener">https://github.com/docker/docker.github.io/blob/vnext-compose/compose/compose-file.md#upgrading</a></p>
 <p>用<a href="https://coding.net/u/twang2218/p/docker-lnmp/git" target="_blank" rel="noopener">我的 LNMP 的示例</a>为例子，显然第一行的 <code>version: '2'</code> 需要换成 <code>version: '3'</code> 😏。</p>
 <p>然后，服务里的 <code>build</code> 显然用不了了。那么改成 <code>v3</code> 格式，就应该是：</p>
-<figure class="highlight yaml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br></pre></td><td class="code"><pre><span class="line"><span class="attr">version:</span> <span class="string">'3'</span></span><br><span class="line"><span class="attr">services:</span></span><br><span class="line"><span class="attr">    nginx:</span></span><br><span class="line"><span class="attr">        image:</span> <span class="string">"twang2218/lnmp-nginx:v1.2"</span></span><br><span class="line"><span class="attr">        ports:</span></span><br><span class="line"><span class="bullet">            -</span> <span class="string">"80:80"</span></span><br><span class="line"><span class="attr">        networks:</span></span><br><span class="line"><span class="bullet">            -</span> <span class="string">frontend</span></span><br><span class="line"><span class="attr">        deploy:</span></span><br><span class="line"><span class="attr">            replicas:</span> <span class="number">2</span></span><br><span class="line"><span class="attr">        depends_on:</span></span><br><span class="line"><span class="bullet">            -</span> <span class="string">php</span></span><br><span class="line"><span class="attr">    php:</span></span><br><span class="line"><span class="attr">        image:</span> <span class="string">"twang2218/lnmp-php:v1.2"</span></span><br><span class="line"><span class="attr">        networks:</span></span><br><span class="line"><span class="bullet">            -</span> <span class="string">frontend</span></span><br><span class="line"><span class="bullet">            -</span> <span class="string">backend</span></span><br><span class="line"><span class="attr">        environment:</span></span><br><span class="line"><span class="attr">            MYSQL_PASSWORD:</span> <span class="string">Passw0rd</span></span><br><span class="line"><span class="attr">        deploy:</span></span><br><span class="line"><span class="attr">            replicas:</span> <span class="number">4</span></span><br><span class="line"><span class="attr">        depends_on:</span></span><br><span class="line"><span class="bullet">            -</span> <span class="string">mysql</span></span><br><span class="line"><span class="attr">    mysql:</span></span><br><span class="line"><span class="attr">        image:</span> <span class="attr">mysql:5.7</span></span><br><span class="line"><span class="attr">        volumes:</span></span><br><span class="line"><span class="attr">            - mysql-data:</span><span class="string">/var/lib/mysql</span></span><br><span class="line"><span class="attr">        environment:</span></span><br><span class="line"><span class="attr">            TZ:</span> <span class="string">'Asia/Shanghai'</span></span><br><span class="line"><span class="attr">            MYSQL_ROOT_PASSWORD:</span> <span class="string">Passw0rd</span></span><br><span class="line"><span class="attr">        command:</span> <span class="string">['mysqld',</span> <span class="string">'--character-set-server=utf8'</span><span class="string">]</span></span><br><span class="line"><span class="attr">        networks:</span></span><br><span class="line"><span class="bullet">            -</span> <span class="string">backend</span></span><br><span class="line"><span class="attr">volumes:</span></span><br><span class="line"><span class="attr">    mysql-data:</span></span><br><span class="line"><span class="attr">networks:</span></span><br><span class="line"><span class="attr">    frontend:</span></span><br><span class="line"><span class="attr">    backend:</span></span><br></pre></td></tr></table></figure>
+<figure class="highlight yaml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br></pre></td><td class="code"><pre><span class="line"><span class="attr">version:</span> <span class="string">'3'</span></span><br><span class="line"><span class="attr">services:</span></span><br><span class="line">    <span class="attr">nginx:</span></span><br><span class="line">        <span class="attr">image:</span> <span class="string">"twang2218/lnmp-nginx:v1.2"</span></span><br><span class="line">        <span class="attr">ports:</span></span><br><span class="line">            <span class="bullet">-</span> <span class="string">"80:80"</span></span><br><span class="line">        <span class="attr">networks:</span></span><br><span class="line">            <span class="bullet">-</span> <span class="string">frontend</span></span><br><span class="line">        <span class="attr">deploy:</span></span><br><span class="line">            <span class="attr">replicas:</span> <span class="number">2</span></span><br><span class="line">        <span class="attr">depends_on:</span></span><br><span class="line">            <span class="bullet">-</span> <span class="string">php</span></span><br><span class="line">    <span class="attr">php:</span></span><br><span class="line">        <span class="attr">image:</span> <span class="string">"twang2218/lnmp-php:v1.2"</span></span><br><span class="line">        <span class="attr">networks:</span></span><br><span class="line">            <span class="bullet">-</span> <span class="string">frontend</span></span><br><span class="line">            <span class="bullet">-</span> <span class="string">backend</span></span><br><span class="line">        <span class="attr">environment:</span></span><br><span class="line">            <span class="attr">MYSQL_PASSWORD:</span> <span class="string">Passw0rd</span></span><br><span class="line">        <span class="attr">deploy:</span></span><br><span class="line">            <span class="attr">replicas:</span> <span class="number">4</span></span><br><span class="line">        <span class="attr">depends_on:</span></span><br><span class="line">            <span class="bullet">-</span> <span class="string">mysql</span></span><br><span class="line">    <span class="attr">mysql:</span></span><br><span class="line">        <span class="attr">image:</span> <span class="string">mysql:5.7</span></span><br><span class="line">        <span class="attr">volumes:</span></span><br><span class="line">            <span class="bullet">-</span> <span class="string">mysql-data:/var/lib/mysql</span></span><br><span class="line">        <span class="attr">environment:</span></span><br><span class="line">            <span class="attr">TZ:</span> <span class="string">'Asia/Shanghai'</span></span><br><span class="line">            <span class="attr">MYSQL_ROOT_PASSWORD:</span> <span class="string">Passw0rd</span></span><br><span class="line">        <span class="attr">command:</span> <span class="string">['mysqld',</span> <span class="string">'--character-set-server=utf8'</span><span class="string">]</span></span><br><span class="line">        <span class="attr">networks:</span></span><br><span class="line">            <span class="bullet">-</span> <span class="string">backend</span></span><br><span class="line"><span class="attr">volumes:</span></span><br><span class="line">    <span class="attr">mysql-data:</span></span><br><span class="line"><span class="attr">networks:</span></span><br><span class="line">    <span class="attr">frontend:</span></span><br><span class="line">    <span class="attr">backend:</span></span><br></pre></td></tr></table></figure>
 <p>可以注意到，在 <code>nginx</code> 和 <code>php</code> 这两个服务中，增加了之前没有的 <code>deploy</code> 配置：</p>
-<figure class="highlight yml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="attr">deploy:</span></span><br><span class="line"><span class="attr">    replicas:</span> <span class="number">4</span></span><br></pre></td></tr></table></figure>
+<figure class="highlight yml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="attr">deploy:</span></span><br><span class="line">    <span class="attr">replicas:</span> <span class="number">4</span></span><br></pre></td></tr></table></figure>
 <p>这是 <code>v3</code> 新增的部署相关的内容，在这里我指定了集群部署的副本数量。还有其他参数可以配置，具体请参考官方文档:</p>
 <p><a href="https://github.com/docker/docker.github.io/blob/vnext-compose/compose/compose-file.md#deploy" target="_blank" rel="noopener">https://github.com/docker/docker.github.io/blob/vnext-compose/compose/compose-file.md#deploy</a></p>
 <p>如果在 swarm 环境部署该服务栈的话，使用命令：</p>
@@ -733,13 +748,13 @@
 
                 </ul>
                 <p class="copyright text-muted">
-                    Copyright &copy; Mike 2018 | Hosted by <a href="https://pages.coding.me" style="font-weight: bold">Coding Pages</a>
+                    Copyright &copy; Mike 2020 | Hosted by <a href="https://pages.coding.me" target="_blank" rel="noopener" style="font-weight: bold">Coding Pages</a>
                     <br>
-                    Theme by <a href="http://beantech.org">BeanTech</a> 
+                    Theme by <a href="http://beantech.org" target="_blank" rel="noopener">BeanTech</a> 
                     <span style="display: inline-block; margin: 0 5px;">
                         <i class="fa fa-heart"></i>
                     </span> 
-                    re-Ported by <a href="http://www.huweihuang.com">胡伟煌</a> | 
+                    re-Ported by <a href="http://www.huweihuang.com" target="_blank" rel="noopener">胡伟煌</a> | 
                     <iframe
                         style="margin-left: 2px; margin-bottom:-5px;"
                         frameborder="0" scrolling="0" width="91px" height="20px"
@@ -752,13 +767,19 @@
 </footer>
 
 <!-- jQuery -->
+
 <script src="/js/jquery.min.js"></script>
 
+
 <!-- Bootstrap Core JavaScript -->
+
 <script src="/js/bootstrap.min.js"></script>
 
+
 <!-- Custom Theme JavaScript -->
+
 <script src="/js/hux-blog.min.js"></script>
+
 
 
 <!-- async load function -->

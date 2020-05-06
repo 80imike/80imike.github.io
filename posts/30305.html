@@ -21,21 +21,35 @@
     <link rel="canonical" href="https://www.hi-linux.com/posts/30305.html">
 
     <!-- Bootstrap Core CSS -->
-    <link rel="stylesheet" href="/css/bootstrap.min.css">
+    
+<link rel="stylesheet" href="/css/bootstrap.min.css">
+
 
     <!-- Custom CSS --> 
-    <link rel="stylesheet" href="/css/beantech.min.css">
+    
+<link rel="stylesheet" href="/css/beantech.min.css">
+
     
     <!-- Pygments Highlight CSS -->
-    <link rel="stylesheet" href="/css/highlight.css">
+    
+<link rel="stylesheet" href="/css/highlight.css">
 
-    <link rel="stylesheet" href="/css/widget.css">
 
-    <link rel="stylesheet" href="/css/rocket.css">
+    
+<link rel="stylesheet" href="/css/widget.css">
 
-    <link rel="stylesheet" href="/css/signature.css">
 
-    <link rel="stylesheet" href="/css/toc.css">
+    
+<link rel="stylesheet" href="/css/rocket.css">
+
+
+    
+<link rel="stylesheet" href="/css/signature.css">
+
+
+    
+<link rel="stylesheet" href="/css/toc.css">
+
 
     <!-- Custom Fonts -->
     <!-- <link href="https://maxcdn.bootstrapcdn.com/font-awesome/4.3.0/css/font-awesome.min.css" rel="stylesheet" type="text/css"> -->
@@ -59,6 +73,7 @@
 
     <!-- ga & ba script hoook -->
     <script></script>
+<meta name="generator" content="Hexo 4.2.0"><link rel="alternate" href="/atom.xml" title="运维之美" type="application/atom+xml">
 </head>
 
 
@@ -145,14 +160,14 @@
 
                         
                         <li>
-                            <a href="/about/">About</a>
+                            <a href="/archive/">Archives</a>
                         </li>
                         
                     
 
                         
                         <li>
-                            <a href="/archive/">Archives</a>
+                            <a href="/about/">About</a>
                         </li>
                         
                     
@@ -216,7 +231,7 @@
                 post-container">
 
                 <p>想象一下，如果我想将 <code>Nginx</code> 部署到 <code>Kubernetes</code> 集群，我可能会在终端中输入类似这样的命令：</p>
-<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">$ kubectl run --image=nginx --replicas=3</span><br></pre></td></tr></table></figure>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">$ kubectl run --image&#x3D;nginx --replicas&#x3D;3</span><br></pre></td></tr></table></figure>
 <p>然后回车。几秒钟后，你就会看到三个 <code>Nginx Pod</code> 分布在所有的工作节点上。这一切就像变魔术一样，但你并不知道这一切的背后究竟发生了什么事情。</p>
 <p><code>Kubernetes</code> 的神奇之处在于：它可以通过用户友好的 <code>API</code> 来处理跨基础架构的 <code>Deployments</code>，而背后的复杂性被隐藏在简单的抽象中。但为了充分理解它为我们提供的价值，我们需要理解它的内部原理。</p>
 <p>本指南将引导您理解从 <code>Client</code> 到 <code>Kubelet</code> 请求的完整生命周期，必要时会通过源代码来说明背后发生了什么。</p>
@@ -319,11 +334,11 @@
 <p>正如<a href="https://ahmet.im/blog/initializers/" target="_blank" rel="noopener">大佬的博客</a>指出的那样，初始化器是一个强大的功能，因为它允许我们执行通用引导操作。例如：</p>
 <ul>
 <li>将代理 <code>Sidecar</code> 容器注入到暴露 80 端口的 <code>Pod</code> 中，或者加上特定的 <code>Annotation</code>。</li>
-<li>将保存着测试证书的<code>Volume</code> 注入到特定命名空间的所有 <code>Pod</code> 中。</li>
+<li>将保存着测试证书的<code> Volume</code> 注入到特定命名空间的所有 <code>Pod</code> 中。</li>
 <li>如果 <code>Secret</code> 中的密码小于 20 个字符，就组织其创建。</li>
 </ul>
 <p><code>initializerConfiguration</code> 资源对象允许你声明某些资源类型应该运行哪些初始化器。如果你想每创建一个 <code>Pod</code> 时就运行一个自定义初始化器，你可以这样做：</p>
-<figure class="highlight yaml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line"><span class="attr">apiVersion:</span> <span class="string">admissionregistration.k8s.io/v1alpha1</span></span><br><span class="line"><span class="attr">kind:</span> <span class="string">InitializerConfiguration</span></span><br><span class="line"><span class="attr">metadata:</span></span><br><span class="line"><span class="attr">  name:</span> <span class="string">custom-pod-initializer</span></span><br><span class="line"><span class="attr">initializers:</span></span><br><span class="line"><span class="attr">  - name:</span> <span class="string">podimage.example.com</span></span><br><span class="line"><span class="attr">    rules:</span></span><br><span class="line"><span class="attr">      - apiGroups:</span></span><br><span class="line"><span class="bullet">          -</span> <span class="string">""</span></span><br><span class="line"><span class="attr">        apiVersions:</span></span><br><span class="line"><span class="bullet">          -</span> <span class="string">v1</span></span><br><span class="line"><span class="attr">        resources:</span></span><br><span class="line"><span class="bullet">          -</span> <span class="string">pods</span></span><br></pre></td></tr></table></figure>
+<figure class="highlight yaml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line"><span class="attr">apiVersion:</span> <span class="string">admissionregistration.k8s.io/v1alpha1</span></span><br><span class="line"><span class="attr">kind:</span> <span class="string">InitializerConfiguration</span></span><br><span class="line"><span class="attr">metadata:</span></span><br><span class="line">  <span class="attr">name:</span> <span class="string">custom-pod-initializer</span></span><br><span class="line"><span class="attr">initializers:</span></span><br><span class="line">  <span class="bullet">-</span> <span class="attr">name:</span> <span class="string">podimage.example.com</span></span><br><span class="line">    <span class="attr">rules:</span></span><br><span class="line">      <span class="bullet">-</span> <span class="attr">apiGroups:</span></span><br><span class="line">          <span class="bullet">-</span> <span class="string">""</span></span><br><span class="line">        <span class="attr">apiVersions:</span></span><br><span class="line">          <span class="bullet">-</span> <span class="string">v1</span></span><br><span class="line">        <span class="attr">resources:</span></span><br><span class="line">          <span class="bullet">-</span> <span class="string">pods</span></span><br></pre></td></tr></table></figure>
 <p>通过该配置创建资源对象 <code>InitializerConfiguration</code> 之后，就会在每个 <code>Pod</code> 的 <code>metadata.initializers.pending</code> 字段中添加 <code>custom-pod-initializer</code> 字段。该初始化控制器会定期扫描新的 <code>Pod</code>，一旦在 <code>Pod</code> 的 <code>pending</code> 字段中检测到自己的名称，就会执行其逻辑，执行完逻辑之后就会将 <code>pending</code> 字段下的自己的名称删除。</p>
 <p>只有在 <code>pending</code> 字段下的列表中的第一个初始化器可以对资源进行操作，当所有的初始化器执行完成，并且 <code>pending</code> 字段为空时，该对象就会被认为初始化成功。</p>
 <p>你可能会注意到一个问题：如果 <code>Kube-Apiserver</code> 不能显示这些资源，那么用户级控制器是如何处理资源的呢？</p>
@@ -448,8 +463,8 @@
 <p>一旦创建好了 <code>Pause</code> 容器，下面就会开始检查磁盘状态然后开始启动业务容器。</p>
 <p><strong>CNI 和 Pod 网络</strong></p>
 <p>现在我们的 <code>Pod</code> 已经有了基本的骨架：一个共享所有命名空间以允许业务容器在同一个 <code>Pod</code> 里进行通信的 <code>Pause</code> 容器。但现在还有一个问题，那就是容器的网络是如何建立的？</p>
-<p>当 <code>Kubelet</code> 为 <code>Pod</code> 创建网络时，它会将创建网络的任务交给 <code>CNI</code> 插件。<code>CNI</code> 表示容器网络接口（<code>Container Network Interface</code>），和容器运行时的运行方式类似，它也是一种抽象，允许不同的网络提供商为容器提供不同的网络实现。通过将 <code>JSON</code> 配置文件（默认在 <code>/etc/cni/net.d</code> 路径下）中的数据传送到相关的 <code>CNI</code> 二进制文件（默认在 <code>/opt/cni/bin</code> 路径下）中，<code>CNI</code> 插件可以给 <code>Pause</code> 容器配置相关的网络，然后<code>Pod</code> 中其他的容器都使用 <code>Pause</code> 容器的网络。下面是一个简单的示例配置文件：</p>
-<figure class="highlight yaml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br></pre></td><td class="code"><pre><span class="line"><span class="string">&#123;</span></span><br><span class="line"><span class="attr">    "cniVersion":</span> <span class="string">"0.3.1"</span><span class="string">,</span></span><br><span class="line"><span class="attr">    "name":</span> <span class="string">"bridge"</span><span class="string">,</span></span><br><span class="line"><span class="attr">    "type":</span> <span class="string">"bridge"</span><span class="string">,</span></span><br><span class="line"><span class="attr">    "bridge":</span> <span class="string">"cnio0"</span><span class="string">,</span></span><br><span class="line"><span class="attr">    "isGateway":</span> <span class="literal">true</span><span class="string">,</span></span><br><span class="line"><span class="attr">    "ipMasq":</span> <span class="literal">true</span><span class="string">,</span></span><br><span class="line"><span class="attr">    "ipam":</span> <span class="string">&#123;</span></span><br><span class="line"><span class="attr">        "type":</span> <span class="string">"host-local"</span><span class="string">,</span></span><br><span class="line"><span class="attr">        "ranges":</span> <span class="string">[</span></span><br><span class="line">          <span class="string">[&#123;"subnet":</span> <span class="string">"$&#123;POD_CIDR&#125;"</span><span class="string">&#125;]</span></span><br><span class="line">        <span class="string">],</span></span><br><span class="line"><span class="attr">        "routes":</span> <span class="string">[&#123;"dst":</span> <span class="string">"0.0.0.0/0"</span><span class="string">&#125;]</span></span><br><span class="line">    <span class="string">&#125;</span></span><br><span class="line"><span class="string">&#125;</span></span><br></pre></td></tr></table></figure>
+<p>当 <code>Kubelet</code> 为 <code>Pod</code> 创建网络时，它会将创建网络的任务交给 <code>CNI</code> 插件。<code>CNI</code> 表示容器网络接口（<code>Container Network Interface</code>），和容器运行时的运行方式类似，它也是一种抽象，允许不同的网络提供商为容器提供不同的网络实现。通过将 <code>JSON</code> 配置文件（默认在 <code>/etc/cni/net.d</code> 路径下）中的数据传送到相关的 <code>CNI</code> 二进制文件（默认在 <code>/opt/cni/bin</code> 路径下）中，<code>CNI</code> 插件可以给 <code>Pause</code> 容器配置相关的网络，然后<code> Pod</code> 中其他的容器都使用 <code>Pause</code> 容器的网络。下面是一个简单的示例配置文件：</p>
+<figure class="highlight yaml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br></pre></td><td class="code"><pre><span class="line"><span class="string">&#123;</span></span><br><span class="line">    <span class="attr">"cniVersion":</span> <span class="string">"0.3.1"</span><span class="string">,</span></span><br><span class="line">    <span class="attr">"name":</span> <span class="string">"bridge"</span><span class="string">,</span></span><br><span class="line">    <span class="attr">"type":</span> <span class="string">"bridge"</span><span class="string">,</span></span><br><span class="line">    <span class="attr">"bridge":</span> <span class="string">"cnio0"</span><span class="string">,</span></span><br><span class="line">    <span class="attr">"isGateway":</span> <span class="literal">true</span><span class="string">,</span></span><br><span class="line">    <span class="attr">"ipMasq":</span> <span class="literal">true</span><span class="string">,</span></span><br><span class="line">    <span class="attr">"ipam":</span> <span class="string">&#123;</span></span><br><span class="line">        <span class="attr">"type":</span> <span class="string">"host-local"</span><span class="string">,</span></span><br><span class="line">        <span class="attr">"ranges":</span> <span class="string">[</span></span><br><span class="line">          <span class="string">[&#123;"subnet":</span> <span class="string">"$&#123;POD_CIDR&#125;"</span><span class="string">&#125;]</span></span><br><span class="line">        <span class="string">],</span></span><br><span class="line">        <span class="attr">"routes":</span> <span class="string">[&#123;"dst":</span> <span class="string">"0.0.0.0/0"</span><span class="string">&#125;]</span></span><br><span class="line">    <span class="string">&#125;</span></span><br><span class="line"><span class="string">&#125;</span></span><br></pre></td></tr></table></figure>
 <p><code>CNI</code> 插件还会通过 <code>CNI_ARGS</code> 环境变量为 <code>Pod</code> 指定其他的元数据，包括 <code>Pod</code> 名称和命名空间。</p>
 <p>下面我们以 <code>Bridge</code> 插件举例(步骤会因不同 <code>CNI</code> 插件而异)：</p>
 <ul>
@@ -706,13 +721,13 @@
 
                 </ul>
                 <p class="copyright text-muted">
-                    Copyright &copy; Mike 2018 | Hosted by <a href="https://pages.coding.me" style="font-weight: bold">Coding Pages</a>
+                    Copyright &copy; Mike 2020 | Hosted by <a href="https://pages.coding.me" target="_blank" rel="noopener" style="font-weight: bold">Coding Pages</a>
                     <br>
-                    Theme by <a href="http://beantech.org">BeanTech</a> 
+                    Theme by <a href="http://beantech.org" target="_blank" rel="noopener">BeanTech</a> 
                     <span style="display: inline-block; margin: 0 5px;">
                         <i class="fa fa-heart"></i>
                     </span> 
-                    re-Ported by <a href="http://www.huweihuang.com">胡伟煌</a> | 
+                    re-Ported by <a href="http://www.huweihuang.com" target="_blank" rel="noopener">胡伟煌</a> | 
                     <iframe
                         style="margin-left: 2px; margin-bottom:-5px;"
                         frameborder="0" scrolling="0" width="91px" height="20px"
@@ -725,13 +740,19 @@
 </footer>
 
 <!-- jQuery -->
+
 <script src="/js/jquery.min.js"></script>
 
+
 <!-- Bootstrap Core JavaScript -->
+
 <script src="/js/bootstrap.min.js"></script>
 
+
 <!-- Custom Theme JavaScript -->
+
 <script src="/js/hux-blog.min.js"></script>
+
 
 
 <!-- async load function -->

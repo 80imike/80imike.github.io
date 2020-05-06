@@ -21,21 +21,35 @@
     <link rel="canonical" href="https://www.hi-linux.com/posts/47176.html">
 
     <!-- Bootstrap Core CSS -->
-    <link rel="stylesheet" href="/css/bootstrap.min.css">
+    
+<link rel="stylesheet" href="/css/bootstrap.min.css">
+
 
     <!-- Custom CSS --> 
-    <link rel="stylesheet" href="/css/beantech.min.css">
+    
+<link rel="stylesheet" href="/css/beantech.min.css">
+
     
     <!-- Pygments Highlight CSS -->
-    <link rel="stylesheet" href="/css/highlight.css">
+    
+<link rel="stylesheet" href="/css/highlight.css">
 
-    <link rel="stylesheet" href="/css/widget.css">
 
-    <link rel="stylesheet" href="/css/rocket.css">
+    
+<link rel="stylesheet" href="/css/widget.css">
 
-    <link rel="stylesheet" href="/css/signature.css">
 
-    <link rel="stylesheet" href="/css/toc.css">
+    
+<link rel="stylesheet" href="/css/rocket.css">
+
+
+    
+<link rel="stylesheet" href="/css/signature.css">
+
+
+    
+<link rel="stylesheet" href="/css/toc.css">
+
 
     <!-- Custom Fonts -->
     <!-- <link href="https://maxcdn.bootstrapcdn.com/font-awesome/4.3.0/css/font-awesome.min.css" rel="stylesheet" type="text/css"> -->
@@ -59,6 +73,7 @@
 
     <!-- ga & ba script hoook -->
     <script></script>
+<meta name="generator" content="Hexo 4.2.0"><link rel="alternate" href="/atom.xml" title="运维之美" type="application/atom+xml">
 </head>
 
 
@@ -145,14 +160,14 @@
 
                         
                         <li>
-                            <a href="/about/">About</a>
+                            <a href="/archive/">Archives</a>
                         </li>
                         
                     
 
                         
                         <li>
-                            <a href="/archive/">Archives</a>
+                            <a href="/about/">About</a>
                         </li>
                         
                     
@@ -241,11 +256,11 @@
 <p>我们可以看下在 MySQL 5.6 的 GTID 出现以前 Replication Failover 的操作过程。假设我们有一个如下图的环境：</p>
 <p><img src="https://www.hi-linux.com/img/linux/mysql-gtid-3.png" alt=""></p>
 <p>此时，Server A 的服务器宕机，需要将业务切换到 Server B 上。同时，我们又需要将 Server C 的复制源改成 Server B。复制源修改的命令语法很简单即：</p>
-<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">CHANGE MASTER TO MASTER_HOST=&apos;xxx&apos;, MASTER_LOG_FILE=&apos;xxx&apos;, MASTER_LOG_POS=nnnn</span><br></pre></td></tr></table></figure>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">CHANGE MASTER TO MASTER_HOST&#x3D;&#39;xxx&#39;, MASTER_LOG_FILE&#x3D;&#39;xxx&#39;, MASTER_LOG_POS&#x3D;nnnn</span><br></pre></td></tr></table></figure>
 <p>而这种方式的难点在于，由于同一个事务在每台机器上所在的 binlog 名字和位置都不一样，那么怎么找到 Server C 当前同步停止点对应 Server B 上 <code>master_log_file</code> 和 <code>master_log_pos</code> 的位置就成为了难题。</p>
 <p>这也就是为什么 <code>M-S</code> 复制集群需要使用 <code>MMM</code>、<code>MHA</code> 这样的额外管理工具的一个重要原因。 这个问题在 5.6 的 GTID 出现后，就显得非常的简单。</p>
 <p>由于同一事务的 GTID 在所有节点上的值一致，那么根据 Server C 当前停止点的 GTID 就能唯一定位到 Server B 上的GTID。甚至由于 <code>MASTER_AUTO_POSITION</code> 功能的出现，我们都不需要知道 GTID 的具体值。直接使用以下命令就可以直接完成 Failover 的工作。</p>
-<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">CHANGE MASTER TO MASTER_HOST=&apos;xxx&apos;, MASTER_AUTO_POSITION==&apos;xxx&apos;</span><br></pre></td></tr></table></figure>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">CHANGE MASTER TO MASTER_HOST&#x3D;&#39;xxx&#39;, MASTER_AUTO_POSITION&#x3D;&#x3D;&#39;xxx&#39;</span><br></pre></td></tr></table></figure>
 <p><strong>如何产生GTID</strong></p>
 <p>GTID 的生成受 <code>gtid_next</code> 控制。 在主服务器上<code>gtid_next</code> 是默认的 <code>AUTOMATIC</code>，即在每次事务提交时自动生成新的 GTID 。它从当前已执行的 GTID 集合(即 <code>gtid_executed</code> )中，找一个大于 0 的未使用的最小值作为下个事务 GTID 。同时在 Binlog 的实际的更新事务事件前面插入一条 <code>set gtid_next</code> 事件。</p>
 <p>这里以一条 insert 语句来看看 GTID 的生成过程：</p>
@@ -259,9 +274,9 @@
 <p><strong>什么是server-uuid</strong></p>
 <p>MySQL 5.6 以后用 128 位的 <code>server-uuid</code> 代替了原本的 32 位 <code>server-id</code> 的大部分功能。原因很简单，<code>server-id</code> 依赖于 my.cnf 的手工配置，有可能产生冲突。而自动产生 128 位 UUID 的算法可以保证所有的 MySQL UUID 都不会冲突。</p>
 <p>MySQL 在数据目录下有一个 auto.cnf 文件就是用来保存 <code>server-uuid</code> 的，如下：</p>
-<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">$ cat /var/lib/mysql/auto.cnf</span><br><span class="line">[auto]</span><br><span class="line">server-uuid=f75ae43f-3f5e-11e7-9b98-001c4297532a</span><br></pre></td></tr></table></figure>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">$ cat &#x2F;var&#x2F;lib&#x2F;mysql&#x2F;auto.cnf</span><br><span class="line">[auto]</span><br><span class="line">server-uuid&#x3D;f75ae43f-3f5e-11e7-9b98-001c4297532a</span><br></pre></td></tr></table></figure>
 <p>在 MySQL 再次启动时会读取 auto.cnf 文件，继续使用上次生成的 <code>server_uuid</code>。使用 <code>SHOW</code> 命令可以查看 MySQL 实例当前使用的 <code>server-uuid</code>，它是一个 MySQL Global Variables。</p>
-<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">SHOW GLOBAL VARIABLES LIKE ‘server_uuid&apos;;</span><br></pre></td></tr></table></figure>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">SHOW GLOBAL VARIABLES LIKE ‘server_uuid&#39;;</span><br></pre></td></tr></table></figure>
 <h3 id="配置gtid主从复制">配置GTID主从复制</h3>
 <h4 id="环境准备">环境准备</h4>
 <p>这里一共使用了二台机器，MySQL 版本都为 5.7.18。</p>
@@ -295,12 +310,12 @@
 <li>修改MySQL主配置文件</li>
 </ul>
 <p>配置 MySQL 基于GTID的复制，主要是需要在 MySQL 服务器的主配置文件 <code>[mysqld]</code> 段中添加以下内容：</p>
-<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">gtid-mode = ON</span><br><span class="line">enforce-gtid-consistency = ON</span><br><span class="line">log-slave-updates = ON</span><br></pre></td></tr></table></figure>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">gtid-mode &#x3D; ON</span><br><span class="line">enforce-gtid-consistency &#x3D; ON</span><br><span class="line">log-slave-updates &#x3D; ON</span><br></pre></td></tr></table></figure>
 <p>在 MySQL 5.6 版本时，基于 GTID 的复制中 <code>log-slave-updates</code> 选项是必须的。但是其增大了从服务器的IO负载, 而在 MySQL 5.7 中该选项已经不是必须项。</p>
 <p>MySQL主服务器配置片断</p>
-<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br></pre></td><td class="code"><pre><span class="line">$ vim /etc/mysql/mysql.conf.d/mysqld.cnf</span><br><span class="line"></span><br><span class="line">[mysqld]</span><br><span class="line"></span><br><span class="line">server-id = 1</span><br><span class="line">binlog_format = row</span><br><span class="line">expire_logs_days = 30</span><br><span class="line">max_binlog_size  = 100M</span><br><span class="line">gtid_mode = ON</span><br><span class="line">enforce_gtid_consistency = ON</span><br><span class="line">binlog-checksum = CRC32</span><br><span class="line">master-verify-checksum = 1</span><br><span class="line">log-bin = /var/log/mysql/mysql-bin</span><br><span class="line">log_bin_index = /var/log/mysql/mysql-bin.index</span><br><span class="line">log-slave-updates = ON</span><br></pre></td></tr></table></figure>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br></pre></td><td class="code"><pre><span class="line">$ vim &#x2F;etc&#x2F;mysql&#x2F;mysql.conf.d&#x2F;mysqld.cnf</span><br><span class="line"></span><br><span class="line">[mysqld]</span><br><span class="line"></span><br><span class="line">server-id &#x3D; 1</span><br><span class="line">binlog_format &#x3D; row</span><br><span class="line">expire_logs_days &#x3D; 30</span><br><span class="line">max_binlog_size  &#x3D; 100M</span><br><span class="line">gtid_mode &#x3D; ON</span><br><span class="line">enforce_gtid_consistency &#x3D; ON</span><br><span class="line">binlog-checksum &#x3D; CRC32</span><br><span class="line">master-verify-checksum &#x3D; 1</span><br><span class="line">log-bin &#x3D; &#x2F;var&#x2F;log&#x2F;mysql&#x2F;mysql-bin</span><br><span class="line">log_bin_index &#x3D; &#x2F;var&#x2F;log&#x2F;mysql&#x2F;mysql-bin.index</span><br><span class="line">log-slave-updates &#x3D; ON</span><br></pre></td></tr></table></figure>
 <p>MySQL从服务器配置片断</p>
-<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br></pre></td><td class="code"><pre><span class="line">$ vim /etc/mysql/mysql.conf.d/mysqld.cnf</span><br><span class="line"></span><br><span class="line">[mysqld]</span><br><span class="line"></span><br><span class="line">server-id = 3</span><br><span class="line">gtid_mode = ON</span><br><span class="line">enforce_gtid_consistency = ON</span><br><span class="line">log-slave-updates = ON</span><br><span class="line">skip-slave-start = true</span><br><span class="line">expire_logs_days = 30</span><br><span class="line">max_binlog_size  = 100M</span><br><span class="line">read_only = ON</span><br><span class="line">slave-sql-verify-checksum = 1</span><br><span class="line">log-bin = /var/log/mysql/mysql-bin</span><br><span class="line">log_bin_index = /var/log/mysql/mysql-bin.index</span><br><span class="line">relay-log = /var/log/mysql/relay-log</span><br><span class="line">relay-log-index = /var/log/mysql/relay-log-index</span><br><span class="line">relay-log-info-file = /var/log/mysql/relay-log.info</span><br><span class="line">master-info-repository = table</span><br><span class="line">relay-log-info-repository = table</span><br><span class="line">relay-log-recovery = ON</span><br><span class="line">report-port = 3306</span><br><span class="line">report-host = 192.168.2.212</span><br><span class="line">replicate-do-db = master1</span><br><span class="line">replicate_wild_do_table=master1.%</span><br></pre></td></tr></table></figure>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br></pre></td><td class="code"><pre><span class="line">$ vim &#x2F;etc&#x2F;mysql&#x2F;mysql.conf.d&#x2F;mysqld.cnf</span><br><span class="line"></span><br><span class="line">[mysqld]</span><br><span class="line"></span><br><span class="line">server-id &#x3D; 3</span><br><span class="line">gtid_mode &#x3D; ON</span><br><span class="line">enforce_gtid_consistency &#x3D; ON</span><br><span class="line">log-slave-updates &#x3D; ON</span><br><span class="line">skip-slave-start &#x3D; true</span><br><span class="line">expire_logs_days &#x3D; 30</span><br><span class="line">max_binlog_size  &#x3D; 100M</span><br><span class="line">read_only &#x3D; ON</span><br><span class="line">slave-sql-verify-checksum &#x3D; 1</span><br><span class="line">log-bin &#x3D; &#x2F;var&#x2F;log&#x2F;mysql&#x2F;mysql-bin</span><br><span class="line">log_bin_index &#x3D; &#x2F;var&#x2F;log&#x2F;mysql&#x2F;mysql-bin.index</span><br><span class="line">relay-log &#x3D; &#x2F;var&#x2F;log&#x2F;mysql&#x2F;relay-log</span><br><span class="line">relay-log-index &#x3D; &#x2F;var&#x2F;log&#x2F;mysql&#x2F;relay-log-index</span><br><span class="line">relay-log-info-file &#x3D; &#x2F;var&#x2F;log&#x2F;mysql&#x2F;relay-log.info</span><br><span class="line">master-info-repository &#x3D; table</span><br><span class="line">relay-log-info-repository &#x3D; table</span><br><span class="line">relay-log-recovery &#x3D; ON</span><br><span class="line">report-port &#x3D; 3306</span><br><span class="line">report-host &#x3D; 192.168.2.212</span><br><span class="line">replicate-do-db &#x3D; master1</span><br><span class="line">replicate_wild_do_table&#x3D;master1.%</span><br></pre></td></tr></table></figure>
 <p>注：<code>server-id</code> 每台必须配置为不一样，比如 dev-master-01 为1，dev-node-02 为3。这里没有给出全部配置，其它请根据实际情况自行配置。</p>
 <ul>
 <li>重启MySQL服务器</li>
@@ -310,11 +325,11 @@
 <li>创建具有复制权限的用户</li>
 </ul>
 <p>基于 GTID 的复制会自动地将没有在从库执行过的事务重放，所以不要在其它从库上建立相同的账号。 如果建立了相同的账户，有可能造成复制链路的错误。</p>
-<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"># 在MySQL主服务器上创建</span><br><span class="line">mysql&gt; grant replication slave on *.* to &apos;repl&apos;@&apos;192.168.2.%&apos; identified by &apos;000000&apos;;</span><br><span class="line">mysql&gt; flush privileges;</span><br></pre></td></tr></table></figure>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"># 在MySQL主服务器上创建</span><br><span class="line">mysql&gt; grant replication slave on *.* to &#39;repl&#39;@&#39;192.168.2.%&#39; identified by &#39;000000&#39;;</span><br><span class="line">mysql&gt; flush privileges;</span><br></pre></td></tr></table></figure>
 <ul>
 <li>查看主库与从库的GTID是否开启</li>
 </ul>
-<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br></pre></td><td class="code"><pre><span class="line">mysql&gt; show variables like &quot;%gtid%&quot;;</span><br><span class="line"></span><br><span class="line">+----------------------------------+-----------+</span><br><span class="line">| Variable_name                    | Value     |</span><br><span class="line">+----------------------------------+-----------+</span><br><span class="line">| binlog_gtid_simple_recovery      | ON        |</span><br><span class="line">| enforce_gtid_consistency         | ON        |</span><br><span class="line">| gtid_executed_compression_period | 1000      |</span><br><span class="line">| gtid_mode                        | ON        |</span><br><span class="line">| gtid_next                        | AUTOMATIC |</span><br><span class="line">| gtid_owned                       |           |</span><br><span class="line">| gtid_purged                      |           |</span><br><span class="line">| session_track_gtids              | OFF       |</span><br><span class="line">+----------------------------------+-----------+</span><br><span class="line">8 rows in set (0.00 sec)</span><br><span class="line"></span><br><span class="line"></span><br><span class="line">mysql&gt; show variables like &apos;%gtid_next%&apos;;</span><br><span class="line">+---------------+-----------+</span><br><span class="line">| Variable_name | Value     |</span><br><span class="line">+---------------+-----------+</span><br><span class="line">| gtid_next     | AUTOMATIC |</span><br><span class="line">+---------------+-----------+</span><br><span class="line">1 row in set (0.00 sec)</span><br></pre></td></tr></table></figure>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br></pre></td><td class="code"><pre><span class="line">mysql&gt; show variables like &quot;%gtid%&quot;;</span><br><span class="line"></span><br><span class="line">+----------------------------------+-----------+</span><br><span class="line">| Variable_name                    | Value     |</span><br><span class="line">+----------------------------------+-----------+</span><br><span class="line">| binlog_gtid_simple_recovery      | ON        |</span><br><span class="line">| enforce_gtid_consistency         | ON        |</span><br><span class="line">| gtid_executed_compression_period | 1000      |</span><br><span class="line">| gtid_mode                        | ON        |</span><br><span class="line">| gtid_next                        | AUTOMATIC |</span><br><span class="line">| gtid_owned                       |           |</span><br><span class="line">| gtid_purged                      |           |</span><br><span class="line">| session_track_gtids              | OFF       |</span><br><span class="line">+----------------------------------+-----------+</span><br><span class="line">8 rows in set (0.00 sec)</span><br><span class="line"></span><br><span class="line"></span><br><span class="line">mysql&gt; show variables like &#39;%gtid_next%&#39;;</span><br><span class="line">+---------------+-----------+</span><br><span class="line">| Variable_name | Value     |</span><br><span class="line">+---------------+-----------+</span><br><span class="line">| gtid_next     | AUTOMATIC |</span><br><span class="line">+---------------+-----------+</span><br><span class="line">1 row in set (0.00 sec)</span><br></pre></td></tr></table></figure>
 <p>简单说下几个常用参数的作用：</p>
 <p>a) gtid_executed</p>
 <p>在当前实例上执行过的 GTID 集合，实际上包含了所有记录到 binlog 中的事务。设置 <code>set sql_log_bin=0</code> 后执行的事务不会生成 binlog 事件，也不会被记录到 <code>gtid_executed</code> 中。执行 <code>RESET MASTER</code> 可以将该变量置空。</p>
@@ -333,7 +348,7 @@
 <ul>
 <li>查看服务器server_uuid</li>
 </ul>
-<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line">mysql&gt; show global variables like &apos;%uuid%&apos;;</span><br><span class="line"></span><br><span class="line">+---------------+--------------------------------------+</span><br><span class="line">| Variable_name | Value                                |</span><br><span class="line">+---------------+--------------------------------------+</span><br><span class="line">| server_uuid   | f75ae43f-3f5e-11e7-9b98-001c4297532a |</span><br><span class="line">+---------------+--------------------------------------+</span><br><span class="line">1 row in set (0.00 sec)</span><br></pre></td></tr></table></figure>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line">mysql&gt; show global variables like &#39;%uuid%&#39;;</span><br><span class="line"></span><br><span class="line">+---------------+--------------------------------------+</span><br><span class="line">| Variable_name | Value                                |</span><br><span class="line">+---------------+--------------------------------------+</span><br><span class="line">| server_uuid   | f75ae43f-3f5e-11e7-9b98-001c4297532a |</span><br><span class="line">+---------------+--------------------------------------+</span><br><span class="line">1 row in set (0.00 sec)</span><br></pre></td></tr></table></figure>
 <ul>
 <li>查看主服务器状态</li>
 </ul>
@@ -341,7 +356,7 @@
 <ul>
 <li>从库连接至主库</li>
 </ul>
-<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">mysql&gt; CHANGE MASTER TO MASTER_HOST=&apos;192.168.2.210&apos;,MASTER_USER=&apos;repl&apos;,MASTER_PASSWORD=&apos;000000&apos;,MASTER_AUTO_POSITION=1;</span><br></pre></td></tr></table></figure>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">mysql&gt; CHANGE MASTER TO MASTER_HOST&#x3D;&#39;192.168.2.210&#39;,MASTER_USER&#x3D;&#39;repl&#39;,MASTER_PASSWORD&#x3D;&#39;000000&#39;,MASTER_AUTO_POSITION&#x3D;1;</span><br></pre></td></tr></table></figure>
 <ul>
 <li>在从服务器上启动复制</li>
 </ul>
@@ -355,7 +370,7 @@
 <ul>
 <li>在主库(dev-master-01)实例创建一些数据。</li>
 </ul>
-<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">mysql&gt; create database master1;</span><br><span class="line">mysql&gt; use master1;</span><br><span class="line">mysql&gt; CREATE TABLE `test1` (`id` int(11) DEFAULT NULL,`count` int(11) DEFAULT NULL);</span><br><span class="line">mysql&gt; insert into test1 values(1,1);</span><br></pre></td></tr></table></figure>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">mysql&gt; create database master1;</span><br><span class="line">mysql&gt; use master1;</span><br><span class="line">mysql&gt; CREATE TABLE &#96;test1&#96; (&#96;id&#96; int(11) DEFAULT NULL,&#96;count&#96; int(11) DEFAULT NULL);</span><br><span class="line">mysql&gt; insert into test1 values(1,1);</span><br></pre></td></tr></table></figure>
 <ul>
 <li>在从库(dev-node-02)实例检查数据是否成功复制。</li>
 </ul>
@@ -368,30 +383,30 @@
 </ul>
 <p>在基于 GTID 的复制拓扑中，要想修复从库的 SQL 线程错误，过去的 <code>SQL_SLAVE_SKIP_COUNTER</code> 方式不再适用。需要通过设置 <code>gtid_next</code> 或 <code>gtid_purged</code> 来完成，当然前提是已经确保主从数据一致，仅仅需要跳过复制错误让复制继续下去。</p>
 <p>在从库上执行以下SQL：</p>
-<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br></pre></td><td class="code"><pre><span class="line">mysql&gt; stop slave;</span><br><span class="line">Query OK, 0 rows affected (0.00 sec)</span><br><span class="line"></span><br><span class="line">mysql&gt; set gtid_next=&apos;f75ae43f-3f5e-11e7-9b98-001c4297532a:20&apos;;</span><br><span class="line">Query OK, 0 rows affected (0.00 sec)</span><br><span class="line"></span><br><span class="line">mysql&gt; begin;</span><br><span class="line">Query OK, 0 rows affected (0.00 sec)</span><br><span class="line"></span><br><span class="line">mysql&gt; commit;</span><br><span class="line">Query OK, 0 rows affected (0.00 sec)</span><br><span class="line"></span><br><span class="line">mysql&gt; set gtid_next=&apos;AUTOMATIC&apos;;</span><br><span class="line">Query OK, 0 rows affected (0.00 sec)</span><br><span class="line"></span><br><span class="line">mysql&gt; start slave;</span><br><span class="line">Query OK, 0 rows affected (0.02 sec)</span><br></pre></td></tr></table></figure>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br></pre></td><td class="code"><pre><span class="line">mysql&gt; stop slave;</span><br><span class="line">Query OK, 0 rows affected (0.00 sec)</span><br><span class="line"></span><br><span class="line">mysql&gt; set gtid_next&#x3D;&#39;f75ae43f-3f5e-11e7-9b98-001c4297532a:20&#39;;</span><br><span class="line">Query OK, 0 rows affected (0.00 sec)</span><br><span class="line"></span><br><span class="line">mysql&gt; begin;</span><br><span class="line">Query OK, 0 rows affected (0.00 sec)</span><br><span class="line"></span><br><span class="line">mysql&gt; commit;</span><br><span class="line">Query OK, 0 rows affected (0.00 sec)</span><br><span class="line"></span><br><span class="line">mysql&gt; set gtid_next&#x3D;&#39;AUTOMATIC&#39;;</span><br><span class="line">Query OK, 0 rows affected (0.00 sec)</span><br><span class="line"></span><br><span class="line">mysql&gt; start slave;</span><br><span class="line">Query OK, 0 rows affected (0.02 sec)</span><br></pre></td></tr></table></figure>
 <p>其中 <code>gtid_next</code> 就是跳过某个执行事务，设置 <code>gtid_next</code> 的方法一次只能跳过一个事务，要批量的跳过事务可以通过设置 <code>gtid_purged</code> 完成。假设下面的场景：</p>
 <p><img src="https://www.hi-linux.com/img/linux/mysql-gtid-8.png" alt=""></p>
 <p>此时从库的 <code>Executed_Gtid_Set</code> 已经包含了主库上 1-13 和 20 的事务，再开启复制会从后面的事务开始执行，就不会出错了。在从库上验证刚才插入的数据：</p>
 <p><img src="https://www.hi-linux.com/img/linux/mysql-gtid-9.png" alt=""></p>
 <p>注意，使用 <code>gtid_next</code> 和 <code>gtid_purged</code> 修复复制错误的前提是跳过那些事务后仍可以确保主备数据一致。如果做不到，就要考虑 pt-table-sync 或者重新导入备份的方式了。</p>
 <h4 id="gtid与备份恢复">GTID与备份恢复</h4>
-<p>在做备份恢复的时候，有时需要恢复出来的 MySQL 实例可以作为从库连上原来的主库继续复制，这就要求从备份恢复出来的 MySQL 实例拥有和主数据库数据一致的 <code>gtid_executed</code> 值。这也是通过设置 <code>gtid_purged</code>实现的，下面看下 mysqldump 做备份的例子。</p>
+<p>在做备份恢复的时候，有时需要恢复出来的 MySQL 实例可以作为从库连上原来的主库继续复制，这就要求从备份恢复出来的 MySQL 实例拥有和主数据库数据一致的 <code>gtid_executed</code> 值。这也是通过设置 <code>gtid_purged </code>实现的，下面看下 mysqldump 做备份的例子。</p>
 <ul>
 <li>通过mysqldump在主库上做一个全量备份</li>
 </ul>
 <p>这里使用 <code>--all-databases</code>选项是因为基于 GTID 的复制会记录全部的事务, 所以要构建一个完整的dump。</p>
-<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">$ mysqldump --all-databases --single-transaction  --triggers --routines --events --host=127.0.0.1 --port=3306 --user=root -p000000 &gt; dump.sql</span><br></pre></td></tr></table></figure>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">$ mysqldump --all-databases --single-transaction  --triggers --routines --events --host&#x3D;127.0.0.1 --port&#x3D;3306 --user&#x3D;root -p000000 &gt; dump.sql</span><br></pre></td></tr></table></figure>
 <p>生成的 dump.sql 文件里包含了设置 <code>gtid_purged</code> 的语句</p>
-<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">SET @MYSQLDUMP_TEMP_LOG_BIN = @@SESSION.SQL_LOG_BIN;</span><br><span class="line">SET @@SESSION.SQL_LOG_BIN= 0;</span><br><span class="line">...</span><br><span class="line">SET @@GLOBAL.GTID_PURGED=&apos;f75ae43f-3f5e-11e7-9b98-001c4297532a:1-14:20&apos;;</span><br><span class="line">...</span><br><span class="line">SET @@SESSION.SQL_LOG_BIN = @MYSQLDUMP_TEMP_LOG_BIN;</span><br></pre></td></tr></table></figure>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">SET @MYSQLDUMP_TEMP_LOG_BIN &#x3D; @@SESSION.SQL_LOG_BIN;</span><br><span class="line">SET @@SESSION.SQL_LOG_BIN&#x3D; 0;</span><br><span class="line">...</span><br><span class="line">SET @@GLOBAL.GTID_PURGED&#x3D;&#39;f75ae43f-3f5e-11e7-9b98-001c4297532a:1-14:20&#39;;</span><br><span class="line">...</span><br><span class="line">SET @@SESSION.SQL_LOG_BIN &#x3D; @MYSQLDUMP_TEMP_LOG_BIN;</span><br></pre></td></tr></table></figure>
 <p>在从库恢复数据前需要先通过 <code>reset master</code> 清空 <code>gtid_executed</code> 变量</p>
-<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">$ mysql -h127.0.0.1 --user=root -p000000 -e  &apos;reset master&apos;</span><br><span class="line">$ mysql -h127.0.0.1 --user=root -p000000&lt;dump.sql</span><br></pre></td></tr></table></figure>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">$ mysql -h127.0.0.1 --user&#x3D;root -p000000 -e  &#39;reset master&#39;</span><br><span class="line">$ mysql -h127.0.0.1 --user&#x3D;root -p000000&lt;dump.sql</span><br></pre></td></tr></table></figure>
 <p>否则执行设置 <code>GTID_PURGED</code> 的 SQL 时会报下面的错误：</p>
 <figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">ERROR 1840 (HY000) at line 24: @@GLOBAL.GTID_PURGED can only be set when @@GLOBAL.GTID_EXECUTED is empty.</span><br></pre></td></tr></table></figure>
 <p>此时恢复出的 MySQL 实例的 <code>GTID_EXECUTED</code> 和在主库备份时的一致：</p>
 <p><img src="https://www.hi-linux.com/img/linux/mysql-gtid-10.png" alt=""></p>
 <p>由于恢复出 MySQL 实例已经被设置了正确的 <code>GTID_EXECUTED</code> ，下面以 <code>master_auto_postion = 1</code> 的方式 <code>CHANGE MASTER</code> 到原来的主节点即可开始复制。</p>
-<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">mysql&gt; CHANGE MASTER TO MASTER_HOST=&apos;192.168.2.210&apos;, MASTER_USER=&apos;repl&apos;, MASTER_PASSWORD=&apos;000000&apos;, MASTER_AUTO_POSITION = 1;</span><br></pre></td></tr></table></figure>
-<p>如果不希望备份文件中生成设置 <code>GTID_PURGED</code> 的 SQL，可以给 <code>mysqldump</code>传入 <code>--set-gtid-purged=OFF</code> 关闭。</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">mysql&gt; CHANGE MASTER TO MASTER_HOST&#x3D;&#39;192.168.2.210&#39;, MASTER_USER&#x3D;&#39;repl&#39;, MASTER_PASSWORD&#x3D;&#39;000000&#39;, MASTER_AUTO_POSITION &#x3D; 1;</span><br></pre></td></tr></table></figure>
+<p>如果不希望备份文件中生成设置 <code>GTID_PURGED</code> 的 SQL，可以给 <code>mysqldump </code>传入 <code>--set-gtid-purged=OFF</code> 关闭。</p>
 <h3 id="其它一些需要注意的点">其它一些需要注意的点</h3>
 <p><code>enforce_gtid_consistency</code> 强制 GTID 一致性, 启用后以下命令无法再使用。</p>
 <ul>
@@ -406,7 +421,7 @@
 <ul>
 <li>同一事务中不能同时更新事务表与非事务表(MyISAM)，建议都选择 Innodb 作为默认的数据库引擎。</li>
 </ul>
-<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br></pre></td><td class="code"><pre><span class="line">mysql&gt; CREATE TABLE `test_innodb` (id INT(11) UNSIGNED NOT NULL PRIMARY KEY AUTO_INCREMENT);</span><br><span class="line">Query OK, 0 rows affected (0.04 sec)</span><br><span class="line"></span><br><span class="line">mysql&gt; CREATE TABLE `test_myisam` (id INT(11) UNSIGNED NOT NULL PRIMARY KEY AUTO_INCREMENT)   ENGINE = `MyISAM`;</span><br><span class="line">Query OK, 0 rows affected (0.03 sec)</span><br><span class="line"></span><br><span class="line">mysql&gt; begin;</span><br><span class="line">Query OK, 0 rows affected (0.00 sec)</span><br><span class="line"></span><br><span class="line">mysql&gt; insert into test_innodb(id) value(1);</span><br><span class="line">Query OK, 1 row affected (0.00 sec)</span><br><span class="line"></span><br><span class="line">mysql&gt; insert into test_myisam(id) value(1);</span><br><span class="line">ERROR 1785 (HY000): Statement violates GTID consistency: Updates to non-transactional tables can only be done in either autocommitted statements or single-statement transactions, and never in the same statement as updates to transactional tables.</span><br></pre></td></tr></table></figure>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br></pre></td><td class="code"><pre><span class="line">mysql&gt; CREATE TABLE &#96;test_innodb&#96; (id INT(11) UNSIGNED NOT NULL PRIMARY KEY AUTO_INCREMENT);</span><br><span class="line">Query OK, 0 rows affected (0.04 sec)</span><br><span class="line"></span><br><span class="line">mysql&gt; CREATE TABLE &#96;test_myisam&#96; (id INT(11) UNSIGNED NOT NULL PRIMARY KEY AUTO_INCREMENT)   ENGINE &#x3D; &#96;MyISAM&#96;;</span><br><span class="line">Query OK, 0 rows affected (0.03 sec)</span><br><span class="line"></span><br><span class="line">mysql&gt; begin;</span><br><span class="line">Query OK, 0 rows affected (0.00 sec)</span><br><span class="line"></span><br><span class="line">mysql&gt; insert into test_innodb(id) value(1);</span><br><span class="line">Query OK, 1 row affected (0.00 sec)</span><br><span class="line"></span><br><span class="line">mysql&gt; insert into test_myisam(id) value(1);</span><br><span class="line">ERROR 1785 (HY000): Statement violates GTID consistency: Updates to non-transactional tables can only be done in either autocommitted statements or single-statement transactions, and never in the same statement as updates to transactional tables.</span><br></pre></td></tr></table></figure>
 <h3 id="参考文档">参考文档</h3>
 <p><a href="http://www.google.com" target="_blank" rel="noopener">http://www.google.com</a><br>
 <a href="http://www.ywnds.com/?p=3898" target="_blank" rel="noopener">http://www.ywnds.com/?p=3898</a><br>
@@ -627,13 +642,13 @@
 
                 </ul>
                 <p class="copyright text-muted">
-                    Copyright &copy; Mike 2018 | Hosted by <a href="https://pages.coding.me" style="font-weight: bold">Coding Pages</a>
+                    Copyright &copy; Mike 2020 | Hosted by <a href="https://pages.coding.me" target="_blank" rel="noopener" style="font-weight: bold">Coding Pages</a>
                     <br>
-                    Theme by <a href="http://beantech.org">BeanTech</a> 
+                    Theme by <a href="http://beantech.org" target="_blank" rel="noopener">BeanTech</a> 
                     <span style="display: inline-block; margin: 0 5px;">
                         <i class="fa fa-heart"></i>
                     </span> 
-                    re-Ported by <a href="http://www.huweihuang.com">胡伟煌</a> | 
+                    re-Ported by <a href="http://www.huweihuang.com" target="_blank" rel="noopener">胡伟煌</a> | 
                     <iframe
                         style="margin-left: 2px; margin-bottom:-5px;"
                         frameborder="0" scrolling="0" width="91px" height="20px"
@@ -646,13 +661,19 @@
 </footer>
 
 <!-- jQuery -->
+
 <script src="/js/jquery.min.js"></script>
 
+
 <!-- Bootstrap Core JavaScript -->
+
 <script src="/js/bootstrap.min.js"></script>
 
+
 <!-- Custom Theme JavaScript -->
+
 <script src="/js/hux-blog.min.js"></script>
+
 
 
 <!-- async load function -->

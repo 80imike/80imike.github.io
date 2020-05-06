@@ -21,21 +21,35 @@
     <link rel="canonical" href="https://www.hi-linux.com/posts/36631.html">
 
     <!-- Bootstrap Core CSS -->
-    <link rel="stylesheet" href="/css/bootstrap.min.css">
+    
+<link rel="stylesheet" href="/css/bootstrap.min.css">
+
 
     <!-- Custom CSS --> 
-    <link rel="stylesheet" href="/css/beantech.min.css">
+    
+<link rel="stylesheet" href="/css/beantech.min.css">
+
     
     <!-- Pygments Highlight CSS -->
-    <link rel="stylesheet" href="/css/highlight.css">
+    
+<link rel="stylesheet" href="/css/highlight.css">
 
-    <link rel="stylesheet" href="/css/widget.css">
 
-    <link rel="stylesheet" href="/css/rocket.css">
+    
+<link rel="stylesheet" href="/css/widget.css">
 
-    <link rel="stylesheet" href="/css/signature.css">
 
-    <link rel="stylesheet" href="/css/toc.css">
+    
+<link rel="stylesheet" href="/css/rocket.css">
+
+
+    
+<link rel="stylesheet" href="/css/signature.css">
+
+
+    
+<link rel="stylesheet" href="/css/toc.css">
+
 
     <!-- Custom Fonts -->
     <!-- <link href="https://maxcdn.bootstrapcdn.com/font-awesome/4.3.0/css/font-awesome.min.css" rel="stylesheet" type="text/css"> -->
@@ -59,6 +73,7 @@
 
     <!-- ga & ba script hoook -->
     <script></script>
+<meta name="generator" content="Hexo 4.2.0"><link rel="alternate" href="/atom.xml" title="运维之美" type="application/atom+xml">
 </head>
 
 
@@ -145,14 +160,14 @@
 
                         
                         <li>
-                            <a href="/about/">About</a>
+                            <a href="/archive/">Archives</a>
                         </li>
                         
                     
 
                         
                         <li>
-                            <a href="/archive/">Archives</a>
+                            <a href="/about/">About</a>
                         </li>
                         
                     
@@ -296,19 +311,19 @@
 <p><strong>配置Redis</strong></p>
 <p>三台Redis主机配置类似，只是初次配置时角色不同。这里以主机<code>dev-master-01</code>为例，其它两台按实际情况修改就行了。</p>
 <p>Redis默认会绑定到<code>127.0.0.1</code>，这里要在多台机器间通信，我们将它绑定到主机IP上。</p>
-<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">$ vim /etc/redis/redis.conf</span><br><span class="line">bind 192.168.2.210</span><br></pre></td></tr></table></figure>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">$ vim &#x2F;etc&#x2F;redis&#x2F;redis.conf</span><br><span class="line">bind 192.168.2.210</span><br></pre></td></tr></table></figure>
 <p>如果要给Redis设置密码，需要在三个Redis的配置文件中设置相同的密码。</p>
-<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">$ vim /etc/redis/redis.conf</span><br><span class="line">requirepass &quot;000000&quot;</span><br></pre></td></tr></table></figure>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">$ vim &#x2F;etc&#x2F;redis&#x2F;redis.conf</span><br><span class="line">requirepass &quot;000000&quot;</span><br></pre></td></tr></table></figure>
 <p>设置主从复制</p>
 <p>在两个Slave Redis的配置文件中声明所从属的主数据库。</p>
-<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">$ vim /etc/redis/redis.conf</span><br><span class="line">slaveof 192.168.2.210 6379</span><br></pre></td></tr></table></figure>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">$ vim &#x2F;etc&#x2F;redis&#x2F;redis.conf</span><br><span class="line">slaveof 192.168.2.210 6379</span><br></pre></td></tr></table></figure>
 <p>这里需要注意一点：当一个Master配置需要密码才能连接时，客户端和Slave在连接时都需要提供密码。Master通过<code>requirepass</code>设置自身的密码，不提供密码无法连接到这个Master。Slave通过<code>masterauth</code>来设置访问Master时的密码。</p>
 <p>Sentinel可以切换主从数据库，主数据库可能会变成从数据库，所以三台机器上都需要同时设置<code>requirepass</code>和<code>masterauth</code>配置项。</p>
-<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">$ vim /etc/redis/redis.conf</span><br><span class="line">requirepass &quot;000000&quot;</span><br><span class="line">masterauth &quot;000000&quot;</span><br></pre></td></tr></table></figure>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">$ vim &#x2F;etc&#x2F;redis&#x2F;redis.conf</span><br><span class="line">requirepass &quot;000000&quot;</span><br><span class="line">masterauth &quot;000000&quot;</span><br></pre></td></tr></table></figure>
 <p><strong>配置Sentinel</strong></p>
 <p>redis-sentinel软件包中默认包含了一个名为<code>sentinel.conf</code>的文件，默认在<code>/etc/redis/sentinel.conf</code>。这里以主机<code>dev-master-01</code>为例，其它两台配置类似，按实际情况修改就行了。</p>
 <p>运行一个Sentinel所需的最少配置如下所示：</p>
-<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line">$ vim /etc/redis/sentinel.conf</span><br><span class="line"></span><br><span class="line">daemonize yes</span><br><span class="line">port 26379</span><br><span class="line">bind 192.168.2.210</span><br><span class="line">sentinel monitor redis-master 192.168.2.210 6379 2</span><br><span class="line">sentinel down-after-milliseconds redis-master 5000</span><br><span class="line">sentinel failover-timeout redis-master 180000</span><br><span class="line">sentinel parallel-syncs redis-master 2</span><br><span class="line">sentinel auth-pass redis-master 000000</span><br><span class="line">sentinel notification-script redis-master /etc/redis/notify.sh</span><br><span class="line">sentinel client-reconfig-script mymaster /etc/redis/failover.sh</span><br><span class="line">logfile /var/log/redis/redis-sentinel.log</span><br></pre></td></tr></table></figure>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line">$ vim &#x2F;etc&#x2F;redis&#x2F;sentinel.conf</span><br><span class="line"></span><br><span class="line">daemonize yes</span><br><span class="line">port 26379</span><br><span class="line">bind 192.168.2.210</span><br><span class="line">sentinel monitor redis-master 192.168.2.210 6379 2</span><br><span class="line">sentinel down-after-milliseconds redis-master 5000</span><br><span class="line">sentinel failover-timeout redis-master 180000</span><br><span class="line">sentinel parallel-syncs redis-master 2</span><br><span class="line">sentinel auth-pass redis-master 000000</span><br><span class="line">sentinel notification-script redis-master &#x2F;etc&#x2F;redis&#x2F;notify.sh</span><br><span class="line">sentinel client-reconfig-script mymaster &#x2F;etc&#x2F;redis&#x2F;failover.sh</span><br><span class="line">logfile &#x2F;var&#x2F;log&#x2F;redis&#x2F;redis-sentinel.log</span><br></pre></td></tr></table></figure>
 <p>以上配置项说明：</p>
 <ul>
 <li><code>daemonize yes</code></li>
@@ -350,8 +365,8 @@
 <li><code>sentinel notification-script redis-master /etc/redis/notify.sh</code></li>
 </ul>
 <p>指定Sentinel检测到该监控的Redis实例failover时调用的报警脚本。脚本被允许执行的最大时间为60秒，超过这个时间脚本会被kill。该配置项可选，但线上系统建议配置。这里的通知脚本简单的记录一下failover事件。</p>
-<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"># 创建通知脚本</span><br><span class="line">$ vim /etc/redis/notify.sh</span><br><span class="line"></span><br><span class="line">#! /bin/bash</span><br><span class="line"></span><br><span class="line">echo &quot;master failovered at `date`&quot; &gt; /var/log/redis/redis_issues.log</span><br></pre></td></tr></table></figure>
-<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"># 给脚本增加执行权限</span><br><span class="line">$ chmod +x /etc/redis/notify.sh</span><br></pre></td></tr></table></figure>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"># 创建通知脚本</span><br><span class="line">$ vim &#x2F;etc&#x2F;redis&#x2F;notify.sh</span><br><span class="line"></span><br><span class="line">#! &#x2F;bin&#x2F;bash</span><br><span class="line"></span><br><span class="line">echo &quot;master failovered at &#96;date&#96;&quot; &gt; &#x2F;var&#x2F;log&#x2F;redis&#x2F;redis_issues.log</span><br></pre></td></tr></table></figure>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"># 给脚本增加执行权限</span><br><span class="line">$ chmod +x &#x2F;etc&#x2F;redis&#x2F;notify.sh</span><br></pre></td></tr></table></figure>
 <ul>
 <li><code>sentinel client-reconfig-script redis-master /etc/redis/failover.sh</code></li>
 </ul>
@@ -372,9 +387,9 @@
 <p>运行Sentinel有两种方式：</p>
 <p>虽然Redis Sentinel有单独的软件安装包，但实际上它只是一个运行在特殊模式下的Redis实例。当前Redis Stable版已经自带了redis-sentinel这个工具。你可以在启动一个普通Redis实例时通过给定<code>--sentinel</code>选项来启动Redis Sentinel。</p>
 <p>第一种：用单独的可执行文件redis-sentinel</p>
-<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">$ redis-sentinel /etc/redis/sentinel.conf</span><br></pre></td></tr></table></figure>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">$ redis-sentinel &#x2F;etc&#x2F;redis&#x2F;sentinel.conf</span><br></pre></td></tr></table></figure>
 <p>第二种：使用redis-server的–sentinel选项</p>
-<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">$ redis-server /etc/redis/sentinel.conf --sentinel</span><br></pre></td></tr></table></figure>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">$ redis-server &#x2F;etc&#x2F;redis&#x2F;sentinel.conf --sentinel</span><br></pre></td></tr></table></figure>
 <p>以上两种方式，都必须指定一个Sentinel的配置文件sentinel.conf。需要确保配置文件是可写的，因为Sentinel会往配置文件里添加很多信息作为状态持久化，这是为了重启等情况下可以正确地恢复 Sentinel的状态。</p>
 <p>当配置文件无法写入时，Sentinel会启动失败。Sentinel默认监听26379端口，所以运行前必须确定该端口没有被别的进程占用。</p>
 <p>我们这里用<code>redis-sentinel</code>方式来启动：</p>
@@ -383,20 +398,20 @@
 <li>测试Sentinel</li>
 </ul>
 <p>启动成功后可以通过redis客户端工具查看当前Sentinel的信息，终端输入：</p>
-<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line">$ redis-cli -p 26379 -h 192.168.2.210 INFO Sentinel</span><br><span class="line"># Sentinel</span><br><span class="line">sentinel_masters:1</span><br><span class="line">sentinel_tilt:0</span><br><span class="line">sentinel_running_scripts:2</span><br><span class="line">sentinel_scripts_queue_length:1</span><br><span class="line">master0:name=redis-master,status=ok,address=192.168.2.210:6379,slaves=2,sentinels=1</span><br></pre></td></tr></table></figure>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line">$ redis-cli -p 26379 -h 192.168.2.210 INFO Sentinel</span><br><span class="line"># Sentinel</span><br><span class="line">sentinel_masters:1</span><br><span class="line">sentinel_tilt:0</span><br><span class="line">sentinel_running_scripts:2</span><br><span class="line">sentinel_scripts_queue_length:1</span><br><span class="line">master0:name&#x3D;redis-master,status&#x3D;ok,address&#x3D;192.168.2.210:6379,slaves&#x3D;2,sentinels&#x3D;1</span><br></pre></td></tr></table></figure>
 <p>Sentinel启动后会输出类似的日志：</p>
-<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line">$ tail -f /var/log/redis/redis-sentinel.log</span><br><span class="line"></span><br><span class="line">6207:X 06 Jun 10:40:05.904 # Sentinel runid is 2b2446b24a2bd01b9f54a6b2ca4f945a3480dd7e</span><br><span class="line">6207:X 06 Jun 10:40:05.904 # +monitor master redis-master 192.168.2.210 6379 quorum 2</span><br><span class="line">6207:X 06 Jun 10:40:05.910 * +slave slave 192.168.2.211:6379 192.168.2.211 6379 @ redis-master 192.168.2.210 6379</span><br><span class="line">6207:X 06 Jun 10:40:05.915 * +slave slave 192.168.2.212:6379 192.168.2.212 6379 @ redis-master 192.168.2.210 6379</span><br><span class="line">6207:X 06 Jun 12:01:33.098 * +sentinel sentinel 192.168.2.211:26379 192.168.2.211 26379 @ redis-master 192.168.2.210 6379</span><br><span class="line">6207:X 06 Jun 12:02:07.922 * +sentinel sentinel 192.168.2.212:26379 192.168.2.212 26379 @ redis-master 192.168.2.210 637968.2.212:6379 192.168.2.212 6379 @ redis-master 192.168.2.210 6379</span><br></pre></td></tr></table></figure>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line">$ tail -f &#x2F;var&#x2F;log&#x2F;redis&#x2F;redis-sentinel.log</span><br><span class="line"></span><br><span class="line">6207:X 06 Jun 10:40:05.904 # Sentinel runid is 2b2446b24a2bd01b9f54a6b2ca4f945a3480dd7e</span><br><span class="line">6207:X 06 Jun 10:40:05.904 # +monitor master redis-master 192.168.2.210 6379 quorum 2</span><br><span class="line">6207:X 06 Jun 10:40:05.910 * +slave slave 192.168.2.211:6379 192.168.2.211 6379 @ redis-master 192.168.2.210 6379</span><br><span class="line">6207:X 06 Jun 10:40:05.915 * +slave slave 192.168.2.212:6379 192.168.2.212 6379 @ redis-master 192.168.2.210 6379</span><br><span class="line">6207:X 06 Jun 12:01:33.098 * +sentinel sentinel 192.168.2.211:26379 192.168.2.211 26379 @ redis-master 192.168.2.210 6379</span><br><span class="line">6207:X 06 Jun 12:02:07.922 * +sentinel sentinel 192.168.2.212:26379 192.168.2.212 26379 @ redis-master 192.168.2.210 637968.2.212:6379 192.168.2.212 6379 @ redis-master 192.168.2.210 6379</span><br></pre></td></tr></table></figure>
 <p>输出的结果表示开始监控redis-master集群，并输出集群的基本信息。<code>+slave</code>和<code>+sentinel</code>分别代表成功发现了从数据库和其他Sentinel。</p>
 <ul>
 <li>查看sentinel.conf</li>
 </ul>
 <p>重新打开sentinel.conf文件，发现Sentinel自动生成了一些信息，记录了监控过程中的状态变化。</p>
-<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line">$ cat /etc/redis/sentinel.conf</span><br><span class="line"># Generated by CONFIG REWRITE</span><br><span class="line">maxclients 4064</span><br><span class="line">sentinel leader-epoch redis-master 0</span><br><span class="line">sentinel known-slave redis-master 192.168.2.212 6379</span><br><span class="line">sentinel known-slave redis-master 192.168.2.211 6379</span><br><span class="line">sentinel current-epoch 0</span><br></pre></td></tr></table></figure>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line">$ cat &#x2F;etc&#x2F;redis&#x2F;sentinel.conf</span><br><span class="line"># Generated by CONFIG REWRITE</span><br><span class="line">maxclients 4064</span><br><span class="line">sentinel leader-epoch redis-master 0</span><br><span class="line">sentinel known-slave redis-master 192.168.2.212 6379</span><br><span class="line">sentinel known-slave redis-master 192.168.2.211 6379</span><br><span class="line">sentinel current-epoch 0</span><br></pre></td></tr></table></figure>
 <ul>
 <li>查看Sentinel监控的主从服务器</li>
 </ul>
 <p>列出所有被监视的主服务器，以及这些主服务器的当前状态。</p>
-<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br></pre></td><td class="code"><pre><span class="line">$ redis-cli  -p 26379 -h 192.168.2.210</span><br><span class="line">192.168.2.210:26379&gt; sentinel master redis-master</span><br><span class="line"> 1) &quot;name&quot;</span><br><span class="line"> 2) &quot;redis-master&quot;</span><br><span class="line"> 3) &quot;ip&quot;</span><br><span class="line"> 4) &quot;192.168.2.210&quot;</span><br><span class="line"> 5) &quot;port&quot;</span><br><span class="line"> 6) &quot;6379&quot;</span><br><span class="line"> 7) &quot;runid&quot;</span><br><span class="line"> 8) &quot;02d88a6105ce3277745c1fc65b695887f165f302&quot;</span><br><span class="line"> 9) &quot;flags&quot;</span><br><span class="line">10) &quot;master&quot;</span><br><span class="line">11) &quot;pending-commands&quot;</span><br><span class="line">12) &quot;0&quot;</span><br><span class="line">13) &quot;last-ping-sent&quot;</span><br><span class="line">14) &quot;0&quot;</span><br><span class="line">15) &quot;last-ok-ping-reply&quot;</span><br><span class="line">16) &quot;1096&quot;</span><br><span class="line">17) &quot;last-ping-reply&quot;</span><br><span class="line">18) &quot;1096&quot;</span><br><span class="line">19) &quot;down-after-milliseconds&quot;</span><br><span class="line">20) &quot;5000&quot;</span><br><span class="line">21) &quot;info-refresh&quot;</span><br><span class="line">22) &quot;4732&quot;</span><br><span class="line">23) &quot;role-reported&quot;</span><br><span class="line">24) &quot;master&quot;</span><br><span class="line">25) &quot;role-reported-time&quot;</span><br><span class="line">26) &quot;667578&quot;</span><br><span class="line">27) &quot;config-epoch&quot;</span><br><span class="line">28) &quot;0&quot;</span><br><span class="line">29) &quot;num-slaves&quot;</span><br><span class="line">30) &quot;2&quot;</span><br><span class="line">31) &quot;num-other-sentinels&quot;</span><br><span class="line">32) &quot;0&quot;</span><br><span class="line">33) &quot;quorum&quot;</span><br><span class="line">34) &quot;2&quot;</span><br><span class="line">35) &quot;failover-timeout&quot;</span><br><span class="line">36) &quot;180000&quot;</span><br><span class="line">37) &quot;parallel-syncs&quot;</span><br><span class="line">38) &quot;2&quot;</span><br><span class="line">39) &quot;notification-script&quot;</span><br><span class="line">40) &quot;/etc/redis/notify.sh&quot;</span><br></pre></td></tr></table></figure>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br></pre></td><td class="code"><pre><span class="line">$ redis-cli  -p 26379 -h 192.168.2.210</span><br><span class="line">192.168.2.210:26379&gt; sentinel master redis-master</span><br><span class="line"> 1) &quot;name&quot;</span><br><span class="line"> 2) &quot;redis-master&quot;</span><br><span class="line"> 3) &quot;ip&quot;</span><br><span class="line"> 4) &quot;192.168.2.210&quot;</span><br><span class="line"> 5) &quot;port&quot;</span><br><span class="line"> 6) &quot;6379&quot;</span><br><span class="line"> 7) &quot;runid&quot;</span><br><span class="line"> 8) &quot;02d88a6105ce3277745c1fc65b695887f165f302&quot;</span><br><span class="line"> 9) &quot;flags&quot;</span><br><span class="line">10) &quot;master&quot;</span><br><span class="line">11) &quot;pending-commands&quot;</span><br><span class="line">12) &quot;0&quot;</span><br><span class="line">13) &quot;last-ping-sent&quot;</span><br><span class="line">14) &quot;0&quot;</span><br><span class="line">15) &quot;last-ok-ping-reply&quot;</span><br><span class="line">16) &quot;1096&quot;</span><br><span class="line">17) &quot;last-ping-reply&quot;</span><br><span class="line">18) &quot;1096&quot;</span><br><span class="line">19) &quot;down-after-milliseconds&quot;</span><br><span class="line">20) &quot;5000&quot;</span><br><span class="line">21) &quot;info-refresh&quot;</span><br><span class="line">22) &quot;4732&quot;</span><br><span class="line">23) &quot;role-reported&quot;</span><br><span class="line">24) &quot;master&quot;</span><br><span class="line">25) &quot;role-reported-time&quot;</span><br><span class="line">26) &quot;667578&quot;</span><br><span class="line">27) &quot;config-epoch&quot;</span><br><span class="line">28) &quot;0&quot;</span><br><span class="line">29) &quot;num-slaves&quot;</span><br><span class="line">30) &quot;2&quot;</span><br><span class="line">31) &quot;num-other-sentinels&quot;</span><br><span class="line">32) &quot;0&quot;</span><br><span class="line">33) &quot;quorum&quot;</span><br><span class="line">34) &quot;2&quot;</span><br><span class="line">35) &quot;failover-timeout&quot;</span><br><span class="line">36) &quot;180000&quot;</span><br><span class="line">37) &quot;parallel-syncs&quot;</span><br><span class="line">38) &quot;2&quot;</span><br><span class="line">39) &quot;notification-script&quot;</span><br><span class="line">40) &quot;&#x2F;etc&#x2F;redis&#x2F;notify.sh&quot;</span><br></pre></td></tr></table></figure>
 <h4 id="sentinel验证">Sentinel验证</h4>
 <p><strong>测试Failover</strong></p>
 <p>我们让dev-master-01主机上的redis-master主动休眠30秒来观察failover过程：</p>
@@ -416,7 +431,7 @@
 <p><code>+try-failover master redis-master 192.168.2.210 6379</code>，表示Sentine开始进行故障恢复。</p>
 </li>
 <li>
-<p><code>+vote-for-leader 2b2446b24a2bd01b9f54a6b2ca4f945a3480dd7e 1</code>，准备选举一个 Sentinel Leader来开始failover。</p>
+<p><code>+vote-for-leader 2b2446b24a2bd01b9f54a6b2ca4f945a3480dd7e 1 </code>，准备选举一个 Sentinel Leader来开始failover。</p>
 </li>
 <li>
 <p><code>+failover-end master redis-master 192.168.2.210 6379</code>，表示Sentinel完成故障修复，其中包括了Sentinel Leader的选举、备选从数据库的选择等较为复杂的过程。</p>
@@ -436,13 +451,13 @@
 </ul>
 <p><strong>查看Sentinel配置文件变更</strong></p>
 <p>经过一次failover后，会发现Sentinel配置文件变更了以下一些内容。可以看到Sentinel将最新的集群状态写入了配置文件。</p>
-<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line">$ cat /etc/redis/sentinel.conf</span><br><span class="line"></span><br><span class="line"># Generated by CONFIG REWRITE</span><br><span class="line">maxclients 4064</span><br><span class="line">sentinel leader-epoch redis-master 1</span><br><span class="line">sentinel known-slave redis-master 192.168.2.211 6379</span><br><span class="line">sentinel known-slave redis-master 192.168.2.210 6379</span><br><span class="line">sentinel known-sentinel redis-master 192.168.2.212 26379 bbf85fae74692d9527e77c5b0bb83a2b5db40dd2</span><br><span class="line">sentinel known-sentinel redis-master 192.168.2.210 26379 2b2446b24a2bd01b9f54a6b2ca4f945a3480dd7e</span><br><span class="line">sentinel current-epoch 1</span><br></pre></td></tr></table></figure>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line">$ cat &#x2F;etc&#x2F;redis&#x2F;sentinel.conf</span><br><span class="line"></span><br><span class="line"># Generated by CONFIG REWRITE</span><br><span class="line">maxclients 4064</span><br><span class="line">sentinel leader-epoch redis-master 1</span><br><span class="line">sentinel known-slave redis-master 192.168.2.211 6379</span><br><span class="line">sentinel known-slave redis-master 192.168.2.210 6379</span><br><span class="line">sentinel known-sentinel redis-master 192.168.2.212 26379 bbf85fae74692d9527e77c5b0bb83a2b5db40dd2</span><br><span class="line">sentinel known-sentinel redis-master 192.168.2.210 26379 2b2446b24a2bd01b9f54a6b2ca4f945a3480dd7e</span><br><span class="line">sentinel current-epoch 1</span><br></pre></td></tr></table></figure>
 <p><strong>验证下三台主机上的角色</strong></p>
 <ul>
 <li>dev-node-02</li>
 </ul>
 <p>以下输出信息，表明192.168.2.212上的Redis是Master角色。</p>
-<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line">$ redis-cli -p 6379 -h 192.168.2.212 -a 000000 info Replication</span><br><span class="line"># Replication</span><br><span class="line">role:master</span><br><span class="line">connected_slaves:2</span><br><span class="line">slave0:ip=192.168.2.211,port=6379,state=online,offset=2312008,lag=0</span><br><span class="line">slave1:ip=192.168.2.210,port=6379,state=online,offset=2312008,lag=0</span><br><span class="line">master_repl_offset:2312008</span><br><span class="line">repl_backlog_active:1</span><br><span class="line">repl_backlog_size:1048576</span><br><span class="line">repl_backlog_first_byte_offset:1639828</span><br><span class="line">repl_backlog_histlen:672181</span><br></pre></td></tr></table></figure>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line">$ redis-cli -p 6379 -h 192.168.2.212 -a 000000 info Replication</span><br><span class="line"># Replication</span><br><span class="line">role:master</span><br><span class="line">connected_slaves:2</span><br><span class="line">slave0:ip&#x3D;192.168.2.211,port&#x3D;6379,state&#x3D;online,offset&#x3D;2312008,lag&#x3D;0</span><br><span class="line">slave1:ip&#x3D;192.168.2.210,port&#x3D;6379,state&#x3D;online,offset&#x3D;2312008,lag&#x3D;0</span><br><span class="line">master_repl_offset:2312008</span><br><span class="line">repl_backlog_active:1</span><br><span class="line">repl_backlog_size:1048576</span><br><span class="line">repl_backlog_first_byte_offset:1639828</span><br><span class="line">repl_backlog_histlen:672181</span><br></pre></td></tr></table></figure>
 <ul>
 <li>dev-master-01</li>
 </ul>
@@ -760,13 +775,13 @@
 
                 </ul>
                 <p class="copyright text-muted">
-                    Copyright &copy; Mike 2018 | Hosted by <a href="https://pages.coding.me" style="font-weight: bold">Coding Pages</a>
+                    Copyright &copy; Mike 2020 | Hosted by <a href="https://pages.coding.me" target="_blank" rel="noopener" style="font-weight: bold">Coding Pages</a>
                     <br>
-                    Theme by <a href="http://beantech.org">BeanTech</a> 
+                    Theme by <a href="http://beantech.org" target="_blank" rel="noopener">BeanTech</a> 
                     <span style="display: inline-block; margin: 0 5px;">
                         <i class="fa fa-heart"></i>
                     </span> 
-                    re-Ported by <a href="http://www.huweihuang.com">胡伟煌</a> | 
+                    re-Ported by <a href="http://www.huweihuang.com" target="_blank" rel="noopener">胡伟煌</a> | 
                     <iframe
                         style="margin-left: 2px; margin-bottom:-5px;"
                         frameborder="0" scrolling="0" width="91px" height="20px"
@@ -779,13 +794,19 @@
 </footer>
 
 <!-- jQuery -->
+
 <script src="/js/jquery.min.js"></script>
 
+
 <!-- Bootstrap Core JavaScript -->
+
 <script src="/js/bootstrap.min.js"></script>
 
+
 <!-- Custom Theme JavaScript -->
+
 <script src="/js/hux-blog.min.js"></script>
+
 
 
 <!-- async load function -->
