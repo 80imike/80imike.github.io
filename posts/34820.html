@@ -1,0 +1,778 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<!-- Head tag -->
+<head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="google-site-verification" content="xBT4GhYoi5qRD5tr338pgPM5OWHHIDR6mNg1a3euekI" />
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="description" content="">
+    <meta name="keyword"  content="Linux,运维,Nginx,Zabbix,Centos,Ansible,MySQL,Python,Docker,ELK,Haproxy,Git,Nodejs,安全,技术">
+    <link rel="shortcut icon" href="/img/ironman-draw.png">
+    <!-- Place this tag in your head or just before your close body tag. -->
+    <script async defer src="https://buttons.github.io/buttons.js"></script>
+    <title>
+        
+          Kubernetes 私有集群负载均衡器终极解决方案 MetalLB ( 贫苦 K8S 用户的 LoadBalancer ) - 运维之美
+        
+    </title>
+
+    <link rel="canonical" href="https://www.hi-linux.com/posts/34820.html">
+
+    <!-- Bootstrap Core CSS -->
+    
+<link rel="stylesheet" href="/css/bootstrap.min.css">
+
+
+    <!-- Custom CSS --> 
+    
+<link rel="stylesheet" href="/css/beantech.min.css">
+
+    
+    <!-- Pygments Highlight CSS -->
+    
+<link rel="stylesheet" href="/css/highlight.css">
+
+
+    
+<link rel="stylesheet" href="/css/widget.css">
+
+
+    
+<link rel="stylesheet" href="/css/rocket.css">
+
+
+    
+<link rel="stylesheet" href="/css/signature.css">
+
+
+    
+<link rel="stylesheet" href="/css/toc.css">
+
+
+    <!-- Custom Fonts -->
+    <!-- <link href="https://maxcdn.bootstrapcdn.com/font-awesome/4.3.0/css/font-awesome.min.css" rel="stylesheet" type="text/css"> -->
+    <!-- Hux change font-awesome CDN to qiniu -->
+    <link href="https://cdn.staticfile.org/font-awesome/4.5.0/css/font-awesome.min.css" rel="stylesheet" type="text/css">
+
+
+    <!-- Hux Delete, sad but pending in China
+    <link href='http://fonts.googleapis.com/css?family=Lora:400,700,400italic,700italic' rel='stylesheet' type='text/css'>
+    <link href='http://fonts.googleapis.com/css?family=Open+Sans:300italic,400italic,600italic,700italic,800italic,400,300,600,700,800' rel='stylesheet' type='text/
+    css'>
+    -->
+
+
+    <!-- HTML5 Shim and Respond.js IE8 support of HTML5 elements and media queries -->
+    <!-- WARNING: Respond.js doesn't work if you view the page via file:// -->
+    <!--[if lt IE 9]>
+        <script src="https://oss.maxcdn.com/libs/html5shiv/3.7.0/html5shiv.js"></script>
+        <script src="https://oss.maxcdn.com/libs/respond.js/1.4.2/respond.min.js"></script>
+    <![endif]-->
+
+    <!-- ga & ba script hoook -->
+    <script></script>
+<meta name="generator" content="Hexo 4.2.0"><link rel="alternate" href="/atom.xml" title="运维之美" type="application/atom+xml">
+</head>
+
+
+<!-- hack iOS CSS :active style -->
+<body ontouchstart="">
+	<!-- Modified by Yu-Hsuan Yen -->
+<!-- Post Header -->
+<style type="text/css">
+    header.intro-header{
+        
+            background-image: url('/img/header_img/building.jpg')
+            /*post*/
+        
+    }
+    
+</style>
+
+<header class="intro-header" >
+    <!-- Signature -->
+    <div id="signature">
+        <div class="container">
+            <div class="row">
+                <div class="col-lg-8 col-lg-offset-2 col-md-10 col-md-offset-1">
+                
+                    <div class="post-heading">
+                        <div class="tags">
+                            
+                              <a class="tag" href="/tags/#Linux" title="Linux">Linux</a>
+                            
+                              <a class="tag" href="/tags/#Kubernetes" title="Kubernetes">Kubernetes</a>
+                            
+                        </div>
+                        <h1>Kubernetes 私有集群负载均衡器终极解决方案 MetalLB ( 贫苦 K8S 用户的 LoadBalancer )</h1>
+                        <h2 class="subheading"></h2>
+                        <span class="meta">
+                            Posted by Mike on
+                            2020-05-08
+                        </span>
+                    </div>
+                
+
+
+                </div>
+            </div>
+        </div>
+    </div>
+</header>
+
+	
+    <!-- Navigation -->
+<nav class="navbar navbar-default navbar-custom navbar-fixed-top">
+    <div class="container-fluid">
+        <!-- Brand and toggle get grouped for better mobile display -->
+        <div class="navbar-header page-scroll">
+            <button type="button" class="navbar-toggle">
+                <span class="sr-only">Toggle navigation</span>
+                <span class="icon-bar"></span>
+                <span class="icon-bar"></span>
+                <span class="icon-bar"></span>
+            </button>
+            <a class="navbar-brand" href="/">运维之美</a>
+        </div>
+
+        <!-- Collect the nav links, forms, and other content for toggling -->
+        <!-- Known Issue, found by Hux:
+            <nav>'s height woule be hold on by its content.
+            so, when navbar scale out, the <nav> will cover tags.
+            also mask any touch event of tags, unfortunately.
+        -->
+        <div id="huxblog_navbar">
+            <div class="navbar-collapse">
+                <ul class="nav navbar-nav navbar-right">
+                    <li>
+                        <a href="/">Home</a>
+                    </li>
+
+                    
+
+                        
+                    
+
+                        
+                    
+
+                        
+                        <li>
+                            <a href="/archive/">Archives</a>
+                        </li>
+                        
+                    
+
+                        
+                        <li>
+                            <a href="/about/">About</a>
+                        </li>
+                        
+                    
+
+                        
+                        <li>
+                            <a href="/tags/">Tags</a>
+                        </li>
+                        
+                    
+                    
+                </ul>
+            </div>
+        </div>
+        <!-- /.navbar-collapse -->
+    </div>
+    <!-- /.container -->
+</nav>
+<script>
+    // Drop Bootstarp low-performance Navbar
+    // Use customize navbar with high-quality material design animation
+    // in high-perf jank-free CSS3 implementation
+    var $body   = document.body;
+    var $toggle = document.querySelector('.navbar-toggle');
+    var $navbar = document.querySelector('#huxblog_navbar');
+    var $collapse = document.querySelector('.navbar-collapse');
+
+    $toggle.addEventListener('click', handleMagic)
+    function handleMagic(e){
+        if ($navbar.className.indexOf('in') > 0) {
+        // CLOSE
+            $navbar.className = " ";
+            // wait until animation end.
+            setTimeout(function(){
+                // prevent frequently toggle
+                if($navbar.className.indexOf('in') < 0) {
+                    $collapse.style.height = "0px"
+                }
+            },400)
+        }else{
+        // OPEN
+            $collapse.style.height = "auto"
+            $navbar.className += " in";
+        }
+    }
+</script>
+
+
+    <!-- Main Content -->
+    <!-- Modify by Yu-Hsuan Yen -->
+
+<!-- Post Content -->
+<article>
+    <div class="container">
+        <div class="row">
+
+            <!-- Post Container -->
+            <div class="
+                col-lg-8 col-lg-offset-2
+                col-md-10 col-md-offset-1
+                post-container">
+
+                <div id="vip-container"><p>私有云裸金属架构（这里是相对云上环境来说，不是说无操作系统）上部署的 Kubernetes 集群，通常是无法使用 LoadBalancer 类型的 Service 的。因为 Kubernetes 本身没有为裸机群集提供网络负载均衡器（类型为 LoadBalancer 的服务）的实现。如果你的 Kubernetes 集群没有在公有云的 IaaS 平台（GCP，AWS，Azure …）上运行，则 LoadBalancers 将在创建时无限期地保持 “挂起” 状态，也就是说只有公有云厂商自家的 Kubernetes 支持 LoadBalancer 。</p>
+<p>为了从外部访问裸机 Kubernetes 群集，目前只能使用 <code>NodePort</code> 或 <code>Ingress</code> 的方法进行服务暴露。前者的缺点是每个暴露的服务需要占用所有节点的某个端口，后者的缺点是仅仅能支持 <code>HTTP</code> 协议。</p>
+<h2 id="什么是-metallb">什么是 MetalLB</h2>
+<p><code>MetalLB</code> 是一个负载均衡器，专门解决裸金属 Kubernetes 集群中无法使用 <code>LoadBalancer</code> 类型服务的痛点。<code>MetalLB</code> 使用标准化的路由协议，以便裸金属 Kubernetes 集群上的外部服务也尽可能地工作。即 MetalLB 能够帮助你在裸金属 Kubernetes 集群中创建 LoadBalancer 类型的 Kubernetes 服务，该项目发布于 2017 年底，当前处于 <code>Beta</code> 阶段。</p>
+<blockquote>
+<p>项目地址：<a href="https://github.com/danderson/metallb" target="_blank" rel="noopener">https://github.com/danderson/metallb</a></p>
+</blockquote>
+<h2 id="metallb-工作原理">MetalLB 工作原理</h2>
+<p>MetalLB 会在 Kubernetes 内运行，监控服务对象的变化，一旦监测到有新的 LoadBalancer 服务运行，并且没有可申请的负载均衡器之后，就会完成地址分配和外部声明两部分的工作。</p>
+<h3 id="地址分配">地址分配</h3>
+<p>在云环境中，当你请求一个负载均衡器时，云平台会自动分配一个负载均衡器的 IP 地址给你，应用程序通过此 IP 来访问经过负载均衡处理的服务。</p>
+<p>使用 MetalLB 时，MetalLB 会自己为用户的 LoadBalancer 类型 Service 分配 IP 地址，当然该 IP 地址不是凭空产生的，需要用户在配置中提供一个 IP 地址池，Metallb 将会在其中选取地址分配给服务。</p>
+<h3 id="外部声明">外部声明</h3>
+<p>MetalLB 将 IP 分配给某个服务后，它需要对外宣告此 IP 地址，并让外部主机可以路由到此 IP。</p>
+<p>MetalLB 支持两种声明模式：Layer 2（ ARP / NDP ）模式或者 BGP 模式。</p>
+<ol>
+<li>Layer 2 模式</li>
+</ol>
+<p><img src="https://kubernetes.github.io/ingress-nginx/images/baremetal/metallb.jpg" alt=""></p>
+<p>在任何以太网环境均可使用该模式。当在第二层工作时，将有一台机器获得 IP 地址（即服务的所有权）。MetalLB 使用标准的地址发现协议（对于 IPv4 是 ARP，对于 IPv6 是 NDP）宣告 IP 地址，使其在本地网路中可达。从 LAN 的角度来看，仅仅是某台机器多配置了一个 IP 地址。</p>
+<p>Layer 2 模式下，每个 Service 会有集群中的一个 Node 来负责。服务的入口流量全部经由单个节点，然后该节点的 Kube-Proxy 会把流量再转发给服务的 Pods。也就是说，该模式下 MetalLB 并没有真正提供负载均衡器。尽管如此，MetalLB 提供了故障转移功能，如果持有 IP 的节点出现故障，则默认 10 秒后即发生故障转移，IP 会被分配给其它健康的节点。</p>
+<p>Layer 2 模式的优缺点：</p>
+<ul>
+<li>
+<p>Layer 2 模式更为通用，不需要用户有额外的设备；</p>
+</li>
+<li>
+<p>Layer 2 模式下存在单点问题，服务的所有入口流量经由单点，其网络带宽可能成为瓶颈；</p>
+</li>
+<li>
+<p>由于 Layer 2 模式需要 ARP/NDP 客户端配合，当故障转移发生时，MetalLB 会发送 ARP 包来宣告 MAC 地址和 IP 映射关系的变化，地址分配略为繁琐。</p>
+</li>
+</ul>
+<ol start="2">
+<li>BGP 模式</li>
+</ol>
+<p>当在第三层工作时，集群中所有机器都和你控制的最接近的路由器建立 BGP 会话，此会话让路由器能学习到如何转发针对 K8S 服务 IP 的数据包。</p>
+<p>通过使用 BGP，可以实现真正的跨多节点负载均衡（需要路由器支持 multipath），还可以基于 BGP 的策略机制实现细粒度的流量控制。</p>
+<p>具体的负载均衡行为和路由器有关，可保证的共同行为是：每个连接（TCP 或 UDP 会话）的数据包总是路由到同一个节点上。</p>
+<p>BGP 模式的优缺点：</p>
+<ul>
+<li>
+<p>不能优雅处理故障转移，当持有服务的节点宕掉后，所有活动连接的客户端将收到 Connection reset by peer ；</p>
+</li>
+<li>
+<p>BGP 路由器对数据包的源 IP、目的 IP、协议类型进行简单的哈希，并依据哈希值决定发给哪个 K8S 节点。问题是 K8S 节点集是不稳定的，一旦（参与 BGP）的节点宕掉，很大部分的活动连接都会因为 rehash 而坏掉。</p>
+</li>
+</ul>
+<p>BGP 模式问题的缓和措施：</p>
+<ul>
+<li>
+<p>将服务绑定到一部分固定的节点上，降低 rehash 的概率。</p>
+</li>
+<li>
+<p>在流量低的时段改变服务的部署。</p>
+</li>
+<li>
+<p>客户端添加透明重试逻辑，当发现连接 TCP 层错误时自动重试。</p>
+</li>
+</ul>
+<a id="more"></a>
+<h2 id="部署-metallb">部署 MetalLB</h2>
+<h3 id="环境要求">环境要求</h3>
+<p>根据部署模式不同，MetalLB 可能需要以下环境：</p>
+<ol>
+<li>
+<p>一个 Kubernetes 集群，运行 Kubernetes 1.13.0 或更高版本。</p>
+</li>
+<li>
+<p>Kubernetes 集群的网络配置可以与 MetalLB 共存。</p>
+</li>
+<li>
+<p>有一些提供给 MetalLB 分发的 IPv4 地址。</p>
+</li>
+<li>
+<p>根据部署模式，可能需要一个或多个 BGP 的路由器 。</p>
+</li>
+</ol>
+<p>MetalLB 目前支持网络插件范围</p>
+<table>
+<thead>
+<tr>
+<th>网络插件</th>
+<th>兼容性</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Calico</td>
+<td>部分支持（有附加文档）</td>
+</tr>
+<tr>
+<td>Flannel</td>
+<td>支持</td>
+</tr>
+<tr>
+<td>Kube-router</td>
+<td>不支持</td>
+</tr>
+<tr>
+<td>Romana</td>
+<td>支持（有附加文档）</td>
+</tr>
+<tr>
+<td>Weave Net</td>
+<td>支持</td>
+</tr>
+</tbody>
+</table>
+<blockquote>
+<p>从 Kubernetes 1.9 开始, Kube-Proxy 除了支持默认的 Iptables 模式之外，还支持更高效的 IPVS 模式。MetalLB 可以在Kubenetes 1.13 或更高版本的 Kube-Proxy 中使用 IPVS 模式。但是,它尚未明确测试，因此风险自负。具体内容可参考：<a href="https://github.com/google/metallb/issues/153" target="_blank" rel="noopener">https://github.com/google/metallb/issues/153</a></p>
+</blockquote>
+<h3 id="安装-metallb">安装 MetalLB</h3>
+<p>安装 MetalLB 一共有两种方法：使用 Kubernetes YAML 文件或使用 Helm 包管理器。</p>
+<h4 id="使用-yaml-文件部署">使用 YAML 文件部署</h4>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"># 目前 MetalLB 最新版本为 0.8.1</span><br><span class="line">$ kubectl apply -f https:&#x2F;&#x2F;raw.githubusercontent.com&#x2F;google&#x2F;metallb&#x2F;v0.8.1&#x2F;manifests&#x2F;metallb.yaml</span><br></pre></td></tr></table></figure>
+<p>部署完成后，将在 <code>metallb-system</code> 命名空间下将 MetalLB 部署到集群。YAML 文件中主要包含以下一些组件：</p>
+<ol>
+<li>
+<p><code>metallb-system/controller</code>，这是处理 <code>IP</code> 地址分配的控制器。</p>
+</li>
+<li>
+<p><code>metallb-system/speakerdaemonset</code> 这是支持你选择协议以使服务可达的组件。</p>
+</li>
+<li>
+<p><code>Controller</code> 和 <code>Speaker</code> 的 <code>Service Accounts</code>，以及组件需要运行的 <code>RBAC</code> 权限。</p>
+</li>
+</ol>
+<blockquote>
+<p>通过 YAML 安装文件部署并不包含 MetalLB 配置文件，但 MetalLB 的组件仍能启动，但在你定义和部署 <code>configmap</code> 之前将保持空闲状态 。</p>
+</blockquote>
+<h4 id="使用-helm-部署">使用 Helm 部署</h4>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">$ helm install --name metallb stable&#x2F;metallb</span><br></pre></td></tr></table></figure>
+<p>如果你还不知道什么是 Helm，可以先参考 <a href="https://mp.weixin.qq.com/s?__biz=MzI3MTI2NzkxMA==&amp;mid=2247486154&amp;idx=1&amp;sn=becd5dd0fadfe0b6072f5dfdc6fdf786&amp;chksm=eac52be3ddb2a2f555b8b1028db97aa3e92d0a4880b56f361e4b11cd252771147c44c08c8913&amp;token=1182029777&amp;lang=zh_CN#rd" target="_blank" rel="noopener">「Helm 入门指南」</a> 一文。</p>
+<h2 id="配置-metallb">配置 MetalLB</h2>
+<p>MetalLB 安装完成后，我们还需要根据具体的地址和通告方式配置名为 <code>metallb-system/config</code> 的 ConfigMap。Controller 会读取该 ConfigMap，并重新加载配置。</p>
+<blockquote>
+<p>通过 Helm 安装时，MetalLB 读取的 ConfigMap 名为 metallb-config 。</p>
+</blockquote>
+<h3 id="配置-metallb-为二层模式">配置 MetalLB 为二层模式</h3>
+<p>第二层模式是最简单的配置方式：在许多情况下，您不需要任何特定于协议的配置，只需要 IP 地址。</p>
+<p>第二层模式不要求将 IP 绑定到工作节点的网络接口。它的工作原理是直接响应本地网络上的 ARP 请求，将机器的 MAC 地址提供给客户端。</p>
+<p>下面我们来看一个实际例子，我们将配置一个由 MetalLB 二层模式控制的外部 IP 段为 192.168.1.240 - 192.168.1.250。</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br></pre></td><td class="code"><pre><span class="line">$ cat MetalLB-Layer2-Config.yaml</span><br><span class="line"></span><br><span class="line">kind: ConfigMap</span><br><span class="line">apiVersion: v1</span><br><span class="line">metadata:</span><br><span class="line">  name: config</span><br><span class="line">  namespace: metallb-system</span><br><span class="line">data:</span><br><span class="line">  config: |</span><br><span class="line">    address-pools:</span><br><span class="line">    - name: default</span><br><span class="line">      protocol: layer2</span><br><span class="line">      addresses:</span><br><span class="line">      - 192.168.0.10-192.168.0.100</span><br></pre></td></tr></table></figure>
+<blockquote>
+<p>注意：这里的 IP 地址范围需要跟集群实际情况相对应。</p>
+</blockquote>
+<p>首先，我们使用 <code>kubectl apply -f MetalLB-Layer2-Config.yaml</code> 命令使配置生效。如果你想看到详细配置更新过程，可以使用以下类似命令查看。</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">$ kubectl logs -f [metallb-controller-pod]</span><br><span class="line">或者　</span><br><span class="line">$ kubectl logs -l component&#x3D;speaker -n metallb-system</span><br></pre></td></tr></table></figure>
+<p>接下来，我们来创建一个服务类型为 LoadBalancer 的 Nginx 服务来验证下。</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br></pre></td><td class="code"><pre><span class="line">$ cat nginx-test.yaml</span><br><span class="line"></span><br><span class="line">apiVersion: apps&#x2F;v1beta2</span><br><span class="line">kind: Deployment</span><br><span class="line">metadata:</span><br><span class="line">  name: nginx</span><br><span class="line">spec:</span><br><span class="line">  selector:</span><br><span class="line">    matchLabels:</span><br><span class="line">      app: nginx</span><br><span class="line">  template:</span><br><span class="line">    metadata:</span><br><span class="line">      labels:</span><br><span class="line">        app: nginx</span><br><span class="line">    spec:</span><br><span class="line">      containers:</span><br><span class="line">      - name: nginx</span><br><span class="line">        image: nginx:1</span><br><span class="line">        ports:</span><br><span class="line">        - name: http</span><br><span class="line">          containerPort: 80</span><br><span class="line"></span><br><span class="line">---</span><br><span class="line">apiVersion: v1</span><br><span class="line">kind: Service</span><br><span class="line">metadata:</span><br><span class="line">  name: nginx</span><br><span class="line">spec:</span><br><span class="line">  ports:</span><br><span class="line">  - name: http</span><br><span class="line">    port: 80</span><br><span class="line">    protocol: TCP</span><br><span class="line">    targetPort: 80</span><br><span class="line">  selector:</span><br><span class="line">    app: nginx</span><br><span class="line">  type: LoadBalancer</span><br></pre></td></tr></table></figure>
+<p>服务创建完成，运行 <code>kubectl apply -f nginx-test.yaml</code> 命令后，我们可以看到对应服务信息。</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line">$ kubectl get pods nginx-68995d8957-bczhf -o wide</span><br><span class="line">NAME                     READY   STATUS    RESTARTS   AGE   IP            NODE       </span><br><span class="line">nginx-68995d8957-bczhf   2&#x2F;2     Running   0          19d   10.244.0.78   ubuntu-1  </span><br><span class="line"></span><br><span class="line">$ kubectl get svc</span><br><span class="line">NAME    TYPE           CLUSTER-IP      EXTERNAL-IP    PORT(S)        AGE</span><br><span class="line">nginx   LoadBalancer   10.97.187.100   192.168.0.10   80:32353&#x2F;TCP   179m</span><br></pre></td></tr></table></figure>
+<p>从输出结果，我们可以看到 LoadBalancer 类型的服务，并且分配的外部 IP 地址是地址池中的第一个 IP <code>192.168.0.10</code>。</p>
+<p>最后，我们通过 <code>curl http://192.168.0.10</code> 命令来验证下，发现可以正常显示 Nginx 的欢迎信息。</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line">&lt;!DOCTYPE html&gt;</span><br><span class="line">&lt;html&gt;</span><br><span class="line">&lt;head&gt;</span><br><span class="line">&lt;title&gt;Welcome to nginx!&lt;&#x2F;title&gt;</span><br><span class="line">................</span><br><span class="line">&lt;p&gt;&lt;em&gt;Thank you for using nginx.&lt;&#x2F;em&gt;&lt;&#x2F;p&gt;</span><br><span class="line">&lt;&#x2F;body&gt;</span><br><span class="line">&lt;&#x2F;html&gt;</span><br></pre></td></tr></table></figure>
+<p>至此，<code>MetalLB Layer 2</code> 模式的配置就结束了。</p>
+<h3 id="配置-metallb-为-bgp-模式">配置 MetalLB 为 BGP 模式</h3>
+<p>对于配置为具有一个 <code>BGP</code> 路由器和一个 IP 地址范围的 BGP 模式，你需要先准备好以下 4 条配置信息：</p>
+<ol>
+<li>
+<p>MetalLB 应连接的路由器 IP 地址。</p>
+</li>
+<li>
+<p>路由器的 AS 号。</p>
+</li>
+<li>
+<p>MetalLB 应该使用的 AS 编号。</p>
+</li>
+<li>
+<p>IP 地址范围，表示为 CIDR 前缀。</p>
+</li>
+</ol>
+<p>由于这种配置方式需要具备 BGP 功能的硬件路由器支持，目前我们环境中不具备此等条件。这里就简单说下 MetalLB 对应的配置方式，具体内容就不展开讲解了。</p>
+<p>由于前面已经安装了 MetalLB 的 <code>Controller</code> 和 <code>Speaker</code>，只是使用的是 Layer 2 模式。这里只需要改为 BGP 模式，我们修改 Configmap 中 Config 配置就可以了。</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br></pre></td><td class="code"><pre><span class="line"># 假如要为 MetalLB 提供范围 192.168.9.0&#x2F;24 和 AS 号 65009，并将其连接到 192.168.0.1 的 AS 号为 65000 的路由器。</span><br><span class="line">$ cat MetalLB-BGP-Config.yaml</span><br><span class="line"></span><br><span class="line">apiVersion: v1</span><br><span class="line">kind: ConfigMap</span><br><span class="line">metadata:</span><br><span class="line">  namespace: metallb-system</span><br><span class="line">  name: config</span><br><span class="line">data:</span><br><span class="line">  config: |</span><br><span class="line">    peers:</span><br><span class="line">    - peer-address: 192.168.0.1</span><br><span class="line">      peer-asn: 65000</span><br><span class="line">      my-asn: 65009</span><br><span class="line">    address-pools:</span><br><span class="line">    - name: default</span><br><span class="line">      protocol: bgp</span><br><span class="line">      addresses:</span><br><span class="line">      #- 192.168.0.10-192.168.0.100</span><br><span class="line">      - 192.168.9.0&#x2F;24</span><br></pre></td></tr></table></figure>
+<h2 id="总结">总结</h2>
+<p>本文简单介绍了 MetalLB 的用途以及 MetalLB 的两种部署模式：Layer 2 模式和 BGP 模式。在实际应用中，如果条件满足，推荐使用 BGP 模式。</p>
+<h2 id="参考资料">参考资料</h2>
+<ol>
+<li>
+<p><a href="http://www.google.com" target="_blank" rel="noopener">http://www.google.com</a></p>
+</li>
+<li>
+<p><a href="https://blog.fleeto.us/post/intro-metallb/" target="_blank" rel="noopener">https://blog.fleeto.us/post/intro-metallb/</a></p>
+</li>
+<li>
+<p><a href="https://ieevee.com/tech/2019/06/30/metallb.html" target="_blank" rel="noopener">https://ieevee.com/tech/2019/06/30/metallb.html</a></p>
+</li>
+<li>
+<p><a href="https://blog.csdn.net/kunyus/article/details/88616653" target="_blank" rel="noopener">https://blog.csdn.net/kunyus/article/details/88616653</a></p>
+</li>
+<li>
+<p><a href="https://vqiu.cn/metallb-si-you-ji-qun-loadbalancer/amp/" target="_blank" rel="noopener">https://vqiu.cn/metallb-si-you-ji-qun-loadbalancer/amp/</a></p>
+</li>
+<li>
+<p><a href="https://sre.ink/metallb-kubernetes-loadbalancer-no-ipvs/" target="_blank" rel="noopener">https://sre.ink/metallb-kubernetes-loadbalancer-no-ipvs/</a></p>
+</li>
+<li>
+<p><a href="https://blog.csdn.net/networken/article/details/85928369" target="_blank" rel="noopener">https://blog.csdn.net/networken/article/details/85928369</a></p>
+</li>
+<li>
+<p><a href="https://blog.gmem.cc/external-lb-for-on-premise-k8s-cluster" target="_blank" rel="noopener">https://blog.gmem.cc/external-lb-for-on-premise-k8s-cluster</a></p>
+</li>
+<li>
+<p><a href="https://leeif.me/2019/02/k8s-deploy-metallb-LoadBalancer.html" target="_blank" rel="noopener">https://leeif.me/2019/02/k8s-deploy-metallb-LoadBalancer.html</a></p>
+</li>
+<li>
+<p><a href="https://mshk.top/2019/04/kubernetes-metallb-loadbalancer-nginx-ingress-controller/" target="_blank" rel="noopener">https://mshk.top/2019/04/kubernetes-metallb-loadbalancer-nginx-ingress-controller/</a></p>
+</li>
+</ol>
+</div>
+
+			<script src="https://my.openwrite.cn/js/readmore.js" type="text/javascript"></script>
+			<script>
+			var isMobile = navigator.userAgent.match(/(phone|pad|pod|iPhone|iPod|ios|iPad|Android|Mobile|BlackBerry|IEMobile|MQQBrowser|JUC|Fennec|wOSBrowser|BrowserNG|WebOS|Symbian|Windows Phone)/i);
+			if (!isMobile) {
+			    var btw = new BTWPlugin();
+			    btw.init({
+			        "id": "vip-container",
+			        "blogId": "10135-1588830050631-449",
+			        "name": "「奇妙的 Linux 世界」",
+			        "qrcode": "https://www.hi-linux.com/img/wechat/mp_qrcode_12.jpg",
+			        "keyword": "VIP"
+			    });
+			}
+			</script>
+		
+                
+
+                <hr>
+                <!-- Pager -->
+                <ul class="pager">
+                    
+                    
+                        <li class="next">
+                            <a href="/posts/34120.html" data-toggle="tooltip" data-placement="top" title="看业界大神是如何进行独立思考的！做为技术人，你具备这样的能力吗？">Next Post &rarr;</a>
+                        </li>
+                    
+                </ul>
+
+                <!-- duoshuo Share start -->
+                
+                <!-- 多说 Share end-->
+
+                <!-- 多说评论框 start -->
+                
+                <!-- 多说评论框 end -->
+
+                <!-- disqus comment start -->
+                
+                <!-- disqus comment end -->
+
+                
+                    <!-- disqus 评论框 start -->
+                    <div class="comment">
+                        <div id="lv-container" data-id="city" data-uid="MTAyMC8yNzg2My80NDQw"></div>
+                    </div>
+                    <!-- disqus 评论框 end -->
+                
+
+            </div>
+            
+            <!-- Tabe of Content -->
+            <!-- Table of Contents -->
+
+  
+    <style>
+      span.toc-nav-number{
+        display: none
+      }
+    </style>
+  
+    
+      <aside id="sidebar">
+        <div id="toc" class="toc-article">
+        <strong class="toc-title">Contents</strong>
+        
+          <ol class="toc-nav"><li class="toc-nav-item toc-nav-level-2"><a class="toc-nav-link" href="#什么是-metallb"><span class="toc-nav-number">1.</span> <span class="toc-nav-text">什么是 MetalLB</span></a></li><li class="toc-nav-item toc-nav-level-2"><a class="toc-nav-link" href="#metallb-工作原理"><span class="toc-nav-number">2.</span> <span class="toc-nav-text">MetalLB 工作原理</span></a><ol class="toc-nav-child"><li class="toc-nav-item toc-nav-level-3"><a class="toc-nav-link" href="#地址分配"><span class="toc-nav-number">2.1.</span> <span class="toc-nav-text">地址分配</span></a></li><li class="toc-nav-item toc-nav-level-3"><a class="toc-nav-link" href="#外部声明"><span class="toc-nav-number">2.2.</span> <span class="toc-nav-text">外部声明</span></a></li></ol></li><li class="toc-nav-item toc-nav-level-2"><a class="toc-nav-link" href="#部署-metallb"><span class="toc-nav-number">3.</span> <span class="toc-nav-text">部署 MetalLB</span></a><ol class="toc-nav-child"><li class="toc-nav-item toc-nav-level-3"><a class="toc-nav-link" href="#环境要求"><span class="toc-nav-number">3.1.</span> <span class="toc-nav-text">环境要求</span></a></li><li class="toc-nav-item toc-nav-level-3"><a class="toc-nav-link" href="#安装-metallb"><span class="toc-nav-number">3.2.</span> <span class="toc-nav-text">安装 MetalLB</span></a><ol class="toc-nav-child"><li class="toc-nav-item toc-nav-level-4"><a class="toc-nav-link" href="#使用-yaml-文件部署"><span class="toc-nav-number">3.2.1.</span> <span class="toc-nav-text">使用 YAML 文件部署</span></a></li><li class="toc-nav-item toc-nav-level-4"><a class="toc-nav-link" href="#使用-helm-部署"><span class="toc-nav-number">3.2.2.</span> <span class="toc-nav-text">使用 Helm 部署</span></a></li></ol></li></ol></li><li class="toc-nav-item toc-nav-level-2"><a class="toc-nav-link" href="#配置-metallb"><span class="toc-nav-number">4.</span> <span class="toc-nav-text">配置 MetalLB</span></a><ol class="toc-nav-child"><li class="toc-nav-item toc-nav-level-3"><a class="toc-nav-link" href="#配置-metallb-为二层模式"><span class="toc-nav-number">4.1.</span> <span class="toc-nav-text">配置 MetalLB 为二层模式</span></a></li><li class="toc-nav-item toc-nav-level-3"><a class="toc-nav-link" href="#配置-metallb-为-bgp-模式"><span class="toc-nav-number">4.2.</span> <span class="toc-nav-text">配置 MetalLB 为 BGP 模式</span></a></li></ol></li><li class="toc-nav-item toc-nav-level-2"><a class="toc-nav-link" href="#总结"><span class="toc-nav-number">5.</span> <span class="toc-nav-text">总结</span></a></li><li class="toc-nav-item toc-nav-level-2"><a class="toc-nav-link" href="#参考资料"><span class="toc-nav-number">6.</span> <span class="toc-nav-text">参考资料</span></a></li></ol>
+        
+        </div>
+      </aside>
+    
+
+                
+            <!-- Sidebar Container -->
+            <div class="
+                col-lg-8 col-lg-offset-2
+                col-md-10 col-md-offset-1
+                sidebar-container">
+
+                <!-- Featured Tags -->
+                
+                <section>
+                    <!-- no hr -->
+                    <h5><a href="/tags/">FEATURED TAGS</a></h5>
+                    <div class="tags">
+                       
+                          <a class="tag" href="/tags/#Linux" title="Linux">Linux</a>
+                        
+                          <a class="tag" href="/tags/#Kubernetes" title="Kubernetes">Kubernetes</a>
+                        
+                    </div>
+                </section>
+                
+
+                <!-- Friends Blog -->
+                
+                <hr>
+                <h5>FRIENDS</h5>
+                <ul class="list-inline">
+
+                    
+                        <li><a href="http://www.mike.org.cn/" target="_blank">简单.生活</a></li>
+                    
+                        <li><a href="http://shang.qq.com/wpa/qunwpa?idkey=ea4c43493c2269428ac6ef6141de4b6d78e5ab2d41380ca4099b833b62884ee9" target="_blank">技术交流群</a></li>
+                    
+                        <li><a href="" target="_blank"></a></li>
+                    
+                        <li><a href="" target="_blank"></a></li>
+                    
+                </ul>
+                
+            </div>
+        </div>
+    </div>
+</article>
+
+
+
+
+
+
+    <!-- 来必力City版公共JS代码 start (一个网页只需插入一次) -->
+    <script type="text/javascript">
+       (function(d, s) {
+           var j, e = d.getElementsByTagName(s)[0];
+    
+           if (typeof LivereTower === 'function') { return; }
+    
+           j = d.createElement(s);
+           j.src = 'https://cdn-city.livere.com/js/embed.dist.js';
+           j.async = true;
+    
+           e.parentNode.insertBefore(j, e);
+       })(document, 'script');
+    </script>
+    <noscript>为正常使用来必力评论功能请激活JavaScript</noscript>
+    <!-- 来必力City版 公共JS代码 end -->
+
+
+
+<!-- async load function -->
+<script>
+    function async(u, c) {
+      var d = document, t = 'script',
+          o = d.createElement(t),
+          s = d.getElementsByTagName(t)[0];
+      o.src = u;
+      if (c) { o.addEventListener('load', function (e) { c(null, e); }, false); }
+      s.parentNode.insertBefore(o, s);
+    }
+</script>
+<!-- anchor-js, Doc:http://bryanbraun.github.io/anchorjs/ -->
+<script>
+    async("https://cdn.bootcss.com/anchor-js/1.1.1/anchor.min.js",function(){
+        anchors.options = {
+          visible: 'hover',
+          placement: 'left',
+          icon: 'ℬ'
+        };
+        anchors.add().remove('.intro-header h1').remove('.subheading').remove('.sidebar-container h5');
+    })
+</script>
+<style>
+    /* place left on bigger screen */
+    @media all and (min-width: 800px) {
+        .anchorjs-link{
+            position: absolute;
+            left: -0.75em;
+            font-size: 1.1em;
+            margin-top : -0.1em;
+        }
+    }
+</style>
+
+
+
+    <!-- Footer -->
+    <!-- Footer -->
+<footer>
+    <div class="container">
+        <div class="row">
+            <div class="col-lg-8 col-lg-offset-2 col-md-10 col-md-offset-1">
+                <ul class="list-inline text-center">
+                
+                    <li>
+                        <a href="/atom.xml">
+                            <span class="fa-stack fa-lg">
+                                <i class="fa fa-circle fa-stack-2x"></i>
+                                <i class="fa fa-rss fa-stack-1x fa-inverse"></i>
+                            </span>
+                        </a>
+                    </li>
+                
+                
+                
+                    <li>
+                        <a target="_blank" href="https://www.zhihu.com/people/80imike">
+                            <span class="fa-stack fa-lg">
+                                <i class="fa fa-circle fa-stack-2x"></i>
+                                <i class="fa  fa-stack-1x fa-inverse">知</i>
+                            </span>
+                        </a>
+                    </li>
+                
+
+                
+                    <li>
+                        <a target="_blank" href="http://weibo.com/2093524665">
+                            <span class="fa-stack fa-lg">
+                                <i class="fa fa-circle fa-stack-2x"></i>
+                                <i class="fa fa-weibo fa-stack-1x fa-inverse"></i>
+                            </span>
+                        </a>
+                    </li>
+                
+
+                
+
+                
+
+                
+
+                </ul>
+                <p class="copyright text-muted">
+                    Copyright &copy; Mike 2020 | Hosted by <a href="https://pages.coding.me" target="_blank" rel="noopener" style="font-weight: bold">Coding Pages</a>
+                    <br>
+                    Theme by <a href="http://beantech.org" target="_blank" rel="noopener">BeanTech</a> 
+                    <span style="display: inline-block; margin: 0 5px;">
+                        <i class="fa fa-heart"></i>
+                    </span> 
+                    re-Ported by <a href="http://www.huweihuang.com" target="_blank" rel="noopener">胡伟煌</a> | 
+                    <iframe
+                        style="margin-left: 2px; margin-bottom:-5px;"
+                        frameborder="0" scrolling="0" width="91px" height="20px"
+                        src="https://ghbtns.com/github-btn.html?user=huweihuang&repo=hexo-theme-huweihuang&type=star&count=true" >
+                    </iframe>
+                </p>
+            </div>
+        </div>
+    </div>
+</footer>
+
+<!-- jQuery -->
+
+<script src="/js/jquery.min.js"></script>
+
+
+<!-- Bootstrap Core JavaScript -->
+
+<script src="/js/bootstrap.min.js"></script>
+
+
+<!-- Custom Theme JavaScript -->
+
+<script src="/js/hux-blog.min.js"></script>
+
+
+
+<!-- async load function -->
+<script>
+    function async(u, c) {
+      var d = document, t = 'script',
+          o = d.createElement(t),
+          s = d.getElementsByTagName(t)[0];
+      o.src = u;
+      if (c) { o.addEventListener('load', function (e) { c(null, e); }, false); }
+      s.parentNode.insertBefore(o, s);
+    }
+</script>
+
+<!-- 
+     Because of the native support for backtick-style fenced code blocks 
+     right within the Markdown is landed in Github Pages, 
+     From V1.6, There is no need for Highlight.js, 
+     so Huxblog drops it officially.
+
+     - https://github.com/blog/2100-github-pages-now-faster-and-simpler-with-jekyll-3-0  
+     - https://help.github.com/articles/creating-and-highlighting-code-blocks/    
+-->
+<!--
+    <script>
+        async("http://cdn.bootcss.com/highlight.js/8.6/highlight.min.js", function(){
+            hljs.initHighlightingOnLoad();
+        })
+    </script>
+    <link href="http://cdn.bootcss.com/highlight.js/8.6/styles/github.min.css" rel="stylesheet">
+-->
+
+
+<!-- jquery.tagcloud.js -->
+<script>
+    // only load tagcloud.js in tag.html
+    if($('#tag_cloud').length !== 0){
+        async("https://www.hi-linux.com/js/jquery.tagcloud.js",function(){
+            $.fn.tagcloud.defaults = {
+                //size: {start: 1, end: 1, unit: 'em'},
+                color: {start: '#bbbbee', end: '#0085a1'},
+            };
+            $('#tag_cloud a').tagcloud();
+        })
+    }
+</script>
+
+<!--fastClick.js -->
+<script>
+    async("https://cdn.bootcss.com/fastclick/1.0.6/fastclick.min.js", function(){
+        var $nav = document.querySelector("nav");
+        if($nav) FastClick.attach($nav);
+    })
+</script>
+
+
+<!-- Google Analytics -->
+
+
+
+
+<!-- Baidu Tongji -->
+
+
+
+
+
+
+	<a id="rocket" href="#top" class=""></a>
+	<script type="text/javascript" src="/js/totop.js?v=1.0.0" async=""></script>
+    <script type="text/javascript" src="/js/toc.js?v=1.0.0" async=""></script>
+<!-- Image to hack wechat -->
+<img src="https://www.hi-linux.com/img/icon_wechat.png" width="0" height="0" />
+<!-- Migrate from head to bottom, no longer block render and still work -->
+
+</body>
+
+</html>
