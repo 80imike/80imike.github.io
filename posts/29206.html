@@ -1,0 +1,1015 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<!-- Head tag -->
+<head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="google-site-verification" content="xBT4GhYoi5qRD5tr338pgPM5OWHHIDR6mNg1a3euekI" />
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="description" content="">
+    <meta name="keyword"  content="Linux,运维,Nginx,Zabbix,Centos,Ansible,MySQL,Python,Docker,ELK,Haproxy,Git,Nodejs,安全,技术">
+    <link rel="shortcut icon" href="/img/ironman-draw.png">
+    <!-- Place this tag in your head or just before your close body tag. -->
+    <script async defer src="https://buttons.github.io/buttons.js"></script>
+    <title>
+        
+          nftables 简明教程 - 运维之美
+        
+    </title>
+
+    <link rel="canonical" href="https://www.hi-linux.com/posts/29206.html">
+
+    <!-- Bootstrap Core CSS -->
+    
+<link rel="stylesheet" href="/css/bootstrap.min.css">
+
+
+    <!-- Custom CSS --> 
+    
+<link rel="stylesheet" href="/css/beantech.min.css">
+
+    
+    <!-- Pygments Highlight CSS -->
+    
+<link rel="stylesheet" href="/css/highlight.css">
+
+
+    
+<link rel="stylesheet" href="/css/widget.css">
+
+
+    
+<link rel="stylesheet" href="/css/rocket.css">
+
+
+    
+<link rel="stylesheet" href="/css/signature.css">
+
+
+    
+<link rel="stylesheet" href="/css/toc.css">
+
+
+    <!-- Custom Fonts -->
+    <!-- <link href="https://maxcdn.bootstrapcdn.com/font-awesome/4.3.0/css/font-awesome.min.css" rel="stylesheet" type="text/css"> -->
+    <!-- Hux change font-awesome CDN to qiniu -->
+    <link href="https://cdn.staticfile.org/font-awesome/4.5.0/css/font-awesome.min.css" rel="stylesheet" type="text/css">
+
+
+    <!-- Hux Delete, sad but pending in China
+    <link href='http://fonts.googleapis.com/css?family=Lora:400,700,400italic,700italic' rel='stylesheet' type='text/css'>
+    <link href='http://fonts.googleapis.com/css?family=Open+Sans:300italic,400italic,600italic,700italic,800italic,400,300,600,700,800' rel='stylesheet' type='text/
+    css'>
+    -->
+
+
+    <!-- HTML5 Shim and Respond.js IE8 support of HTML5 elements and media queries -->
+    <!-- WARNING: Respond.js doesn't work if you view the page via file:// -->
+    <!--[if lt IE 9]>
+        <script src="https://oss.maxcdn.com/libs/html5shiv/3.7.0/html5shiv.js"></script>
+        <script src="https://oss.maxcdn.com/libs/respond.js/1.4.2/respond.min.js"></script>
+    <![endif]-->
+
+    <!-- ga & ba script hoook -->
+    <script></script>
+<meta name="generator" content="Hexo 4.2.0"><link rel="alternate" href="/atom.xml" title="运维之美" type="application/atom+xml">
+</head>
+
+
+<!-- hack iOS CSS :active style -->
+<body ontouchstart="">
+	<!-- Modified by Yu-Hsuan Yen -->
+<!-- Post Header -->
+<style type="text/css">
+    header.intro-header{
+        
+            background-image: url('/img/header_img/building.jpg')
+            /*post*/
+        
+    }
+    
+</style>
+
+<header class="intro-header" >
+    <!-- Signature -->
+    <div id="signature">
+        <div class="container">
+            <div class="row">
+                <div class="col-lg-8 col-lg-offset-2 col-md-10 col-md-offset-1">
+                
+                    <div class="post-heading">
+                        <div class="tags">
+                            
+                              <a class="tag" href="/tags/#Linux" title="Linux">Linux</a>
+                            
+                              <a class="tag" href="/tags/#技巧" title="技巧">技巧</a>
+                            
+                              <a class="tag" href="/tags/#nftables" title="nftables">nftables</a>
+                            
+                        </div>
+                        <h1>nftables 简明教程</h1>
+                        <h2 class="subheading"></h2>
+                        <span class="meta">
+                            Posted by Mike on
+                            2020-05-12
+                        </span>
+                    </div>
+                
+
+
+                </div>
+            </div>
+        </div>
+    </div>
+</header>
+
+	
+    <!-- Navigation -->
+<nav class="navbar navbar-default navbar-custom navbar-fixed-top">
+    <div class="container-fluid">
+        <!-- Brand and toggle get grouped for better mobile display -->
+        <div class="navbar-header page-scroll">
+            <button type="button" class="navbar-toggle">
+                <span class="sr-only">Toggle navigation</span>
+                <span class="icon-bar"></span>
+                <span class="icon-bar"></span>
+                <span class="icon-bar"></span>
+            </button>
+            <a class="navbar-brand" href="/">运维之美</a>
+        </div>
+
+        <!-- Collect the nav links, forms, and other content for toggling -->
+        <!-- Known Issue, found by Hux:
+            <nav>'s height woule be hold on by its content.
+            so, when navbar scale out, the <nav> will cover tags.
+            also mask any touch event of tags, unfortunately.
+        -->
+        <div id="huxblog_navbar">
+            <div class="navbar-collapse">
+                <ul class="nav navbar-nav navbar-right">
+                    <li>
+                        <a href="/">Home</a>
+                    </li>
+
+                    
+
+                        
+                    
+
+                        
+                    
+
+                        
+                        <li>
+                            <a href="/archive/">Archives</a>
+                        </li>
+                        
+                    
+
+                        
+                        <li>
+                            <a href="/about/">About</a>
+                        </li>
+                        
+                    
+
+                        
+                        <li>
+                            <a href="/tags/">Tags</a>
+                        </li>
+                        
+                    
+                    
+                </ul>
+            </div>
+        </div>
+        <!-- /.navbar-collapse -->
+    </div>
+    <!-- /.container -->
+</nav>
+<script>
+    // Drop Bootstarp low-performance Navbar
+    // Use customize navbar with high-quality material design animation
+    // in high-perf jank-free CSS3 implementation
+    var $body   = document.body;
+    var $toggle = document.querySelector('.navbar-toggle');
+    var $navbar = document.querySelector('#huxblog_navbar');
+    var $collapse = document.querySelector('.navbar-collapse');
+
+    $toggle.addEventListener('click', handleMagic)
+    function handleMagic(e){
+        if ($navbar.className.indexOf('in') > 0) {
+        // CLOSE
+            $navbar.className = " ";
+            // wait until animation end.
+            setTimeout(function(){
+                // prevent frequently toggle
+                if($navbar.className.indexOf('in') < 0) {
+                    $collapse.style.height = "0px"
+                }
+            },400)
+        }else{
+        // OPEN
+            $collapse.style.height = "auto"
+            $navbar.className += " in";
+        }
+    }
+</script>
+
+
+    <!-- Main Content -->
+    <!-- Modify by Yu-Hsuan Yen -->
+
+<!-- Post Content -->
+<article>
+    <div class="container">
+        <div class="row">
+
+            <!-- Post Container -->
+            <div class="
+                col-lg-8 col-lg-offset-2
+                col-md-10 col-md-offset-1
+                post-container">
+
+                <div id="vip-container"><h2 id="什么是-nftables">什么是 nftables？</h2>
+<p><code>nftables</code> 是一个新式的数据包过滤框架，旨在替代现用的 <code>iptables</code>、<code>ip6tables</code>、<code>arptables</code> 和 <code>ebtables</code> 的新的包过滤框架。<code>nftables</code> 诞生于 2008 年，2013 年底合并到 <code>Linux 内核</code>，从 <code>Linux</code> 内核 <code>3.13</code> 版本开始大多数场景下 <code>nftables</code> 已经可以使用，但是完整的支持（即：<code>nftables</code> 优先级高于 <code>iptables</code>）应该是在 Linux 内核 <code>3.15</code> 版本。</p>
+<p><code>nftables</code> 旨在解决现有 <code>{ip/ip6}tables</code> 工具存在的诸多限制。相对于旧的 <code>iptables</code>，<code>nftables</code> 最引人注目的功能包括：改进性能、支持查询表、事务型规则更新、所有规则自动应用等等。</p>
+<p><code>nftables</code> 主要由三个组件组成：内核实现、<code>libnl netlink</code> 通信和 <code>nftables</code> 用户空间。其中内核提供了一个 <code>netlink</code> 配置接口以及运行时规则集评估，<code>libnl</code> 包含了与内核通信的基本函数，用户空间可以通过新引入的命令行工具 <code>nft</code> 和用户进行交互。</p>
+<p><code>nft</code> 可以通过在寄存器中储存和加载来交换数据。也就是说，它的语法与 <code>iptables</code> 不同。但 <code>nft</code> 可以利用内核提供的表达式去模拟旧的 <code>iptables</code> 命令，维持兼容性的同时获得更大的灵活性。简单来说，<code>nft</code> 是 <code>iptables</code> 及其衍生指令（<code>ip6tables</code> 和 <code>arptables</code> ）的超集。</p>
+<h3 id="nftables-的特点">nftables 的特点</h3>
+<ol>
+<li>
+<p><code>nftables</code> 拥有一些高级的类似编程语言的能力，例如：定义变量和包含外部文件，即拥有使用额外脚本的能力。<code>nftables</code> 也可以用于多种地址簇的过滤和处理。</p>
+</li>
+<li>
+<p>不同于 <code>iptables</code>, <code>nftables</code> 并不包含任何的内置表，需要哪些表并在这些表中添加什么处理规则一切由管理员决定。</p>
+</li>
+<li>
+<p>表包含规则链，规则链包含规则。</p>
+</li>
+</ol>
+<h3 id="nftables-相较于-iptables-的优点">nftables 相较于 iptables 的优点</h3>
+<ol>
+<li>更新速度更快</li>
+</ol>
+<p>在 <code>iptables</code> 中添加一条规则，会随着规则数量增多而变得非常慢。这种状况对 <code>nftables</code> 而言就不存在了，因为 <code>nftables</code> 使用原子的快速操作来更新规则集合。</p>
+<ol start="2">
+<li>内核更新更少。</li>
+</ol>
+<p>使用 <code>iptables</code> 时，每一个匹配或投递都需要内核模块的支持。因此，如果你忘记一些东西或者要添加新的功能时都需要重新编译内核。而在 <code>nftables</code> 中就不存在这种情况了， 因为在 <code>nftables</code> 中，大部分工作是在用户态完成的，内核只知道一些基本指令（过滤是用伪状态机实现的）。例如，<code>icmpv6</code> 支持是通过 <code>nft</code> 工具的一个简单的补丁实现的，而在 <code>iptables</code> 中这种类型的更改需要内核和 <code>iptables</code> 都升级才可以。</p>
+<a id="more"></a>
+<h2 id="nftables-基础操作">nftables 基础操作</h2>
+<p><code>nftables</code> 和 <code>iptables</code> 一样，由表（table）、链（chain）和规则（rule）组成，其中表包含链，链包含规则，规则是真正的动作。</p>
+<p>在 <code>nftables</code> 中，表是链的容器。所以开始使用 <code>nftables</code> 时你首先需要做的是添加至少一个表。然后，你可以向你的表里添加链，然后往链里添加规则。</p>
+<h3 id="nftables-的表管理">nftables 的表管理</h3>
+<p>与 <code>iptables</code> 中的表不同，<code>nftables</code> 中没有内置表。表的数量和名称由用户决定。但是，每个表只有一个地址簇，并且只适用于该簇的数据包。<code>nftables</code> 表可以指定为以下五个簇中的一个：</p>
+<table>
+<thead>
+<tr>
+<th>nftables 簇</th>
+<th>对应 iptables 的命令行工具</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>ip</td>
+<td>iptables</td>
+</tr>
+<tr>
+<td>ip6</td>
+<td>ip6tables</td>
+</tr>
+<tr>
+<td>inet</td>
+<td>iptables 和 ip6tables</td>
+</tr>
+<tr>
+<td>arp</td>
+<td>arptables</td>
+</tr>
+<tr>
+<td>bridge</td>
+<td>ebtables</td>
+</tr>
+</tbody>
+</table>
+<p><code>ip</code>（即 IPv4）是默认簇，如果未指定簇，则使用该簇。如果要创建同时适用于 <code>IPv4</code> 和 <code>IPv6</code> 的规则，请使用 <code>inet</code> 簇 。<code>inet</code> 允许统一 <code>ip</code> 和 <code>ip6</code> 簇，以便更容易地定义规则。</p>
+<blockquote>
+<p>注意: <code>inet</code> 不能用于 <code>nat</code> 类型的链，只能用于 <code>filter</code> 类型的链。</p>
+</blockquote>
+<p>下面我们来看看 <code>nftables</code> 是如何进行表管理操作的，以下为 <code>nftables</code> 创建表的基本命令语法。</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">nft list tables [&lt;family&gt;]</span><br><span class="line">nft list table [&lt;family&gt;] &lt;name&gt; [-n] [-a]</span><br><span class="line">nft (add | delete | flush) table [&lt;family&gt;] &lt;name&gt;</span><br></pre></td></tr></table></figure>
+<p>这里我们以创建一个 <code>inet</code> 簇的表为例，演示如何创建和管理一个新的表。</p>
+<ol>
+<li>创建表</li>
+</ol>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># 创建一个新的表</span></span><br><span class="line">$ nft add table inet mytable</span><br></pre></td></tr></table></figure>
+<ol start="2">
+<li>列出表</li>
+</ol>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># 列出所有表</span></span><br><span class="line">$ nft list tables</span><br><span class="line"></span><br><span class="line"><span class="comment"># 列出指定族的所有表</span></span><br><span class="line">$ nft list tables inet</span><br><span class="line"></span><br><span class="line"><span class="comment"># 列出 inet 簇中 mytable 表中的所有规则</span></span><br><span class="line">$ nft list table inet mytable</span><br></pre></td></tr></table></figure>
+<ol start="3">
+<li>删除表</li>
+</ol>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># 删除一个表</span></span><br><span class="line">$ nft delete table inet mytable</span><br></pre></td></tr></table></figure>
+<blockquote>
+<p>注意：只能删除不包含链的表。</p>
+</blockquote>
+<ol start="4">
+<li>清空表</li>
+</ol>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># 清空一个表中的所有规则</span></span><br><span class="line">$ nft flush table inet mytable</span><br></pre></td></tr></table></figure>
+<h3 id="nftables-的链管理">nftables 的链管理</h3>
+<p>链是用来保存规则的，与 <code>iptables</code> 中的链不同，<code>nftables</code> 没有内置链。这意味着和表一样，链也需要被显示创建。链有以下两种类型：</p>
+<ul>
+<li>
+<p>常规链 : 主要用来做跳转，不需要指定钩子类型和优先级。从逻辑上对规则进行分类，支持所有的 <code>nftables</code> 簇。</p>
+</li>
+<li>
+<p>基本链 : 来自网络栈数据包的入口点，需要指定钩子类型和优先级，支持 <code>ip</code> 和 <code>ip6</code> 簇。</p>
+</li>
+</ul>
+<p><strong>nftables 链支持钩子的类型</strong></p>
+<p><code>nftables</code> 和 <code>iptables</code> 类似，依然使用 <code>netfiler</code> 中的 5 个 钩子。</p>
+<p><img src="https://i.loli.net/2019/11/11/Xk6QsDoqw7xRC21.png" alt=""></p>
+<p>不同的是 <code>nftables</code> 在 <code>Linux Kernel 4.2</code> 中新增了 <code>ingress</code> 钩子。</p>
+<p><img src="https://i.loli.net/2019/11/11/498zJrR27kqptXT.png" alt=""></p>
+<p><strong>nftables 链支持钩子的作用</strong></p>
+<ul>
+<li>
+<p><code>prerouting</code>：刚到达并未被 <code>nftables</code> 的其他部分所路由或处理的数据包。</p>
+</li>
+<li>
+<p><code>input</code>：已经被接收并且已经经过 <code>prerouting</code> 钩子的传入数据包。</p>
+</li>
+<li>
+<p><code>forward</code>：如果数据报将被发送到另一个设备，它将会通过 <code>forward</code> 钩子。</p>
+</li>
+<li>
+<p><code>output</code>：从本地传出的数据包。</p>
+</li>
+<li>
+<p><code>postrouting</code>：仅仅在离开系统之前，可以对数据包进行进一步处理。</p>
+</li>
+</ul>
+<p><strong>nftables 链支持钩子的适用范围</strong></p>
+<ul>
+<li>
+<p><code>ip</code>、<code>ip6</code> 和 <code>inet</code> 簇支持的钩子有： <code>prerouting</code>、 <code>input</code>、<code>forward</code>、 <code>output</code>、<code>postrouting</code> 。</p>
+</li>
+<li>
+<p><code>arp</code> 簇支持的钩子有： <code>input</code>、<code>output</code> 。</p>
+</li>
+</ul>
+<p><strong>nftables 链支持的优先级</strong></p>
+<p>优先级采用整数值表示，数字较小的链优先处理，并且可以是负数。可以使用的值有：</p>
+<ul>
+<li>
+<p>NF_IP_PRI_CONNTRACK_DEFRAG (-400)</p>
+</li>
+<li>
+<p>NF_IP_PRI_RAW (-300)</p>
+</li>
+<li>
+<p>NF_IP_PRI_SELINUX_FIRST (-225)</p>
+</li>
+<li>
+<p>NF_IP_PRI_CONNTRACK (-200)</p>
+</li>
+<li>
+<p>NF_IP_PRI_MANGLE (-150)</p>
+</li>
+<li>
+<p>NF_IP_PRI_NAT_DST (-100)</p>
+</li>
+<li>
+<p>NF_IP_PRI_FILTER (0)</p>
+</li>
+<li>
+<p>NF_IP_PRI_SECURITY (50)</p>
+</li>
+<li>
+<p>NF_IP_PRI_NAT_SRC (100)</p>
+</li>
+<li>
+<p>NF_IP_PRI_SELINUX_LAST (225)</p>
+</li>
+<li>
+<p>NF_IP_PRI_CONNTRACK_HELPER (300)</p>
+</li>
+</ul>
+<p><strong>nftables 链对报文数据支持采取的动作</strong></p>
+<ul>
+<li>
+<p>accept</p>
+</li>
+<li>
+<p>drop</p>
+</li>
+<li>
+<p>queue</p>
+</li>
+<li>
+<p>continue</p>
+</li>
+<li>
+<p>return</p>
+</li>
+</ul>
+<p><strong>nftables 创建链的基本命令语法</strong></p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">nft (add | create) chain [&lt;family&gt;] &lt;table&gt; &lt;name&gt; [ &#123; <span class="built_in">type</span> &lt;<span class="built_in">type</span>&gt; hook &lt;hook&gt; [device &lt;device&gt;] priority &lt;priority&gt; \; [policy &lt;policy&gt; \;] &#125; ]</span><br><span class="line">nft (delete | list | flush) chain [&lt;family&gt;] &lt;table&gt; &lt;name&gt;</span><br><span class="line">nft rename chain [&lt;family&gt;] &lt;table&gt; &lt;name&gt; &lt;newname&gt;</span><br></pre></td></tr></table></figure>
+<p><strong>nftables 创建链的基本操作</strong></p>
+<ol>
+<li>创建链</li>
+</ol>
+<ul>
+<li>创建一个常规链</li>
+</ul>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># 将名为 tcpchain 的常规链添加到 inet 簇中名为 mytable 的表中</span></span><br><span class="line">$ nft add chain inet mytable tcpchain</span><br></pre></td></tr></table></figure>
+<ul>
+<li>创建一个基本链</li>
+</ul>
+<p>添加一个基本链，你必需指定钩子和优先级。基本链的类型可以是 <code>filter</code>、<code>route</code> 或者 <code>nat</code>。</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># 添加一个筛选输入数据包的基本链</span></span><br><span class="line">$ nft add chain inet mytable input &#123; <span class="built_in">type</span> filter hook input priority 0\; &#125;</span><br></pre></td></tr></table></figure>
+<blockquote>
+<p>注意：命令中的反斜线 <code>（\）</code> 用来转义，这样 <code>Shell</code> 就不会将分号解释为命令的结尾。</p>
+</blockquote>
+<ol start="2">
+<li>列出规则</li>
+</ol>
+<p>列出一个链中的所有规则。</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># 列出 inet 筛中 filter 表的 input 链中的所有的规则</span></span><br><span class="line">$ nft list chain inet filter input</span><br></pre></td></tr></table></figure>
+<ol start="3">
+<li>编辑链</li>
+</ol>
+<p>要编辑一个链，只需按名称调用并重新定义要更改的规则即可。</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># 将默认表中的 input 链策略从 accept 更改为 drop</span></span><br><span class="line">$ nft chain inet mytable input &#123; policy drop \; &#125;</span><br></pre></td></tr></table></figure>
+<ol start="4">
+<li>清空链中的规则</li>
+</ol>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># 清空指定链中的规则，这里为 input</span></span><br><span class="line">$ nft flush chain inet mytable input</span><br></pre></td></tr></table></figure>
+<ol start="5">
+<li>删除链</li>
+</ol>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># 删除指定的链，这里为 input</span></span><br><span class="line">$ nft delete chain inet mytable input</span><br></pre></td></tr></table></figure>
+<blockquote>
+<p>注意：要删除的链中不能包含任何规则或者跳转目标。</p>
+</blockquote>
+<h3 id="nftables-的规则管理">nftables 的规则管理</h3>
+<p><code>nftables</code> 规则由语句或表达式构成，包含在链中。以下为创建 <code>nftables</code> 规则的基本命令语法：</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">nft add rule [&lt;family&gt;] &lt;table&gt; &lt;chain&gt; &lt;matches&gt; &lt;statements&gt;</span><br><span class="line">nft insert rule [&lt;family&gt;] &lt;table&gt; &lt;chain&gt; [position &lt;position&gt;] &lt;matches&gt; &lt;statements&gt;</span><br><span class="line">nft replace rule [&lt;family&gt;] &lt;table&gt; &lt;chain&gt; [handle &lt;handle&gt;] &lt;matches&gt; &lt;statements&gt;</span><br><span class="line">nft delete rule [&lt;family&gt;] &lt;table&gt; &lt;chain&gt; [handle &lt;handle&gt;]</span><br></pre></td></tr></table></figure>
+<p>其中 <code>matches</code> 是报文需要满足的条件。<code>matches</code> 的内容非常多，可以识别以下多种类型的报文。</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br></pre></td><td class="code"><pre><span class="line">ip          :  ipv4 协议字段</span><br><span class="line">ip6         :  ipv6 协议字段</span><br><span class="line">tcp         :  tcp 协议字段</span><br><span class="line">udp         :  udp 协议字段</span><br><span class="line">udplite     :  udp-lite 协议</span><br><span class="line">sctp        :  sctp 协议 </span><br><span class="line">dccp</span><br><span class="line">ah</span><br><span class="line">esp</span><br><span class="line">comp</span><br><span class="line">icmp</span><br><span class="line">icmpv6</span><br><span class="line">ether       :  以太头</span><br><span class="line">dst</span><br><span class="line">frag        :</span><br><span class="line">hbh</span><br><span class="line">mh</span><br><span class="line">rt            </span><br><span class="line">vlan        :  vlan</span><br><span class="line">arp         :  arp协议</span><br><span class="line">ct          :  连接状态</span><br><span class="line">meta        :  报文的基本信息</span><br></pre></td></tr></table></figure>
+<p>对每一种类型的报文，你又可以同时检查多个字段，例如：</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br></pre></td><td class="code"><pre><span class="line">ip dscp cs1</span><br><span class="line">ip dscp != cs1</span><br><span class="line">ip dscp 0x38</span><br><span class="line">ip dscp != 0x20</span><br><span class="line">ip dscp &#123;cs0, cs1, cs2, cs3, cs4, cs5, cs6, cs7, af11, af12, af13, af21, </span><br><span class="line">af22, af23, af31, af32, af33, af41, af42, af43, ef&#125;</span><br><span class="line"></span><br><span class="line">ip length 232</span><br><span class="line">ip length != 233</span><br><span class="line">ip length 333-435</span><br><span class="line">ip length != 333-453</span><br><span class="line">ip length &#123; 333, 553, 673, 838&#125;</span><br><span class="line"></span><br><span class="line">ip6 flowlabel 22</span><br><span class="line">ip6 flowlabel != 233</span><br><span class="line">ip6 flowlabel &#123; 33, 55, 67, 88 &#125;</span><br><span class="line">ip6 flowlabel &#123; 33-55 &#125;</span><br></pre></td></tr></table></figure>
+<p>而 <code>statement</code> 是报文匹配规则时触发的操作，大致有以下几种：</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line">Verdict statements :   动作</span><br><span class="line">Log                :   记录日志并继续处理请求</span><br><span class="line">Reject             :   停止处理并拒绝请求</span><br><span class="line">Counter            :   计数</span><br><span class="line">Limit              :   如果达到了接收数据包的匹配限制，则根据规则处理数据包</span><br><span class="line">Nat                :   NAT</span><br><span class="line">Queuea             :   停止处理并发送数据包到用户空间程序</span><br></pre></td></tr></table></figure>
+<p>其中 <code>Verdict Statements</code> 是一组动作，大致有以下几种：</p>
+<ul>
+<li>
+<p>accept：接受数据包并停止剩余规则评估。</p>
+</li>
+<li>
+<p>drop：丢弃数据包并停止剩余规则评估。</p>
+</li>
+<li>
+<p>queue：将数据包排队到用户空间并停止剩余规则评估。</p>
+</li>
+<li>
+<p>continue：使用下一条规则继续进行规则评估。</p>
+</li>
+<li>
+<p>return：从当前链返回并继续执行最后一条链的下一条规则。</p>
+</li>
+<li>
+<p>jump <chain>：跳转到指定的规则链，当执行完成或者返回时，返回到调用的规则链。</chain></p>
+</li>
+<li>
+<p>goto <chain>：类似于跳转，发送到指定规则链但不返回。</chain></p>
+</li>
+</ul>
+<p>下面将以添加一条允许 <code>SSH</code> 登录的规则为例，给大家介绍下如何增加或插入一条新的规则。</p>
+<ol>
+<li>增加规则</li>
+</ol>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">$ nft add rule inet mytable input tcp dport ssh accept</span><br></pre></td></tr></table></figure>
+<p>默认情况下，<code>add</code> 表示将规则添加到链的末尾。如果你想从链的开头增加规则，可以使用 <code>insert</code> 来实现。</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">$ nft insert rule inet mytable input tcp dport http accept</span><br></pre></td></tr></table></figure>
+<ol start="2">
+<li>列出规则</li>
+</ol>
+<ul>
+<li>列出目前链中所有的规则</li>
+</ul>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line">$ nft list ruleset</span><br><span class="line">table inet mytable &#123;</span><br><span class="line">        chain input &#123;</span><br><span class="line">                <span class="built_in">type</span> filter hook input priority 0; policy accept;</span><br><span class="line">                tcp dport http accept</span><br><span class="line">                tcp dport ssh accept</span><br><span class="line">        &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<ul>
+<li>列出某个表中的所有规则</li>
+</ul>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">$ nft list table inet mytable</span><br></pre></td></tr></table></figure>
+<ul>
+<li>列出某条链中的所有规则</li>
+</ul>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">$ nft list chain inet mytable input</span><br></pre></td></tr></table></figure>
+<ol start="3">
+<li>按指定位置增加规则</li>
+</ol>
+<p>无论你是使用 <code>add</code> 或者 <code>insert</code> 来增加规则，你都可以通过 <code>index</code> 或者 <code>handle</code> 来指定添加的位置。</p>
+<ul>
+<li>使用 index 来指定规则的索引</li>
+</ul>
+<p><code>index</code> 类似于 <code>iptables</code> 的 <code>-I</code> 选项， <code>add</code> 表示新规则添加在索引位置的规则后面，<code>inser</code> 表示新规则添加在索引位置的规则前面。</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># 在 input 链中已有规则中的第二条规则前插入一条新的规则</span></span><br><span class="line">$ nft insert rule inet mytable input index 1 tcp dport nfs accept</span><br><span class="line">$ nft list ruleset</span><br><span class="line">table inet mytable &#123;</span><br><span class="line">     chain input &#123;</span><br><span class="line">             <span class="built_in">type</span> filter hook input priority 0; policy accept;</span><br><span class="line">             tcp dport http accept</span><br><span class="line">             tcp dport nfs accept</span><br><span class="line">             tcp dport ssh accept</span><br><span class="line">     &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="comment"># 在 input 链中已有规则中的第一条规则后插入一条新的规则</span></span><br><span class="line">$ nft add rule inet mytable input index 0 tcp dport 1234 accept</span><br><span class="line">$ nft list ruleset</span><br><span class="line">table inet mytable &#123;</span><br><span class="line">     chain input &#123;</span><br><span class="line">             <span class="built_in">type</span> filter hook input priority 0; policy accept;</span><br><span class="line">             tcp dport http accept</span><br><span class="line">             tcp dport 1234 accept</span><br><span class="line">             tcp dport nfs accept</span><br><span class="line">             tcp dport ssh accept</span><br><span class="line">     &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<blockquote>
+<p>注意：<code>index</code> 的值是从 <code>0</code> 开始的，<code>index</code> 必须指向一个已存在的规则的索引。</p>
+</blockquote>
+<ul>
+<li>使用 handle 来指定规则的句柄</li>
+</ul>
+<p>通过 <code>handle</code> 的值来指定规则添加的位置，必须先知道现有规则的句柄位置。你可以通过参数 <code>--handle</code> 来获取当前规则的句柄位置。</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line">$ nft --handle list ruleset</span><br><span class="line">table inet mytable &#123; <span class="comment"># handle 10</span></span><br><span class="line">     chain input &#123; <span class="comment"># handle 2</span></span><br><span class="line">             <span class="built_in">type</span> filter hook input priority 0; policy accept;</span><br><span class="line">             tcp dport http accept <span class="comment"># handle 4</span></span><br><span class="line">             tcp dport 1234 accept <span class="comment"># handle 6</span></span><br><span class="line">             tcp dport nfs accept <span class="comment"># handle 5</span></span><br><span class="line">             tcp dport ssh accept <span class="comment"># handle 3</span></span><br><span class="line">     &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>获取到当前规则的句柄位置后，我们就可以在指定句柄位置添加规则。下面我们以在句柄位置 4 后面和句柄位置 5 前面分别增加一条新的规则为例：</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br></pre></td><td class="code"><pre><span class="line">$ nft add rule inet mytable input handle 4 tcp dport 2345 accept</span><br><span class="line">$ nft insert rule inet mytable input handle 5 tcp dport 3456 accept</span><br><span class="line">$ nft --handle list ruleset</span><br><span class="line">table inet mytable &#123; <span class="comment"># handle 10</span></span><br><span class="line">     chain input &#123; <span class="comment"># handle 2</span></span><br><span class="line">             <span class="built_in">type</span> filter hook input priority 0; policy accept;</span><br><span class="line">             tcp dport http accept <span class="comment"># handle 4</span></span><br><span class="line">             tcp dport 2345 accept <span class="comment"># handle 8</span></span><br><span class="line">             tcp dport 1234 accept <span class="comment"># handle 6</span></span><br><span class="line">             tcp dport 3456 accept <span class="comment"># handle 9</span></span><br><span class="line">             tcp dport nfs accept <span class="comment"># handle 5</span></span><br><span class="line">             tcp dport ssh accept <span class="comment"># handle 3</span></span><br><span class="line">     &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>在 <code>nftables</code> 中，句柄值是固定不变的，除非规则被删除。而 <code>index</code> 的值是可变的，只要有新规则插入，就有可能发生变化。一般建议使用 <code>handle</code> 来插入新规则。</p>
+<p>你也可以在创建规则时就获取到规则的句柄值，只需要在创建规则时同时加上参数 <code>--echo</code> 和 <code>--handle</code>。</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">$ nft --<span class="built_in">echo</span> --handle add rule inet mytable input udp dport 3333 accept</span><br><span class="line">add rule inet mytable input udp dport 3333 accept <span class="comment"># handle 10</span></span><br></pre></td></tr></table></figure>
+<ol start="4">
+<li>删除规则</li>
+</ol>
+<p>单个规则只能通过句柄值删除，每个规则的句柄值可通过 <code>nft --handle list ruleset</code> 命令查看。</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># 删除指定句柄值对应的规则</span></span><br><span class="line">$ nft delete rule inet mytable input handle 8</span><br></pre></td></tr></table></figure>
+<blockquote>
+<p>小技巧：你可以使用 <code>iptables-translate</code> 实用程序将 <code>iptables</code> 规则转换成 <code>nftables</code> 格式</p>
+</blockquote>
+<h2 id="nftables-高级功能进阶">nftables 高级功能进阶</h2>
+<p><code>nftables</code> 除了上面的基础功能外，还给我们额外提供了一些非常实用且功能强大的高级功能。</p>
+<h3 id="集合">集合</h3>
+<p><code>nftables</code> 的语法原生支持集合，可以用来匹配多个 <code>IP</code> 地址、端口号、网卡或其他任何条件。<code>nftables</code> 的集合可分为匿名集合与命名集合，相对 <code>iptables</code> 来说，<code>nftables</code> 是原生支持集合，并不需要借助 <code>ipset</code> 来实现。</p>
+<ol>
+<li>匿名集合</li>
+</ol>
+<p>匿名集合比较适合用于将来不需要更改的规则。</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># 允许来自源 IP 处于 10.10.10.123 ~ 10.10.10.231 这个区间内的主机的流量。</span></span><br><span class="line">$ nft add rule inet mytable input ip saddr &#123; 10.10.10.123, 10.10.10.231 &#125; accept</span><br><span class="line"></span><br><span class="line"><span class="comment"># 允许指定协义的流量通过</span></span><br><span class="line">$ nft add rule inet mytable input tcp dport &#123; http, nfs, ssh &#125; accept</span><br></pre></td></tr></table></figure>
+<p>匿名集合的缺点是需要修改集合规则时，就得替换原规则。如果需要频繁修改的集合，推荐使用命名集合。</p>
+<ol start="2">
+<li>命名集合</li>
+</ol>
+<p><code>nftables</code> 的命名集合是可以修改的。创建命名集合时需要指定其元素的类型，当前支持的数据类型有：</p>
+<ul>
+<li>
+<p><code>ipv4_addr</code> : <code>IPv4</code> 地址</p>
+</li>
+<li>
+<p><code>ipv6_addr</code> : <code>IPv6</code> 地址</p>
+</li>
+<li>
+<p><code>ether_addr</code> : 以太网（Ethernet）地址</p>
+</li>
+<li>
+<p><code>inet_proto</code> : 网络协议</p>
+</li>
+<li>
+<p><code>inet_service</code> : 网络服务</p>
+</li>
+<li>
+<p><code>mark</code> : 标记类型</p>
+</li>
+</ul>
+<p>这里，我们来看一个实例。首先，创建一个空的命名集合。</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># 创建一个空的命名集合</span></span><br><span class="line">$ nft add <span class="built_in">set</span> inet mytable myset &#123; <span class="built_in">type</span> ipv4_addr \; &#125;</span><br><span class="line">$ nft list sets</span><br><span class="line">table inet mytable &#123;</span><br><span class="line">        <span class="built_in">set</span> myset &#123;</span><br><span class="line">                <span class="built_in">type</span> ipv4_addr</span><br><span class="line">        &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>接着，我们向集合中添加一些元素。</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line">$ nft add element inet mytable myset &#123; 10.10.10.22, 10.10.10.33 &#125;</span><br><span class="line">$ nft list <span class="built_in">set</span> inet mytable myset</span><br><span class="line">table inet mytable &#123;</span><br><span class="line">        <span class="built_in">set</span> myset &#123;</span><br><span class="line">                <span class="built_in">type</span> ipv4_addr</span><br><span class="line">                elements = &#123; 10.10.10.22, 10.10.10.33 &#125;</span><br><span class="line">        &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>然后，在添加规则时引用集合，你可以使用 <code>@</code> 符号跟上集合的名字来引用命名集合。</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># 将来源为集合 myset 中的 IP 地址的请求阻止掉</span></span><br><span class="line">$ nft insert rule inet mytable input ip saddr @myset drop</span><br><span class="line">$ nft list chain inet mytable input</span><br><span class="line">table inet mytable &#123;</span><br><span class="line">        chain input &#123;</span><br><span class="line">                <span class="built_in">type</span> filter hook input priority 0; policy accept;</span><br><span class="line">                ip saddr @my_set drop</span><br><span class="line">                tcp dport http accept</span><br><span class="line">                tcp dport nfs accept</span><br><span class="line">                tcp dport ssh accept</span><br><span class="line">                ip saddr &#123; 10.10.10.123, 10.10.10.231 &#125; accept</span><br><span class="line">        &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<ol start="3">
+<li>支持区间</li>
+</ol>
+<p>从上面的例子中，我们可以看到填加元素时是使用的两个独立的 <code>IP</code> 地址，并没有直接使用 <code>10.10.10.0-10.10.10.255</code> 这样的区间段来表示。这是因为直接使用区间段会报以下类似错误：</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">$ nft add element inet mytable myset &#123; 10.10.10.0-10.10.10.255 &#125;</span><br><span class="line"></span><br><span class="line">Error: Set member cannot be range, missing interval flag on declaration</span><br><span class="line">add element inet mytable my_set &#123; 10.10.10.0-10.10.10.255 &#125;</span><br><span class="line">                                   ^^^^^^^^^^^^^^^^^^^^^^^</span><br></pre></td></tr></table></figure>
+<p>如果你想在集合中使用区间，需要加上一个 <code>flag interval</code>，因为内核必须提前确认该集合存储的数据类型，以便采用适当的数据结构。我们来看一个实例吧：</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># 创建一个支持区间的命名集合</span></span><br><span class="line">$ nft add <span class="built_in">set</span> inet mytable my_rangeset &#123; <span class="built_in">type</span> ipv4_addr \; flags interval</span><br><span class="line">$ nft add element inet mytable my_rangeset &#123; 10.10.10.0/24 &#125;</span><br><span class="line">$ nft list <span class="built_in">set</span> inet mytable my_rangeset</span><br><span class="line">table inet mytable &#123;</span><br><span class="line">        <span class="built_in">set</span> my_rangeset &#123;</span><br><span class="line">                <span class="built_in">type</span> ipv4_addr</span><br><span class="line">                flags interval</span><br><span class="line">                elements = &#123; 10.10.10.0/24 &#125;</span><br><span class="line">        &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>上面的例子中直接使用了子网掩码来表示 <code>IP</code> 地址段，它会被隐式转换为 <code>IP</code> 地址的区间，你也可以直接使用区间 <code>10.10.10.0-10.10.10.255</code> 来获得相同的效果。</p>
+<ol start="4">
+<li>级联不同类型</li>
+</ol>
+<p>命名集合不仅支持同一类型元素，也可以支持对不同类型的元素进行级联。例如，下面的规则可以一次性匹配 <code>IP</code> 地址、协议和端口号。</p>
+<p>首先，我们创建一个级联类型的集合。</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line">$ nft add <span class="built_in">set</span> inet mytable my_concatset  &#123; <span class="built_in">type</span> ipv4_addr . inet_proto . inet_service \; &#125;</span><br><span class="line"></span><br><span class="line"><span class="comment"># 不同类型的元素可以通过级联操作符 . 来分隔。</span></span><br><span class="line">$ nft list <span class="built_in">set</span> inet mytable my_concatset</span><br><span class="line">table inet mytable &#123;</span><br><span class="line">        <span class="built_in">set</span> my_concatset &#123;</span><br><span class="line">                <span class="built_in">type</span> ipv4_addr . inet_proto . inet_service</span><br><span class="line">        &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>接着，向集合中添加元素。</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">$ nft add element inet mytable my_concatset &#123; 10.30.30.30 . tcp . telnet &#125;</span><br></pre></td></tr></table></figure>
+<p>最后，我们在规则中对级联类型的集合进行引用。</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># 如果数据包的源 IP、协议类型、目标端口匹配 10.30.30.30、tcp、telnet 时，就会允许该数据包通过</span></span><br><span class="line">$ nft add rule inet mytable input ip saddr . meta l4proto . tcp dport @my_concatset accept</span><br></pre></td></tr></table></figure>
+<p>除了命名集合，匿名集合也是可以使用级联元素，例如：</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">$ nft add rule inet mytable input ip saddr . meta l4proto . udp dport &#123; 10.30.30.30 . udp . bootps &#125; accept</span><br></pre></td></tr></table></figure>
+<p>在规则中引用级联类型的集合和一般类型集合的主要不同之处：主要在于需要标明集合中每个元素对应到规则中的哪个位置，这类似于 ipset 的聚合类型，例如 <code>hash:ip,port</code> 。</p>
+<h3 id="字典">字典</h3>
+<p>字典是 <code>nftables</code> 的又一个高级特性，它同样可以支持在一条规则上面使用不同类型的数据。</p>
+<p>首先，我们创建一个命名字典。</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">$ nft add map inet mytable my_vmap &#123; <span class="built_in">type</span> inet_proto : verdict \; &#125;</span><br></pre></td></tr></table></figure>
+<p>接着，我们向字典中添加一些元素。</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">$ nft add element inet mytable my_vmap &#123; 192.168.0.10 : drop, 192.168.0.11 : accept &#125;</span><br></pre></td></tr></table></figure>
+<p>最后，我们就可以在规则中引用字典中的元素。</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">$ nft add rule inet mytable input ip saddr vmap @my_vmap</span><br></pre></td></tr></table></figure>
+<p>和集合一样，除了命名字典，你也可以创建匿名字典。例如，为了从逻辑上对 <code>TCP</code> 和 <code>UDP</code> 的数据包拆分开来用两条不同链来处理，你就可以通过使用字典来实现。</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line">$ nft add chain inet mytable my_tcpchain</span><br><span class="line">$ nft add chain inet mytable my_udpchain</span><br><span class="line">$ nft add rule inet mytable input meta l4proto vmap &#123; tcp : jump my_tcpchain, udp : jump my_udpchain &#125;</span><br><span class="line">$ nft list chain inet mytable input</span><br><span class="line">table inet mytable &#123;</span><br><span class="line">    chain input &#123;</span><br><span class="line">    ...</span><br><span class="line">    meta nfproto ipv4 ip saddr . meta l4proto . udp dport &#123; 10.30.30.30 . udp . bootps &#125; accept</span><br><span class="line">    meta l4proto vmap &#123; tcp : jump my_tcpchain, udp : jump my_udpchain &#125;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<h3 id="表与命名空间">表与命名空间</h3>
+<p>在 <code>nftables</code> 中，每个表都是一个独立的命名空间，这就意味着不同的表中的链、集合、字典等名字可以相同。例如：</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br></pre></td><td class="code"><pre><span class="line">$ nft add table inet table_one</span><br><span class="line">$ nft add chain inet table_one mychain</span><br><span class="line">$ nft add table inet table_two</span><br><span class="line">$ nft add chain inet table_two mychain</span><br><span class="line">$ nft list ruleset</span><br><span class="line">...</span><br><span class="line">table inet table_one &#123;</span><br><span class="line">    chain mychain &#123;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br><span class="line">table inet table_two &#123;</span><br><span class="line">    chain mychain &#123;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>有了这个特性后，不同的应用就可以在相互不影响的情况下管理自己的表中的规则。不过使用这个特性前，你需要注意的一点是：由于 <code>nftables</code> 将每个表都被视为独立的防火墙，一个数据包必须被所有表中的规则放行才能真正通过。如果，出现两条链的优先级相同，就会进入竞争状态。</p>
+<p>当然，你可以使用 <code>nftables</code> 优先级特性来解决这个问题。优先级值越高的链优先级越低，所以优先级值低的链会比优先级值高的链先执行。</p>
+<h3 id="备份与恢复">备份与恢复</h3>
+<p>默认情况下，通过 <code>nftables</code> 用户态工具 <code>nft</code> 直接在终端中加入的规则都是临时的。如果要想永久生效，我们可以将规则备份后并在开机自动加载时进行恢复。</p>
+<ol>
+<li>备份规则</li>
+</ol>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">$ nft list ruleset &gt; /root/nftables.conf</span><br></pre></td></tr></table></figure>
+<ol start="2">
+<li>恢复规则</li>
+</ol>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">$ nft -f /root/nftables.conf</span><br></pre></td></tr></table></figure>
+<p>在 <code>CentOS 8</code> 中，<code>nftables</code> 是以 <code>Systemd</code> 服务形式进行工作的。<code>nftables.service</code> 的规则被存储在 <code>/etc/nftables.conf</code> 中，其中包含了一些其他的示例规则，一般会位于 <code>/etc/sysconfig/nftables.conf</code> 文件中。如果你想开机自加载 <code>nftables</code> 规则，只需将备份规则放到 <code>/etc/sysconfig/nftables.conf</code> 文件即可。</p>
+<h2 id="总结">总结</h2>
+<p>至此，本文对 <code>nftables</code> 的基本功能和用法就讲解完了，更高级的用法可以在以下文档中做进一步探索。</p>
+<blockquote>
+<ol>
+<li>
+<p>Archlinux Wiki：<a href="https://wiki.archlinux.org/index.php/Nftables" target="_blank" rel="noopener">https://wiki.archlinux.org/index.php/Nftables</a></p>
+</li>
+<li>
+<p>nftables HOWTO：<a href="https://farkasity.gitbooks.io/nftables-howto-zh/" target="_blank" rel="noopener">https://farkasity.gitbooks.io/nftables-howto-zh/</a></p>
+</li>
+<li>
+<p>nftables Wiki：<a href="https://wiki.nftables.org/wiki-nftables/index.php/Main_Page" target="_blank" rel="noopener">https://wiki.nftables.org/wiki-nftables/index.php/Main_Page</a></p>
+</li>
+</ol>
+</blockquote>
+<h2 id="参考文档">参考文档</h2>
+<ol>
+<li>
+<p><a href="https://www.google.com" target="_blank" rel="noopener">https://www.google.com</a></p>
+</li>
+<li>
+<p><a href="https://url.cn/56tJkD8" target="_blank" rel="noopener">https://url.cn/56tJkD8</a></p>
+</li>
+<li>
+<p><a href="http://www.freecls.com/a/2712/fc" target="_blank" rel="noopener">http://www.freecls.com/a/2712/fc</a></p>
+</li>
+<li>
+<p><a href="https://blog.51cto.com/babyshen/2065749" target="_blank" rel="noopener">https://blog.51cto.com/babyshen/2065749</a></p>
+</li>
+<li>
+<p><a href="https://adoyle.me/Today-I-Learned/linux/iptables.html" target="_blank" rel="noopener">https://adoyle.me/Today-I-Learned/linux/iptables.html</a></p>
+</li>
+<li>
+<p><a href="https://blog.csdn.net/dog250/article/details/54170683" target="_blank" rel="noopener">https://blog.csdn.net/dog250/article/details/54170683</a></p>
+</li>
+<li>
+<p><a href="https://www.yangcs.net/posts/using-nftables/" target="_blank" rel="noopener">https://www.yangcs.net/posts/using-nftables/</a></p>
+</li>
+<li>
+<p><a href="https://wiki.archlinux.org/index.php/Nftables" target="_blank" rel="noopener">https://wiki.archlinux.org/index.php/Nftables</a></p>
+</li>
+<li>
+<p><a href="https://farkasity.gitbooks.io/nftables-howto-zh/content/" target="_blank" rel="noopener">https://farkasity.gitbooks.io/nftables-howto-zh/content/</a></p>
+</li>
+<li>
+<p><a href="https://blog.omicron3069.com/post/nftablesfornode/" target="_blank" rel="noopener">https://blog.omicron3069.com/post/nftablesfornode/</a></p>
+</li>
+</ol>
+</div>
+
+			<script src="https://my.openwrite.cn/js/readmore.js" type="text/javascript"></script>
+			<script>
+			var isMobile = navigator.userAgent.match(/(phone|pad|pod|iPhone|iPod|ios|iPad|Android|Mobile|BlackBerry|IEMobile|MQQBrowser|JUC|Fennec|wOSBrowser|BrowserNG|WebOS|Symbian|Windows Phone)/i);
+			if (!isMobile) {
+			    var btw = new BTWPlugin();
+			    btw.init({
+			        "id": "vip-container",
+			        "blogId": "10135-1588830050631-449",
+			        "name": "「奇妙的 Linux 世界」",
+			        "qrcode": "https://www.hi-linux.com/img/wechat/mp_qrcode_12.jpg",
+			        "keyword": "VIP"
+			    });
+			}
+			</script>
+		
+                
+
+                <hr>
+                <!-- Pager -->
+                <ul class="pager">
+                    
+                    
+                        <li class="next">
+                            <a href="/posts/20165.html" data-toggle="tooltip" data-placement="top" title="推荐一款 Go 语言多版本管理利器 GVM">Next Post &rarr;</a>
+                        </li>
+                    
+                </ul>
+
+                <!-- duoshuo Share start -->
+                
+                <!-- 多说 Share end-->
+
+                <!-- 多说评论框 start -->
+                
+                <!-- 多说评论框 end -->
+
+                <!-- disqus comment start -->
+                
+                <!-- disqus comment end -->
+
+                
+                    <!-- disqus 评论框 start -->
+                    <div class="comment">
+                        <div id="lv-container" data-id="city" data-uid="MTAyMC8yNzg2My80NDQw"></div>
+                    </div>
+                    <!-- disqus 评论框 end -->
+                
+
+            </div>
+            
+            <!-- Tabe of Content -->
+            <!-- Table of Contents -->
+
+  
+    <style>
+      span.toc-nav-number{
+        display: none
+      }
+    </style>
+  
+    
+      <aside id="sidebar">
+        <div id="toc" class="toc-article">
+        <strong class="toc-title">Contents</strong>
+        
+          <ol class="toc-nav"><li class="toc-nav-item toc-nav-level-2"><a class="toc-nav-link" href="#什么是-nftables"><span class="toc-nav-number">1.</span> <span class="toc-nav-text">什么是 nftables？</span></a><ol class="toc-nav-child"><li class="toc-nav-item toc-nav-level-3"><a class="toc-nav-link" href="#nftables-的特点"><span class="toc-nav-number">1.1.</span> <span class="toc-nav-text">nftables 的特点</span></a></li><li class="toc-nav-item toc-nav-level-3"><a class="toc-nav-link" href="#nftables-相较于-iptables-的优点"><span class="toc-nav-number">1.2.</span> <span class="toc-nav-text">nftables 相较于 iptables 的优点</span></a></li></ol></li><li class="toc-nav-item toc-nav-level-2"><a class="toc-nav-link" href="#nftables-基础操作"><span class="toc-nav-number">2.</span> <span class="toc-nav-text">nftables 基础操作</span></a><ol class="toc-nav-child"><li class="toc-nav-item toc-nav-level-3"><a class="toc-nav-link" href="#nftables-的表管理"><span class="toc-nav-number">2.1.</span> <span class="toc-nav-text">nftables 的表管理</span></a></li><li class="toc-nav-item toc-nav-level-3"><a class="toc-nav-link" href="#nftables-的链管理"><span class="toc-nav-number">2.2.</span> <span class="toc-nav-text">nftables 的链管理</span></a></li><li class="toc-nav-item toc-nav-level-3"><a class="toc-nav-link" href="#nftables-的规则管理"><span class="toc-nav-number">2.3.</span> <span class="toc-nav-text">nftables 的规则管理</span></a></li></ol></li><li class="toc-nav-item toc-nav-level-2"><a class="toc-nav-link" href="#nftables-高级功能进阶"><span class="toc-nav-number">3.</span> <span class="toc-nav-text">nftables 高级功能进阶</span></a><ol class="toc-nav-child"><li class="toc-nav-item toc-nav-level-3"><a class="toc-nav-link" href="#集合"><span class="toc-nav-number">3.1.</span> <span class="toc-nav-text">集合</span></a></li><li class="toc-nav-item toc-nav-level-3"><a class="toc-nav-link" href="#字典"><span class="toc-nav-number">3.2.</span> <span class="toc-nav-text">字典</span></a></li><li class="toc-nav-item toc-nav-level-3"><a class="toc-nav-link" href="#表与命名空间"><span class="toc-nav-number">3.3.</span> <span class="toc-nav-text">表与命名空间</span></a></li><li class="toc-nav-item toc-nav-level-3"><a class="toc-nav-link" href="#备份与恢复"><span class="toc-nav-number">3.4.</span> <span class="toc-nav-text">备份与恢复</span></a></li></ol></li><li class="toc-nav-item toc-nav-level-2"><a class="toc-nav-link" href="#总结"><span class="toc-nav-number">4.</span> <span class="toc-nav-text">总结</span></a></li><li class="toc-nav-item toc-nav-level-2"><a class="toc-nav-link" href="#参考文档"><span class="toc-nav-number">5.</span> <span class="toc-nav-text">参考文档</span></a></li></ol>
+        
+        </div>
+      </aside>
+    
+
+                
+            <!-- Sidebar Container -->
+            <div class="
+                col-lg-8 col-lg-offset-2
+                col-md-10 col-md-offset-1
+                sidebar-container">
+
+                <!-- Featured Tags -->
+                
+                <section>
+                    <!-- no hr -->
+                    <h5><a href="/tags/">FEATURED TAGS</a></h5>
+                    <div class="tags">
+                       
+                          <a class="tag" href="/tags/#Linux" title="Linux">Linux</a>
+                        
+                          <a class="tag" href="/tags/#技巧" title="技巧">技巧</a>
+                        
+                          <a class="tag" href="/tags/#nftables" title="nftables">nftables</a>
+                        
+                    </div>
+                </section>
+                
+
+                <!-- Friends Blog -->
+                
+                <hr>
+                <h5>FRIENDS</h5>
+                <ul class="list-inline">
+
+                    
+                        <li><a href="http://www.mike.org.cn/" target="_blank">简单.生活</a></li>
+                    
+                        <li><a href="http://shang.qq.com/wpa/qunwpa?idkey=ea4c43493c2269428ac6ef6141de4b6d78e5ab2d41380ca4099b833b62884ee9" target="_blank">技术交流群</a></li>
+                    
+                        <li><a href="" target="_blank"></a></li>
+                    
+                        <li><a href="" target="_blank"></a></li>
+                    
+                </ul>
+                
+            </div>
+        </div>
+    </div>
+</article>
+
+
+
+
+
+
+    <!-- 来必力City版公共JS代码 start (一个网页只需插入一次) -->
+    <script type="text/javascript">
+       (function(d, s) {
+           var j, e = d.getElementsByTagName(s)[0];
+    
+           if (typeof LivereTower === 'function') { return; }
+    
+           j = d.createElement(s);
+           j.src = 'https://cdn-city.livere.com/js/embed.dist.js';
+           j.async = true;
+    
+           e.parentNode.insertBefore(j, e);
+       })(document, 'script');
+    </script>
+    <noscript>为正常使用来必力评论功能请激活JavaScript</noscript>
+    <!-- 来必力City版 公共JS代码 end -->
+
+
+
+<!-- async load function -->
+<script>
+    function async(u, c) {
+      var d = document, t = 'script',
+          o = d.createElement(t),
+          s = d.getElementsByTagName(t)[0];
+      o.src = u;
+      if (c) { o.addEventListener('load', function (e) { c(null, e); }, false); }
+      s.parentNode.insertBefore(o, s);
+    }
+</script>
+<!-- anchor-js, Doc:http://bryanbraun.github.io/anchorjs/ -->
+<script>
+    async("https://cdn.bootcss.com/anchor-js/1.1.1/anchor.min.js",function(){
+        anchors.options = {
+          visible: 'hover',
+          placement: 'left',
+          icon: 'ℬ'
+        };
+        anchors.add().remove('.intro-header h1').remove('.subheading').remove('.sidebar-container h5');
+    })
+</script>
+<style>
+    /* place left on bigger screen */
+    @media all and (min-width: 800px) {
+        .anchorjs-link{
+            position: absolute;
+            left: -0.75em;
+            font-size: 1.1em;
+            margin-top : -0.1em;
+        }
+    }
+</style>
+
+
+
+    <!-- Footer -->
+    <!-- Footer -->
+<footer>
+    <div class="container">
+        <div class="row">
+            <div class="col-lg-8 col-lg-offset-2 col-md-10 col-md-offset-1">
+                <ul class="list-inline text-center">
+                
+                    <li>
+                        <a href="/atom.xml">
+                            <span class="fa-stack fa-lg">
+                                <i class="fa fa-circle fa-stack-2x"></i>
+                                <i class="fa fa-rss fa-stack-1x fa-inverse"></i>
+                            </span>
+                        </a>
+                    </li>
+                
+                
+                
+                    <li>
+                        <a target="_blank" href="https://www.zhihu.com/people/80imike">
+                            <span class="fa-stack fa-lg">
+                                <i class="fa fa-circle fa-stack-2x"></i>
+                                <i class="fa  fa-stack-1x fa-inverse">知</i>
+                            </span>
+                        </a>
+                    </li>
+                
+
+                
+                    <li>
+                        <a target="_blank" href="http://weibo.com/2093524665">
+                            <span class="fa-stack fa-lg">
+                                <i class="fa fa-circle fa-stack-2x"></i>
+                                <i class="fa fa-weibo fa-stack-1x fa-inverse"></i>
+                            </span>
+                        </a>
+                    </li>
+                
+
+                
+
+                
+
+                
+
+                </ul>
+                <p class="copyright text-muted">
+                    Copyright &copy; Mike 2020 | Hosted by <a href="https://pages.coding.me" target="_blank" rel="noopener" style="font-weight: bold">Coding Pages</a>
+                    <br>
+                    Theme by <a href="http://beantech.org" target="_blank" rel="noopener">BeanTech</a> 
+                    <span style="display: inline-block; margin: 0 5px;">
+                        <i class="fa fa-heart"></i>
+                    </span> 
+                    re-Ported by <a href="http://www.huweihuang.com" target="_blank" rel="noopener">胡伟煌</a> | 
+                    <iframe
+                        style="margin-left: 2px; margin-bottom:-5px;"
+                        frameborder="0" scrolling="0" width="91px" height="20px"
+                        src="https://ghbtns.com/github-btn.html?user=huweihuang&repo=hexo-theme-huweihuang&type=star&count=true" >
+                    </iframe>
+                </p>
+            </div>
+        </div>
+    </div>
+</footer>
+
+<!-- jQuery -->
+
+<script src="/js/jquery.min.js"></script>
+
+
+<!-- Bootstrap Core JavaScript -->
+
+<script src="/js/bootstrap.min.js"></script>
+
+
+<!-- Custom Theme JavaScript -->
+
+<script src="/js/hux-blog.min.js"></script>
+
+
+
+<!-- async load function -->
+<script>
+    function async(u, c) {
+      var d = document, t = 'script',
+          o = d.createElement(t),
+          s = d.getElementsByTagName(t)[0];
+      o.src = u;
+      if (c) { o.addEventListener('load', function (e) { c(null, e); }, false); }
+      s.parentNode.insertBefore(o, s);
+    }
+</script>
+
+<!-- 
+     Because of the native support for backtick-style fenced code blocks 
+     right within the Markdown is landed in Github Pages, 
+     From V1.6, There is no need for Highlight.js, 
+     so Huxblog drops it officially.
+
+     - https://github.com/blog/2100-github-pages-now-faster-and-simpler-with-jekyll-3-0  
+     - https://help.github.com/articles/creating-and-highlighting-code-blocks/    
+-->
+<!--
+    <script>
+        async("http://cdn.bootcss.com/highlight.js/8.6/highlight.min.js", function(){
+            hljs.initHighlightingOnLoad();
+        })
+    </script>
+    <link href="http://cdn.bootcss.com/highlight.js/8.6/styles/github.min.css" rel="stylesheet">
+-->
+
+
+<!-- jquery.tagcloud.js -->
+<script>
+    // only load tagcloud.js in tag.html
+    if($('#tag_cloud').length !== 0){
+        async("https://www.hi-linux.com/js/jquery.tagcloud.js",function(){
+            $.fn.tagcloud.defaults = {
+                //size: {start: 1, end: 1, unit: 'em'},
+                color: {start: '#bbbbee', end: '#0085a1'},
+            };
+            $('#tag_cloud a').tagcloud();
+        })
+    }
+</script>
+
+<!--fastClick.js -->
+<script>
+    async("https://cdn.bootcss.com/fastclick/1.0.6/fastclick.min.js", function(){
+        var $nav = document.querySelector("nav");
+        if($nav) FastClick.attach($nav);
+    })
+</script>
+
+
+<!-- Google Analytics -->
+
+
+
+
+<!-- Baidu Tongji -->
+
+
+
+
+
+
+	<a id="rocket" href="#top" class=""></a>
+	<script type="text/javascript" src="/js/totop.js?v=1.0.0" async=""></script>
+    <script type="text/javascript" src="/js/toc.js?v=1.0.0" async=""></script>
+<!-- Image to hack wechat -->
+<img src="https://www.hi-linux.com/img/icon_wechat.png" width="0" height="0" />
+<!-- Migrate from head to bottom, no longer block render and still work -->
+
+</body>
+
+</html>
