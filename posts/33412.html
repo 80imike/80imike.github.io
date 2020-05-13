@@ -1,0 +1,682 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<!-- Head tag -->
+<head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="google-site-verification" content="xBT4GhYoi5qRD5tr338pgPM5OWHHIDR6mNg1a3euekI" />
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="description" content="">
+    <meta name="keyword"  content="Linux,运维,Nginx,Zabbix,Centos,Ansible,MySQL,Python,Docker,ELK,Haproxy,Git,Nodejs,安全,技术">
+    <link rel="shortcut icon" href="/img/ironman-draw.png">
+    <!-- Place this tag in your head or just before your close body tag. -->
+    <script async defer src="https://buttons.github.io/buttons.js"></script>
+    <title>
+        
+          巧用 GoTTY 优雅的管理 Docker 容器权限 - 运维之美
+        
+    </title>
+
+    <link rel="canonical" href="https://www.hi-linux.com/posts/33412.html">
+
+    <!-- Bootstrap Core CSS -->
+    
+<link rel="stylesheet" href="/css/bootstrap.min.css">
+
+
+    <!-- Custom CSS --> 
+    
+<link rel="stylesheet" href="/css/beantech.min.css">
+
+    
+    <!-- Pygments Highlight CSS -->
+    
+<link rel="stylesheet" href="/css/highlight.css">
+
+
+    
+<link rel="stylesheet" href="/css/widget.css">
+
+
+    
+<link rel="stylesheet" href="/css/rocket.css">
+
+
+    
+<link rel="stylesheet" href="/css/signature.css">
+
+
+    
+<link rel="stylesheet" href="/css/toc.css">
+
+
+    <!-- Custom Fonts -->
+    <!-- <link href="https://maxcdn.bootstrapcdn.com/font-awesome/4.3.0/css/font-awesome.min.css" rel="stylesheet" type="text/css"> -->
+    <!-- Hux change font-awesome CDN to qiniu -->
+    <link href="https://cdn.staticfile.org/font-awesome/4.5.0/css/font-awesome.min.css" rel="stylesheet" type="text/css">
+
+
+    <!-- Hux Delete, sad but pending in China
+    <link href='http://fonts.googleapis.com/css?family=Lora:400,700,400italic,700italic' rel='stylesheet' type='text/css'>
+    <link href='http://fonts.googleapis.com/css?family=Open+Sans:300italic,400italic,600italic,700italic,800italic,400,300,600,700,800' rel='stylesheet' type='text/
+    css'>
+    -->
+
+
+    <!-- HTML5 Shim and Respond.js IE8 support of HTML5 elements and media queries -->
+    <!-- WARNING: Respond.js doesn't work if you view the page via file:// -->
+    <!--[if lt IE 9]>
+        <script src="https://oss.maxcdn.com/libs/html5shiv/3.7.0/html5shiv.js"></script>
+        <script src="https://oss.maxcdn.com/libs/respond.js/1.4.2/respond.min.js"></script>
+    <![endif]-->
+
+    <!-- ga & ba script hoook -->
+    <script></script>
+<meta name="generator" content="Hexo 4.2.0"><link rel="alternate" href="/atom.xml" title="运维之美" type="application/atom+xml">
+</head>
+
+
+<!-- hack iOS CSS :active style -->
+<body ontouchstart="">
+	<!-- Modified by Yu-Hsuan Yen -->
+<!-- Post Header -->
+<style type="text/css">
+    header.intro-header{
+        
+            background-image: url('/img/header_img/building.jpg')
+            /*post*/
+        
+    }
+    
+</style>
+
+<header class="intro-header" >
+    <!-- Signature -->
+    <div id="signature">
+        <div class="container">
+            <div class="row">
+                <div class="col-lg-8 col-lg-offset-2 col-md-10 col-md-offset-1">
+                
+                    <div class="post-heading">
+                        <div class="tags">
+                            
+                              <a class="tag" href="/tags/#Linux" title="Linux">Linux</a>
+                            
+                              <a class="tag" href="/tags/#Docker" title="Docker">Docker</a>
+                            
+                              <a class="tag" href="/tags/#技巧" title="技巧">技巧</a>
+                            
+                        </div>
+                        <h1>巧用 GoTTY 优雅的管理 Docker 容器权限</h1>
+                        <h2 class="subheading"></h2>
+                        <span class="meta">
+                            Posted by Mike on
+                            2020-05-13
+                        </span>
+                    </div>
+                
+
+
+                </div>
+            </div>
+        </div>
+    </div>
+</header>
+
+	
+    <!-- Navigation -->
+<nav class="navbar navbar-default navbar-custom navbar-fixed-top">
+    <div class="container-fluid">
+        <!-- Brand and toggle get grouped for better mobile display -->
+        <div class="navbar-header page-scroll">
+            <button type="button" class="navbar-toggle">
+                <span class="sr-only">Toggle navigation</span>
+                <span class="icon-bar"></span>
+                <span class="icon-bar"></span>
+                <span class="icon-bar"></span>
+            </button>
+            <a class="navbar-brand" href="/">运维之美</a>
+        </div>
+
+        <!-- Collect the nav links, forms, and other content for toggling -->
+        <!-- Known Issue, found by Hux:
+            <nav>'s height woule be hold on by its content.
+            so, when navbar scale out, the <nav> will cover tags.
+            also mask any touch event of tags, unfortunately.
+        -->
+        <div id="huxblog_navbar">
+            <div class="navbar-collapse">
+                <ul class="nav navbar-nav navbar-right">
+                    <li>
+                        <a href="/">Home</a>
+                    </li>
+
+                    
+
+                        
+                    
+
+                        
+                    
+
+                        
+                        <li>
+                            <a href="/archive/">Archives</a>
+                        </li>
+                        
+                    
+
+                        
+                        <li>
+                            <a href="/about/">About</a>
+                        </li>
+                        
+                    
+
+                        
+                        <li>
+                            <a href="/tags/">Tags</a>
+                        </li>
+                        
+                    
+                    
+                </ul>
+            </div>
+        </div>
+        <!-- /.navbar-collapse -->
+    </div>
+    <!-- /.container -->
+</nav>
+<script>
+    // Drop Bootstarp low-performance Navbar
+    // Use customize navbar with high-quality material design animation
+    // in high-perf jank-free CSS3 implementation
+    var $body   = document.body;
+    var $toggle = document.querySelector('.navbar-toggle');
+    var $navbar = document.querySelector('#huxblog_navbar');
+    var $collapse = document.querySelector('.navbar-collapse');
+
+    $toggle.addEventListener('click', handleMagic)
+    function handleMagic(e){
+        if ($navbar.className.indexOf('in') > 0) {
+        // CLOSE
+            $navbar.className = " ";
+            // wait until animation end.
+            setTimeout(function(){
+                // prevent frequently toggle
+                if($navbar.className.indexOf('in') < 0) {
+                    $collapse.style.height = "0px"
+                }
+            },400)
+        }else{
+        // OPEN
+            $collapse.style.height = "auto"
+            $navbar.className += " in";
+        }
+    }
+</script>
+
+
+    <!-- Main Content -->
+    <!-- Modify by Yu-Hsuan Yen -->
+
+<!-- Post Content -->
+<article>
+    <div class="container">
+        <div class="row">
+
+            <!-- Post Container -->
+            <div class="
+                col-lg-8 col-lg-offset-2
+                col-md-10 col-md-offset-1
+                post-container">
+
+                <div id="vip-container"><p><code>GoTTY</code> 是一个简单的基于 <code>Go</code> 语言的命令行工具，它可以将你的终端（TTY）作为 <code>Web</code> 程序共享。<code>GoTTY</code> 的架构是基于 <code>Hterm</code> + <code>Web Socket</code> 的，它能在 <code>Web</code> 浏览器上运行一个基于 <code>JavaScript</code> 的终端，并支持通过 <code>HTTP</code> 和 <code>HTTPS</code> 访问。</p>
+<blockquote>
+<p>项目地址：<a href="https://github.com/yudai/gotty" target="_blank" rel="noopener">https://github.com/yudai/gotty</a></p>
+</blockquote>
+<p><img src="https://raw.githubusercontent.com/yudai/gotty/master/screenshot.gif" alt=""></p>
+<h2 id="安装-gotty">安装 GoTTY</h2>
+<p><code>GoTTY</code> 原生支持良好的跨平台性，开箱即用。只需下载对应平台的二进制包就行了，这里以 <code>Linux</code> 平台为例。</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line"># 下载并解压 GoTTY 安装包</span><br><span class="line">$ wget https:&#x2F;&#x2F;github.com&#x2F;yudai&#x2F;gotty&#x2F;releases&#x2F;download&#x2F;v1.0.1&#x2F;gotty_linux_amd64.tar.gz</span><br><span class="line">$ tar -xzvf gotty_linux_amd64.tar.gz</span><br><span class="line"></span><br><span class="line"># 复制可执行文件到指定目录并赋予执行权限</span><br><span class="line">$ sudo cp gotty &#x2F;usr&#x2F;local&#x2F;bin&#x2F;</span><br><span class="line">$ chmod +x &#x2F;usr&#x2F;local&#x2F;bin&#x2F;gotty</span><br></pre></td></tr></table></figure>
+<p>更多平台的二进制安装包，可自行在官方项目地址的 <a href="https://github.com/yudai/gotty/releases" target="_blank" rel="noopener">Releases</a> 页面进行下载。</p>
+<p>如果你使用的是 Mac，也可以通过 <code>Homebrew</code> 来实现一键安装。</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">$ brew install yudai&#x2F;gotty&#x2F;gotty</span><br></pre></td></tr></table></figure>
+<p>安装完成后，检查一下 <code>Gotty</code> 的版本，以验证是否安装正确。</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">$ gotty -version</span><br><span class="line">gotty version 1.0.1</span><br></pre></td></tr></table></figure>
+<a id="more"></a>
+<h2 id="使用-gotty">使用 GoTTY</h2>
+<p>你可以使用任何命令来作为 <code>GoTTY</code> 的参数运行，例如：<code>gotty top</code>。</p>
+<h3 id="gotty-语法">GoTTY 语法</h3>
+<ol>
+<li>GoTTY 命令的常规语法</li>
+</ol>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">Usage: gotty [options] &lt;command&gt; [&lt;arguments...&gt;]</span><br></pre></td></tr></table></figure>
+<ol start="2">
+<li>GoTTY 命令的常用参数</li>
+</ol>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br></pre></td><td class="code"><pre><span class="line">--address value, -a value     IP address to listen (default: &quot;0.0.0.0&quot;) [$GOTTY_ADDRESS]</span><br><span class="line">--port value, -p value        Port number to liten (default: &quot;8080&quot;) [$GOTTY_PORT]</span><br><span class="line">--permit-write, -w            Permit clients to write to the TTY (BE CAREFUL) [$GOTTY_PERMIT_WRITE]</span><br><span class="line">--credential value, -c value  Credential for Basic Authentication (ex: user:pass, default disabled) [$GOTTY_CREDENTIAL]</span><br><span class="line">--random-url, -r              Add a random string to the URL [$GOTTY_RANDOM_URL]</span><br><span class="line">--random-url-length value     Random URL length (default: 8) [$GOTTY_RANDOM_URL_LENGTH]</span><br><span class="line">--tls, -t                     Enable TLS&#x2F;SSL [$GOTTY_TLS]</span><br><span class="line">--tls-crt value               TLS&#x2F;SSL certificate file path (default: &quot;~&#x2F;.gotty.crt&quot;) [$GOTTY_TLS_CRT]</span><br><span class="line">--tls-key value               TLS&#x2F;SSL key file path (default: &quot;~&#x2F;.gotty.key&quot;) [$GOTTY_TLS_KEY]</span><br><span class="line">--tls-ca-crt value            TLS&#x2F;SSL CA certificate file for client certifications (default: &quot;~&#x2F;.gotty.ca.crt&quot;) [$GOTTY_TLS_CA_CRT]</span><br><span class="line">--index value                 Custom index.html file [$GOTTY_INDEX]</span><br><span class="line">--title-format value          Title format of browser window (default: &quot;&#123;&#123; .command &#125;&#125;@&#123;&#123; .hostname &#125;&#125;&quot;) [$GOTTY_TITLE_FORMAT]</span><br><span class="line">--reconnect                   Enable reconnection [$GOTTY_RECONNECT]</span><br><span class="line">--reconnect-time value        Time to reconnect (default: 10) [$GOTTY_RECONNECT_TIME]</span><br><span class="line">--max-connection value        Maximum connection to gotty (default: 0) [$GOTTY_MAX_CONNECTION]</span><br><span class="line">--once                        Accept only one client and exit on disconnection [$GOTTY_ONCE]</span><br><span class="line">--timeout value               Timeout seconds for waiting a client(0 to disable) (default: 0) [$GOTTY_TIMEOUT]</span><br><span class="line">--permit-arguments            Permit clients to send command line arguments in URL (e.g. http:&#x2F;&#x2F;example.com:8080&#x2F;?arg&#x3D;AAA&amp;arg&#x3D;BBB) [$GOTTY_PERMIT_ARGUMENTS]</span><br><span class="line">--width value                 Static width of the screen, 0(default) means dynamically resize (default: 0) [$GOTTY_WIDTH]</span><br><span class="line">--height value                Static height of the screen, 0(default) means dynamically resize (default: 0) [$GOTTY_HEIGHT]</span><br><span class="line">--ws-origin value             A regular expression that matches origin URLs to be accepted by WebSocket. No cross origin requests are acceptable by default [$GOTTY_WS_ORIGIN]</span><br><span class="line">--term value                  Terminal name to use on the browser, one of xterm or hterm. (default: &quot;xterm&quot;) [$GOTTY_TERM]</span><br><span class="line">--close-signal value          Signal sent to the command process when gotty close it (default: SIGHUP) (default: 1) [$GOTTY_CLOSE_SIGNAL]</span><br><span class="line">--close-timeout value         Time in seconds to force kill process after client is disconnected (default: -1) (default: -1) [$GOTTY_CLOSE_TIMEOUT]</span><br><span class="line">--config value                Config file path (default: &quot;~&#x2F;.gotty&quot;) [$GOTTY_CONFIG]</span><br><span class="line">--version, -v                 print the version</span><br></pre></td></tr></table></figure>
+<ol start="3">
+<li>GoTTY 的配置文件</li>
+</ol>
+<p>除了通过命令行直接给 <code>GoTTY</code> 指定参数外，你还可以通过向 <code>GoTTY</code> 命令提供配置文件来自定义默认参数和终端的样式。默认情况下，<code>GoTTY</code> 会加载用户目录下的 <code>.gotty</code> 文件 (<code>~/.gotty</code>) 为配置文件。</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line">$ cat ~&#x2F;.gotty</span><br><span class="line">&#x2F;&#x2F; Listen at port 9000 by default</span><br><span class="line">port &#x3D; &quot;9000&quot;</span><br><span class="line"></span><br><span class="line">&#x2F;&#x2F; Enable TSL&#x2F;SSL by default</span><br><span class="line">enable_tls &#x3D; true</span><br><span class="line"></span><br><span class="line">&#x2F;&#x2F; hterm preferences</span><br><span class="line">&#x2F;&#x2F; Smaller font and a little bit bluer background color</span><br><span class="line">preferences &#123;</span><br><span class="line">    font_size &#x3D; 5</span><br><span class="line">    background_color &#x3D; &quot;rgb(16, 16, 32)&quot;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<h3 id="使用实例">使用实例</h3>
+<p><code>GoTTY</code> 命令运行完成后，默认会在 8080 启动一个 <code>Web</code> 服务器。你只需在浏览器中打开 <code>http://127.0.0.1:8080/</code>，就会看到运行的命令，仿佛和运行在终端中一样。<code>GoTTY</code> 支持的功能相当丰富，下面我就来看几个比较常用的使用实例。</p>
+<ol>
+<li>通过 GoTTY 直接在 Web 端查看系统分区空间及使用率</li>
+</ol>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">$ gotty df -h</span><br></pre></td></tr></table></figure>
+<p><img src="https://www.tecmint.com/wp-content/uploads/2017/03/Gotty-Linux-Disk-Usage.png" alt=""></p>
+<ol start="2">
+<li>允许在 Web 终端中运行命令</li>
+</ol>
+<p>默认情况下，<code>GoTTY</code> 不允许在 <code>Web</code> 终端中进行输入。但是，你可以使用 <code>-w</code> 或 <code>--permit-write</code> 选项来启用 <code>Web</code> 终端可写入 <code>TTY</code> 的特性。</p>
+<p>下面我们演示一个用 <code>vi</code> 命令在浏览器中编辑 <code>fossmint.txt</code> 文件的例子。</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">$ gotty -w vi fossmint.txt</span><br></pre></td></tr></table></figure>
+<p>我们可以从浏览器中看到打开的 <code>vi</code> 界面和在终端打开的一模一样。</p>
+<p><img src="https://www.tecmint.com/wp-content/uploads/2017/03/Gotty-Web-Vi-Editor.png" alt=""></p>
+<ol start="3">
+<li>使用 GoTTY 对容器内部进行管理</li>
+</ol>
+<p>众所周知，在 <code>Kubernetes</code> / <code>Docker</code> 环境下，我们需要提供一种能力让研发或者其它相关技术人员可以在不登陆宿主机的情况下直接访问容器或者是查看容器中应用程序的当前状态。基于上面介绍的允许 <code>Web</code> 终端写入 <code>TTY</code> 的特性，我们可以灵活的将这一特性运用到容器管理中来。</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"># 使用 Docker 命令进入容器内部</span><br><span class="line">$ gotty -w --permit-arguments docker exec -ti</span><br></pre></td></tr></table></figure>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"># 使用 Kubectl 命令进入容器内部</span><br><span class="line">$ gotty -w --permit-arguments kubectl exec -ti</span><br></pre></td></tr></table></figure>
+<p>执行上面命令后，你就可以直接通过浏览器传入容器的 ID 和进入容器需要执行的命令。这里传入的命令是 <code>/bin/bash</code>:</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">http:&#x2F;&#x2F;172.172.241.180:8080&#x2F;?arg&#x3D;6f&amp;arg&#x3D;%2fbin%2fbash</span><br></pre></td></tr></table></figure>
+<blockquote>
+<p>注意：使用浏览器频繁进入容器之后，容器内部会产生大量 <code>/bin/bash</code> 进程 ，一般不推荐直接进入容器。</p>
+</blockquote>
+<ol start="4">
+<li>给 GoTTY 加上基本的身份验证</li>
+</ol>
+<p>默认情况下通过浏览器访问 <code>GoTTY</code> 是不需要验证的，任何人都可以访问。为了更加的安全，我们可以给 <code>GoTTY</code> 加上基本身份验证机制。这样在通过浏览器访问时，就需要输入指定的用户名和密码才能访问到 <code>GoTTY</code> 所在的服务器。</p>
+<p>要给 <code>GoTTY</code> 加上基本的验证，用到的是 <code>-c</code> 选项，该选项主要用来指定访问 <code>GoTTY</code> 时所需的用户名和密码。</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"># 用户名是：test 密码是：@67890</span><br><span class="line">$ gotty -w -p &quot;9000&quot; -c &quot;test:@67890&quot; glances</span><br></pre></td></tr></table></figure>
+<p><img src="https://www.tecmint.com/wp-content/uploads/2017/03/Gotty-use-basic-authentication.png" alt=""></p>
+<ol start="5">
+<li>给 Gotty 生成随机 URL</li>
+</ol>
+<p>除了身份验证外，限制访问服务器的另一种方法是使用随机 <code>URL</code>。通过 <code>GoTTY</code> 的 <code>-r</code> 选项，我们就能生成一个随机 <code>URL</code>，这样就只有知道该 <code>URL</code> 的用户才可以访问该服务器。</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">$ gotty -r glances</span><br></pre></td></tr></table></figure>
+<p>你还可以使用下面的选项来定义浏览器标题。</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">$ gotty -r --title-format &quot;GoTTY - &#123;&#123; .Command &#125;&#125; (&#123;&#123; .Hostname &#125;&#125;)&quot; glances</span><br></pre></td></tr></table></figure>
+<p><img src="https://www.tecmint.com/wp-content/uploads/2017/03/Gotty-Random-URL-for-Glances-Linux-Monitoring.png" alt=""></p>
+<ol start="6">
+<li>给 GoTTY 启用 SSL/TLS 认证</li>
+</ol>
+<p>默认情况下服务器和客户端之间的所有连接都不加密，当你通过 <code>GoTTY</code> 发送敏感数据时，为保证数据完全建议你启用 <code>SSL/TLS</code>。</p>
+<p><code>GoTTY</code> 启用 <code>SSL/TLS</code> 的支持需要使用 <code>-t</code> 或 <code>--tls</code> 选项。默认情况下，<code>GoTTY</code> 会读取用户主目录下的证书文件和密钥文件 ( <code>~/.gotty.crt</code> 和 <code>~/.gotty.key</code>)。</p>
+<p>首先，我们先创建一个自签名的证书文件以及密钥文件。</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">$ openssl req -x509 -nodes -days 365 -newkey rsa:2048 -keyout ~&#x2F;.gotty.key -out ~&#x2F;.gotty.crt</span><br></pre></td></tr></table></figure>
+<p>然后，通过下面的命令启用 <code>GoTTY</code> 的 <code>SSL/TLS</code> 特性后，以达到安全访问 <code>GoTTY</code> 的目的。</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">$ gotty -tr --title-format &quot;GoTTY - &#123;&#123; .Command &#125;&#125; (&#123;&#123; .Hostname &#125;&#125;)&quot; glances</span><br></pre></td></tr></table></figure>
+<ol start="7">
+<li>与多个客户端同时共享终端</li>
+</ol>
+<p>如果你需要和多个客户端同时共享一个终端，这里你需要使用一个终端多路复用器与多个客户端共享单个进程，以下命令以 <code>tmux</code> 为例。</p>
+<p>首先，我们先启动一个名为 <code>gotty</code> 的新 <code>tmux</code> 会话。</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">$ gotty tmux new -A -s gotty</span><br></pre></td></tr></table></figure>
+<p>其次，在另外一个终端上 <code>attach</code> 上这个 <code>tmux</code> 会话。</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">$ tmux attach -t gotty</span><br><span class="line">$ vim test.php</span><br></pre></td></tr></table></figure>
+<p>最后，我们通过浏览器可以实时看到在终端中所有的输入，这种场景特别适用于教学和演示。</p>
+<h2 id="参考文档">参考文档</h2>
+<ol>
+<li>
+<p><a href="http://www.google.com" target="_blank" rel="noopener">http://www.google.com</a></p>
+</li>
+<li>
+<p><a href="https://ywnz.com/linuxrj/4060.html" target="_blank" rel="noopener">https://ywnz.com/linuxrj/4060.html</a></p>
+</li>
+<li>
+<p><a href="https://zhuanlan.zhihu.com/p/26590894" target="_blank" rel="noopener">https://zhuanlan.zhihu.com/p/26590894</a></p>
+</li>
+<li>
+<p><a href="https://blog.csdn.net/cj2580/article/details/79318726" target="_blank" rel="noopener">https://blog.csdn.net/cj2580/article/details/79318726</a></p>
+</li>
+<li>
+<p><a href="https://www.tecmint.com/gotty-share-linux-terminal-in-web-browser/" target="_blank" rel="noopener">https://www.tecmint.com/gotty-share-linux-terminal-in-web-browser/</a></p>
+</li>
+</ol>
+</div>
+
+			<script src="https://my.openwrite.cn/js/readmore.js" type="text/javascript"></script>
+			<script>
+			var isMobile = navigator.userAgent.match(/(phone|pad|pod|iPhone|iPod|ios|iPad|Android|Mobile|BlackBerry|IEMobile|MQQBrowser|JUC|Fennec|wOSBrowser|BrowserNG|WebOS|Symbian|Windows Phone)/i);
+			if (!isMobile) {
+			    var btw = new BTWPlugin();
+			    btw.init({
+			        "id": "vip-container",
+			        "blogId": "10135-1588830050631-449",
+			        "name": "「奇妙的 Linux 世界」",
+			        "qrcode": "https://www.hi-linux.com/img/wechat/mp_qrcode_12.jpg",
+			        "keyword": "VIP"
+			    });
+			}
+			</script>
+		
+                
+
+                <hr>
+                <!-- Pager -->
+                <ul class="pager">
+                    
+                        <li class="previous">
+                            <a href="/posts/26613.html" data-toggle="tooltip" data-placement="top" title="分享几个让 Linux 非 Root 用户运行的程序使用特权端口的技巧">&larr; Previous Post</a>
+                        </li>
+                    
+                    
+                        <li class="next">
+                            <a href="/posts/29206.html" data-toggle="tooltip" data-placement="top" title="nftables 简明教程">Next Post &rarr;</a>
+                        </li>
+                    
+                </ul>
+
+                <!-- duoshuo Share start -->
+                
+                <!-- 多说 Share end-->
+
+                <!-- 多说评论框 start -->
+                
+                <!-- 多说评论框 end -->
+
+                <!-- disqus comment start -->
+                
+                <!-- disqus comment end -->
+
+                
+                    <!-- disqus 评论框 start -->
+                    <div class="comment">
+                        <div id="lv-container" data-id="city" data-uid="MTAyMC8yNzg2My80NDQw"></div>
+                    </div>
+                    <!-- disqus 评论框 end -->
+                
+
+            </div>
+            
+            <!-- Tabe of Content -->
+            <!-- Table of Contents -->
+
+  
+    <style>
+      span.toc-nav-number{
+        display: none
+      }
+    </style>
+  
+    
+      <aside id="sidebar">
+        <div id="toc" class="toc-article">
+        <strong class="toc-title">Contents</strong>
+        
+          <ol class="toc-nav"><li class="toc-nav-item toc-nav-level-2"><a class="toc-nav-link" href="#安装-gotty"><span class="toc-nav-number">1.</span> <span class="toc-nav-text">安装 GoTTY</span></a></li><li class="toc-nav-item toc-nav-level-2"><a class="toc-nav-link" href="#使用-gotty"><span class="toc-nav-number">2.</span> <span class="toc-nav-text">使用 GoTTY</span></a><ol class="toc-nav-child"><li class="toc-nav-item toc-nav-level-3"><a class="toc-nav-link" href="#gotty-语法"><span class="toc-nav-number">2.1.</span> <span class="toc-nav-text">GoTTY 语法</span></a></li><li class="toc-nav-item toc-nav-level-3"><a class="toc-nav-link" href="#使用实例"><span class="toc-nav-number">2.2.</span> <span class="toc-nav-text">使用实例</span></a></li></ol></li><li class="toc-nav-item toc-nav-level-2"><a class="toc-nav-link" href="#参考文档"><span class="toc-nav-number">3.</span> <span class="toc-nav-text">参考文档</span></a></li></ol>
+        
+        </div>
+      </aside>
+    
+
+                
+            <!-- Sidebar Container -->
+            <div class="
+                col-lg-8 col-lg-offset-2
+                col-md-10 col-md-offset-1
+                sidebar-container">
+
+                <!-- Featured Tags -->
+                
+                <section>
+                    <!-- no hr -->
+                    <h5><a href="/tags/">FEATURED TAGS</a></h5>
+                    <div class="tags">
+                       
+                          <a class="tag" href="/tags/#Linux" title="Linux">Linux</a>
+                        
+                          <a class="tag" href="/tags/#Docker" title="Docker">Docker</a>
+                        
+                          <a class="tag" href="/tags/#技巧" title="技巧">技巧</a>
+                        
+                    </div>
+                </section>
+                
+
+                <!-- Friends Blog -->
+                
+                <hr>
+                <h5>FRIENDS</h5>
+                <ul class="list-inline">
+
+                    
+                        <li><a href="http://www.mike.org.cn/" target="_blank">简单.生活</a></li>
+                    
+                        <li><a href="http://shang.qq.com/wpa/qunwpa?idkey=ea4c43493c2269428ac6ef6141de4b6d78e5ab2d41380ca4099b833b62884ee9" target="_blank">技术交流群</a></li>
+                    
+                        <li><a href="" target="_blank"></a></li>
+                    
+                        <li><a href="" target="_blank"></a></li>
+                    
+                </ul>
+                
+            </div>
+        </div>
+    </div>
+</article>
+
+
+
+
+
+
+    <!-- 来必力City版公共JS代码 start (一个网页只需插入一次) -->
+    <script type="text/javascript">
+       (function(d, s) {
+           var j, e = d.getElementsByTagName(s)[0];
+    
+           if (typeof LivereTower === 'function') { return; }
+    
+           j = d.createElement(s);
+           j.src = 'https://cdn-city.livere.com/js/embed.dist.js';
+           j.async = true;
+    
+           e.parentNode.insertBefore(j, e);
+       })(document, 'script');
+    </script>
+    <noscript>为正常使用来必力评论功能请激活JavaScript</noscript>
+    <!-- 来必力City版 公共JS代码 end -->
+
+
+
+<!-- async load function -->
+<script>
+    function async(u, c) {
+      var d = document, t = 'script',
+          o = d.createElement(t),
+          s = d.getElementsByTagName(t)[0];
+      o.src = u;
+      if (c) { o.addEventListener('load', function (e) { c(null, e); }, false); }
+      s.parentNode.insertBefore(o, s);
+    }
+</script>
+<!-- anchor-js, Doc:http://bryanbraun.github.io/anchorjs/ -->
+<script>
+    async("https://cdn.bootcss.com/anchor-js/1.1.1/anchor.min.js",function(){
+        anchors.options = {
+          visible: 'hover',
+          placement: 'left',
+          icon: 'ℬ'
+        };
+        anchors.add().remove('.intro-header h1').remove('.subheading').remove('.sidebar-container h5');
+    })
+</script>
+<style>
+    /* place left on bigger screen */
+    @media all and (min-width: 800px) {
+        .anchorjs-link{
+            position: absolute;
+            left: -0.75em;
+            font-size: 1.1em;
+            margin-top : -0.1em;
+        }
+    }
+</style>
+
+
+
+    <!-- Footer -->
+    <!-- Footer -->
+<footer>
+    <div class="container">
+        <div class="row">
+            <div class="col-lg-8 col-lg-offset-2 col-md-10 col-md-offset-1">
+                <ul class="list-inline text-center">
+                
+                    <li>
+                        <a href="/atom.xml">
+                            <span class="fa-stack fa-lg">
+                                <i class="fa fa-circle fa-stack-2x"></i>
+                                <i class="fa fa-rss fa-stack-1x fa-inverse"></i>
+                            </span>
+                        </a>
+                    </li>
+                
+                
+                
+                    <li>
+                        <a target="_blank" href="https://www.zhihu.com/people/80imike">
+                            <span class="fa-stack fa-lg">
+                                <i class="fa fa-circle fa-stack-2x"></i>
+                                <i class="fa  fa-stack-1x fa-inverse">知</i>
+                            </span>
+                        </a>
+                    </li>
+                
+
+                
+                    <li>
+                        <a target="_blank" href="http://weibo.com/2093524665">
+                            <span class="fa-stack fa-lg">
+                                <i class="fa fa-circle fa-stack-2x"></i>
+                                <i class="fa fa-weibo fa-stack-1x fa-inverse"></i>
+                            </span>
+                        </a>
+                    </li>
+                
+
+                
+
+                
+
+                
+
+                </ul>
+                <p class="copyright text-muted">
+                    Copyright &copy; Mike 2020 | Hosted by <a href="https://pages.coding.me" target="_blank" rel="noopener" style="font-weight: bold">Coding Pages</a>
+                    <br>
+                    Theme by <a href="http://beantech.org" target="_blank" rel="noopener">BeanTech</a> 
+                    <span style="display: inline-block; margin: 0 5px;">
+                        <i class="fa fa-heart"></i>
+                    </span> 
+                    re-Ported by <a href="http://www.huweihuang.com" target="_blank" rel="noopener">胡伟煌</a> | 
+                    <iframe
+                        style="margin-left: 2px; margin-bottom:-5px;"
+                        frameborder="0" scrolling="0" width="91px" height="20px"
+                        src="https://ghbtns.com/github-btn.html?user=huweihuang&repo=hexo-theme-huweihuang&type=star&count=true" >
+                    </iframe>
+                </p>
+            </div>
+        </div>
+    </div>
+</footer>
+
+<!-- jQuery -->
+
+<script src="/js/jquery.min.js"></script>
+
+
+<!-- Bootstrap Core JavaScript -->
+
+<script src="/js/bootstrap.min.js"></script>
+
+
+<!-- Custom Theme JavaScript -->
+
+<script src="/js/hux-blog.min.js"></script>
+
+
+
+<!-- async load function -->
+<script>
+    function async(u, c) {
+      var d = document, t = 'script',
+          o = d.createElement(t),
+          s = d.getElementsByTagName(t)[0];
+      o.src = u;
+      if (c) { o.addEventListener('load', function (e) { c(null, e); }, false); }
+      s.parentNode.insertBefore(o, s);
+    }
+</script>
+
+<!-- 
+     Because of the native support for backtick-style fenced code blocks 
+     right within the Markdown is landed in Github Pages, 
+     From V1.6, There is no need for Highlight.js, 
+     so Huxblog drops it officially.
+
+     - https://github.com/blog/2100-github-pages-now-faster-and-simpler-with-jekyll-3-0  
+     - https://help.github.com/articles/creating-and-highlighting-code-blocks/    
+-->
+<!--
+    <script>
+        async("http://cdn.bootcss.com/highlight.js/8.6/highlight.min.js", function(){
+            hljs.initHighlightingOnLoad();
+        })
+    </script>
+    <link href="http://cdn.bootcss.com/highlight.js/8.6/styles/github.min.css" rel="stylesheet">
+-->
+
+
+<!-- jquery.tagcloud.js -->
+<script>
+    // only load tagcloud.js in tag.html
+    if($('#tag_cloud').length !== 0){
+        async("https://www.hi-linux.com/js/jquery.tagcloud.js",function(){
+            $.fn.tagcloud.defaults = {
+                //size: {start: 1, end: 1, unit: 'em'},
+                color: {start: '#bbbbee', end: '#0085a1'},
+            };
+            $('#tag_cloud a').tagcloud();
+        })
+    }
+</script>
+
+<!--fastClick.js -->
+<script>
+    async("https://cdn.bootcss.com/fastclick/1.0.6/fastclick.min.js", function(){
+        var $nav = document.querySelector("nav");
+        if($nav) FastClick.attach($nav);
+    })
+</script>
+
+
+<!-- Google Analytics -->
+
+
+
+
+<!-- Baidu Tongji -->
+
+
+
+
+
+
+	<a id="rocket" href="#top" class=""></a>
+	<script type="text/javascript" src="/js/totop.js?v=1.0.0" async=""></script>
+    <script type="text/javascript" src="/js/toc.js?v=1.0.0" async=""></script>
+<!-- Image to hack wechat -->
+<img src="https://www.hi-linux.com/img/icon_wechat.png" width="0" height="0" />
+<!-- Migrate from head to bottom, no longer block render and still work -->
+
+</body>
+
+</html>
