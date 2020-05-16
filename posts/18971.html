@@ -1,0 +1,769 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<!-- Head tag -->
+<head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="google-site-verification" content="xBT4GhYoi5qRD5tr338pgPM5OWHHIDR6mNg1a3euekI" />
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="description" content="">
+    <meta name="keyword"  content="Linux,运维,Nginx,Zabbix,Centos,Ansible,MySQL,Python,Docker,ELK,Haproxy,Git,Nodejs,安全,技术">
+    <link rel="shortcut icon" href="/img/ironman-draw.png">
+    <!-- Place this tag in your head or just before your close body tag. -->
+    <script async defer src="https://buttons.github.io/buttons.js"></script>
+    <title>
+        
+          使用 Sealos 在 3 分钟内快速部署一个生产级别的 Kubernetes 高可用集群 - 运维之美
+        
+    </title>
+
+    <link rel="canonical" href="https://www.hi-linux.com/posts/18971.html">
+
+    <!-- Bootstrap Core CSS -->
+    
+<link rel="stylesheet" href="/css/bootstrap.min.css">
+
+
+    <!-- Custom CSS --> 
+    
+<link rel="stylesheet" href="/css/beantech.min.css">
+
+    
+    <!-- Pygments Highlight CSS -->
+    
+<link rel="stylesheet" href="/css/highlight.css">
+
+
+    
+<link rel="stylesheet" href="/css/widget.css">
+
+
+    
+<link rel="stylesheet" href="/css/rocket.css">
+
+
+    
+<link rel="stylesheet" href="/css/signature.css">
+
+
+    
+<link rel="stylesheet" href="/css/toc.css">
+
+
+    <!-- Custom Fonts -->
+    <!-- <link href="https://maxcdn.bootstrapcdn.com/font-awesome/4.3.0/css/font-awesome.min.css" rel="stylesheet" type="text/css"> -->
+    <!-- Hux change font-awesome CDN to qiniu -->
+    <link href="https://cdn.staticfile.org/font-awesome/4.5.0/css/font-awesome.min.css" rel="stylesheet" type="text/css">
+
+
+    <!-- Hux Delete, sad but pending in China
+    <link href='http://fonts.googleapis.com/css?family=Lora:400,700,400italic,700italic' rel='stylesheet' type='text/css'>
+    <link href='http://fonts.googleapis.com/css?family=Open+Sans:300italic,400italic,600italic,700italic,800italic,400,300,600,700,800' rel='stylesheet' type='text/
+    css'>
+    -->
+
+
+    <!-- HTML5 Shim and Respond.js IE8 support of HTML5 elements and media queries -->
+    <!-- WARNING: Respond.js doesn't work if you view the page via file:// -->
+    <!--[if lt IE 9]>
+        <script src="https://oss.maxcdn.com/libs/html5shiv/3.7.0/html5shiv.js"></script>
+        <script src="https://oss.maxcdn.com/libs/respond.js/1.4.2/respond.min.js"></script>
+    <![endif]-->
+
+    <!-- ga & ba script hoook -->
+    <script></script>
+<meta name="generator" content="Hexo 4.2.0"><link rel="alternate" href="/atom.xml" title="运维之美" type="application/atom+xml">
+</head>
+
+
+<!-- hack iOS CSS :active style -->
+<body ontouchstart="">
+	<!-- Modified by Yu-Hsuan Yen -->
+<!-- Post Header -->
+<style type="text/css">
+    header.intro-header{
+        
+            background-image: url('/img/header_img/building.jpg')
+            /*post*/
+        
+    }
+    
+</style>
+
+<header class="intro-header" >
+    <!-- Signature -->
+    <div id="signature">
+        <div class="container">
+            <div class="row">
+                <div class="col-lg-8 col-lg-offset-2 col-md-10 col-md-offset-1">
+                
+                    <div class="post-heading">
+                        <div class="tags">
+                            
+                              <a class="tag" href="/tags/#Linux" title="Linux">Linux</a>
+                            
+                              <a class="tag" href="/tags/#技巧" title="技巧">技巧</a>
+                            
+                              <a class="tag" href="/tags/#Kubernetes" title="Kubernetes">Kubernetes</a>
+                            
+                        </div>
+                        <h1>使用 Sealos 在 3 分钟内快速部署一个生产级别的 Kubernetes 高可用集群</h1>
+                        <h2 class="subheading"></h2>
+                        <span class="meta">
+                            Posted by Mike on
+                            2020-05-16
+                        </span>
+                    </div>
+                
+
+
+                </div>
+            </div>
+        </div>
+    </div>
+</header>
+
+	
+    <!-- Navigation -->
+<nav class="navbar navbar-default navbar-custom navbar-fixed-top">
+    <div class="container-fluid">
+        <!-- Brand and toggle get grouped for better mobile display -->
+        <div class="navbar-header page-scroll">
+            <button type="button" class="navbar-toggle">
+                <span class="sr-only">Toggle navigation</span>
+                <span class="icon-bar"></span>
+                <span class="icon-bar"></span>
+                <span class="icon-bar"></span>
+            </button>
+            <a class="navbar-brand" href="/">运维之美</a>
+        </div>
+
+        <!-- Collect the nav links, forms, and other content for toggling -->
+        <!-- Known Issue, found by Hux:
+            <nav>'s height woule be hold on by its content.
+            so, when navbar scale out, the <nav> will cover tags.
+            also mask any touch event of tags, unfortunately.
+        -->
+        <div id="huxblog_navbar">
+            <div class="navbar-collapse">
+                <ul class="nav navbar-nav navbar-right">
+                    <li>
+                        <a href="/">Home</a>
+                    </li>
+
+                    
+
+                        
+                    
+
+                        
+                    
+
+                        
+                        <li>
+                            <a href="/about/">About</a>
+                        </li>
+                        
+                    
+
+                        
+                        <li>
+                            <a href="/archive/">Archives</a>
+                        </li>
+                        
+                    
+
+                        
+                        <li>
+                            <a href="/tags/">Tags</a>
+                        </li>
+                        
+                    
+                    
+                </ul>
+            </div>
+        </div>
+        <!-- /.navbar-collapse -->
+    </div>
+    <!-- /.container -->
+</nav>
+<script>
+    // Drop Bootstarp low-performance Navbar
+    // Use customize navbar with high-quality material design animation
+    // in high-perf jank-free CSS3 implementation
+    var $body   = document.body;
+    var $toggle = document.querySelector('.navbar-toggle');
+    var $navbar = document.querySelector('#huxblog_navbar');
+    var $collapse = document.querySelector('.navbar-collapse');
+
+    $toggle.addEventListener('click', handleMagic)
+    function handleMagic(e){
+        if ($navbar.className.indexOf('in') > 0) {
+        // CLOSE
+            $navbar.className = " ";
+            // wait until animation end.
+            setTimeout(function(){
+                // prevent frequently toggle
+                if($navbar.className.indexOf('in') < 0) {
+                    $collapse.style.height = "0px"
+                }
+            },400)
+        }else{
+        // OPEN
+            $collapse.style.height = "auto"
+            $navbar.className += " in";
+        }
+    }
+</script>
+
+
+    <!-- Main Content -->
+    <!-- Modify by Yu-Hsuan Yen -->
+
+<!-- Post Content -->
+<article>
+    <div class="container">
+        <div class="row">
+
+            <!-- Post Container -->
+            <div class="
+                col-lg-8 col-lg-offset-2
+                col-md-10 col-md-offset-1
+                post-container">
+
+                <div id="vip-container"><p>前段时间，我们在 ​「<a href="https://mp.weixin.qq.com/s?__biz=MzI3MTI2NzkxMA==&amp;mid=2247488666&amp;idx=1&amp;sn=de46a87cf59f8564ad75337b7c0cf7f6&amp;chksm=eac535b3ddb2bca5de2a923ec6cfa427e87f0135b31193efd1b904dff4c7b473f1dc9af82903&amp;token=212816651&amp;lang=zh_CN#rd" target="_blank" rel="noopener">使用 Kind 在 5 分钟内快速部署一个 Kubernetes 高可用集群</a>」一文中介绍了如何使用 <code>Kind</code> 这个开箱即可快速部署 <code>Kubernetes</code> 高可用集群的神器，相信不少同学用上这个神器后大大的降低了 <code>Kubernetes</code> 集群的部署难度和提高了 <code>Kubernetes</code> 集群的部署速度。不过有一点比较遗憾的是 <code>Kind</code> 当前仅仅支持在本地快速构建一个开发或者测试环境，目前暂时还是不支持在生产环境中部署 <code>Kubernetes</code> 高可用集群的。</p>
+<p>今天，我们就要给大家介绍另一款可以支持在生产环境中部署 <code>Kubernetes</code> 高可用集群的利器 <code>Sealos</code>。</p>
+<h2 id="什么是-sealos">什么是 Sealos ？</h2>
+<p><code>Sealos</code> 是一个 Go 语言开发的简单干净且轻量的 <code>Kubernetes</code> 集群部署工具，<code>Sealos</code> 能很好的支持在生产环境中部署高可用的 <code>Kubernetes</code> 集群。</p>
+<p><img src="https://raw.githubusercontent.com/fanux/sealos/master/arch.png" alt=""></p>
+<p><code>Sealos</code> 架构图</p>
+<p><strong>Sealos 特性与优势</strong></p>
+<ol>
+<li>
+<p>支持离线安装，工具与部署资源包分离，方便不同版本间快速升级。</p>
+</li>
+<li>
+<p>证书有效期默认延期至 99 年。</p>
+</li>
+<li>
+<p>工具使用非常简单。</p>
+</li>
+<li>
+<p>支持使用自定义配置文件，可灵活完成集群环境定制。</p>
+</li>
+<li>
+<p>使用内核进行本地负载，稳定性极高，故障排查也极其简单。</p>
+</li>
+</ol>
+<a id="more"></a>
+<h2 id="sealos-设计原则和工作原理">Sealos 设计原则和工作原理</h2>
+<h3 id="1-为什么不使用-ansilbe-实现">1. 为什么不使用 Ansilbe 实现</h3>
+<p><code>Sealos 1.0</code> 版本时是使用 <code>Ansible</code> 实现的，这样在使用时就必须先安装 <code>Ansible</code> 及一些 <code>Python</code> 的依赖包和进行一些必须的相关环境配置，使用起来还是比较复杂的。</p>
+<p>为了解决这个问题，目前新版本的 <code>Sealos</code> 采用二进制文件方式提供。新版本 <code>Sealos</code> 没有任何依赖，开箱即用。</p>
+<blockquote>
+<p>文件分发与远程命令都通过调用对应 <code>SDK</code> 实现，不依赖其它任何环境。</p>
+</blockquote>
+<h3 id="2-为什么不用-keepalived-和-haproxy-实现集群高可用">2. 为什么不用 KeepAlived 和 HAProxy 实现集群高可用</h3>
+<p>无论是通过 <code>KeepAlived</code> 还是 <code>HAProxy</code> 进行高可用集群调度都会存在以下一些劣势。</p>
+<ol>
+<li>
+<p>软件源不一致可能导致容器中安装的软件版本也不一致，进而会引起相应检查脚本不生效等故障。</p>
+</li>
+<li>
+<p>可能因为系统依赖库问题，在某些特定环境下就直接无法完成安装。</p>
+</li>
+<li>
+<p>只依靠检测 <code>HAProxy</code> 进程是否存活是无法保证集群高可用的，正确的检测方式应该是判断 <code>ApiServer</code> 是否 <code>healthz</code> 状态。</p>
+</li>
+<li>
+<p><code>Keepalived</code> 可能存在 <code>Cpu</code> 占满的情况。</p>
+</li>
+</ol>
+<h3 id="3-本地负载为什么不使用-envoy-或者-nginx-实现">3. 本地负载为什么不使用 Envoy 或者 Nginx 实现</h3>
+<p><code>Sealos</code> 高可用实现是通过本地负载方式完成的。本地负载实现方式有多种，比如：<code>IPVS</code>、<code>Envoy</code>、<code>Nginx</code> 等，而 <code>Sealos</code> 采用的是通过内核  <code>IPVS</code> 来实现的。</p>
+<blockquote>
+<p>本地负载：在每个 <code>Node</code> 节点上都启动一个负载均衡，同时监听集群中的多个 <code>Master</code> 节点。</p>
+</blockquote>
+<p><code>Sealos</code> 选择通过内核 <code>IPVS</code> 来实现主要有以下几个原因：</p>
+<ul>
+<li>
+<p>如果使用 <code>Envoy</code> 等需要在每个节点上都跑一个进程，消耗更多资源。虽然 <code>IPVS</code> 实际上也会多跑一个 <code>lvscare</code> 进程 ，但是 <code>lvscare</code> 只是负责管理 <code>IPVS</code> 规则，原理和 <code>Kube-Proxy</code>类似。真正的流量直接从内核层面走，不需要把数据包先走到用户态中去处理。</p>
+</li>
+<li>
+<p>使用 <code>Envoy</code> 存在启动优先级的问题，比如：Join 集群时，如果负载均衡没有建立，Kubelet 就会启动失败。使用 <code>IPVS</code> 则不会存在这样的问题，因为我们可以在 Join 集群前先建立好转发规则。</p>
+</li>
+</ul>
+<p><strong>3.1 本地内核负载工作原理</strong></p>
+<p><code>Sealos</code> 通过本地内核负载的方式实现每个 <code>Node</code> 节点负载均衡访问所有 <code>Master</code> 节点，具体参见下图。</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line">+----------+                       +---------------+  virturl server: 127.0.0.1:6443</span><br><span class="line">| mater0   |&lt;----------------------| ipvs nodes    |    real servers:</span><br><span class="line">+----------+                      |+---------------+            10.103.97.200:6443</span><br><span class="line">                                  |                             10.103.97.201:6443</span><br><span class="line">+----------+                      |                             10.103.97.202:6443</span><br><span class="line">| mater1   |&lt;---------------------+</span><br><span class="line">+----------+                      |</span><br><span class="line">                                  |</span><br><span class="line">+----------+                      |</span><br><span class="line">| mater2   |&lt;---------------------+</span><br><span class="line">+----------+</span><br></pre></td></tr></table></figure>
+<p>在所有 <code>Node</code> 节点上启动一个包含 <code>lvscare</code> 进程的 <code>Static Pod</code> 对 <code>IPVS</code> 进行守护。 如果检测到 <code>ApiServer</code> 不可用时，<code>Sealos</code> 会自动清理掉所有 <code>Node</code> 节点上对应的主节点 <code>IPVS</code> 转发规则。直到 <code>Master</code> 节点恢复正常时，再自动生成对应规则。为了实现以上功能，我们在 <code>Node</code> 节点上增加了下面这些内容。</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line"># 增加了一个 lvscare 的 Static Pod</span><br><span class="line">$ cat &#x2F;etc&#x2F;kubernetes&#x2F;manifests</span><br><span class="line"></span><br><span class="line"># 自动创建的一些 IPVS 规则</span><br><span class="line">$ ipvsadm -Ln            </span><br><span class="line"></span><br><span class="line"># 增加了对虚拟 IP 的地址解析</span><br><span class="line">$ cat &#x2F;etc&#x2F;hosts</span><br></pre></td></tr></table></figure>
+<h3 id="4-为什么要定制-kubeadm">4. 为什么要定制 Kubeadm</h3>
+<ul>
+<li>
+<p>解决默认证书有效期只有一年的问题。</p>
+</li>
+<li>
+<p>更方便的实现本地负载。</p>
+</li>
+<li>
+<p>核心的功能均集成到 Kubeadm 中了，Sealos 只管分发和执行上层命令，相对就更轻量了。</p>
+</li>
+</ul>
+<h3 id="5-sealos-执行流程">5. Sealos 执行流程</h3>
+<ol>
+<li>
+<p>通过 <code>SFTP</code> 或者 <code>Wget</code> 命令把离线安装包拷贝到目标机器上，包括所有 <code>Master</code> 和 <code>Node</code> 节点。</p>
+</li>
+<li>
+<p>在 <code>Master 0</code> 节点上执行 <code>kubeadm init</code> 命令。</p>
+</li>
+<li>
+<p>在其它 <code>Master</code> 节点上执行 <code>kubeadm join</code> 命令并设置控制面。这个过程中多个 <code>Master</code> 节点上的 <code>Etcd</code> 会自动组成一个 <code>Etcd</code> 集群，并启动相应控制组件。</p>
+</li>
+<li>
+<p>所有 <code>Node</code> 节点都加入到集群中，这个过程中会在 <code>Node</code> 节点上进行 <code>IPVS</code> 转发规则和 <code>/etc/hosts</code> 配置。</p>
+</li>
+</ol>
+<blockquote>
+<p><code>Node</code> 节点对 <code>ApiServer</code> 的访问均是通过域名进行的。因为 <code>Node</code> 节点需要通过 <code>虚拟 IP</code> 连接到多个 <code>Master</code> 上，但是每个 <code>Node</code> 节点的 <code>Kubelet</code> 与 <code>Kube-Proxy</code> 访问 <code>ApiServer</code> 的地址是不同的，所以这里使用域名来解析每个节点上 <code>ApiServer</code> 不同的 <code>IP</code> 地址。</p>
+</blockquote>
+<h2 id="使用-sealos-部署高可用-kubernetes-集群">使用 Sealos 部署高可用 Kubernetes 集群</h2>
+<h3 id="1-安装相关环境依赖">1. 安装相关环境依赖</h3>
+<p>通过 <code>Sealos</code> 进行 <code>Kubernetes</code> 集群部署，你需要先准备好以下环境。</p>
+<ol>
+<li>
+<p>在所有要部署的机器上，先完成 <code>Docker</code> 的安装和启动。</p>
+</li>
+<li>
+<p>下载 <code>Kubernetes</code> 离线安装包。</p>
+</li>
+<li>
+<p>下载最新版本 <code>Sealos</code>。</p>
+</li>
+<li>
+<p>对所有服务器进行时间同步。</p>
+</li>
+</ol>
+<blockquote>
+<p>Sealos 项目地址：<a href="https://github.com/fanux/sealos/releases" target="_blank" rel="noopener">https://github.com/fanux/sealos/releases</a></p>
+<p>Kubernetes 离线安装包：<a href="https://github.com/sealstore/cloud-kernel/releases/" target="_blank" rel="noopener">https://github.com/sealstore/cloud-kernel/releases/</a></p>
+</blockquote>
+<h3 id="2-通过-sealos-部署高可用-kubernetes-集群">2. 通过 Sealos 部署高可用 Kubernetes 集群</h3>
+<p>目前 <code>Sealos</code> 已经支持最新版本 <code>Kubernetes 1.16.0</code> 的高可用集群安装。</p>
+<h4 id="21-sealos-常用参数说明">2.1 Sealos 常用参数说明</h4>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line">--master   Master 节点服务器地址列表</span><br><span class="line">--node     Node 节点服务器地址列表</span><br><span class="line">--user     服务器 SSH 用户名</span><br><span class="line">--passwd   服务器 SSH 用户密码</span><br><span class="line">--pkg-url  离线包所在位置，可以是本地目录，也可以是一个 HTTP 地址</span><br><span class="line">--version  指定需要部署的 Kubernetes 版本</span><br><span class="line">--pk       指定 SSH 私钥所在位置，默认为 &#x2F;root&#x2F;.ssh&#x2F;id_rsa</span><br><span class="line"></span><br><span class="line">Other flags:</span><br><span class="line"></span><br><span class="line"> --kubeadm-config string   kubeadm-config.yaml 用于指定自定义 kubeadm 配置文件</span><br><span class="line"> --vip string              virtual ip (default &quot;10.103.97.2&quot;) 本地负载时虚拟 IP ，不推荐修改，集群外不可访问</span><br></pre></td></tr></table></figure>
+<h4 id="22-部署一个单主节点的-kubernetes-集群">2.2 部署一个单主节点的 Kubernetes 集群</h4>
+<p>通过 <code>Sealos</code> 部署 <code>Kubernetes</code> 集群是非常简单的 ，通常只需以下两条指令就可以完成安装。</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line">$ wget https:&#x2F;&#x2F;github.com&#x2F;fanux&#x2F;sealos&#x2F;releases&#x2F;download&#x2F;v2.0.7&#x2F;sealos &amp;&amp; \</span><br><span class="line">    chmod +x sealos &amp;&amp; mv sealos &#x2F;usr&#x2F;bin </span><br><span class="line"></span><br><span class="line">$ sealos init --passwd YOUR_SERVER_PASSWD \</span><br><span class="line">	--master 192.168.0.2  --master 192.168.0.3  --master 192.168.0.4  \</span><br><span class="line">	--node 192.168.0.5 \</span><br><span class="line">	--pkg-url https:&#x2F;&#x2F;sealyun.oss-cn-beijing.aliyuncs.com&#x2F;cf6bece970f6dab3d8dc8bc5b588cc18-1.16.0&#x2F;kube1.16.0.tar.gz \</span><br><span class="line">	--version v1.16.0</span><br></pre></td></tr></table></figure>
+<p>如果你的服务器已经配置了 <code>SSH</code> 免密登陆，你可以直接使用对应密钥进行部署。</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">$ sealos init --master 192.168.0.2 \</span><br><span class="line">    --node 192.168.0.3 \</span><br><span class="line">    --pkg-url https:&#x2F;&#x2F;YOUR_HTTP_SERVER&#x2F;kube1.15.0.tar.gz \</span><br><span class="line">    --pk &#x2F;root&#x2F;kubernetes.pem \</span><br><span class="line">    --version v1.16.0</span><br></pre></td></tr></table></figure>
+<p>如果你需要其它 <code>Kubernetes</code> 版本离线包，可到 <code>Sealos</code> 官网 <a href="http://store.lameleg.com/" target="_blank" rel="noopener">http://store.lameleg.com/</a> 进行下载。</p>
+<h4 id="23-部署一个多主节点的高可用-kubernetes-集群">2.3 部署一个多主节点的高可用 Kubernetes 集群</h4>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line">$ sealos init --master 192.168.0.2 \</span><br><span class="line">    --master 192.168.0.3 \</span><br><span class="line">    --master 192.168.0.4 \</span><br><span class="line">    --node 192.168.0.5 \</span><br><span class="line">    --user root \</span><br><span class="line">    --passwd your-server-password \</span><br><span class="line">    --version v1.16.0 \</span><br><span class="line">    --pkg-url &#x2F;root&#x2F;kube1.16.0.tar.gz</span><br></pre></td></tr></table></figure>
+<h4 id="24-验证部署是否成功">2.4 验证部署是否成功</h4>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br></pre></td><td class="code"><pre><span class="line">$ kubectl get node</span><br><span class="line">NAME                      STATUS   ROLES    AGE     VERSION</span><br><span class="line">izj6cdqfqw4o4o9tc0q44rz   Ready    master   2m25s   v1.16.0</span><br><span class="line">izj6cdqfqw4o4o9tc0q44sz   Ready    master   119s    v1.16.0</span><br><span class="line">izj6cdqfqw4o4o9tc0q44tz   Ready    master   63s     v1.16.0</span><br><span class="line">izj6cdqfqw4o4o9tc0q44uz   Ready    &lt;none&gt;   38s     v1.16.0</span><br><span class="line"></span><br><span class="line">$ kubectl get pod --all-namespaces</span><br><span class="line">NAMESPACE     NAME                                              READY   STATUS    RESTARTS   AGE</span><br><span class="line">kube-system   calico-kube-controllers-5cbcccc885-9n2p8          1&#x2F;1     Running   0          3m1s</span><br><span class="line">kube-system   calico-node-656zn                                 1&#x2F;1     Running   0          93s</span><br><span class="line">kube-system   calico-node-bv5hn                                 1&#x2F;1     Running   0          2m54s</span><br><span class="line">kube-system   calico-node-f2vmd                                 1&#x2F;1     Running   0          3m1s</span><br><span class="line">kube-system   calico-node-tbd5l                                 1&#x2F;1     Running   0          118s</span><br><span class="line">kube-system   coredns-fb8b8dccf-8bnkv                           1&#x2F;1     Running   0          3m1s</span><br><span class="line">kube-system   coredns-fb8b8dccf-spq7r                           1&#x2F;1     Running   0          3m1s</span><br><span class="line">kube-system   etcd-izj6cdqfqw4o4o9tc0q44rz                      1&#x2F;1     Running   0          2m25s</span><br><span class="line">kube-system   etcd-izj6cdqfqw4o4o9tc0q44sz                      1&#x2F;1     Running   0          2m53s</span><br><span class="line">kube-system   etcd-izj6cdqfqw4o4o9tc0q44tz                      1&#x2F;1     Running   0          118s</span><br><span class="line">kube-system   kube-apiserver-izj6cdqfqw4o4o9tc0q44rz            1&#x2F;1     Running   0          2m15s</span><br><span class="line">kube-system   kube-apiserver-izj6cdqfqw4o4o9tc0q44sz            1&#x2F;1     Running   0          2m54s</span><br><span class="line">kube-system   kube-apiserver-izj6cdqfqw4o4o9tc0q44tz            1&#x2F;1     Running   1          47s</span><br><span class="line">kube-system   kube-controller-manager-izj6cdqfqw4o4o9tc0q44rz   1&#x2F;1     Running   1          2m43s</span><br><span class="line">kube-system   kube-controller-manager-izj6cdqfqw4o4o9tc0q44sz   1&#x2F;1     Running   0          2m54s</span><br><span class="line">kube-system   kube-controller-manager-izj6cdqfqw4o4o9tc0q44tz   1&#x2F;1     Running   0          63s</span><br><span class="line">kube-system   kube-proxy-b9b9z                                  1&#x2F;1     Running   0          2m54s</span><br><span class="line">kube-system   kube-proxy-nf66n                                  1&#x2F;1     Running   0          3m1s</span><br><span class="line">kube-system   kube-proxy-q2bqp                                  1&#x2F;1     Running   0          118s</span><br><span class="line">kube-system   kube-proxy-s5g2k                                  1&#x2F;1     Running   0          93s</span><br><span class="line">kube-system   kube-scheduler-izj6cdqfqw4o4o9tc0q44rz            1&#x2F;1     Running   1          2m43s</span><br><span class="line">kube-system   kube-scheduler-izj6cdqfqw4o4o9tc0q44sz            1&#x2F;1     Running   0          2m54s</span><br><span class="line">kube-system   kube-scheduler-izj6cdqfqw4o4o9tc0q44tz            1&#x2F;1     Running   0          61s</span><br><span class="line">kube-system   kube-sealyun-lvscare-izj6cdqfqw4o4o9tc0q44uz      1&#x2F;1     Running   0          86s</span><br></pre></td></tr></table></figure>
+<h4 id="25-最简单粗暴的视频教程">2.5 最简单粗暴的视频教程</h4>
+<p>如果你觉得上面的教程还是不够直观，现在就给你一个更简单粗暴的学习方式。猛击<a href="https://mp.weixin.qq.com/s?__biz=MzI3MTI2NzkxMA==&amp;mid=2247488905&amp;idx=1&amp;sn=c42f9baeb1a48970ded0f42a520c91a5&amp;chksm=eac534a0ddb2bdb6cb072ec6e2ba60cf53a5447d7f36aa8e8b6a48ca9877ab82837213252133&amp;token=2039868521&amp;lang=zh_CN#rd" target="_blank" rel="noopener">这里</a>的视频，开始吧！</p>
+<h4 id="26-升级-kubernetes-集群版本">2.6 升级 Kubernetes 集群版本</h4>
+<p><code>Kubernetes</code> 集群目前处于一个高速迭代期，每个新版本的发布都提供了不少新的特性。升级 <code>Kubernetes</code> 集群版本也就成了家常便饭，<code>Sealos</code> 也为大家提供非常方便的功能来帮助大家快速完成 <code>Kubernetes</code> 集群升级。<code>Kubernetes</code> 集群升级大致需要以下几个步骤：</p>
+<ol>
+<li>
+<p>升级所有节点的 <code>Kubeadm</code> 并导入新的镜像。</p>
+</li>
+<li>
+<p>升级 <code>Master</code> 节点上的 <code>Kubelet</code>。</p>
+</li>
+<li>
+<p>升级其它 <code>Master</code> 节点。</p>
+</li>
+<li>
+<p>升级 <code>Node</code> 节点。</p>
+</li>
+<li>
+<p>验证集群状态。</p>
+</li>
+</ol>
+<p><strong>2.6.1 升级 Kubeadm</strong></p>
+<p>这一步主要用于更新 <code>Kubeadm</code>、<code>Kubectl</code>、<code>Kubelet</code> 等二进制文件，并导入新版本的镜像。升级方法很简单，只需复制离线包到所有节点并执行以下命令。</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">$ cd kube&#x2F;shell &amp;&amp; sh init.sh</span><br></pre></td></tr></table></figure>
+<p><strong>2.6.2 升级 Master 节点上的 Kubelet</strong></p>
+<p>升级 <code>Kubelet</code> 还是很简单的，只需要把新版本的 <code>Kubelet</code> 复制到 <code>/usr/bin</code> 目录下替换旧版本，然后重启 <code>Kubelet</code> 服务即可。</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">$ kubeadm upgrade plan</span><br><span class="line">$ kubeadm upgrade apply v1.16.0</span><br><span class="line"></span><br><span class="line"># 重启 Kubelet</span><br><span class="line">$ systemctl restart kubelet</span><br></pre></td></tr></table></figure>
+<p>其中最重要的 <code>kubeadm upgrade apply</code> 命令主要完成以下一些操作。</p>
+<ul>
+<li>
+<p>验证集群是否可升级并执行版本升级策略。</p>
+</li>
+<li>
+<p>确认离线包中相关镜像是否可用。</p>
+</li>
+<li>
+<p>对控制组件的容器进行升级，失败就回滚。</p>
+</li>
+<li>
+<p>对 <code>Kube-DNS</code> 和 <code>Kube-Proxy</code> 进行升级。</p>
+</li>
+<li>
+<p>创建新的证书文件并备份旧的证书文件。</p>
+</li>
+</ul>
+<p><strong>2.6.3 升级其它 Master 节点</strong></p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">$ kubeadm upgrade apply</span><br></pre></td></tr></table></figure>
+<p><strong>2.6.4 升级 Node 节点</strong></p>
+<p>升级 <code>Node</code> 节点前，首先要驱逐节点。</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">$ kubectl drain $NODE --ignore-daemonsets</span><br></pre></td></tr></table></figure>
+<p>其次，是更新 <code>Kubelet</code> 的配置文件和升级 <code>Node</code> 节点的 <code>Kubelet</code>。</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">$ kubeadm upgrade node config --kubelet-version v1.16.0</span><br><span class="line"></span><br><span class="line"># 同样是替换二进制文件并重启 Kubelet</span><br><span class="line">$ systemctl restart kubelet</span><br></pre></td></tr></table></figure>
+<p>最后，恢复 <code>Node</code> 节点为可调度状态。</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">$ kubectl uncordon $NODE</span><br></pre></td></tr></table></figure>
+<p><strong>2.6.5 验证集群是否升级成功</strong></p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">$ kubectl get nodes</span><br></pre></td></tr></table></figure>
+<p>如果输出的节点的版本信息是和升级的版本一致的话，一切就搞定了！</p>
+<h3 id="3-集群清理">3. 集群清理</h3>
+<p>如果你需要快速清理已部署的 <code>Kubernetes</code> 集群环境，你可以使用下面的命令快速完成。</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line">$ sealos clean \</span><br><span class="line">    --master 192.168.0.2 \</span><br><span class="line">    --master 192.168.0.3 \</span><br><span class="line">    --master 192.168.0.4 \</span><br><span class="line">    --node 192.168.0.5 \</span><br><span class="line">    --user root \</span><br><span class="line">    --passwd your-server-password</span><br></pre></td></tr></table></figure>
+<p>至此，使用 <code>Sealos</code> 快速部署一个生产级别的 <code>Kubernetes</code> 高可用集群的基本方法就介绍完了。如果你对 <code>Sealos</code> 非常的感兴趣，你还可以去官网探索更多高级功能哟！</p>
+<p>对于在生产环境中快速部署 <code>Kubernetes</code> 高可用集群，你还有哪些更好用高效的方法呢？欢迎大家在留言讨论哟！</p>
+</div>
+
+			<script src="https://my.openwrite.cn/js/readmore.js" type="text/javascript"></script>
+			<script>
+			var isMobile = navigator.userAgent.match(/(phone|pad|pod|iPhone|iPod|ios|iPad|Android|Mobile|BlackBerry|IEMobile|MQQBrowser|JUC|Fennec|wOSBrowser|BrowserNG|WebOS|Symbian|Windows Phone)/i);
+			if (!isMobile) {
+			    var btw = new BTWPlugin();
+			    btw.init({
+			        "id": "vip-container",
+			        "blogId": "10135-1588830050631-449",
+			        "name": "「奇妙的 Linux 世界」",
+			        "qrcode": "https://www.hi-linux.com/img/wechat/mp_qrcode_12.jpg",
+			        "keyword": "VIP"
+			    });
+			}
+			</script>
+		
+                
+
+                <hr>
+                <!-- Pager -->
+                <ul class="pager">
+                    
+                        <li class="previous">
+                            <a href="/posts/56051.html" data-toggle="tooltip" data-placement="top" title="使用 Mirror 协议实现 Ubuntu 访问多软件源">&larr; Previous Post</a>
+                        </li>
+                    
+                    
+                        <li class="next">
+                            <a href="/posts/392.html" data-toggle="tooltip" data-placement="top" title="推荐几个不追踪隐私的搜索引擎">Next Post &rarr;</a>
+                        </li>
+                    
+                </ul>
+
+                <!-- duoshuo Share start -->
+                
+                <!-- 多说 Share end-->
+
+                <!-- 多说评论框 start -->
+                
+                <!-- 多说评论框 end -->
+
+                <!-- disqus comment start -->
+                
+                <!-- disqus comment end -->
+
+                
+                    <!-- disqus 评论框 start -->
+                    <div class="comment">
+                        <div id="lv-container" data-id="city" data-uid="MTAyMC8yNzg2My80NDQw"></div>
+                    </div>
+                    <!-- disqus 评论框 end -->
+                
+
+            </div>
+            
+            <!-- Tabe of Content -->
+            <!-- Table of Contents -->
+
+  
+    <style>
+      span.toc-nav-number{
+        display: none
+      }
+    </style>
+  
+    
+      <aside id="sidebar">
+        <div id="toc" class="toc-article">
+        <strong class="toc-title">Contents</strong>
+        
+          <ol class="toc-nav"><li class="toc-nav-item toc-nav-level-2"><a class="toc-nav-link" href="#什么是-sealos"><span class="toc-nav-number">1.</span> <span class="toc-nav-text">什么是 Sealos ？</span></a></li><li class="toc-nav-item toc-nav-level-2"><a class="toc-nav-link" href="#sealos-设计原则和工作原理"><span class="toc-nav-number">2.</span> <span class="toc-nav-text">Sealos 设计原则和工作原理</span></a><ol class="toc-nav-child"><li class="toc-nav-item toc-nav-level-3"><a class="toc-nav-link" href="#1-为什么不使用-ansilbe-实现"><span class="toc-nav-number">2.1.</span> <span class="toc-nav-text">1. 为什么不使用 Ansilbe 实现</span></a></li><li class="toc-nav-item toc-nav-level-3"><a class="toc-nav-link" href="#2-为什么不用-keepalived-和-haproxy-实现集群高可用"><span class="toc-nav-number">2.2.</span> <span class="toc-nav-text">2. 为什么不用 KeepAlived 和 HAProxy 实现集群高可用</span></a></li><li class="toc-nav-item toc-nav-level-3"><a class="toc-nav-link" href="#3-本地负载为什么不使用-envoy-或者-nginx-实现"><span class="toc-nav-number">2.3.</span> <span class="toc-nav-text">3. 本地负载为什么不使用 Envoy 或者 Nginx 实现</span></a></li><li class="toc-nav-item toc-nav-level-3"><a class="toc-nav-link" href="#4-为什么要定制-kubeadm"><span class="toc-nav-number">2.4.</span> <span class="toc-nav-text">4. 为什么要定制 Kubeadm</span></a></li><li class="toc-nav-item toc-nav-level-3"><a class="toc-nav-link" href="#5-sealos-执行流程"><span class="toc-nav-number">2.5.</span> <span class="toc-nav-text">5. Sealos 执行流程</span></a></li></ol></li><li class="toc-nav-item toc-nav-level-2"><a class="toc-nav-link" href="#使用-sealos-部署高可用-kubernetes-集群"><span class="toc-nav-number">3.</span> <span class="toc-nav-text">使用 Sealos 部署高可用 Kubernetes 集群</span></a><ol class="toc-nav-child"><li class="toc-nav-item toc-nav-level-3"><a class="toc-nav-link" href="#1-安装相关环境依赖"><span class="toc-nav-number">3.1.</span> <span class="toc-nav-text">1. 安装相关环境依赖</span></a></li><li class="toc-nav-item toc-nav-level-3"><a class="toc-nav-link" href="#2-通过-sealos-部署高可用-kubernetes-集群"><span class="toc-nav-number">3.2.</span> <span class="toc-nav-text">2. 通过 Sealos 部署高可用 Kubernetes 集群</span></a><ol class="toc-nav-child"><li class="toc-nav-item toc-nav-level-4"><a class="toc-nav-link" href="#21-sealos-常用参数说明"><span class="toc-nav-number">3.2.1.</span> <span class="toc-nav-text">2.1 Sealos 常用参数说明</span></a></li><li class="toc-nav-item toc-nav-level-4"><a class="toc-nav-link" href="#22-部署一个单主节点的-kubernetes-集群"><span class="toc-nav-number">3.2.2.</span> <span class="toc-nav-text">2.2 部署一个单主节点的 Kubernetes 集群</span></a></li><li class="toc-nav-item toc-nav-level-4"><a class="toc-nav-link" href="#23-部署一个多主节点的高可用-kubernetes-集群"><span class="toc-nav-number">3.2.3.</span> <span class="toc-nav-text">2.3 部署一个多主节点的高可用 Kubernetes 集群</span></a></li><li class="toc-nav-item toc-nav-level-4"><a class="toc-nav-link" href="#24-验证部署是否成功"><span class="toc-nav-number">3.2.4.</span> <span class="toc-nav-text">2.4 验证部署是否成功</span></a></li><li class="toc-nav-item toc-nav-level-4"><a class="toc-nav-link" href="#25-最简单粗暴的视频教程"><span class="toc-nav-number">3.2.5.</span> <span class="toc-nav-text">2.5 最简单粗暴的视频教程</span></a></li><li class="toc-nav-item toc-nav-level-4"><a class="toc-nav-link" href="#26-升级-kubernetes-集群版本"><span class="toc-nav-number">3.2.6.</span> <span class="toc-nav-text">2.6 升级 Kubernetes 集群版本</span></a></li></ol></li><li class="toc-nav-item toc-nav-level-3"><a class="toc-nav-link" href="#3-集群清理"><span class="toc-nav-number">3.3.</span> <span class="toc-nav-text">3. 集群清理</span></a></li></ol></li></ol>
+        
+        </div>
+      </aside>
+    
+
+                
+            <!-- Sidebar Container -->
+            <div class="
+                col-lg-8 col-lg-offset-2
+                col-md-10 col-md-offset-1
+                sidebar-container">
+
+                <!-- Featured Tags -->
+                
+                <section>
+                    <!-- no hr -->
+                    <h5><a href="/tags/">FEATURED TAGS</a></h5>
+                    <div class="tags">
+                       
+                          <a class="tag" href="/tags/#Linux" title="Linux">Linux</a>
+                        
+                          <a class="tag" href="/tags/#技巧" title="技巧">技巧</a>
+                        
+                          <a class="tag" href="/tags/#Kubernetes" title="Kubernetes">Kubernetes</a>
+                        
+                    </div>
+                </section>
+                
+
+                <!-- Friends Blog -->
+                
+                <hr>
+                <h5>FRIENDS</h5>
+                <ul class="list-inline">
+
+                    
+                        <li><a href="http://www.mike.org.cn/" target="_blank">简单.生活</a></li>
+                    
+                        <li><a href="http://shang.qq.com/wpa/qunwpa?idkey=ea4c43493c2269428ac6ef6141de4b6d78e5ab2d41380ca4099b833b62884ee9" target="_blank">技术交流群</a></li>
+                    
+                        <li><a href="" target="_blank"></a></li>
+                    
+                        <li><a href="" target="_blank"></a></li>
+                    
+                </ul>
+                
+            </div>
+        </div>
+    </div>
+</article>
+
+
+
+
+
+
+    <!-- 来必力City版公共JS代码 start (一个网页只需插入一次) -->
+    <script type="text/javascript">
+       (function(d, s) {
+           var j, e = d.getElementsByTagName(s)[0];
+    
+           if (typeof LivereTower === 'function') { return; }
+    
+           j = d.createElement(s);
+           j.src = 'https://cdn-city.livere.com/js/embed.dist.js';
+           j.async = true;
+    
+           e.parentNode.insertBefore(j, e);
+       })(document, 'script');
+    </script>
+    <noscript>为正常使用来必力评论功能请激活JavaScript</noscript>
+    <!-- 来必力City版 公共JS代码 end -->
+
+
+
+<!-- async load function -->
+<script>
+    function async(u, c) {
+      var d = document, t = 'script',
+          o = d.createElement(t),
+          s = d.getElementsByTagName(t)[0];
+      o.src = u;
+      if (c) { o.addEventListener('load', function (e) { c(null, e); }, false); }
+      s.parentNode.insertBefore(o, s);
+    }
+</script>
+<!-- anchor-js, Doc:http://bryanbraun.github.io/anchorjs/ -->
+<script>
+    async("https://cdn.bootcss.com/anchor-js/1.1.1/anchor.min.js",function(){
+        anchors.options = {
+          visible: 'hover',
+          placement: 'left',
+          icon: 'ℬ'
+        };
+        anchors.add().remove('.intro-header h1').remove('.subheading').remove('.sidebar-container h5');
+    })
+</script>
+<style>
+    /* place left on bigger screen */
+    @media all and (min-width: 800px) {
+        .anchorjs-link{
+            position: absolute;
+            left: -0.75em;
+            font-size: 1.1em;
+            margin-top : -0.1em;
+        }
+    }
+</style>
+
+
+
+    <!-- Footer -->
+    <!-- Footer -->
+<footer>
+    <div class="container">
+        <div class="row">
+            <div class="col-lg-8 col-lg-offset-2 col-md-10 col-md-offset-1">
+                <ul class="list-inline text-center">
+                
+                    <li>
+                        <a href="/atom.xml">
+                            <span class="fa-stack fa-lg">
+                                <i class="fa fa-circle fa-stack-2x"></i>
+                                <i class="fa fa-rss fa-stack-1x fa-inverse"></i>
+                            </span>
+                        </a>
+                    </li>
+                
+                
+                
+                    <li>
+                        <a target="_blank" href="https://www.zhihu.com/people/80imike">
+                            <span class="fa-stack fa-lg">
+                                <i class="fa fa-circle fa-stack-2x"></i>
+                                <i class="fa  fa-stack-1x fa-inverse">知</i>
+                            </span>
+                        </a>
+                    </li>
+                
+
+                
+                    <li>
+                        <a target="_blank" href="http://weibo.com/2093524665">
+                            <span class="fa-stack fa-lg">
+                                <i class="fa fa-circle fa-stack-2x"></i>
+                                <i class="fa fa-weibo fa-stack-1x fa-inverse"></i>
+                            </span>
+                        </a>
+                    </li>
+                
+
+                
+
+                
+
+                
+
+                </ul>
+                <p class="copyright text-muted">
+                    Copyright &copy; Mike 2020 | Hosted by <a href="https://pages.coding.me" target="_blank" rel="noopener" style="font-weight: bold">Coding Pages</a>
+                    <br>
+                    Theme by <a href="http://beantech.org" target="_blank" rel="noopener">BeanTech</a> 
+                    <span style="display: inline-block; margin: 0 5px;">
+                        <i class="fa fa-heart"></i>
+                    </span> 
+                    re-Ported by <a href="http://www.huweihuang.com" target="_blank" rel="noopener">胡伟煌</a> | 
+                    <iframe
+                        style="margin-left: 2px; margin-bottom:-5px;"
+                        frameborder="0" scrolling="0" width="91px" height="20px"
+                        src="https://ghbtns.com/github-btn.html?user=huweihuang&repo=hexo-theme-huweihuang&type=star&count=true" >
+                    </iframe>
+                </p>
+            </div>
+        </div>
+    </div>
+</footer>
+
+<!-- jQuery -->
+
+<script src="/js/jquery.min.js"></script>
+
+
+<!-- Bootstrap Core JavaScript -->
+
+<script src="/js/bootstrap.min.js"></script>
+
+
+<!-- Custom Theme JavaScript -->
+
+<script src="/js/hux-blog.min.js"></script>
+
+
+
+<!-- async load function -->
+<script>
+    function async(u, c) {
+      var d = document, t = 'script',
+          o = d.createElement(t),
+          s = d.getElementsByTagName(t)[0];
+      o.src = u;
+      if (c) { o.addEventListener('load', function (e) { c(null, e); }, false); }
+      s.parentNode.insertBefore(o, s);
+    }
+</script>
+
+<!-- 
+     Because of the native support for backtick-style fenced code blocks 
+     right within the Markdown is landed in Github Pages, 
+     From V1.6, There is no need for Highlight.js, 
+     so Huxblog drops it officially.
+
+     - https://github.com/blog/2100-github-pages-now-faster-and-simpler-with-jekyll-3-0  
+     - https://help.github.com/articles/creating-and-highlighting-code-blocks/    
+-->
+<!--
+    <script>
+        async("http://cdn.bootcss.com/highlight.js/8.6/highlight.min.js", function(){
+            hljs.initHighlightingOnLoad();
+        })
+    </script>
+    <link href="http://cdn.bootcss.com/highlight.js/8.6/styles/github.min.css" rel="stylesheet">
+-->
+
+
+<!-- jquery.tagcloud.js -->
+<script>
+    // only load tagcloud.js in tag.html
+    if($('#tag_cloud').length !== 0){
+        async("https://www.hi-linux.com/js/jquery.tagcloud.js",function(){
+            $.fn.tagcloud.defaults = {
+                //size: {start: 1, end: 1, unit: 'em'},
+                color: {start: '#bbbbee', end: '#0085a1'},
+            };
+            $('#tag_cloud a').tagcloud();
+        })
+    }
+</script>
+
+<!--fastClick.js -->
+<script>
+    async("https://cdn.bootcss.com/fastclick/1.0.6/fastclick.min.js", function(){
+        var $nav = document.querySelector("nav");
+        if($nav) FastClick.attach($nav);
+    })
+</script>
+
+
+<!-- Google Analytics -->
+
+
+
+
+<!-- Baidu Tongji -->
+
+
+
+
+
+
+	<a id="rocket" href="#top" class=""></a>
+	<script type="text/javascript" src="/js/totop.js?v=1.0.0" async=""></script>
+    <script type="text/javascript" src="/js/toc.js?v=1.0.0" async=""></script>
+<!-- Image to hack wechat -->
+<img src="https://www.hi-linux.com/img/icon_wechat.png" width="0" height="0" />
+<!-- Migrate from head to bottom, no longer block render and still work -->
+
+</body>
+
+</html>

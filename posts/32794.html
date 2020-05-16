@@ -1,0 +1,845 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<!-- Head tag -->
+<head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="google-site-verification" content="xBT4GhYoi5qRD5tr338pgPM5OWHHIDR6mNg1a3euekI" />
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="description" content="">
+    <meta name="keyword"  content="Linux,运维,Nginx,Zabbix,Centos,Ansible,MySQL,Python,Docker,ELK,Haproxy,Git,Nodejs,安全,技术">
+    <link rel="shortcut icon" href="/img/ironman-draw.png">
+    <!-- Place this tag in your head or just before your close body tag. -->
+    <script async defer src="https://buttons.github.io/buttons.js"></script>
+    <title>
+        
+          Linux 并行处理神器 GNU Parallel 简明教程 - 运维之美
+        
+    </title>
+
+    <link rel="canonical" href="https://www.hi-linux.com/posts/32794.html">
+
+    <!-- Bootstrap Core CSS -->
+    
+<link rel="stylesheet" href="/css/bootstrap.min.css">
+
+
+    <!-- Custom CSS --> 
+    
+<link rel="stylesheet" href="/css/beantech.min.css">
+
+    
+    <!-- Pygments Highlight CSS -->
+    
+<link rel="stylesheet" href="/css/highlight.css">
+
+
+    
+<link rel="stylesheet" href="/css/widget.css">
+
+
+    
+<link rel="stylesheet" href="/css/rocket.css">
+
+
+    
+<link rel="stylesheet" href="/css/signature.css">
+
+
+    
+<link rel="stylesheet" href="/css/toc.css">
+
+
+    <!-- Custom Fonts -->
+    <!-- <link href="https://maxcdn.bootstrapcdn.com/font-awesome/4.3.0/css/font-awesome.min.css" rel="stylesheet" type="text/css"> -->
+    <!-- Hux change font-awesome CDN to qiniu -->
+    <link href="https://cdn.staticfile.org/font-awesome/4.5.0/css/font-awesome.min.css" rel="stylesheet" type="text/css">
+
+
+    <!-- Hux Delete, sad but pending in China
+    <link href='http://fonts.googleapis.com/css?family=Lora:400,700,400italic,700italic' rel='stylesheet' type='text/css'>
+    <link href='http://fonts.googleapis.com/css?family=Open+Sans:300italic,400italic,600italic,700italic,800italic,400,300,600,700,800' rel='stylesheet' type='text/
+    css'>
+    -->
+
+
+    <!-- HTML5 Shim and Respond.js IE8 support of HTML5 elements and media queries -->
+    <!-- WARNING: Respond.js doesn't work if you view the page via file:// -->
+    <!--[if lt IE 9]>
+        <script src="https://oss.maxcdn.com/libs/html5shiv/3.7.0/html5shiv.js"></script>
+        <script src="https://oss.maxcdn.com/libs/respond.js/1.4.2/respond.min.js"></script>
+    <![endif]-->
+
+    <!-- ga & ba script hoook -->
+    <script></script>
+<meta name="generator" content="Hexo 4.2.0"><link rel="alternate" href="/atom.xml" title="运维之美" type="application/atom+xml">
+</head>
+
+
+<!-- hack iOS CSS :active style -->
+<body ontouchstart="">
+	<!-- Modified by Yu-Hsuan Yen -->
+<!-- Post Header -->
+<style type="text/css">
+    header.intro-header{
+        
+            background-image: url('/img/header_img/building.jpg')
+            /*post*/
+        
+    }
+    
+</style>
+
+<header class="intro-header" >
+    <!-- Signature -->
+    <div id="signature">
+        <div class="container">
+            <div class="row">
+                <div class="col-lg-8 col-lg-offset-2 col-md-10 col-md-offset-1">
+                
+                    <div class="post-heading">
+                        <div class="tags">
+                            
+                              <a class="tag" href="/tags/#Linux" title="Linux">Linux</a>
+                            
+                              <a class="tag" href="/tags/#技巧" title="技巧">技巧</a>
+                            
+                              <a class="tag" href="/tags/#Parallel" title="Parallel">Parallel</a>
+                            
+                        </div>
+                        <h1>Linux 并行处理神器 GNU Parallel 简明教程</h1>
+                        <h2 class="subheading"></h2>
+                        <span class="meta">
+                            Posted by Mike on
+                            2020-05-16
+                        </span>
+                    </div>
+                
+
+
+                </div>
+            </div>
+        </div>
+    </div>
+</header>
+
+	
+    <!-- Navigation -->
+<nav class="navbar navbar-default navbar-custom navbar-fixed-top">
+    <div class="container-fluid">
+        <!-- Brand and toggle get grouped for better mobile display -->
+        <div class="navbar-header page-scroll">
+            <button type="button" class="navbar-toggle">
+                <span class="sr-only">Toggle navigation</span>
+                <span class="icon-bar"></span>
+                <span class="icon-bar"></span>
+                <span class="icon-bar"></span>
+            </button>
+            <a class="navbar-brand" href="/">运维之美</a>
+        </div>
+
+        <!-- Collect the nav links, forms, and other content for toggling -->
+        <!-- Known Issue, found by Hux:
+            <nav>'s height woule be hold on by its content.
+            so, when navbar scale out, the <nav> will cover tags.
+            also mask any touch event of tags, unfortunately.
+        -->
+        <div id="huxblog_navbar">
+            <div class="navbar-collapse">
+                <ul class="nav navbar-nav navbar-right">
+                    <li>
+                        <a href="/">Home</a>
+                    </li>
+
+                    
+
+                        
+                    
+
+                        
+                    
+
+                        
+                        <li>
+                            <a href="/about/">About</a>
+                        </li>
+                        
+                    
+
+                        
+                        <li>
+                            <a href="/archive/">Archives</a>
+                        </li>
+                        
+                    
+
+                        
+                        <li>
+                            <a href="/tags/">Tags</a>
+                        </li>
+                        
+                    
+                    
+                </ul>
+            </div>
+        </div>
+        <!-- /.navbar-collapse -->
+    </div>
+    <!-- /.container -->
+</nav>
+<script>
+    // Drop Bootstarp low-performance Navbar
+    // Use customize navbar with high-quality material design animation
+    // in high-perf jank-free CSS3 implementation
+    var $body   = document.body;
+    var $toggle = document.querySelector('.navbar-toggle');
+    var $navbar = document.querySelector('#huxblog_navbar');
+    var $collapse = document.querySelector('.navbar-collapse');
+
+    $toggle.addEventListener('click', handleMagic)
+    function handleMagic(e){
+        if ($navbar.className.indexOf('in') > 0) {
+        // CLOSE
+            $navbar.className = " ";
+            // wait until animation end.
+            setTimeout(function(){
+                // prevent frequently toggle
+                if($navbar.className.indexOf('in') < 0) {
+                    $collapse.style.height = "0px"
+                }
+            },400)
+        }else{
+        // OPEN
+            $collapse.style.height = "auto"
+            $navbar.className += " in";
+        }
+    }
+</script>
+
+
+    <!-- Main Content -->
+    <!-- Modify by Yu-Hsuan Yen -->
+
+<!-- Post Content -->
+<article>
+    <div class="container">
+        <div class="row">
+
+            <!-- Post Container -->
+            <div class="
+                col-lg-8 col-lg-offset-2
+                col-md-10 col-md-offset-1
+                post-container">
+
+                <div id="vip-container"><p><code>Bash</code> 命令通常单线程运行，这意味着所有的处理工作只在单个 CPU 上执行。随着 CPU 规模的扩大以及核心数目的增加，这意味着只有一小部分的 CPU 资源用于处理任务，这样就造成了很大的资源浪费。 这种情况在进行多媒体转换（比如：图片和视频转换）以及数据压缩中经常遇到。</p>
+<p>本文我们将介绍如何使用 GNU Parallel 程序在所有 CPU 核上并行地执行计算任务。</p>
+<h3 id="parallel-介绍">Parallel 介绍</h3>
+<blockquote>
+<p>GNU Parallel 是一种通用的并行化程序，可以在同一台机器上或在您具有 SSH 访问权限的多台机器上轻松并行运行作业。</p>
+</blockquote>
+<p>如果要在 4 个 CPU 上运行 32 个不同的作业，并行化的一种直接方法是在每个 CPU 上运行8个作业。</p>
+<p><a href="https://upload-images.jianshu.io/upload_images/27460-5b784effa2396844.png" target="_blank" rel="noopener">https://upload-images.jianshu.io/upload_images/27460-5b784effa2396844.png</a></p>
+<p>GNU Parallel 会在完成后生成一个新进程，并保持 CPU 处于活动状态，从而节省时间。</p>
+<p><a href="https://upload-images.jianshu.io/upload_images/27460-2901afa31279f8ff.png" target="_blank" rel="noopener">https://upload-images.jianshu.io/upload_images/27460-2901afa31279f8ff.png</a></p>
+<h3 id="parallel-安装">Parallel 安装</h3>
+<ol>
+<li>通过包安装</li>
+</ol>
+<ul>
+<li>CentOS / RHEL</li>
+</ul>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">$ yum install parallel</span><br></pre></td></tr></table></figure>
+<ul>
+<li>Ubuntu / Debian</li>
+</ul>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">$ sudo apt install parallel</span><br></pre></td></tr></table></figure>
+<ol start="2">
+<li>通过脚本安装</li>
+</ol>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">$ (wget -O - pi.dk&#x2F;3 || curl pi.dk&#x2F;3&#x2F;) | bash</span><br></pre></td></tr></table></figure>
+<a id="more"></a>
+<h3 id="parallel-使用">Parallel 使用</h3>
+<h4 id="parallel-语法简介">Parallel 语法简介</h4>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">Usage:</span><br><span class="line"></span><br><span class="line">parallel [options] [command [arguments]] &lt; list_of_arguments</span><br><span class="line">parallel [options] [command [arguments]] (::: arguments|:::: argfile(s))...</span><br><span class="line">cat ... | parallel --pipe [options] [command [arguments]]</span><br></pre></td></tr></table></figure>
+<ul>
+<li>Parallel 常用选项</li>
+</ul>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br></pre></td><td class="code"><pre><span class="line">::: 后面接参数。</span><br><span class="line">:::: 后面接文件。</span><br><span class="line">-j、--jobs   并行任务数，不想并行执行可以设为 1。若不加 -j，则预设为每个 CPU 执行一个 job。</span><br><span class="line">-N  每次输入的参数数量。</span><br><span class="line">-L N: 一次最多读取 N 行。</span><br><span class="line">--xargs 会在一行中输入尽可能多的参数。</span><br><span class="line">-xapply 从每一个源获取一个参数（或文件一行）。</span><br><span class="line">--header  把每一行输入中的第一个值做为参数名。</span><br><span class="line">-m   表示每个 job 不重复输出“背景”（context）。</span><br><span class="line">-X   与 -m 相反，会重复输出“背景文本”。</span><br><span class="line">-q  保护后面的命令。</span><br><span class="line">--trim lr 去除参数两头的空格，只能去除空格，换行符和 tab 都不能去除。</span><br><span class="line">--keep-order&#x2F;-k   强制使输出与参数保持顺序 --keep-order&#x2F;-k。</span><br><span class="line">--tmpdir&#x2F; --results   都是保存文件，但是后者可以有结构的保存。</span><br><span class="line">--delay  延迟每个任务启动时间。</span><br><span class="line">--halt  终止任务。</span><br><span class="line">--pipe    该参数使得我们可以将输入（stdin）分为多块（block），再将 stdin 的资料分给各个 jobs。</span><br><span class="line">--block  参数可以指定每块的大小。</span><br></pre></td></tr></table></figure>
+<h4 id="parallel-用法简介">Parallel 用法简介</h4>
+<ol>
+<li>输入源</li>
+</ol>
+<p>GNU Parallel 的输入源支持文件、命令行和标准输入（ Stdin 或 Pipe）。</p>
+<ul>
+<li>以命令行做为输入源</li>
+</ul>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">$ parallel echo ::: a b c d e | tee a.txt</span><br><span class="line">a</span><br><span class="line">b</span><br><span class="line">c</span><br><span class="line">d</span><br><span class="line">e</span><br></pre></td></tr></table></figure>
+<ul>
+<li>以 Stdin（标准输入）作为输入源</li>
+</ul>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">$ cat a.txt | parallel echo</span><br><span class="line">a</span><br><span class="line">b</span><br><span class="line">c</span><br><span class="line">d</span><br><span class="line">e</span><br></pre></td></tr></table></figure>
+<ul>
+<li>GNU Parallel 支持通过命令行指定多个输入源，它会生成所有的组合</li>
+</ul>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line">$ parallel echo ::: A B C ::: D E F | tee b.txt</span><br><span class="line">A D</span><br><span class="line">A E</span><br><span class="line">A F</span><br><span class="line">B D</span><br><span class="line">B E</span><br><span class="line">B F</span><br><span class="line">C D</span><br><span class="line">C E</span><br><span class="line">C F</span><br></pre></td></tr></table></figure>
+<ul>
+<li>多个文件作为输入，此时多个文件中的内容也会像上面那样进行组合</li>
+</ul>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">$ parallel -a a.txt -a b.txt echo</span><br></pre></td></tr></table></figure>
+<ul>
+<li>Stdin（标准输入）作为文件源中的一个，使用 -， 输出结果同上</li>
+</ul>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">$ cat a.txt |parallel -a - -a b.txt echo</span><br></pre></td></tr></table></figure>
+<ul>
+<li>使用 <code>::::</code> 代替 <code>-a</code>，后面可接多个文件名</li>
+</ul>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">$ cat a.txt | parallel echo :::: - b.txt</span><br></pre></td></tr></table></figure>
+<ul>
+<li><code>:::</code> 和 <code>::::</code> 可以同时使用，同样的输出结果也会进行组合</li>
+</ul>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">$ parallel echo ::: a b :::: b.txt</span><br></pre></td></tr></table></figure>
+<ul>
+<li>当然，若不想像上面那样进行组合，可使用 --xapply 参数从每一个源获取一个参数（或文件一行），这个参数有些类似 R 中的函数，具有广播作用。如果其中一个输入源的长度比较短，它的值会被重复。</li>
+</ul>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line">$ parallel --xapply echo ::: A B C ::: D E F</span><br><span class="line">A D</span><br><span class="line">B E</span><br><span class="line">C F</span><br><span class="line"></span><br><span class="line">$ parallel --xapply echo ::: A B C ::: D E F G H I</span><br><span class="line">A D</span><br><span class="line">B E</span><br><span class="line">C F</span><br><span class="line">A G</span><br><span class="line">B H</span><br><span class="line">C I</span><br></pre></td></tr></table></figure>
+<ol start="2">
+<li>改变参数分隔符</li>
+</ol>
+<p>GNU Parallel 可以通过 <code>--arg-sep</code> 和 <code>--arg-file-sep</code> 指定分隔符替代 <code>:::</code> 或 <code>::::</code>，当这两个符号被其它命令占用的时候会特别有用。</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br></pre></td><td class="code"><pre><span class="line">$ parallel -k --arg-sep ,,, echo ,,, a b ,,, c d | tee c.txt </span><br><span class="line">a c</span><br><span class="line">a d</span><br><span class="line">b c</span><br><span class="line">b d</span><br><span class="line"></span><br><span class="line">$ parallel --xapply --arg-file-sep ,,,, echo ,,,, a.txt  b.txt </span><br><span class="line"></span><br><span class="line">a A D</span><br><span class="line">b A E</span><br><span class="line">c A F</span><br><span class="line">d B D</span><br><span class="line">e B E</span><br><span class="line">a B F</span><br><span class="line">b C D</span><br><span class="line">c C E</span><br><span class="line">d C F</span><br></pre></td></tr></table></figure>
+<ol start="3">
+<li>改变输入分隔符</li>
+</ol>
+<p>GNU Parallel 默认把一行做为一个参数。使用 <code>\n</code> 做为参数定界符，可以使用 <code>-d</code> 改变。</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">$ parallel -d b echo :::: a.txt </span><br><span class="line">a</span><br><span class="line"></span><br><span class="line">c</span><br><span class="line">d</span><br><span class="line">e</span><br></pre></td></tr></table></figure>
+<ol start="4">
+<li>提前结束和跳过空行</li>
+</ol>
+<p>GNU Parallel 支持通过 <code>-E</code> 参数指定一个值做为结束标志。</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">$ parallel -E stop echo ::: A B stop C D</span><br><span class="line">A</span><br><span class="line">B</span><br></pre></td></tr></table></figure>
+<p>GNU Parallel 使用 <code>--no-run-if-empty</code> 来跳过空行。</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">$ (echo 1; echo; echo 2) | parallel --no-run-if-empty echo</span><br><span class="line">1</span><br><span class="line">2</span><br></pre></td></tr></table></figure>
+<ol start="5">
+<li>构建命令行</li>
+</ol>
+<p>如果 Parallel 之后没有给定命令，那么这些参数会被当做命令。</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line">$ parallel ::: ls &#39;echo foo&#39; pwd</span><br><span class="line">a.txt</span><br><span class="line">b.txt</span><br><span class="line">c.txt</span><br><span class="line">jianchen</span><br><span class="line">mypipe</span><br><span class="line">scripts</span><br><span class="line">snake_test</span><br><span class="line">WGS_snake</span><br><span class="line">foo</span><br><span class="line">&#x2F;home&#x2F;sxuan</span><br></pre></td></tr></table></figure>
+<p>此外，命令还可以是一个脚本文件，一个二进制可执行文件或一个 <code>Bash</code> 的函数（须用 export -f 导出函数）。</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">$ echo &quot;echo \$*&quot; &gt; s.sh</span><br><span class="line">$ parallel .&#x2F;s.sh ::: &quot;a b c f&quot; &quot;1 2 3 4&quot;</span><br><span class="line">a b c f</span><br><span class="line">1 2 3 4</span><br></pre></td></tr></table></figure>
+<ol start="6">
+<li>替换字符串</li>
+</ol>
+<p>GNU Parallel 支持多种替换字符串，默认使用 {}，使用 <code>-I</code> 改变替换字符串符号 {}。</p>
+<p>其最常见的字符串替换包括以下几种：</p>
+<ul>
+<li>{.}，去掉扩展名</li>
+<li>{/},去掉路径，只保留文件名</li>
+<li>{//}，只保留路径</li>
+<li>{/.}，同时去掉路径和扩展名</li>
+<li></li>
+</ul>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br></pre></td><td class="code"><pre><span class="line">$ parallel echo ::: A&#x2F;B.C ; parallel echo &#123;&#125; ::: A&#x2F;B.C ; parallel -I ,, echo ,, ::: A&#x2F;B.C</span><br><span class="line">A&#x2F;B.C</span><br><span class="line">A&#x2F;B.C</span><br><span class="line">A&#x2F;B.C</span><br><span class="line"></span><br><span class="line">$ parallel echo &#123;.&#125; ::: A&#x2F;B.C ; parallel --extensionreplace ,, echo ,, ::: A&#x2F;B.C</span><br><span class="line">A&#x2F;B</span><br><span class="line">A&#x2F;B</span><br><span class="line"></span><br><span class="line">$ parallel echo &#123;&#x2F;&#125; ::: A&#x2F;B.C ; parallel --basenamereplace ,, echo ,, ::: A&#x2F;B.C</span><br><span class="line">B.C</span><br><span class="line">B.C</span><br><span class="line"></span><br><span class="line">$ parallel echo &#123;&#x2F;&#x2F;&#125; ::: A&#x2F;B.C ; parallel --dirnamereplace ,, echo ,, ::: A&#x2F;B.C </span><br><span class="line">A</span><br><span class="line">A</span><br><span class="line"></span><br><span class="line">$ parallel echo &#123;&#x2F;.&#125; ::: A&#x2F;B.C ; parallel --basenameextensionreplace ,, echo ,, ::: A&#x2F;B.C</span><br><span class="line">B</span><br><span class="line">B</span><br><span class="line"></span><br><span class="line">$ parallel echo &#123;#&#125; ::: A B C ; parallel --seqreplace ,, echo ,, ::: A B C</span><br><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td></tr></table></figure>
+<p>同时，如果有多个输入源时，可以通过 {编号} 指定某一个输入源的参数。</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">$ parallel --xapply  echo &#123;1&#125; and &#123;2&#125; ::: A B ::: C D</span><br><span class="line">A and C</span><br><span class="line">B and D</span><br></pre></td></tr></table></figure>
+<p>可以使用 / // /. 和 . 改变指定替换字符串</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">$ parallel echo &#x2F;&#x3D;&#123;1&#x2F;&#125; &#x2F;&#x2F;&#x3D;&#123;1&#x2F;&#x2F;&#125; &#x2F;.&#x3D;&#123;1&#x2F;.&#125; .&#x3D;&#123;1.&#125; ::: A&#x2F;B.C D&#x2F;E.F</span><br><span class="line">&#x2F;&#x3D;B.C &#x2F;&#x2F;&#x3D;A &#x2F;.&#x3D;B .&#x3D;A&#x2F;B</span><br><span class="line">&#x2F;&#x3D;E.F &#x2F;&#x2F;&#x3D;D &#x2F;.&#x3D;E .&#x3D;D&#x2F;E</span><br></pre></td></tr></table></figure>
+<p>位置可以是负数，表示倒着数。</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line">$ parallel echo 1&#x3D;&#123;1&#125; 2&#x3D;&#123;2&#125; 3&#x3D;&#123;3&#125; -1&#x3D;&#123;-1&#125; -2&#x3D;&#123;-2&#125; -3&#x3D;&#123;-3&#125; ::: A B ::: C D ::: E F</span><br><span class="line">1&#x3D;A 2&#x3D;C 3&#x3D;E -1&#x3D;E -2&#x3D;C -3&#x3D;A</span><br><span class="line">1&#x3D;A 2&#x3D;C 3&#x3D;F -1&#x3D;F -2&#x3D;C -3&#x3D;A</span><br><span class="line">1&#x3D;A 2&#x3D;D 3&#x3D;E -1&#x3D;E -2&#x3D;D -3&#x3D;A</span><br><span class="line">1&#x3D;A 2&#x3D;D 3&#x3D;F -1&#x3D;F -2&#x3D;D -3&#x3D;A</span><br><span class="line">1&#x3D;B 2&#x3D;C 3&#x3D;E -1&#x3D;E -2&#x3D;C -3&#x3D;B</span><br><span class="line">1&#x3D;B 2&#x3D;C 3&#x3D;F -1&#x3D;F -2&#x3D;C -3&#x3D;B</span><br><span class="line">1&#x3D;B 2&#x3D;D 3&#x3D;E -1&#x3D;E -2&#x3D;D -3&#x3D;B</span><br><span class="line">1&#x3D;B 2&#x3D;D 3&#x3D;F -1&#x3D;F -2&#x3D;D -3&#x3D;B</span><br></pre></td></tr></table></figure>
+<ol start="7">
+<li>按列输入和指定参数名</li>
+</ol>
+<p>使用 <code>--header</code> 把每一行输入中的第一个值做为参数名。</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">$ parallel --xapply --header : echo f1&#x3D;&#123;f1&#125; f2&#x3D;&#123;f2&#125; ::: f1 A B ::: f2 C D | tee d.txt</span><br><span class="line">f1&#x3D;A f2&#x3D;C</span><br><span class="line">f1&#x3D;B f2&#x3D;D</span><br></pre></td></tr></table></figure>
+<p>使用 <code>--colsep</code> 把文件中的行切分为列，做为输入参数。</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">$ perl -e &#39;printf &quot;f1\tf2\nA\tB\nC\tD\n&quot;&#39; &gt; tsv-file.tsv</span><br><span class="line">$ parallel --header : --colsep &#39;\t&#39; echo f1&#x3D;&#123;f1&#125; f2&#x3D;&#123;f2&#125; :::: tsv-file.tsv </span><br><span class="line">f1&#x3D;A f2&#x3D;B</span><br><span class="line">f1&#x3D;C f2&#x3D;D</span><br></pre></td></tr></table></figure>
+<ol start="8">
+<li>多参数</li>
+</ol>
+<p><code>--xargs</code> 会在一行中输入尽可能多的参数（与参数字符串长度有关），通过 <code>-s</code> 可指定一行中参数的上限。</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">$ perl -e &#39;for(1..30000)&#123;print &quot;$_\n&quot;&#125;&#39; &gt; num30000</span><br><span class="line">$ cat num30000 | parallel --xargs echo | wc -l</span><br><span class="line">3</span><br><span class="line"></span><br><span class="line">$ cat num30000 | parallel --xargs -s 10000 echo | wc -l</span><br><span class="line">17</span><br></pre></td></tr></table></figure>
+<p>为了获得更好的并发性，GNU Parallel 会在文件读取结束后再分发参数。</p>
+<p>GNU Parallel 在读取完最后一个参数之后，才开始第二个任务，此时会把所有的参数平均分配到 4 个任务（如果指定了4个任务）。</p>
+<p>第一个任务与上面使用 <code>--xargs</code> 的例子一样，但是第二个任务会被平均的分成 4 个任务，最终一共 5 个任务。</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">$ cat num30000 | parallel --jobs 4 -m echo | wc -l</span><br><span class="line">5</span><br></pre></td></tr></table></figure>
+<p>将 1-10 分参数分配到4个任务可以看得更清晰。</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">$ parallel --jobs 4 -m echo ::: &#123;1..10&#125;</span><br><span class="line">1 2 3</span><br><span class="line">4 5 6</span><br><span class="line">7 8 9</span><br><span class="line">10</span><br></pre></td></tr></table></figure>
+<p>替换字符串可以是输出字符的一部分，使用 <code>-m</code> 参数表示每个 job 不重复输出 “背景”（context），<code>-X</code> 则与 <code>-m</code> 相反，会重复输出 “背景文本”，具体通过下面几个例子进行理解。</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br></pre></td><td class="code"><pre><span class="line">$ parallel --jobs 4 echo pre-&#123;&#125;-post ::: A B C D E F G</span><br><span class="line">pre-A-post</span><br><span class="line">pre-B-post</span><br><span class="line">pre-C-post</span><br><span class="line">pre-D-post</span><br><span class="line">pre-E-post</span><br><span class="line">pre-F-post</span><br><span class="line">pre-G-post</span><br><span class="line"></span><br><span class="line">$ parallel --jobs 4 -m echo pre-&#123;&#125;-post ::: A B C D E F G</span><br><span class="line">pre-A B-post</span><br><span class="line">pre-C D-post</span><br><span class="line">pre-E F-post</span><br><span class="line">pre-G-post</span><br><span class="line"></span><br><span class="line">$ parallel --jobs 4 -X echo pre-&#123;&#125;-post ::: A B C D E F G</span><br><span class="line">pre-A-post pre-B-post</span><br><span class="line">pre-C-post pre-D-post</span><br><span class="line">pre-E-post pre-F-post</span><br><span class="line">pre-G-post</span><br></pre></td></tr></table></figure>
+<p>使用 <code>-N</code> 限制每行参数的个数，其中 <code>-N0</code> 表示一次只读取一个参数，且不输入这个参数（作为计数器来使用）。</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line">$ parallel -N4 echo 1&#x3D;&#123;1&#125; 2&#x3D;&#123;2&#125; 3&#x3D;&#123;3&#125; ::: A B C D E F G H</span><br><span class="line">1&#x3D;A 2&#x3D;B 3&#x3D;C</span><br><span class="line">1&#x3D;E 2&#x3D;F 3&#x3D;G</span><br><span class="line">$ parallel -N0 echo foo ::: 1 2 3</span><br><span class="line">foo</span><br><span class="line">foo</span><br><span class="line">foo</span><br></pre></td></tr></table></figure>
+<ol start="9">
+<li>引用</li>
+</ol>
+<p>如果命令行中包含特殊字符，就需要使用引号保护起来。</p>
+<p>Perl 脚本 <code>'print &quot;@ARGV\n&quot;'</code> 与 Linux 的 <code>echo</code> 的功能一样。</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">$ perl -e &#39;print &quot;@ARGV\n&quot;&#39; A</span><br><span class="line">A</span><br></pre></td></tr></table></figure>
+<p>使用 GNU Parallel 运行这条命令的时候，Perl 命令需要用引号包起来，也可以使用 <code>-q</code> 保护 <code>Perl</code> 命令。</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line">$ parallel perl -e &#39;print &quot;@ARGV\n&quot;&#39; ::: This wont work</span><br><span class="line">$ parallel -q perl -e &#39;print &quot;@ARGV\n&quot;&#39; ::: This works</span><br><span class="line">This</span><br><span class="line">works</span><br><span class="line">$ parallel perl -e \&#39;&#39;print &quot;@ARGV\n&quot;&#39;\&#39; ::: This works, too</span><br><span class="line">This</span><br><span class="line">works,</span><br><span class="line">too</span><br></pre></td></tr></table></figure>
+<ol start="10">
+<li>去除空格</li>
+</ol>
+<p>使用 --trim 去除参数两头的空格。</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line">$ parallel --trim r echo pre-&#123;&#125;-post ::: &#39; A &#39;</span><br><span class="line">pre- A-post</span><br><span class="line"></span><br><span class="line">$ parallel --trim l echo pre-&#123;&#125;-post ::: &#39; A &#39;</span><br><span class="line">pre-A -post</span><br><span class="line"></span><br><span class="line">$ parallel --trim lr echo pre-&#123;&#125;-post ::: &#39; A &#39;</span><br><span class="line">pre-A-post</span><br></pre></td></tr></table></figure>
+<ol start="11">
+<li>控制输出</li>
+</ol>
+<p>使用 <code>--tag</code> 以参数做为输出前缀，使用 <code>--tagstring</code> 修改输出前缀。</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line">$ parallel --tag echo foo-&#123;&#125; ::: A B C</span><br><span class="line">A   foo-A</span><br><span class="line">B   foo-B</span><br><span class="line">C   foo-C</span><br><span class="line"></span><br><span class="line">$ parallel --tagstring &#123;&#125;-bar echo foo-&#123;&#125; ::: A B C</span><br><span class="line">A-bar   foo-A</span><br><span class="line">B-bar   foo-B</span><br><span class="line">C-bar   foo-C</span><br></pre></td></tr></table></figure>
+<p><code>--dryrun</code> 作用类似于 echo 。</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line">$ parallel --dryrun echo &#123;&#125; ::: A B C</span><br><span class="line">echo A</span><br><span class="line">echo B</span><br><span class="line">echo C</span><br><span class="line"></span><br><span class="line">$ parallel echo &#123;&#125; ::: A B C</span><br><span class="line">A</span><br><span class="line">B</span><br><span class="line">C</span><br></pre></td></tr></table></figure>
+<p><code>--verbose</code> 则在运行之前先打印命令。</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line">$ parallel --verbose echo &#123;&#125; ::: A B C</span><br><span class="line">echo A</span><br><span class="line">echo B</span><br><span class="line">echo C</span><br><span class="line">A</span><br><span class="line">B</span><br><span class="line">C</span><br></pre></td></tr></table></figure>
+<p>一般来说，GNU Parallel 会延迟输出，直到一组命令执行完成。使用 <code>--ungroup</code>，可立刻打印输出已完成部分。</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br></pre></td><td class="code"><pre><span class="line">$ parallel -j2 &#39;printf &quot;%s-start\n%s&quot; &#123;&#125; &#123;&#125;;sleep &#123;&#125;;printf &quot;%s\n&quot; -middle;echo &#123;&#125;-end&#39; ::: 4 2 1</span><br><span class="line">2-start</span><br><span class="line">2-middle</span><br><span class="line">2-end</span><br><span class="line">1-start</span><br><span class="line">1-middle</span><br><span class="line">1-end</span><br><span class="line">4-start</span><br><span class="line">4-middle</span><br><span class="line">4-end</span><br><span class="line"></span><br><span class="line">$ parallel -j2 --ungroup &#39;printf &quot;%s-start\n%s&quot; &#123;&#125; &#123;&#125;;sleep &#123;&#125;;printf &quot;%s\n&quot; -middle;echo &#123;&#125;-end&#39; ::: 4 2 1</span><br><span class="line">4-start</span><br><span class="line">42-start</span><br><span class="line">2-middle</span><br><span class="line">2-end</span><br><span class="line">1-start</span><br><span class="line">1-middle</span><br><span class="line">1-end</span><br><span class="line">-middle</span><br><span class="line">4-end</span><br></pre></td></tr></table></figure>
+<p>使用 <code>--ungroup</code> 会很快，但会导致输出错乱，一个任务的行输出可能会被另一个任务的输出截断。像上例所示，第二行输出混合了两个任务：‘4-middle’ ‘2-start’。使用 <code>--linebuffer</code> 避免这个问题（稍慢一点）。</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line">4-start</span><br><span class="line">2-start</span><br><span class="line">2-middle</span><br><span class="line">2-end</span><br><span class="line">1-start</span><br><span class="line">1-middle</span><br><span class="line">1-end</span><br><span class="line">4-middle</span><br><span class="line">4-end</span><br></pre></td></tr></table></figure>
+<p>强制使输出与参数保持顺序 <code>--keep-order/-k</code>。</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line">$ parallel -j2 -k &#39;printf &quot;%s-start\n%s&quot; &#123;&#125; &#123;&#125;;sleep &#123;&#125;;printf &quot;%s\n&quot; -middle;echo &#123;&#125;-end&#39; ::: 4 2 1</span><br><span class="line">4-start</span><br><span class="line">4-middle</span><br><span class="line">4-end</span><br><span class="line">2-start</span><br><span class="line">2-middle</span><br><span class="line">2-end</span><br><span class="line">1-start</span><br><span class="line">1-middle</span><br><span class="line">1-end</span><br></pre></td></tr></table></figure>
+<ol start="12">
+<li>将输出保存到文件</li>
+</ol>
+<p>GNU Parallel 可以把每一个任务的输出保存到文件中，临时文件默认保存在 /tmp 中，可以使用 <code>--tmpdir</code> 改变（或者修改 $TMPDIR）。</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br></pre></td><td class="code"><pre><span class="line">$ parallel --files ::: A B C</span><br><span class="line">&#x2F;tmp&#x2F;parfmNTJ.par</span><br><span class="line">&#x2F;tmp&#x2F;parmioFz.par</span><br><span class="line">&#x2F;tmp&#x2F;pargaTxf.par</span><br><span class="line"></span><br><span class="line">$ parallel --tmpdir ~ --files ::: A B C</span><br><span class="line">&#x2F;home&#x2F;sxuan&#x2F;parLEXH7.par</span><br><span class="line">&#x2F;home&#x2F;sxuan&#x2F;parXsKsR.par</span><br><span class="line">&#x2F;home&#x2F;sxuan&#x2F;parZxytI.par</span><br><span class="line"></span><br><span class="line">$ TMPDIR&#x3D;~ parallel --files ::: A B C</span><br><span class="line">&#x2F;home&#x2F;sxuan&#x2F;par2tX6C.par</span><br><span class="line">&#x2F;home&#x2F;sxuan&#x2F;parorPJy.par</span><br><span class="line">&#x2F;home&#x2F;sxuan&#x2F;pari5TkI.par</span><br></pre></td></tr></table></figure>
+<p>输出文件可以有结构的保存 <code>--results</code>，输出文件不仅包含标准输出（stdout）也会包含标准错误输出（stderr）。</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br></pre></td><td class="code"><pre><span class="line">$ parallel --results outdir echo ::: A B C</span><br><span class="line">A</span><br><span class="line">B</span><br><span class="line">C</span><br><span class="line"></span><br><span class="line">$ tree outdir&#x2F;</span><br><span class="line">outdir&#x2F;</span><br><span class="line">└── 1</span><br><span class="line">    ├── A</span><br><span class="line">    │   ├── seq</span><br><span class="line">    │   ├── stderr</span><br><span class="line">    │   └── stdout</span><br><span class="line">    ├── B</span><br><span class="line">    │   ├── seq</span><br><span class="line">    │   ├── stderr</span><br><span class="line">    │   └── stdout</span><br><span class="line">    └── C</span><br><span class="line">        ├── seq</span><br><span class="line">        ├── stderr</span><br><span class="line">        └── stdout</span><br><span class="line"></span><br><span class="line">4 directories, 9 files</span><br></pre></td></tr></table></figure>
+<p>在使用多个变量的时候会显得很有用。</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br></pre></td><td class="code"><pre><span class="line"># --header : will take the first value as name and use that in the directory structure.</span><br><span class="line"></span><br><span class="line">$ parallel --header : --results outdir echo ::: f1 A B ::: f2 C D</span><br><span class="line">A C</span><br><span class="line">A D</span><br><span class="line">B C</span><br><span class="line">B D</span><br><span class="line"></span><br><span class="line">$ tree outdir&#x2F;</span><br><span class="line">outdir&#x2F;</span><br><span class="line">└── f1</span><br><span class="line">    ├── A</span><br><span class="line">    │   └── f2</span><br><span class="line">    │       ├── C</span><br><span class="line">    │       │   ├── seq</span><br><span class="line">    │       │   ├── stderr</span><br><span class="line">    │       │   └── stdout</span><br><span class="line">    │       └── D</span><br><span class="line">    │           ├── seq</span><br><span class="line">    │           ├── stderr</span><br><span class="line">    │           └── stdout</span><br><span class="line">    └── B</span><br><span class="line">        └── f2</span><br><span class="line">            ├── C</span><br><span class="line">            │   ├── seq</span><br><span class="line">            │   ├── stderr</span><br><span class="line">            │   └── stdout</span><br><span class="line">            └── D</span><br><span class="line">                ├── seq</span><br><span class="line">                ├── stderr</span><br><span class="line">                └── stdout</span><br><span class="line"></span><br><span class="line">9 directories, 12 files</span><br></pre></td></tr></table></figure>
+<ol start="13">
+<li>控制执行</li>
+</ol>
+<p>使用 <code>--jobs/-j</code> 指定并行任务数。</p>
+<p>使用 64 个任务执行 128 个休眠命令。</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">$ time parallel -N0 -j64 sleep 1 ::: &#123;1..128&#125;</span><br><span class="line"></span><br><span class="line">real    0m2.759s</span><br><span class="line">user    0m0.657s</span><br><span class="line">sys 0m1.345s</span><br></pre></td></tr></table></figure>
+<p>默认情况下并行任务数与 Cpu 核心数相同, 所以这条命令会比每个 Cpu 两个任务的耗时多一倍。</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line">$ time parallel -N0 sleep 1 ::: &#123;1..128&#125;</span><br><span class="line"></span><br><span class="line">real    0m3.478s</span><br><span class="line">user    0m0.656s</span><br><span class="line">sys 0m1.344s</span><br><span class="line"></span><br><span class="line"># 每个 Cpu 两个任务</span><br><span class="line">$ time parallel -N0 --jobs 200% sleep 1 ::: &#123;1..128&#125;</span><br><span class="line"></span><br><span class="line">real    0m2.659s</span><br><span class="line">user    0m0.734s</span><br><span class="line">sys 0m1.423s</span><br></pre></td></tr></table></figure>
+<p>使用 <code>--jobs 0</code> 表示执行尽可能多的并行任务。</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">$ time parallel -N0 --jobs 0 sleep 1 ::: &#123;1..128&#125;</span><br><span class="line"></span><br><span class="line">real    0m2.135s</span><br><span class="line">user    0m0.651s</span><br><span class="line">sys 0m1.477s</span><br></pre></td></tr></table></figure>
+<p>除了基于 Cpu 使用率之外，也可以基于 Cpu 数。</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">$ time parallel --use-cpus-instead-of-cores -N0 sleep 1 ::: &#123;1..128&#125;</span><br><span class="line"></span><br><span class="line">real    1m5.499s</span><br><span class="line">user    0m0.950s</span><br><span class="line">sys 0m1.897s</span><br></pre></td></tr></table></figure>
+<ol start="14">
+<li>交互</li>
+</ol>
+<p>通过使用 <code>--interactive</code> 在一个任务执行之前让用户决定是否执行。</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line">$ parallel --interactive echo ::: 1 2 3</span><br><span class="line">echo 1 ?...y</span><br><span class="line">echo 2 ?...y</span><br><span class="line">echo 3 ?...y</span><br><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td></tr></table></figure>
+<ol start="15">
+<li>耗时</li>
+</ol>
+<p>当 job 有大量的 IO 操作时，为避免“惊群效应”，可使用 <code>--delay</code> 参数指定各个 job 开始的时间间隔。</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line">$ parallel --delay 2.5 echo Starting &#123;&#125;\;date ::: 1 2 3</span><br><span class="line">Starting 1</span><br><span class="line">Tue Apr 17 15:21:41 CST 2018</span><br><span class="line">Starting 2</span><br><span class="line">Tue Apr 17 15:21:44 CST 2018</span><br><span class="line">Starting 3</span><br><span class="line">Tue Apr 17 15:21:46 CST 2018</span><br></pre></td></tr></table></figure>
+<p>若已知任务超过一定时间未反应则为失败则可以通过 <code>--timeout</code> 指定等待时间避免无谓的等待。</p>
+<p>GNU Parallel 能计算所有任务运行时间的中位数，因此可以指定时间为中位数的倍数关系。</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line">$ parallel --timeout 4.1 sleep &#123;&#125;\; echo &#123;&#125; ::: 2 4 6 8</span><br><span class="line">2</span><br><span class="line">4</span><br><span class="line"></span><br><span class="line">$ parallel --timeout 200% sleep &#123;&#125;\; echo &#123;&#125; ::: 2.1 2.2 3 7 2.3</span><br><span class="line">2.1</span><br><span class="line">2.2</span><br><span class="line">2.3</span><br><span class="line">3</span><br></pre></td></tr></table></figure>
+<ol start="16">
+<li>显示任务进度信息</li>
+</ol>
+<p>GNU Parallel 有多种方式可用来动态的显示任务进度信息，如：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">$ parallel --eta sleep ::: 1 3 2 2 1 3 3 2 1</span><br><span class="line">$ parallel --progress sleep ::: 1 3 2 2 1 3 3 2 1</span><br><span class="line">$ seq 1000 | parallel -j10 --bar &#39;(echo -n &#123;&#125;;sleep 0.1)&#39;  2&gt; &gt;(zenity --progress --auto-kill --auto-close)</span><br></pre></td></tr></table></figure>
+<p>使用 <code>--joblog</code> 参数能够生成各个任务的日志文件。</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line">$ parallel --joblog &#x2F;tmp&#x2F;log exit  ::: 1 2 3 0</span><br><span class="line">$ cat &#x2F;tmp&#x2F;log </span><br><span class="line">Seq Host    Starttime   JobRuntime  Send    Receive Exitval Signal  Command</span><br><span class="line">1   :   1523950890.344       0.018  0   0   1   0   exit 1</span><br><span class="line">2   :   1523950890.350       0.014  0   0   2   0   exit 2</span><br><span class="line">3   :   1523950890.357       0.006  0   0   3   0   exit 3</span><br><span class="line">4   :   1523950890.363       0.006  0   0   0   0   exit 0</span><br></pre></td></tr></table></figure>
+<p>通过 <code>--resume-failed</code> 参数可以重新运行失败的任务。</p>
+<p><code>--retry-failed</code> 的作用与 <code>--resume-failed</code>类似，只是 <code>--resume-failed</code> 从命令行读取失败任务，而 <code>--retry-failed</code> 则是从日志文件中读取失败任务。</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br></pre></td><td class="code"><pre><span class="line">$ parallel --resume-failed --joblog &#x2F;tmp&#x2F;log exit  ::: 1 2 3 0 0 0</span><br><span class="line">$ cat &#x2F;tmp&#x2F;log</span><br><span class="line">Seq Host    Starttime   JobRuntime  Send    Receive Exitval Signal  Command</span><br><span class="line">1   :   1523950890.344       0.018  0   0   1   0   exit 1</span><br><span class="line">2   :   1523950890.350       0.014  0   0   2   0   exit 2</span><br><span class="line">3   :   1523950890.357       0.006  0   0   3   0   exit 3</span><br><span class="line">4   :   1523950890.363       0.006  0   0   0   0   exit 0</span><br><span class="line">1   :   1523951289.575       0.029  0   0   1   0   exit 1</span><br><span class="line">2   :   1523951289.580       0.025  0   0   2   0   exit 2</span><br><span class="line">3   :   1523951289.585       0.019  0   0   3   0   exit 3</span><br><span class="line">5   :   1523951289.591       0.013  0   0   0   0   exit 0</span><br><span class="line">6   :   1523951289.604       0.004  0   0   0   0   exit 0</span><br><span class="line"></span><br><span class="line">$ parallel --retry-failed --joblog &#x2F;tmp&#x2F;log</span><br><span class="line">$ cat &#x2F;tmp&#x2F;log</span><br><span class="line">Seq Host    Starttime   JobRuntime  Send    Receive Exitval Signal  Command</span><br><span class="line">1   :   1523950890.344       0.018  0   0   1   0   exit 1</span><br><span class="line">2   :   1523950890.350       0.014  0   0   2   0   exit 2</span><br><span class="line">3   :   1523950890.357       0.006  0   0   3   0   exit 3</span><br><span class="line">4   :   1523950890.363       0.006  0   0   0   0   exit 0</span><br><span class="line">1   :   1523951289.575       0.029  0   0   1   0   exit 1</span><br><span class="line">2   :   1523951289.580       0.025  0   0   2   0   exit 2</span><br><span class="line">3   :   1523951289.585       0.019  0   0   3   0   exit 3</span><br><span class="line">5   :   1523951289.591       0.013  0   0   0   0   exit 0</span><br><span class="line">6   :   1523951289.604       0.004  0   0   0   0   exit 0</span><br><span class="line">1   :   1523951445.089       0.013  0   0   1   0   exit 1</span><br><span class="line">2   :   1523951445.094       0.009  0   0   2   0   exit 2</span><br><span class="line">3   :   1523951445.102       0.007  0   0   3   0   exit 3</span><br></pre></td></tr></table></figure>
+<ol start="17">
+<li>终止任务</li>
+</ol>
+<p>GNU Parallel 支持在某一情况下（如第一个失败或成功时，或者 20% 任务失败时）终止任务。</p>
+<p>终止任务又有两种类型：</p>
+<ul>
+<li>其一为立即终止（通过 <code>--halt now</code> 指定），杀死所有正在运行的任务并停止生成新的任务。</li>
+<li>其二为稍后终止（通过 <code>--halt soon</code> 指定），停止生成新任务并等待正在运行任务完成。</li>
+</ul>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br></pre></td><td class="code"><pre><span class="line">$ parallel -j2 --halt soon,fail&#x3D;1 echo &#123;&#125;\; exit &#123;&#125; ::: 0 0 1 2 3</span><br><span class="line">0</span><br><span class="line">0</span><br><span class="line">1</span><br><span class="line">parallel: This job failed:</span><br><span class="line">echo 1; exit 1</span><br><span class="line">parallel: Starting no more jobs. Waiting for 1 jobs to finish.</span><br><span class="line">2</span><br><span class="line">parallel: This job failed:</span><br><span class="line">echo 2; exit 2</span><br><span class="line"></span><br><span class="line">$ parallel -j2 --halt now,fail&#x3D;1 echo &#123;&#125;\; exit &#123;&#125; ::: 0 0 1 2 3</span><br><span class="line">0</span><br><span class="line">0</span><br><span class="line">1</span><br><span class="line">parallel: This job failed:</span><br><span class="line">echo 1; exit 1</span><br><span class="line"></span><br><span class="line">$ parallel -j2 --halt soon,fail&#x3D;20% echo &#123;&#125;\; exit &#123;&#125; ::: 0 1 2 3 4 5 6 7 8 9</span><br><span class="line">0</span><br><span class="line">1</span><br><span class="line">parallel: This job failed:</span><br><span class="line">echo 1; exit 1</span><br><span class="line">2</span><br><span class="line">parallel: This job failed:</span><br><span class="line">echo 2; exit 2</span><br><span class="line">parallel: Starting no more jobs. Waiting for 1 jobs to finish.</span><br><span class="line">3</span><br><span class="line">parallel: This job failed:</span><br><span class="line">echo 3; exit 3</span><br><span class="line"></span><br><span class="line">$ parallel -j2 --halt now,success&#x3D;1 echo &#123;&#125;\; exit &#123;&#125; ::: 1 2 3 0 4 5 6</span><br><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">0</span><br><span class="line">parallel: This job succeeded:</span><br><span class="line">echo 0; exit 0</span><br></pre></td></tr></table></figure>
+<p>GNU Parallel 还支持在任务失败后重试运行 <code>--retries</code>。</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line">$ parallel -k --retries 3 &#39;echo tried &#123;&#125; &gt;&gt;&#x2F;tmp&#x2F;runs; echo completed &#123;&#125;; exit &#123;&#125;&#39; ::: 1 2 0</span><br><span class="line">completed 1</span><br><span class="line">completed 2</span><br><span class="line">completed 0</span><br><span class="line"></span><br><span class="line">$ cat &#x2F;tmp&#x2F;runs </span><br><span class="line">tried 1</span><br><span class="line">tried 2</span><br><span class="line">tried 0</span><br><span class="line">tried 1</span><br><span class="line">tried 2</span><br><span class="line">tried 1</span><br><span class="line">tried 2</span><br></pre></td></tr></table></figure>
+<p>关于终止信号的高级用法参考官方入门文档。</p>
+<ol start="18">
+<li>资源限制</li>
+</ol>
+<p>GNU Parallel 能够在开始一个新的任务前检查系统的负载情况防止过载（通过 <code>--load</code> 可指定负载），同时还能检查系统是否使用了交换空间 Swap（通过 <code>--noswap</code> 限制使用 Swap）。</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">$ parallel --load 100% echo load is less than &#123;&#125; job per cpu ::: 1</span><br><span class="line">load is less than 1 job per cpu</span><br><span class="line"></span><br><span class="line">$ parallel --noswap echo the system is not swapping ::: now</span><br><span class="line">the system is not swapping now</span><br></pre></td></tr></table></figure>
+<p>同时，对于某些占用内存较多的程序，Parallel 会检查内存只有内存满足时才启动任务（通过 <code>--memfree</code> 指定需要内存大小），而且在启动任务后内存不够 50% 时会杀掉最新开始的任务，直到这个任务完成再重新开始那些杀死的任务。</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">$ parallel --memfree 1G echo will run if more than 1 GB is ::: free</span><br><span class="line">will run if more than 1 GB is free</span><br></pre></td></tr></table></figure>
+<p>还可以通过 <code>--nice</code> 来指定任务的优先级。</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">$ parallel --nice 17 echo this is being run with nice -n ::: 17</span><br><span class="line">this is being run with nice -n 17</span><br></pre></td></tr></table></figure>
+<ol start="19">
+<li>远程操作</li>
+</ol>
+<p>可使用 <code>-S host</code>来进行远程登陆。</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">$ parallel -S username@$SERVER1 echo running on ::: username@$SERVER1</span><br></pre></td></tr></table></figure>
+<ol start="20">
+<li>文件传输</li>
+</ol>
+<p>GNU Parallel 文件传输使用的是 Rsync。</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">$ echo This is input_file &gt; input_file</span><br><span class="line">$ parallel -S $SERVER1 --transferfile &#123;&#125; cat ::: input_file</span><br></pre></td></tr></table></figure>
+<p>更多远程操作参见官方入门文档。</p>
+<ol start="21">
+<li>–pipe</li>
+</ol>
+<p><code>--pipe</code> 参数使得我们可以将输入（stdin）分为多块（block），然后分配给多个任务多个 Cpu 以达到负载均衡，最后的结果顺序与原始顺序一致。</p>
+<p>使用 <code>--block</code> 参数可以指定每块的大小，默认为 1M。</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line">$ perl -e &#39;for(1..1000000)&#123;print &quot;$_\n&quot;&#125;&#39; &gt; num1000000</span><br><span class="line">$ cat num1000000 | parallel --pipe wc</span><br><span class="line"> 165668  165668 1048571</span><br><span class="line"> 149796  149796 1048572</span><br><span class="line"> 149796  149796 1048572</span><br><span class="line"> 149796  149796 1048572</span><br><span class="line"> 149796  149796 1048572</span><br><span class="line"> 149796  149796 1048572</span><br><span class="line">  85352   85352  597465</span><br></pre></td></tr></table></figure>
+<p>如果不关心结果顺序，只想要快速的得到结果，可使用 <code>--round-robin</code> 参数。</p>
+<p>没有这个参数时每块文件都会启动一个命令，使用这个参数后会将这些文件块分配给 job 数任务（通过 <code>--jobs</code> 进行指定）。若想分配更为均匀还可同时指定 <code>--block</code> 参数。</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line">$ cat num1000000 | parallel --pipe -j4 --round-robin wc</span><br><span class="line"> 299592  299592 2097144</span><br><span class="line"> 315464  315464 2097143</span><br><span class="line"> 149796  149796 1048572</span><br><span class="line"> 235148  235148 1646037</span><br><span class="line"></span><br><span class="line">$ cat num1000000 | parallel --pipe -j4 --block 2M --round-robin wc</span><br><span class="line"> 299593  299593 2097151</span><br><span class="line"> 315465  315465 2097150</span><br><span class="line"> 299593  299593 2097151</span><br><span class="line">  85349   85349  597444</span><br></pre></td></tr></table></figure>
+<h3 id="parallel-使用实例">Parallel 使用实例</h3>
+<p>下面这些实际的使用 Parallel 的例子可能会更容易理解一些。</p>
+<ul>
+<li>使用 Parallel 来进行 JPEG 压缩</li>
+</ul>
+<p>下面是一个普通的 <code>find</code> 命令，用来找出当前目录中的所有 .jpg 文件，然后通过 MozJPEG 包中提供的图像压缩工具 <code>cjpeg</code> 对其进行处理。</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">$ find . -type f -name &quot;*.jpg&quot; -exec cjpeg -outfile LoRes&#x2F;&#123;&#125; &#123;&#125; &#39;;&#39;</span><br></pre></td></tr></table></figure>
+<p>总共耗时 0m44.114s。从 top 运行结果可以看到，虽然有 8 个核可用，但实际只有单个线程在用单个核。</p>
+<p><a href="https://img.linux.net.cn/data/attachment/album/201712/22/223442u13nq87a61an9z9q.png" target="_blank" rel="noopener">https://img.linux.net.cn/data/attachment/album/201712/22/223442u13nq87a61an9z9q.png</a></p>
+<p>下面用 Parallel 来运行相同的命令。</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">$ find . -type f -name &quot;*.jpg&quot; | parallel cjpeg -outfile LoRes&#x2F;&#123;&#125; &#123;&#125;</span><br></pre></td></tr></table></figure>
+<p>这次压缩所有图像的时间缩减到了 0m10.814s。从 top 运行结果可以看到，所有 CPU 核都满负荷运行，有 8 个线程对应使用 8 个 CPU 核。</p>
+<p><a href="https://img.linux.net.cn/data/attachment/album/201712/22/223519h7n30u47omdqhzmu.png" target="_blank" rel="noopener">https://img.linux.net.cn/data/attachment/album/201712/22/223519h7n30u47omdqhzmu.png</a></p>
+<h3 id="参考文档">参考文档</h3>
+<p><a href="https://www.google.com" target="_blank" rel="noopener">https://www.google.com</a><br>
+<a href="http://t.cn/E6KnjtP" target="_blank" rel="noopener">http://t.cn/E6KnjtP</a><br>
+<a href="http://t.cn/E6KB5Rr" target="_blank" rel="noopener">http://t.cn/E6KB5Rr</a><br>
+<a href="http://t.cn/E69yv3g" target="_blank" rel="noopener">http://t.cn/E69yv3g</a><br>
+<a href="http://t.cn/Rm9X2WC" target="_blank" rel="noopener">http://t.cn/Rm9X2WC</a><br>
+<a href="http://t.cn/E6Wr74r" target="_blank" rel="noopener">http://t.cn/E6Wr74r</a></p>
+</div>
+
+			<script src="https://my.openwrite.cn/js/readmore.js" type="text/javascript"></script>
+			<script>
+			var isMobile = navigator.userAgent.match(/(phone|pad|pod|iPhone|iPod|ios|iPad|Android|Mobile|BlackBerry|IEMobile|MQQBrowser|JUC|Fennec|wOSBrowser|BrowserNG|WebOS|Symbian|Windows Phone)/i);
+			if (!isMobile) {
+			    var btw = new BTWPlugin();
+			    btw.init({
+			        "id": "vip-container",
+			        "blogId": "10135-1588830050631-449",
+			        "name": "「奇妙的 Linux 世界」",
+			        "qrcode": "https://www.hi-linux.com/img/wechat/mp_qrcode_12.jpg",
+			        "keyword": "VIP"
+			    });
+			}
+			</script>
+		
+                
+
+                <hr>
+                <!-- Pager -->
+                <ul class="pager">
+                    
+                        <li class="previous">
+                            <a href="/posts/32399.html" data-toggle="tooltip" data-placement="top" title="Android Pie 私人 DNS 使用教程">&larr; Previous Post</a>
+                        </li>
+                    
+                    
+                        <li class="next">
+                            <a href="/posts/27183.html" data-toggle="tooltip" data-placement="top" title="Linux 爱好者周刊 ( 第 5 期 )">Next Post &rarr;</a>
+                        </li>
+                    
+                </ul>
+
+                <!-- duoshuo Share start -->
+                
+                <!-- 多说 Share end-->
+
+                <!-- 多说评论框 start -->
+                
+                <!-- 多说评论框 end -->
+
+                <!-- disqus comment start -->
+                
+                <!-- disqus comment end -->
+
+                
+                    <!-- disqus 评论框 start -->
+                    <div class="comment">
+                        <div id="lv-container" data-id="city" data-uid="MTAyMC8yNzg2My80NDQw"></div>
+                    </div>
+                    <!-- disqus 评论框 end -->
+                
+
+            </div>
+            
+            <!-- Tabe of Content -->
+            <!-- Table of Contents -->
+
+  
+    <style>
+      span.toc-nav-number{
+        display: none
+      }
+    </style>
+  
+    
+      <aside id="sidebar">
+        <div id="toc" class="toc-article">
+        <strong class="toc-title">Contents</strong>
+        
+          <ol class="toc-nav"><li class="toc-nav-item toc-nav-level-3"><a class="toc-nav-link" href="#parallel-介绍"><span class="toc-nav-number">1.</span> <span class="toc-nav-text">Parallel 介绍</span></a></li><li class="toc-nav-item toc-nav-level-3"><a class="toc-nav-link" href="#parallel-安装"><span class="toc-nav-number">2.</span> <span class="toc-nav-text">Parallel 安装</span></a></li><li class="toc-nav-item toc-nav-level-3"><a class="toc-nav-link" href="#parallel-使用"><span class="toc-nav-number">3.</span> <span class="toc-nav-text">Parallel 使用</span></a><ol class="toc-nav-child"><li class="toc-nav-item toc-nav-level-4"><a class="toc-nav-link" href="#parallel-语法简介"><span class="toc-nav-number">3.1.</span> <span class="toc-nav-text">Parallel 语法简介</span></a></li><li class="toc-nav-item toc-nav-level-4"><a class="toc-nav-link" href="#parallel-用法简介"><span class="toc-nav-number">3.2.</span> <span class="toc-nav-text">Parallel 用法简介</span></a></li></ol></li><li class="toc-nav-item toc-nav-level-3"><a class="toc-nav-link" href="#parallel-使用实例"><span class="toc-nav-number">4.</span> <span class="toc-nav-text">Parallel 使用实例</span></a></li><li class="toc-nav-item toc-nav-level-3"><a class="toc-nav-link" href="#参考文档"><span class="toc-nav-number">5.</span> <span class="toc-nav-text">参考文档</span></a></li></ol>
+        
+        </div>
+      </aside>
+    
+
+                
+            <!-- Sidebar Container -->
+            <div class="
+                col-lg-8 col-lg-offset-2
+                col-md-10 col-md-offset-1
+                sidebar-container">
+
+                <!-- Featured Tags -->
+                
+                <section>
+                    <!-- no hr -->
+                    <h5><a href="/tags/">FEATURED TAGS</a></h5>
+                    <div class="tags">
+                       
+                          <a class="tag" href="/tags/#Linux" title="Linux">Linux</a>
+                        
+                          <a class="tag" href="/tags/#技巧" title="技巧">技巧</a>
+                        
+                          <a class="tag" href="/tags/#Parallel" title="Parallel">Parallel</a>
+                        
+                    </div>
+                </section>
+                
+
+                <!-- Friends Blog -->
+                
+                <hr>
+                <h5>FRIENDS</h5>
+                <ul class="list-inline">
+
+                    
+                        <li><a href="http://www.mike.org.cn/" target="_blank">简单.生活</a></li>
+                    
+                        <li><a href="http://shang.qq.com/wpa/qunwpa?idkey=ea4c43493c2269428ac6ef6141de4b6d78e5ab2d41380ca4099b833b62884ee9" target="_blank">技术交流群</a></li>
+                    
+                        <li><a href="" target="_blank"></a></li>
+                    
+                        <li><a href="" target="_blank"></a></li>
+                    
+                </ul>
+                
+            </div>
+        </div>
+    </div>
+</article>
+
+
+
+
+
+
+    <!-- 来必力City版公共JS代码 start (一个网页只需插入一次) -->
+    <script type="text/javascript">
+       (function(d, s) {
+           var j, e = d.getElementsByTagName(s)[0];
+    
+           if (typeof LivereTower === 'function') { return; }
+    
+           j = d.createElement(s);
+           j.src = 'https://cdn-city.livere.com/js/embed.dist.js';
+           j.async = true;
+    
+           e.parentNode.insertBefore(j, e);
+       })(document, 'script');
+    </script>
+    <noscript>为正常使用来必力评论功能请激活JavaScript</noscript>
+    <!-- 来必力City版 公共JS代码 end -->
+
+
+
+<!-- async load function -->
+<script>
+    function async(u, c) {
+      var d = document, t = 'script',
+          o = d.createElement(t),
+          s = d.getElementsByTagName(t)[0];
+      o.src = u;
+      if (c) { o.addEventListener('load', function (e) { c(null, e); }, false); }
+      s.parentNode.insertBefore(o, s);
+    }
+</script>
+<!-- anchor-js, Doc:http://bryanbraun.github.io/anchorjs/ -->
+<script>
+    async("https://cdn.bootcss.com/anchor-js/1.1.1/anchor.min.js",function(){
+        anchors.options = {
+          visible: 'hover',
+          placement: 'left',
+          icon: 'ℬ'
+        };
+        anchors.add().remove('.intro-header h1').remove('.subheading').remove('.sidebar-container h5');
+    })
+</script>
+<style>
+    /* place left on bigger screen */
+    @media all and (min-width: 800px) {
+        .anchorjs-link{
+            position: absolute;
+            left: -0.75em;
+            font-size: 1.1em;
+            margin-top : -0.1em;
+        }
+    }
+</style>
+
+
+
+    <!-- Footer -->
+    <!-- Footer -->
+<footer>
+    <div class="container">
+        <div class="row">
+            <div class="col-lg-8 col-lg-offset-2 col-md-10 col-md-offset-1">
+                <ul class="list-inline text-center">
+                
+                    <li>
+                        <a href="/atom.xml">
+                            <span class="fa-stack fa-lg">
+                                <i class="fa fa-circle fa-stack-2x"></i>
+                                <i class="fa fa-rss fa-stack-1x fa-inverse"></i>
+                            </span>
+                        </a>
+                    </li>
+                
+                
+                
+                    <li>
+                        <a target="_blank" href="https://www.zhihu.com/people/80imike">
+                            <span class="fa-stack fa-lg">
+                                <i class="fa fa-circle fa-stack-2x"></i>
+                                <i class="fa  fa-stack-1x fa-inverse">知</i>
+                            </span>
+                        </a>
+                    </li>
+                
+
+                
+                    <li>
+                        <a target="_blank" href="http://weibo.com/2093524665">
+                            <span class="fa-stack fa-lg">
+                                <i class="fa fa-circle fa-stack-2x"></i>
+                                <i class="fa fa-weibo fa-stack-1x fa-inverse"></i>
+                            </span>
+                        </a>
+                    </li>
+                
+
+                
+
+                
+
+                
+
+                </ul>
+                <p class="copyright text-muted">
+                    Copyright &copy; Mike 2020 | Hosted by <a href="https://pages.coding.me" target="_blank" rel="noopener" style="font-weight: bold">Coding Pages</a>
+                    <br>
+                    Theme by <a href="http://beantech.org" target="_blank" rel="noopener">BeanTech</a> 
+                    <span style="display: inline-block; margin: 0 5px;">
+                        <i class="fa fa-heart"></i>
+                    </span> 
+                    re-Ported by <a href="http://www.huweihuang.com" target="_blank" rel="noopener">胡伟煌</a> | 
+                    <iframe
+                        style="margin-left: 2px; margin-bottom:-5px;"
+                        frameborder="0" scrolling="0" width="91px" height="20px"
+                        src="https://ghbtns.com/github-btn.html?user=huweihuang&repo=hexo-theme-huweihuang&type=star&count=true" >
+                    </iframe>
+                </p>
+            </div>
+        </div>
+    </div>
+</footer>
+
+<!-- jQuery -->
+
+<script src="/js/jquery.min.js"></script>
+
+
+<!-- Bootstrap Core JavaScript -->
+
+<script src="/js/bootstrap.min.js"></script>
+
+
+<!-- Custom Theme JavaScript -->
+
+<script src="/js/hux-blog.min.js"></script>
+
+
+
+<!-- async load function -->
+<script>
+    function async(u, c) {
+      var d = document, t = 'script',
+          o = d.createElement(t),
+          s = d.getElementsByTagName(t)[0];
+      o.src = u;
+      if (c) { o.addEventListener('load', function (e) { c(null, e); }, false); }
+      s.parentNode.insertBefore(o, s);
+    }
+</script>
+
+<!-- 
+     Because of the native support for backtick-style fenced code blocks 
+     right within the Markdown is landed in Github Pages, 
+     From V1.6, There is no need for Highlight.js, 
+     so Huxblog drops it officially.
+
+     - https://github.com/blog/2100-github-pages-now-faster-and-simpler-with-jekyll-3-0  
+     - https://help.github.com/articles/creating-and-highlighting-code-blocks/    
+-->
+<!--
+    <script>
+        async("http://cdn.bootcss.com/highlight.js/8.6/highlight.min.js", function(){
+            hljs.initHighlightingOnLoad();
+        })
+    </script>
+    <link href="http://cdn.bootcss.com/highlight.js/8.6/styles/github.min.css" rel="stylesheet">
+-->
+
+
+<!-- jquery.tagcloud.js -->
+<script>
+    // only load tagcloud.js in tag.html
+    if($('#tag_cloud').length !== 0){
+        async("https://www.hi-linux.com/js/jquery.tagcloud.js",function(){
+            $.fn.tagcloud.defaults = {
+                //size: {start: 1, end: 1, unit: 'em'},
+                color: {start: '#bbbbee', end: '#0085a1'},
+            };
+            $('#tag_cloud a').tagcloud();
+        })
+    }
+</script>
+
+<!--fastClick.js -->
+<script>
+    async("https://cdn.bootcss.com/fastclick/1.0.6/fastclick.min.js", function(){
+        var $nav = document.querySelector("nav");
+        if($nav) FastClick.attach($nav);
+    })
+</script>
+
+
+<!-- Google Analytics -->
+
+
+
+
+<!-- Baidu Tongji -->
+
+
+
+
+
+
+	<a id="rocket" href="#top" class=""></a>
+	<script type="text/javascript" src="/js/totop.js?v=1.0.0" async=""></script>
+    <script type="text/javascript" src="/js/toc.js?v=1.0.0" async=""></script>
+<!-- Image to hack wechat -->
+<img src="https://www.hi-linux.com/img/icon_wechat.png" width="0" height="0" />
+<!-- Migrate from head to bottom, no longer block render and still work -->
+
+</body>
+
+</html>
