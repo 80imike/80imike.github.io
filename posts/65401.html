@@ -1,0 +1,712 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<!-- Head tag -->
+<head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="google-site-verification" content="xBT4GhYoi5qRD5tr338pgPM5OWHHIDR6mNg1a3euekI" />
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="description" content="">
+    <meta name="keyword"  content="Linux,运维,Nginx,Zabbix,Centos,Ansible,MySQL,Python,Docker,ELK,Haproxy,Git,Nodejs,安全,技术">
+    <link rel="shortcut icon" href="/img/ironman-draw.png">
+    <!-- Place this tag in your head or just before your close body tag. -->
+    <script async defer src="https://buttons.github.io/buttons.js"></script>
+    <title>
+        
+          Tmux 入门教程 - 运维之美
+        
+    </title>
+
+    <link rel="canonical" href="https://www.hi-linux.com/posts/65401.html">
+
+    <!-- Bootstrap Core CSS -->
+    
+<link rel="stylesheet" href="/css/bootstrap.min.css">
+
+
+    <!-- Custom CSS --> 
+    
+<link rel="stylesheet" href="/css/beantech.min.css">
+
+    
+    <!-- Pygments Highlight CSS -->
+    
+<link rel="stylesheet" href="/css/highlight.css">
+
+
+    
+<link rel="stylesheet" href="/css/widget.css">
+
+
+    
+<link rel="stylesheet" href="/css/rocket.css">
+
+
+    
+<link rel="stylesheet" href="/css/signature.css">
+
+
+    
+<link rel="stylesheet" href="/css/toc.css">
+
+
+    <!-- Custom Fonts -->
+    <!-- <link href="https://maxcdn.bootstrapcdn.com/font-awesome/4.3.0/css/font-awesome.min.css" rel="stylesheet" type="text/css"> -->
+    <!-- Hux change font-awesome CDN to qiniu -->
+    <link href="https://cdn.staticfile.org/font-awesome/4.5.0/css/font-awesome.min.css" rel="stylesheet" type="text/css">
+
+
+    <!-- Hux Delete, sad but pending in China
+    <link href='http://fonts.googleapis.com/css?family=Lora:400,700,400italic,700italic' rel='stylesheet' type='text/css'>
+    <link href='http://fonts.googleapis.com/css?family=Open+Sans:300italic,400italic,600italic,700italic,800italic,400,300,600,700,800' rel='stylesheet' type='text/
+    css'>
+    -->
+
+
+    <!-- HTML5 Shim and Respond.js IE8 support of HTML5 elements and media queries -->
+    <!-- WARNING: Respond.js doesn't work if you view the page via file:// -->
+    <!--[if lt IE 9]>
+        <script src="https://oss.maxcdn.com/libs/html5shiv/3.7.0/html5shiv.js"></script>
+        <script src="https://oss.maxcdn.com/libs/respond.js/1.4.2/respond.min.js"></script>
+    <![endif]-->
+
+    <!-- ga & ba script hoook -->
+    <script></script>
+<meta name="generator" content="Hexo 4.2.0"><link rel="alternate" href="/atom.xml" title="运维之美" type="application/atom+xml">
+</head>
+
+
+<!-- hack iOS CSS :active style -->
+<body ontouchstart="">
+	<!-- Modified by Yu-Hsuan Yen -->
+<!-- Post Header -->
+<style type="text/css">
+    header.intro-header{
+        
+            background-image: url('/img/header_img/building.jpg')
+            /*post*/
+        
+    }
+    
+</style>
+
+<header class="intro-header" >
+    <!-- Signature -->
+    <div id="signature">
+        <div class="container">
+            <div class="row">
+                <div class="col-lg-8 col-lg-offset-2 col-md-10 col-md-offset-1">
+                
+                    <div class="post-heading">
+                        <div class="tags">
+                            
+                              <a class="tag" href="/tags/#Linux" title="Linux">Linux</a>
+                            
+                              <a class="tag" href="/tags/#技巧" title="技巧">技巧</a>
+                            
+                              <a class="tag" href="/tags/#Tmux" title="Tmux">Tmux</a>
+                            
+                        </div>
+                        <h1>Tmux 入门教程</h1>
+                        <h2 class="subheading"></h2>
+                        <span class="meta">
+                            Posted by Mike on
+                            2020-05-16
+                        </span>
+                    </div>
+                
+
+
+                </div>
+            </div>
+        </div>
+    </div>
+</header>
+
+	
+    <!-- Navigation -->
+<nav class="navbar navbar-default navbar-custom navbar-fixed-top">
+    <div class="container-fluid">
+        <!-- Brand and toggle get grouped for better mobile display -->
+        <div class="navbar-header page-scroll">
+            <button type="button" class="navbar-toggle">
+                <span class="sr-only">Toggle navigation</span>
+                <span class="icon-bar"></span>
+                <span class="icon-bar"></span>
+                <span class="icon-bar"></span>
+            </button>
+            <a class="navbar-brand" href="/">运维之美</a>
+        </div>
+
+        <!-- Collect the nav links, forms, and other content for toggling -->
+        <!-- Known Issue, found by Hux:
+            <nav>'s height woule be hold on by its content.
+            so, when navbar scale out, the <nav> will cover tags.
+            also mask any touch event of tags, unfortunately.
+        -->
+        <div id="huxblog_navbar">
+            <div class="navbar-collapse">
+                <ul class="nav navbar-nav navbar-right">
+                    <li>
+                        <a href="/">Home</a>
+                    </li>
+
+                    
+
+                        
+                    
+
+                        
+                    
+
+                        
+                        <li>
+                            <a href="/about/">About</a>
+                        </li>
+                        
+                    
+
+                        
+                        <li>
+                            <a href="/archive/">Archives</a>
+                        </li>
+                        
+                    
+
+                        
+                        <li>
+                            <a href="/tags/">Tags</a>
+                        </li>
+                        
+                    
+                    
+                </ul>
+            </div>
+        </div>
+        <!-- /.navbar-collapse -->
+    </div>
+    <!-- /.container -->
+</nav>
+<script>
+    // Drop Bootstarp low-performance Navbar
+    // Use customize navbar with high-quality material design animation
+    // in high-perf jank-free CSS3 implementation
+    var $body   = document.body;
+    var $toggle = document.querySelector('.navbar-toggle');
+    var $navbar = document.querySelector('#huxblog_navbar');
+    var $collapse = document.querySelector('.navbar-collapse');
+
+    $toggle.addEventListener('click', handleMagic)
+    function handleMagic(e){
+        if ($navbar.className.indexOf('in') > 0) {
+        // CLOSE
+            $navbar.className = " ";
+            // wait until animation end.
+            setTimeout(function(){
+                // prevent frequently toggle
+                if($navbar.className.indexOf('in') < 0) {
+                    $collapse.style.height = "0px"
+                }
+            },400)
+        }else{
+        // OPEN
+            $collapse.style.height = "auto"
+            $navbar.className += " in";
+        }
+    }
+</script>
+
+
+    <!-- Main Content -->
+    <!-- Modify by Yu-Hsuan Yen -->
+
+<!-- Post Content -->
+<article>
+    <div class="container">
+        <div class="row">
+
+            <!-- Post Container -->
+            <div class="
+                col-lg-8 col-lg-offset-2
+                col-md-10 col-md-offset-1
+                post-container">
+
+                <div id="vip-container"><p>Tmux 是一个终端复用器（terminal multiplexer），非常有用，属于常用的开发工具。本文将介绍如何使用 Tmux。</p>
+<h2 id="一-tmux-是什么">一、Tmux 是什么？</h2>
+<h3 id="11-会话与进程">1.1 会话与进程</h3>
+<p>命令行的典型使用方式是，打开一个终端窗口（terminal window，以下简称 “窗口”），在里面输入命令。<strong>用户与计算机的这种临时的交互，称为一次 “会话”（session） 。</strong></p>
+<p>会话的一个重要特点是，窗口与其中启动的进程是连在一起的。打开窗口，会话开始；关闭窗口，会话结束，会话内部的进程也会随之终止，不管有没有运行完。</p>
+<p>一个典型的例子就是，SSH 登录远程计算机，打开一个远程窗口执行命令。这时，网络突然断线，再次登录的时候，是找不回上一次执行的命令的。因为上一次 SSH 会话已经终止了，里面的进程也随之消失了。</p>
+<p>为了解决这个问题，会话与窗口可以 “解绑”：窗口关闭时，会话并不终止，而是继续运行，等到以后需要的时候，再让会话 “绑定” 其他窗口。</p>
+<h3 id="12-tmux-的作用">1.2 Tmux 的作用</h3>
+<p><strong>Tmux 就是会话与窗口的 “解绑” 工具，将它们彻底分离。</strong></p>
+<p>（1）它允许在单个窗口中，同时访问多个会话。这对于同时运行多个命令行程序很有用。</p>
+<p>（2）它可以让新窗口 “接入” 已经存在的会话。</p>
+<p>（3）它允许每个会话有多个连接窗口，因此可以多人实时共享会话。</p>
+<p>（4）它还支持窗口任意的垂直和水平拆分。</p>
+<p>类似的终端复用器还有 GNU Screen。Tmux 与它功能相似，但是更易用，也更强大。</p>
+<a id="more"></a>
+<h2 id="二-基本用法">二、基本用法</h2>
+<h3 id="21-安装">2.1 安装</h3>
+<p>Tmux 一般需要自己安装。</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line"># Ubuntu 或 Debian</span><br><span class="line">$ sudo apt-get install tmux</span><br><span class="line"></span><br><span class="line"># CentOS 或 Fedora</span><br><span class="line">$ sudo yum install tmux</span><br><span class="line"></span><br><span class="line"># Mac</span><br><span class="line">$ brew install tmux</span><br></pre></td></tr></table></figure>
+<h3 id="22-启动与退出">2.2 启动与退出</h3>
+<p>安装完成后，键入 <code>tmux</code> 命令，就进入了 Tmux 窗口。</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">$ tmux</span><br></pre></td></tr></table></figure>
+<p>上面命令会启动 Tmux 窗口，底部有一个状态栏。状态栏的左侧是窗口信息（编号和名称），右侧是系统信息。</p>
+<p><img src="https://www.wangbase.com/blogimg/asset/201910/bg2019102006.png" alt=""></p>
+<p>按下 <code>Ctrl+d</code> 或者显式输入 <code>exit</code> 命令，就可以退出 Tmux 窗口。</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">$ exit</span><br></pre></td></tr></table></figure>
+<h3 id="23-前缀键">2.3 前缀键</h3>
+<p>Tmux 窗口有大量的快捷键。所有快捷键都要通过前缀键唤起。默认的前缀键是 <code>Ctrl+b</code>，即先按下 <code>Ctrl+b</code>，快捷键才会生效。</p>
+<p>举例来说，帮助命令的快捷键是 <code>Ctrl+b ?</code>。它的用法是，在 Tmux 窗口中，先按下 <code>Ctrl+b</code>，再按下 <code>?</code>，就会显示帮助信息。</p>
+<p>然后，按下 <code>ESC</code> 键或 <code>q</code> 键，就可以退出帮助。</p>
+<h2 id="三-会话管理">三、会话管理</h2>
+<h3 id="31-新建会话">3.1 新建会话</h3>
+<p>第一个启动的 Tmux 窗口，编号是 0，第二个窗口的编号是 1，以此类推。这些窗口对应的会话，就是 0 号会话、1 号会话。</p>
+<p>使用编号区分会话，不太直观，更好的方法是为会话起名。</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">$ tmux new -s &lt;session-name&gt;</span><br></pre></td></tr></table></figure>
+<p>上面命令新建一个指定名称的会话。</p>
+<h3 id="32-分离会话">3.2 分离会话</h3>
+<p>在 Tmux 窗口中，按下 <code>Ctrl+b d</code> 或者输入 <code>tmux detach</code> 命令，就会将当前会话与窗口分离。</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">$ tmux detach</span><br></pre></td></tr></table></figure>
+<p>上面命令执行后，就会退出当前 Tmux 窗口，但是会话和里面的进程仍然在后台运行。</p>
+<p><code>tmux ls</code> 命令可以查看当前所有的 Tmux 会话。</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">$ tmux ls</span><br><span class="line"># or</span><br><span class="line">$ tmux list-session</span><br></pre></td></tr></table></figure>
+<h3 id="33-接入会话">3.3 接入会话</h3>
+<p><code>tmux attach</code> 命令用于重新接入某个已存在的会话。</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"># 使用会话编号</span><br><span class="line">$ tmux attach -t 0</span><br><span class="line"></span><br><span class="line"># 使用会话名称</span><br><span class="line">$ tmux attach -t &lt;session-name&gt;</span><br></pre></td></tr></table></figure>
+<h3 id="34-杀死会话">3.4 杀死会话</h3>
+<p><code>tmux kill-session</code> 命令用于杀死某个会话。</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"># 使用会话编号</span><br><span class="line">$ tmux kill-session -t 0</span><br><span class="line"></span><br><span class="line"># 使用会话名称</span><br><span class="line">$ tmux kill-session -t &lt;session-name&gt;</span><br></pre></td></tr></table></figure>
+<h3 id="35-切换会话">3.5 切换会话</h3>
+<p><code>tmux switch</code> 命令用于切换会话。</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"># 使用会话编号</span><br><span class="line">$ tmux switch -t 0</span><br><span class="line"></span><br><span class="line"># 使用会话名称</span><br><span class="line">$ tmux switch -t &lt;session-name&gt;</span><br></pre></td></tr></table></figure>
+<h3 id="36-重命名会话">3.6 重命名会话</h3>
+<p><code>tmux rename-session</code> 命令用于重命名会话。</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">$ tmux rename-session -t 0 &lt;new-name&gt;</span><br></pre></td></tr></table></figure>
+<p>上面命令将 0 号会话重命名。</p>
+<h3 id="37-会话快捷键">3.7 会话快捷键</h3>
+<p>下面是一些会话相关的快捷键。</p>
+<ul>
+<li><code>Ctrl+b d</code>：分离当前会话。</li>
+<li><code>Ctrl+b s</code>：列出所有会话。</li>
+<li><code>Ctrl+b $</code>：重命名当前会话。</li>
+</ul>
+<h2 id="四-最简操作流程">四、最简操作流程</h2>
+<p>综上所述，以下是 Tmux 的最简操作流程。</p>
+<ol>
+<li>新建会话 <code>tmux new -s my_session</code>。</li>
+<li>在 Tmux 窗口运行所需的程序。</li>
+<li>按下快捷键 <code>Ctrl+b d</code> 将会话分离。</li>
+<li>下次使用时，重新连接到会话 <code>tmux attach-session -t my_session</code>。</li>
+</ol>
+<h2 id="五-窗格操作">五、窗格操作</h2>
+<p>Tmux 可以将窗口分成多个窗格（pane），每个窗格运行不同的命令。以下命令都是在 <code>Tmux</code> 窗口中执行。</p>
+<h3 id="51-划分窗格">5.1 划分窗格</h3>
+<p><code>tmux split-window</code> 命令用来划分窗格。</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"># 划分上下两个窗格</span><br><span class="line">$ tmux split-window</span><br><span class="line"></span><br><span class="line"># 划分左右两个窗格</span><br><span class="line">$ tmux split-window -h</span><br></pre></td></tr></table></figure>
+<p><img src="https://www.wangbase.com/blogimg/asset/201910/bg2019102007.jpg" alt=""></p>
+<h3 id="52-移动光标">5.2 移动光标</h3>
+<p><code>tmux select-pane</code> 命令用来移动光标位置。</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line"># 光标切换到上方窗格</span><br><span class="line">$ tmux select-pane -U</span><br><span class="line"></span><br><span class="line"># 光标切换到下方窗格</span><br><span class="line">$ tmux select-pane -D</span><br><span class="line"></span><br><span class="line"># 光标切换到左边窗格</span><br><span class="line">$ tmux select-pane -L</span><br><span class="line"></span><br><span class="line"># 光标切换到右边窗格</span><br><span class="line">$ tmux select-pane -R</span><br></pre></td></tr></table></figure>
+<h3 id="53-交换窗格位置">5.3 交换窗格位置</h3>
+<p><code>tmux swap-pane</code> 命令用来交换窗格位置。</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line"># 当前窗格上移</span><br><span class="line">$ tmux swap-pane -U</span><br><span class="line"></span><br><span class="line"># 当前窗格下移</span><br><span class="line">$ tmux swap-pane -D</span><br><span class="line"></span><br><span class="line"># 当前窗格左移</span><br><span class="line">$ tmux swap-pane -L</span><br><span class="line"></span><br><span class="line"># 当前窗格左移</span><br><span class="line">$ tmux swap-pane -R</span><br></pre></td></tr></table></figure>
+<h3 id="54-窗格快捷键">5.4 窗格快捷键</h3>
+<p>下面是一些窗格操作的快捷键。</p>
+<ul>
+<li><code>Ctrl+b %</code>：划分左右两个窗格。</li>
+<li><code>Ctrl+b &quot;</code>：划分上下两个窗格。</li>
+<li><code>Ctrl+b &lt;arrow key&gt;</code>：光标切换到其他窗格。<arrow key="">是指向要切换到的窗格的方向键，比如切换到下方窗格，就按方向键↓。</arrow></li>
+<li><code>Ctrl+b ;</code>：光标切换到上一个窗格。</li>
+<li><code>Ctrl+b o</code>：光标切换到下一个窗格。</li>
+<li><code>Ctrl+b {</code>：当前窗格左移。</li>
+<li><code>Ctrl+b }</code>：当前窗格右移。</li>
+<li><code>Ctrl+b Ctrl+o</code>：当前窗格上移。</li>
+<li><code>Ctrl+b Alt+o</code>：当前窗格下移。</li>
+<li><code>Ctrl+b x</code>：关闭当前窗格。</li>
+<li><code>Ctrl+b !</code>：将当前窗格拆分为一个独立窗口。</li>
+<li><code>Ctrl+b z</code>：当前窗格全屏显示，再使用一次会变回原来大小。</li>
+<li><code>Ctrl+b Ctrl+&lt;arrow key&gt;</code>：按箭头方向调整窗格大小。</li>
+<li><code>Ctrl+b q</code>：显示窗格编号。</li>
+</ul>
+<h2 id="六-窗口管理">六、窗口管理</h2>
+<p>除了将一个窗口划分成多个窗格，Tmux 也允许新建多个窗口。</p>
+<h3 id="61-新建窗口">6.1 新建窗口</h3>
+<p><code>tmux new-window</code> 命令用来创建新窗口。</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">$ tmux new-window</span><br><span class="line"></span><br><span class="line"># 新建一个指定名称的窗口</span><br><span class="line">$ tmux new-window -n &lt;window-name&gt;</span><br></pre></td></tr></table></figure>
+<h3 id="62-切换窗口">6.2 切换窗口</h3>
+<p><code>tmux select-window</code> 命令用来切换窗口。</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"># 切换到指定编号的窗口</span><br><span class="line">$ tmux select-window -t &lt;window-number&gt;</span><br><span class="line"></span><br><span class="line"># 切换到指定名称的窗口</span><br><span class="line">$ tmux select-window -t &lt;window-name&gt;</span><br></pre></td></tr></table></figure>
+<h3 id="63-重命名窗口">6.3 重命名窗口</h3>
+<p><code>tmux rename-window</code> 命令用于为当前窗口起名（或重命名）。</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">$ tmux rename-window &lt;new-name&gt;</span><br></pre></td></tr></table></figure>
+<h3 id="64-窗口快捷键">6.4 窗口快捷键</h3>
+<p>下面是一些窗口操作的快捷键。</p>
+<ul>
+<li><code>Ctrl+b c</code>：创建一个新窗口，状态栏会显示多个窗口的信息。</li>
+<li><code>Ctrl+b p</code>：切换到上一个窗口（按照状态栏上的顺序）。</li>
+<li><code>Ctrl+b n</code>：切换到下一个窗口。</li>
+<li><code>Ctrl+b &lt;number&gt;</code>：切换到指定编号的窗口，其中的<number>是状态栏上的窗口编号。</number></li>
+<li><code>Ctrl+b w</code>：从列表中选择窗口。</li>
+<li><code>Ctrl+b ,</code>：窗口重命名。</li>
+</ul>
+<h2 id="七-其他命令">七、其他命令</h2>
+<p>下面是一些其他命令。</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line"># 列出所有快捷键，及其对应的 Tmux 命令</span><br><span class="line">$ tmux list-keys</span><br><span class="line"></span><br><span class="line"># 列出所有 Tmux 命令及其参数</span><br><span class="line">$ tmux list-commands</span><br><span class="line"></span><br><span class="line"># 列出当前所有 Tmux 会话的信息</span><br><span class="line">$ tmux info</span><br><span class="line"></span><br><span class="line"># 重新加载当前的 Tmux 配置</span><br><span class="line">$ tmux source-file ~&#x2F;.tmux.conf</span><br></pre></td></tr></table></figure>
+<h2 id="八-参考链接">八、参考链接</h2>
+<ul>
+<li>A Quick and Easy Guide to tmux</li>
+<li>Tactical tmux: The 10 Most Important Commands</li>
+<li>Getting started with Tmux</li>
+</ul>
+<blockquote>
+<p>来源：阮一峰的网络日志</p>
+<p>原文：<a href="https://url.cn/591YTUi" target="_blank" rel="noopener">https://url.cn/591YTUi</a></p>
+<p>题图：来自谷歌图片搜索</p>
+<p>版权：本文版权归原作者所有</p>
+<p>投稿：欢迎投稿，邮箱: <a href="mailto:editor@hi-linux.com">editor@hi-linux.com</a></p>
+</blockquote>
+</div>
+
+			<script src="https://my.openwrite.cn/js/readmore.js" type="text/javascript"></script>
+			<script>
+			var isMobile = navigator.userAgent.match(/(phone|pad|pod|iPhone|iPod|ios|iPad|Android|Mobile|BlackBerry|IEMobile|MQQBrowser|JUC|Fennec|wOSBrowser|BrowserNG|WebOS|Symbian|Windows Phone)/i);
+			if (!isMobile) {
+			    var btw = new BTWPlugin();
+			    btw.init({
+			        "id": "vip-container",
+			        "blogId": "10135-1588830050631-449",
+			        "name": "「奇妙的 Linux 世界」",
+			        "qrcode": "https://www.hi-linux.com/img/wechat/mp_qrcode_12.jpg",
+			        "keyword": "VIP"
+			    });
+			}
+			</script>
+		
+                
+
+                <hr>
+                <!-- Pager -->
+                <ul class="pager">
+                    
+                        <li class="previous">
+                            <a href="/posts/2742.html" data-toggle="tooltip" data-placement="top" title="50 个你必须掌握的 Kubernetes 面试题">&larr; Previous Post</a>
+                        </li>
+                    
+                    
+                        <li class="next">
+                            <a href="/posts/56863.html" data-toggle="tooltip" data-placement="top" title="推荐一款无需安装，仅需 1 条指令，秒实现内网穿透的神器 Serveo">Next Post &rarr;</a>
+                        </li>
+                    
+                </ul>
+
+                <!-- duoshuo Share start -->
+                
+                <!-- 多说 Share end-->
+
+                <!-- 多说评论框 start -->
+                
+                <!-- 多说评论框 end -->
+
+                <!-- disqus comment start -->
+                
+                <!-- disqus comment end -->
+
+                
+                    <!-- disqus 评论框 start -->
+                    <div class="comment">
+                        <div id="lv-container" data-id="city" data-uid="MTAyMC8yNzg2My80NDQw"></div>
+                    </div>
+                    <!-- disqus 评论框 end -->
+                
+
+            </div>
+            
+            <!-- Tabe of Content -->
+            <!-- Table of Contents -->
+
+  
+    <style>
+      span.toc-nav-number{
+        display: none
+      }
+    </style>
+  
+    
+      <aside id="sidebar">
+        <div id="toc" class="toc-article">
+        <strong class="toc-title">Contents</strong>
+        
+          <ol class="toc-nav"><li class="toc-nav-item toc-nav-level-2"><a class="toc-nav-link" href="#一-tmux-是什么"><span class="toc-nav-number">1.</span> <span class="toc-nav-text">一、Tmux 是什么？</span></a><ol class="toc-nav-child"><li class="toc-nav-item toc-nav-level-3"><a class="toc-nav-link" href="#11-会话与进程"><span class="toc-nav-number">1.1.</span> <span class="toc-nav-text">1.1 会话与进程</span></a></li><li class="toc-nav-item toc-nav-level-3"><a class="toc-nav-link" href="#12-tmux-的作用"><span class="toc-nav-number">1.2.</span> <span class="toc-nav-text">1.2 Tmux 的作用</span></a></li></ol></li><li class="toc-nav-item toc-nav-level-2"><a class="toc-nav-link" href="#二-基本用法"><span class="toc-nav-number">2.</span> <span class="toc-nav-text">二、基本用法</span></a><ol class="toc-nav-child"><li class="toc-nav-item toc-nav-level-3"><a class="toc-nav-link" href="#21-安装"><span class="toc-nav-number">2.1.</span> <span class="toc-nav-text">2.1 安装</span></a></li><li class="toc-nav-item toc-nav-level-3"><a class="toc-nav-link" href="#22-启动与退出"><span class="toc-nav-number">2.2.</span> <span class="toc-nav-text">2.2 启动与退出</span></a></li><li class="toc-nav-item toc-nav-level-3"><a class="toc-nav-link" href="#23-前缀键"><span class="toc-nav-number">2.3.</span> <span class="toc-nav-text">2.3 前缀键</span></a></li></ol></li><li class="toc-nav-item toc-nav-level-2"><a class="toc-nav-link" href="#三-会话管理"><span class="toc-nav-number">3.</span> <span class="toc-nav-text">三、会话管理</span></a><ol class="toc-nav-child"><li class="toc-nav-item toc-nav-level-3"><a class="toc-nav-link" href="#31-新建会话"><span class="toc-nav-number">3.1.</span> <span class="toc-nav-text">3.1 新建会话</span></a></li><li class="toc-nav-item toc-nav-level-3"><a class="toc-nav-link" href="#32-分离会话"><span class="toc-nav-number">3.2.</span> <span class="toc-nav-text">3.2 分离会话</span></a></li><li class="toc-nav-item toc-nav-level-3"><a class="toc-nav-link" href="#33-接入会话"><span class="toc-nav-number">3.3.</span> <span class="toc-nav-text">3.3 接入会话</span></a></li><li class="toc-nav-item toc-nav-level-3"><a class="toc-nav-link" href="#34-杀死会话"><span class="toc-nav-number">3.4.</span> <span class="toc-nav-text">3.4 杀死会话</span></a></li><li class="toc-nav-item toc-nav-level-3"><a class="toc-nav-link" href="#35-切换会话"><span class="toc-nav-number">3.5.</span> <span class="toc-nav-text">3.5 切换会话</span></a></li><li class="toc-nav-item toc-nav-level-3"><a class="toc-nav-link" href="#36-重命名会话"><span class="toc-nav-number">3.6.</span> <span class="toc-nav-text">3.6 重命名会话</span></a></li><li class="toc-nav-item toc-nav-level-3"><a class="toc-nav-link" href="#37-会话快捷键"><span class="toc-nav-number">3.7.</span> <span class="toc-nav-text">3.7 会话快捷键</span></a></li></ol></li><li class="toc-nav-item toc-nav-level-2"><a class="toc-nav-link" href="#四-最简操作流程"><span class="toc-nav-number">4.</span> <span class="toc-nav-text">四、最简操作流程</span></a></li><li class="toc-nav-item toc-nav-level-2"><a class="toc-nav-link" href="#五-窗格操作"><span class="toc-nav-number">5.</span> <span class="toc-nav-text">五、窗格操作</span></a><ol class="toc-nav-child"><li class="toc-nav-item toc-nav-level-3"><a class="toc-nav-link" href="#51-划分窗格"><span class="toc-nav-number">5.1.</span> <span class="toc-nav-text">5.1 划分窗格</span></a></li><li class="toc-nav-item toc-nav-level-3"><a class="toc-nav-link" href="#52-移动光标"><span class="toc-nav-number">5.2.</span> <span class="toc-nav-text">5.2 移动光标</span></a></li><li class="toc-nav-item toc-nav-level-3"><a class="toc-nav-link" href="#53-交换窗格位置"><span class="toc-nav-number">5.3.</span> <span class="toc-nav-text">5.3 交换窗格位置</span></a></li><li class="toc-nav-item toc-nav-level-3"><a class="toc-nav-link" href="#54-窗格快捷键"><span class="toc-nav-number">5.4.</span> <span class="toc-nav-text">5.4 窗格快捷键</span></a></li></ol></li><li class="toc-nav-item toc-nav-level-2"><a class="toc-nav-link" href="#六-窗口管理"><span class="toc-nav-number">6.</span> <span class="toc-nav-text">六、窗口管理</span></a><ol class="toc-nav-child"><li class="toc-nav-item toc-nav-level-3"><a class="toc-nav-link" href="#61-新建窗口"><span class="toc-nav-number">6.1.</span> <span class="toc-nav-text">6.1 新建窗口</span></a></li><li class="toc-nav-item toc-nav-level-3"><a class="toc-nav-link" href="#62-切换窗口"><span class="toc-nav-number">6.2.</span> <span class="toc-nav-text">6.2 切换窗口</span></a></li><li class="toc-nav-item toc-nav-level-3"><a class="toc-nav-link" href="#63-重命名窗口"><span class="toc-nav-number">6.3.</span> <span class="toc-nav-text">6.3 重命名窗口</span></a></li><li class="toc-nav-item toc-nav-level-3"><a class="toc-nav-link" href="#64-窗口快捷键"><span class="toc-nav-number">6.4.</span> <span class="toc-nav-text">6.4 窗口快捷键</span></a></li></ol></li><li class="toc-nav-item toc-nav-level-2"><a class="toc-nav-link" href="#七-其他命令"><span class="toc-nav-number">7.</span> <span class="toc-nav-text">七、其他命令</span></a></li><li class="toc-nav-item toc-nav-level-2"><a class="toc-nav-link" href="#八-参考链接"><span class="toc-nav-number">8.</span> <span class="toc-nav-text">八、参考链接</span></a></li></ol>
+        
+        </div>
+      </aside>
+    
+
+                
+            <!-- Sidebar Container -->
+            <div class="
+                col-lg-8 col-lg-offset-2
+                col-md-10 col-md-offset-1
+                sidebar-container">
+
+                <!-- Featured Tags -->
+                
+                <section>
+                    <!-- no hr -->
+                    <h5><a href="/tags/">FEATURED TAGS</a></h5>
+                    <div class="tags">
+                       
+                          <a class="tag" href="/tags/#Linux" title="Linux">Linux</a>
+                        
+                          <a class="tag" href="/tags/#技巧" title="技巧">技巧</a>
+                        
+                          <a class="tag" href="/tags/#Tmux" title="Tmux">Tmux</a>
+                        
+                    </div>
+                </section>
+                
+
+                <!-- Friends Blog -->
+                
+                <hr>
+                <h5>FRIENDS</h5>
+                <ul class="list-inline">
+
+                    
+                        <li><a href="http://www.mike.org.cn/" target="_blank">简单.生活</a></li>
+                    
+                        <li><a href="http://shang.qq.com/wpa/qunwpa?idkey=ea4c43493c2269428ac6ef6141de4b6d78e5ab2d41380ca4099b833b62884ee9" target="_blank">技术交流群</a></li>
+                    
+                        <li><a href="" target="_blank"></a></li>
+                    
+                        <li><a href="" target="_blank"></a></li>
+                    
+                </ul>
+                
+            </div>
+        </div>
+    </div>
+</article>
+
+
+
+
+
+
+    <!-- 来必力City版公共JS代码 start (一个网页只需插入一次) -->
+    <script type="text/javascript">
+       (function(d, s) {
+           var j, e = d.getElementsByTagName(s)[0];
+    
+           if (typeof LivereTower === 'function') { return; }
+    
+           j = d.createElement(s);
+           j.src = 'https://cdn-city.livere.com/js/embed.dist.js';
+           j.async = true;
+    
+           e.parentNode.insertBefore(j, e);
+       })(document, 'script');
+    </script>
+    <noscript>为正常使用来必力评论功能请激活JavaScript</noscript>
+    <!-- 来必力City版 公共JS代码 end -->
+
+
+
+<!-- async load function -->
+<script>
+    function async(u, c) {
+      var d = document, t = 'script',
+          o = d.createElement(t),
+          s = d.getElementsByTagName(t)[0];
+      o.src = u;
+      if (c) { o.addEventListener('load', function (e) { c(null, e); }, false); }
+      s.parentNode.insertBefore(o, s);
+    }
+</script>
+<!-- anchor-js, Doc:http://bryanbraun.github.io/anchorjs/ -->
+<script>
+    async("https://cdn.bootcss.com/anchor-js/1.1.1/anchor.min.js",function(){
+        anchors.options = {
+          visible: 'hover',
+          placement: 'left',
+          icon: 'ℬ'
+        };
+        anchors.add().remove('.intro-header h1').remove('.subheading').remove('.sidebar-container h5');
+    })
+</script>
+<style>
+    /* place left on bigger screen */
+    @media all and (min-width: 800px) {
+        .anchorjs-link{
+            position: absolute;
+            left: -0.75em;
+            font-size: 1.1em;
+            margin-top : -0.1em;
+        }
+    }
+</style>
+
+
+
+    <!-- Footer -->
+    <!-- Footer -->
+<footer>
+    <div class="container">
+        <div class="row">
+            <div class="col-lg-8 col-lg-offset-2 col-md-10 col-md-offset-1">
+                <ul class="list-inline text-center">
+                
+                    <li>
+                        <a href="/atom.xml">
+                            <span class="fa-stack fa-lg">
+                                <i class="fa fa-circle fa-stack-2x"></i>
+                                <i class="fa fa-rss fa-stack-1x fa-inverse"></i>
+                            </span>
+                        </a>
+                    </li>
+                
+                
+                
+                    <li>
+                        <a target="_blank" href="https://www.zhihu.com/people/80imike">
+                            <span class="fa-stack fa-lg">
+                                <i class="fa fa-circle fa-stack-2x"></i>
+                                <i class="fa  fa-stack-1x fa-inverse">知</i>
+                            </span>
+                        </a>
+                    </li>
+                
+
+                
+                    <li>
+                        <a target="_blank" href="http://weibo.com/2093524665">
+                            <span class="fa-stack fa-lg">
+                                <i class="fa fa-circle fa-stack-2x"></i>
+                                <i class="fa fa-weibo fa-stack-1x fa-inverse"></i>
+                            </span>
+                        </a>
+                    </li>
+                
+
+                
+
+                
+
+                
+
+                </ul>
+                <p class="copyright text-muted">
+                    Copyright &copy; Mike 2020 | Hosted by <a href="https://pages.coding.me" target="_blank" rel="noopener" style="font-weight: bold">Coding Pages</a>
+                    <br>
+                    Theme by <a href="http://beantech.org" target="_blank" rel="noopener">BeanTech</a> 
+                    <span style="display: inline-block; margin: 0 5px;">
+                        <i class="fa fa-heart"></i>
+                    </span> 
+                    re-Ported by <a href="http://www.huweihuang.com" target="_blank" rel="noopener">胡伟煌</a> | 
+                    <iframe
+                        style="margin-left: 2px; margin-bottom:-5px;"
+                        frameborder="0" scrolling="0" width="91px" height="20px"
+                        src="https://ghbtns.com/github-btn.html?user=huweihuang&repo=hexo-theme-huweihuang&type=star&count=true" >
+                    </iframe>
+                </p>
+            </div>
+        </div>
+    </div>
+</footer>
+
+<!-- jQuery -->
+
+<script src="/js/jquery.min.js"></script>
+
+
+<!-- Bootstrap Core JavaScript -->
+
+<script src="/js/bootstrap.min.js"></script>
+
+
+<!-- Custom Theme JavaScript -->
+
+<script src="/js/hux-blog.min.js"></script>
+
+
+
+<!-- async load function -->
+<script>
+    function async(u, c) {
+      var d = document, t = 'script',
+          o = d.createElement(t),
+          s = d.getElementsByTagName(t)[0];
+      o.src = u;
+      if (c) { o.addEventListener('load', function (e) { c(null, e); }, false); }
+      s.parentNode.insertBefore(o, s);
+    }
+</script>
+
+<!-- 
+     Because of the native support for backtick-style fenced code blocks 
+     right within the Markdown is landed in Github Pages, 
+     From V1.6, There is no need for Highlight.js, 
+     so Huxblog drops it officially.
+
+     - https://github.com/blog/2100-github-pages-now-faster-and-simpler-with-jekyll-3-0  
+     - https://help.github.com/articles/creating-and-highlighting-code-blocks/    
+-->
+<!--
+    <script>
+        async("http://cdn.bootcss.com/highlight.js/8.6/highlight.min.js", function(){
+            hljs.initHighlightingOnLoad();
+        })
+    </script>
+    <link href="http://cdn.bootcss.com/highlight.js/8.6/styles/github.min.css" rel="stylesheet">
+-->
+
+
+<!-- jquery.tagcloud.js -->
+<script>
+    // only load tagcloud.js in tag.html
+    if($('#tag_cloud').length !== 0){
+        async("https://www.hi-linux.com/js/jquery.tagcloud.js",function(){
+            $.fn.tagcloud.defaults = {
+                //size: {start: 1, end: 1, unit: 'em'},
+                color: {start: '#bbbbee', end: '#0085a1'},
+            };
+            $('#tag_cloud a').tagcloud();
+        })
+    }
+</script>
+
+<!--fastClick.js -->
+<script>
+    async("https://cdn.bootcss.com/fastclick/1.0.6/fastclick.min.js", function(){
+        var $nav = document.querySelector("nav");
+        if($nav) FastClick.attach($nav);
+    })
+</script>
+
+
+<!-- Google Analytics -->
+
+
+
+
+<!-- Baidu Tongji -->
+
+
+
+
+
+
+	<a id="rocket" href="#top" class=""></a>
+	<script type="text/javascript" src="/js/totop.js?v=1.0.0" async=""></script>
+    <script type="text/javascript" src="/js/toc.js?v=1.0.0" async=""></script>
+<!-- Image to hack wechat -->
+<img src="https://www.hi-linux.com/img/icon_wechat.png" width="0" height="0" />
+<!-- Migrate from head to bottom, no longer block render and still work -->
+
+</body>
+
+</html>
