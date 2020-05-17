@@ -1,0 +1,640 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<!-- Head tag -->
+<head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="google-site-verification" content="xBT4GhYoi5qRD5tr338pgPM5OWHHIDR6mNg1a3euekI" />
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="description" content="">
+    <meta name="keyword"  content="Linux,运维,Nginx,Zabbix,Centos,Ansible,MySQL,Python,Docker,ELK,Haproxy,Git,Nodejs,安全,技术">
+    <link rel="shortcut icon" href="/img/ironman-draw.png">
+    <!-- Place this tag in your head or just before your close body tag. -->
+    <script async defer src="https://buttons.github.io/buttons.js"></script>
+    <title>
+        
+          分享一个同时维护多个 Git 仓库的神奇小脚本 - 运维之美
+        
+    </title>
+
+    <link rel="canonical" href="https://www.hi-linux.com/posts/1588.html">
+
+    <!-- Bootstrap Core CSS -->
+    
+<link rel="stylesheet" href="/css/bootstrap.min.css">
+
+
+    <!-- Custom CSS --> 
+    
+<link rel="stylesheet" href="/css/beantech.min.css">
+
+    
+    <!-- Pygments Highlight CSS -->
+    
+<link rel="stylesheet" href="/css/highlight.css">
+
+
+    
+<link rel="stylesheet" href="/css/widget.css">
+
+
+    
+<link rel="stylesheet" href="/css/rocket.css">
+
+
+    
+<link rel="stylesheet" href="/css/signature.css">
+
+
+    
+<link rel="stylesheet" href="/css/toc.css">
+
+
+    <!-- Custom Fonts -->
+    <!-- <link href="https://maxcdn.bootstrapcdn.com/font-awesome/4.3.0/css/font-awesome.min.css" rel="stylesheet" type="text/css"> -->
+    <!-- Hux change font-awesome CDN to qiniu -->
+    <link href="https://cdn.staticfile.org/font-awesome/4.5.0/css/font-awesome.min.css" rel="stylesheet" type="text/css">
+
+
+    <!-- Hux Delete, sad but pending in China
+    <link href='http://fonts.googleapis.com/css?family=Lora:400,700,400italic,700italic' rel='stylesheet' type='text/css'>
+    <link href='http://fonts.googleapis.com/css?family=Open+Sans:300italic,400italic,600italic,700italic,800italic,400,300,600,700,800' rel='stylesheet' type='text/
+    css'>
+    -->
+
+
+    <!-- HTML5 Shim and Respond.js IE8 support of HTML5 elements and media queries -->
+    <!-- WARNING: Respond.js doesn't work if you view the page via file:// -->
+    <!--[if lt IE 9]>
+        <script src="https://oss.maxcdn.com/libs/html5shiv/3.7.0/html5shiv.js"></script>
+        <script src="https://oss.maxcdn.com/libs/respond.js/1.4.2/respond.min.js"></script>
+    <![endif]-->
+
+    <!-- ga & ba script hoook -->
+    <script></script>
+<meta name="generator" content="Hexo 4.2.0"><link rel="alternate" href="/atom.xml" title="运维之美" type="application/atom+xml">
+</head>
+
+
+<!-- hack iOS CSS :active style -->
+<body ontouchstart="">
+	<!-- Modified by Yu-Hsuan Yen -->
+<!-- Post Header -->
+<style type="text/css">
+    header.intro-header{
+        
+            background-image: url('/img/header_img/building.jpg')
+            /*post*/
+        
+    }
+    
+</style>
+
+<header class="intro-header" >
+    <!-- Signature -->
+    <div id="signature">
+        <div class="container">
+            <div class="row">
+                <div class="col-lg-8 col-lg-offset-2 col-md-10 col-md-offset-1">
+                
+                    <div class="post-heading">
+                        <div class="tags">
+                            
+                              <a class="tag" href="/tags/#Linux" title="Linux">Linux</a>
+                            
+                              <a class="tag" href="/tags/#技巧" title="技巧">技巧</a>
+                            
+                              <a class="tag" href="/tags/#Git" title="Git">Git</a>
+                            
+                        </div>
+                        <h1>分享一个同时维护多个 Git 仓库的神奇小脚本</h1>
+                        <h2 class="subheading"></h2>
+                        <span class="meta">
+                            Posted by Mike on
+                            2019-11-13
+                        </span>
+                    </div>
+                
+
+
+                </div>
+            </div>
+        </div>
+    </div>
+</header>
+
+	
+    <!-- Navigation -->
+<nav class="navbar navbar-default navbar-custom navbar-fixed-top">
+    <div class="container-fluid">
+        <!-- Brand and toggle get grouped for better mobile display -->
+        <div class="navbar-header page-scroll">
+            <button type="button" class="navbar-toggle">
+                <span class="sr-only">Toggle navigation</span>
+                <span class="icon-bar"></span>
+                <span class="icon-bar"></span>
+                <span class="icon-bar"></span>
+            </button>
+            <a class="navbar-brand" href="/">运维之美</a>
+        </div>
+
+        <!-- Collect the nav links, forms, and other content for toggling -->
+        <!-- Known Issue, found by Hux:
+            <nav>'s height woule be hold on by its content.
+            so, when navbar scale out, the <nav> will cover tags.
+            also mask any touch event of tags, unfortunately.
+        -->
+        <div id="huxblog_navbar">
+            <div class="navbar-collapse">
+                <ul class="nav navbar-nav navbar-right">
+                    <li>
+                        <a href="/">Home</a>
+                    </li>
+
+                    
+
+                        
+                    
+
+                        
+                    
+
+                        
+                        <li>
+                            <a href="/about/">About</a>
+                        </li>
+                        
+                    
+
+                        
+                        <li>
+                            <a href="/archive/">Archives</a>
+                        </li>
+                        
+                    
+
+                        
+                        <li>
+                            <a href="/tags/">Tags</a>
+                        </li>
+                        
+                    
+                    
+                </ul>
+            </div>
+        </div>
+        <!-- /.navbar-collapse -->
+    </div>
+    <!-- /.container -->
+</nav>
+<script>
+    // Drop Bootstarp low-performance Navbar
+    // Use customize navbar with high-quality material design animation
+    // in high-perf jank-free CSS3 implementation
+    var $body   = document.body;
+    var $toggle = document.querySelector('.navbar-toggle');
+    var $navbar = document.querySelector('#huxblog_navbar');
+    var $collapse = document.querySelector('.navbar-collapse');
+
+    $toggle.addEventListener('click', handleMagic)
+    function handleMagic(e){
+        if ($navbar.className.indexOf('in') > 0) {
+        // CLOSE
+            $navbar.className = " ";
+            // wait until animation end.
+            setTimeout(function(){
+                // prevent frequently toggle
+                if($navbar.className.indexOf('in') < 0) {
+                    $collapse.style.height = "0px"
+                }
+            },400)
+        }else{
+        // OPEN
+            $collapse.style.height = "auto"
+            $navbar.className += " in";
+        }
+    }
+</script>
+
+
+    <!-- Main Content -->
+    <!-- Modify by Yu-Hsuan Yen -->
+
+<!-- Post Content -->
+<article>
+    <div class="container">
+        <div class="row">
+
+            <!-- Post Container -->
+            <div class="
+                col-lg-8 col-lg-offset-2
+                col-md-10 col-md-offset-1
+                post-container">
+
+                <div id="vip-container"><p>不废话，放脚本：</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">find . -maxdepth 3 -name .git -<span class="built_in">type</span> d | rev | cut -c 6- | rev | xargs -I &#123;&#125; git -C &#123;&#125; pull</span><br></pre></td></tr></table></figure>
+<p>更为方便的，直接将这部分加入你的 <code>.zshrc</code> 或者 <code>.bash_profile</code>：</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="built_in">alias</span> gpall=<span class="string">"find . -maxdepth 3 -name .git -type d | rev | cut -c 6- | rev | xargs -I &#123;&#125; git -C &#123;&#125; pull"</span></span><br></pre></td></tr></table></figure>
+<p>之后，直接执行 <code>gpall</code> 即可。</p>
+<p>好了，我们进入正题。</p>
+<h2 id="维护多个-git-仓库的需求">维护多个 Git 仓库的需求</h2>
+<p>维护多个 Git 仓库不容易。我在我存放 GitHub 仓库的目录下运行了一下 <code>tree</code>：</p>
+<pre><code>.
+├── AIP_BackEnd
+├── Evaluation_BackEnd
+| ... ...
+├── SchoolProjects
+│   ├── Distance-Vector-Algorithm
+│   ├── cartoonize-images
+| ... ...
+│   ├── zanpress-blog
+│   └── zanpress-diagram
+| ... ...
+└── wechat-format
+
+103 directories
+</code></pre>
+<p>103 个目录……我自己 <code>Documents/GitHub</code> 文件夹下就有这么多 Git 仓库，一个一个去更新真的很费事情。如何批量更新 GitHub 本地仓库呢？其实就是一个遍历目录，对匹配到的 Git 仓库在其当前分支下执行 <code>git pull</code> 的需求嘛，很简单。</p>
+<a id="more"></a>
+<h2 id="解决方法">解决方法</h2>
+<p>在 Medium 上面，我找到了一个相当优雅的脚本。前面这个脚本已经分享给各位了，我们重新看一下：</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">find . -maxdepth 3 -name .git -<span class="built_in">type</span> d | rev | cut -c 6- | rev | xargs -I &#123;&#125; git -C &#123;&#125; pull</span><br></pre></td></tr></table></figure>
+<p>可以发现，这一长串命令，事实上就是前面的命令执行结果通过「管道」输出至后面的命令作为输入，也就是命令中 <code>|</code> 的功能。我们一段一段看一下这个命令具体都干了什么。</p>
+<h3 id="用-find-搜索目录下全部-git-文件夹">用 <code>find</code> 搜索目录下全部 <code>.git/</code> 文件夹</h3>
+<p>每个 Git 文件夹里面一定有 <code>.git</code> 的目录，我们只需要找到 <code>.git</code> 文件夹既可以找到 Git 目录。</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">find . -maxdepth 3 -name .git -<span class="built_in">type</span> d</span><br></pre></td></tr></table></figure>
+<p>这里，我们就使用了 <code>find</code> 的命令，详见：<a href="https://www.gnu.org/software/findutils/manual/html_mono/find.html" target="_blank" rel="noopener">GNU - Finding Files</a>。我们将命令分解来看：</p>
+<ul>
+<li><code>.</code> 表示匹配命令执行路径下的全部文件与文件夹</li>
+<li><code>-maxdepth 3</code> 表示向下搜索最多三层级目录</li>
+<li><code>-name .git</code> 就是搜索名称为 <code>.git</code> 的内容</li>
+<li><code>-type d</code> 则指明了我们搜索的范畴：Directories（目录）</li>
+</ul>
+<p><img src="https://i.loli.net/2019/10/29/IVMEzwDqGpXK8me.png" alt="搜索 .git 文件夹"></p>
+<p>一目了然，我们下面就这样对每个命令进行分解和解释。</p>
+<h3 id="裁剪出我们要的-git-文件夹所在路径">裁剪出我们要的 <code>.git</code> 文件夹所在路径</h3>
+<p>上面我们解析出来的路径，每个路径后面都包含一个 <code>.git</code>，我们需要统一将这个 <code>.git</code> 从字符串中删掉，这样才能一起对给定目录执行 <code>git pull</code>。第二步我们进行目录的裁剪。</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">... | rev | cut -c 6- | rev | ...</span><br></pre></td></tr></table></figure>
+<p>可以发现，这里我们有三部分命令。我们依次对命令进行解析：</p>
+<ol>
+<li><code>rev</code>：首先对搜索到的目录（字符串）进行反转</li>
+<li><code>cut -c 6-</code>：我们利用 <code>cut</code> 工具将路径进行裁剪，<code>-c</code> 表示删减的是字符（Characters），<code>6-</code> 表示我们删去路径的前 6 个字符（即：<code>.git</code>）</li>
+<li><code>rev</code>：将处理好的字符串反转回来</li>
+</ol>
+<p><img src="https://i.loli.net/2019/10/29/KDFIBpGXTmcz8qv.png" alt="裁剪路径"></p>
+<h3 id="利用-xargs-执行带参数的-git-pull">利用 <code>xargs</code> 执行带参数的 <code>git pull</code></h3>
+<p>上一步，我们已经提取出来所有包含 <code>.git</code> 的文件夹，现在我们需要批量的执行 <code>git pull</code> 来统一拉取仓库。</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">xargs -I &#123;&#125; git -C &#123;&#125; pull</span><br></pre></td></tr></table></figure>
+<p>由于 <code>git</code> 并不支持传入目录等参数，因此我们需要借助于 <code>xargs</code> 来给 <code>git</code> 传入拉取路径。上面的命令简明易懂，就相当于 <code>xargs</code> 告诉 <code>git</code> 拉取以上目录下的全部 Git 仓库。我们来看一看效果：</p>
+<p><img src="https://i.loli.net/2019/10/29/oCxk1O9SEP34RhW.gif" alt="脚本效果"></p>
+<p>b(￣▽￣)d 👍 成功~</p>
+<h1 id="references">📚 References</h1>
+<ul>
+<li><a href="https://medium.com/@codenameyau/updating-multiple-repos-with-one-command-9768c8cdfe46" target="_blank" rel="noopener">Updating Multiple Repos With One Command</a></li>
+<li><a href="http://www.ruanyifeng.com/blog/2019/08/xargs-tutorial.html" target="_blank" rel="noopener">xargs 命令教程</a></li>
+</ul>
+<blockquote>
+<p>本文转载自：「Spencer’s Blog」，原文：<a href="https://url.cn/5vvFpDa%EF%BC%8C%E7%89%88%E6%9D%83%E5%BD%92%E5%8E%9F%E4%BD%9C%E8%80%85%E6%89%80%E6%9C%89%E3%80%82%E6%AC%A2%E8%BF%8E%E6%8A%95%E7%A8%BF%EF%BC%8C%E6%8A%95%E7%A8%BF%E9%82%AE%E7%AE%B1:" target="_blank" rel="noopener">https://url.cn/5vvFpDa，版权归原作者所有。欢迎投稿，投稿邮箱:</a> <code>editor@hi-linux.com</code> 。</p>
+</blockquote>
+</div>
+
+			<script src="https://my.openwrite.cn/js/readmore.js" type="text/javascript"></script>
+			<script>
+			var isMobile = navigator.userAgent.match(/(phone|pad|pod|iPhone|iPod|ios|iPad|Android|Mobile|BlackBerry|IEMobile|MQQBrowser|JUC|Fennec|wOSBrowser|BrowserNG|WebOS|Symbian|Windows Phone)/i);
+			if (!isMobile) {
+			    var btw = new BTWPlugin();
+			    btw.init({
+			        "id": "vip-container",
+			        "blogId": "10135-1588830050631-449",
+			        "name": "「奇妙的 Linux 世界」",
+			        "qrcode": "https://www.hi-linux.com/img/wechat/mp_qrcode_12.jpg",
+			        "keyword": "VIP"
+			    });
+			}
+			</script>
+		
+                
+
+                <hr>
+                <!-- Pager -->
+                <ul class="pager">
+                    
+                        <li class="previous">
+                            <a href="/posts/21335.html" data-toggle="tooltip" data-placement="top" title="TCPDump 和 Wireshark 抓包及分析实战教程">&larr; Previous Post</a>
+                        </li>
+                    
+                    
+                        <li class="next">
+                            <a href="/posts/29611.html" data-toggle="tooltip" data-placement="top" title="手把手教你一个让任意终端程序都支持通过代理访问的神技">Next Post &rarr;</a>
+                        </li>
+                    
+                </ul>
+
+                <!-- duoshuo Share start -->
+                
+                <!-- 多说 Share end-->
+
+                <!-- 多说评论框 start -->
+                
+                <!-- 多说评论框 end -->
+
+                <!-- disqus comment start -->
+                
+                <!-- disqus comment end -->
+
+                
+                    <!-- disqus 评论框 start -->
+                    <div class="comment">
+                        <div id="lv-container" data-id="city" data-uid="MTAyMC8yNzg2My80NDQw"></div>
+                    </div>
+                    <!-- disqus 评论框 end -->
+                
+
+            </div>
+            
+            <!-- Tabe of Content -->
+            <!-- Table of Contents -->
+
+  
+    <style>
+      span.toc-nav-number{
+        display: none
+      }
+    </style>
+  
+    
+      <aside id="sidebar">
+        <div id="toc" class="toc-article">
+        <strong class="toc-title">Contents</strong>
+        
+          <ol class="toc-nav"><li class="toc-nav-item toc-nav-level-2"><a class="toc-nav-link" href="#维护多个-git-仓库的需求"><span class="toc-nav-number">1.</span> <span class="toc-nav-text">维护多个 Git 仓库的需求</span></a></li><li class="toc-nav-item toc-nav-level-2"><a class="toc-nav-link" href="#解决方法"><span class="toc-nav-number">2.</span> <span class="toc-nav-text">解决方法</span></a><ol class="toc-nav-child"><li class="toc-nav-item toc-nav-level-3"><a class="toc-nav-link" href="#用-find-搜索目录下全部-git-文件夹"><span class="toc-nav-number">2.1.</span> <span class="toc-nav-text">用 find 搜索目录下全部 .git&#x2F; 文件夹</span></a></li><li class="toc-nav-item toc-nav-level-3"><a class="toc-nav-link" href="#裁剪出我们要的-git-文件夹所在路径"><span class="toc-nav-number">2.2.</span> <span class="toc-nav-text">裁剪出我们要的 .git 文件夹所在路径</span></a></li><li class="toc-nav-item toc-nav-level-3"><a class="toc-nav-link" href="#利用-xargs-执行带参数的-git-pull"><span class="toc-nav-number">2.3.</span> <span class="toc-nav-text">利用 xargs 执行带参数的 git pull</span></a></li></ol></li></ol></li><li class="toc-nav-item toc-nav-level-1"><a class="toc-nav-link" href="#references"><span class="toc-nav-number"></span> <span class="toc-nav-text">📚 References</span></a>
+        
+        </div>
+      </aside>
+    
+
+                
+            <!-- Sidebar Container -->
+            <div class="
+                col-lg-8 col-lg-offset-2
+                col-md-10 col-md-offset-1
+                sidebar-container">
+
+                <!-- Featured Tags -->
+                
+                <section>
+                    <!-- no hr -->
+                    <h5><a href="/tags/">FEATURED TAGS</a></h5>
+                    <div class="tags">
+                       
+                          <a class="tag" href="/tags/#Linux" title="Linux">Linux</a>
+                        
+                          <a class="tag" href="/tags/#技巧" title="技巧">技巧</a>
+                        
+                          <a class="tag" href="/tags/#Git" title="Git">Git</a>
+                        
+                    </div>
+                </section>
+                
+
+                <!-- Friends Blog -->
+                
+                <hr>
+                <h5>FRIENDS</h5>
+                <ul class="list-inline">
+
+                    
+                        <li><a href="http://www.mike.org.cn/" target="_blank">简单.生活</a></li>
+                    
+                        <li><a href="http://shang.qq.com/wpa/qunwpa?idkey=ea4c43493c2269428ac6ef6141de4b6d78e5ab2d41380ca4099b833b62884ee9" target="_blank">技术交流群</a></li>
+                    
+                        <li><a href="" target="_blank"></a></li>
+                    
+                        <li><a href="" target="_blank"></a></li>
+                    
+                </ul>
+                
+            </div>
+        </div>
+    </div>
+</article>
+
+
+
+
+
+
+    <!-- 来必力City版公共JS代码 start (一个网页只需插入一次) -->
+    <script type="text/javascript">
+       (function(d, s) {
+           var j, e = d.getElementsByTagName(s)[0];
+    
+           if (typeof LivereTower === 'function') { return; }
+    
+           j = d.createElement(s);
+           j.src = 'https://cdn-city.livere.com/js/embed.dist.js';
+           j.async = true;
+    
+           e.parentNode.insertBefore(j, e);
+       })(document, 'script');
+    </script>
+    <noscript>为正常使用来必力评论功能请激活JavaScript</noscript>
+    <!-- 来必力City版 公共JS代码 end -->
+
+
+
+<!-- async load function -->
+<script>
+    function async(u, c) {
+      var d = document, t = 'script',
+          o = d.createElement(t),
+          s = d.getElementsByTagName(t)[0];
+      o.src = u;
+      if (c) { o.addEventListener('load', function (e) { c(null, e); }, false); }
+      s.parentNode.insertBefore(o, s);
+    }
+</script>
+<!-- anchor-js, Doc:http://bryanbraun.github.io/anchorjs/ -->
+<script>
+    async("https://cdn.bootcss.com/anchor-js/1.1.1/anchor.min.js",function(){
+        anchors.options = {
+          visible: 'hover',
+          placement: 'left',
+          icon: 'ℬ'
+        };
+        anchors.add().remove('.intro-header h1').remove('.subheading').remove('.sidebar-container h5');
+    })
+</script>
+<style>
+    /* place left on bigger screen */
+    @media all and (min-width: 800px) {
+        .anchorjs-link{
+            position: absolute;
+            left: -0.75em;
+            font-size: 1.1em;
+            margin-top : -0.1em;
+        }
+    }
+</style>
+
+
+
+    <!-- Footer -->
+    <!-- Footer -->
+<footer>
+    <div class="container">
+        <div class="row">
+            <div class="col-lg-8 col-lg-offset-2 col-md-10 col-md-offset-1">
+                <ul class="list-inline text-center">
+                
+                    <li>
+                        <a href="/atom.xml">
+                            <span class="fa-stack fa-lg">
+                                <i class="fa fa-circle fa-stack-2x"></i>
+                                <i class="fa fa-rss fa-stack-1x fa-inverse"></i>
+                            </span>
+                        </a>
+                    </li>
+                
+                
+                
+                    <li>
+                        <a target="_blank" href="https://www.zhihu.com/people/80imike">
+                            <span class="fa-stack fa-lg">
+                                <i class="fa fa-circle fa-stack-2x"></i>
+                                <i class="fa  fa-stack-1x fa-inverse">知</i>
+                            </span>
+                        </a>
+                    </li>
+                
+
+                
+                    <li>
+                        <a target="_blank" href="http://weibo.com/2093524665">
+                            <span class="fa-stack fa-lg">
+                                <i class="fa fa-circle fa-stack-2x"></i>
+                                <i class="fa fa-weibo fa-stack-1x fa-inverse"></i>
+                            </span>
+                        </a>
+                    </li>
+                
+
+                
+
+                
+
+                
+
+                </ul>
+                <p class="copyright text-muted">
+                    Copyright &copy; Mike 2020 | Hosted by <a href="https://pages.coding.me" target="_blank" rel="noopener" style="font-weight: bold">Coding Pages</a>
+                    <br>
+                    Theme by <a href="http://beantech.org" target="_blank" rel="noopener">BeanTech</a> 
+                    <span style="display: inline-block; margin: 0 5px;">
+                        <i class="fa fa-heart"></i>
+                    </span> 
+                    re-Ported by <a href="http://www.huweihuang.com" target="_blank" rel="noopener">胡伟煌</a> | 
+                    <iframe
+                        style="margin-left: 2px; margin-bottom:-5px;"
+                        frameborder="0" scrolling="0" width="91px" height="20px"
+                        src="https://ghbtns.com/github-btn.html?user=huweihuang&repo=hexo-theme-huweihuang&type=star&count=true" >
+                    </iframe>
+                </p>
+            </div>
+        </div>
+    </div>
+</footer>
+
+<!-- jQuery -->
+
+<script src="/js/jquery.min.js"></script>
+
+
+<!-- Bootstrap Core JavaScript -->
+
+<script src="/js/bootstrap.min.js"></script>
+
+
+<!-- Custom Theme JavaScript -->
+
+<script src="/js/hux-blog.min.js"></script>
+
+
+
+<!-- async load function -->
+<script>
+    function async(u, c) {
+      var d = document, t = 'script',
+          o = d.createElement(t),
+          s = d.getElementsByTagName(t)[0];
+      o.src = u;
+      if (c) { o.addEventListener('load', function (e) { c(null, e); }, false); }
+      s.parentNode.insertBefore(o, s);
+    }
+</script>
+
+<!-- 
+     Because of the native support for backtick-style fenced code blocks 
+     right within the Markdown is landed in Github Pages, 
+     From V1.6, There is no need for Highlight.js, 
+     so Huxblog drops it officially.
+
+     - https://github.com/blog/2100-github-pages-now-faster-and-simpler-with-jekyll-3-0  
+     - https://help.github.com/articles/creating-and-highlighting-code-blocks/    
+-->
+<!--
+    <script>
+        async("http://cdn.bootcss.com/highlight.js/8.6/highlight.min.js", function(){
+            hljs.initHighlightingOnLoad();
+        })
+    </script>
+    <link href="http://cdn.bootcss.com/highlight.js/8.6/styles/github.min.css" rel="stylesheet">
+-->
+
+
+<!-- jquery.tagcloud.js -->
+<script>
+    // only load tagcloud.js in tag.html
+    if($('#tag_cloud').length !== 0){
+        async("https://www.hi-linux.com/js/jquery.tagcloud.js",function(){
+            $.fn.tagcloud.defaults = {
+                //size: {start: 1, end: 1, unit: 'em'},
+                color: {start: '#bbbbee', end: '#0085a1'},
+            };
+            $('#tag_cloud a').tagcloud();
+        })
+    }
+</script>
+
+<!--fastClick.js -->
+<script>
+    async("https://cdn.bootcss.com/fastclick/1.0.6/fastclick.min.js", function(){
+        var $nav = document.querySelector("nav");
+        if($nav) FastClick.attach($nav);
+    })
+</script>
+
+
+<!-- Google Analytics -->
+
+
+
+
+<!-- Baidu Tongji -->
+
+
+
+
+
+
+	<a id="rocket" href="#top" class=""></a>
+	<script type="text/javascript" src="/js/totop.js?v=1.0.0" async=""></script>
+    <script type="text/javascript" src="/js/toc.js?v=1.0.0" async=""></script>
+<!-- Image to hack wechat -->
+<img src="https://www.hi-linux.com/img/icon_wechat.png" width="0" height="0" />
+<!-- Migrate from head to bottom, no longer block render and still work -->
+
+</body>
+
+</html>
