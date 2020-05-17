@@ -1,0 +1,671 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<!-- Head tag -->
+<head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="google-site-verification" content="xBT4GhYoi5qRD5tr338pgPM5OWHHIDR6mNg1a3euekI" />
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="description" content="">
+    <meta name="keyword"  content="Linux,运维,Nginx,Zabbix,Centos,Ansible,MySQL,Python,Docker,ELK,Haproxy,Git,Nodejs,安全,技术">
+    <link rel="shortcut icon" href="/img/ironman-draw.png">
+    <!-- Place this tag in your head or just before your close body tag. -->
+    <script async defer src="https://buttons.github.io/buttons.js"></script>
+    <title>
+        
+          手把手教你使用 mkcert 创建一个受信任的本地 SSL 证书 - 运维之美
+        
+    </title>
+
+    <link rel="canonical" href="https://www.hi-linux.com/posts/35933.html">
+
+    <!-- Bootstrap Core CSS -->
+    
+<link rel="stylesheet" href="/css/bootstrap.min.css">
+
+
+    <!-- Custom CSS --> 
+    
+<link rel="stylesheet" href="/css/beantech.min.css">
+
+    
+    <!-- Pygments Highlight CSS -->
+    
+<link rel="stylesheet" href="/css/highlight.css">
+
+
+    
+<link rel="stylesheet" href="/css/widget.css">
+
+
+    
+<link rel="stylesheet" href="/css/rocket.css">
+
+
+    
+<link rel="stylesheet" href="/css/signature.css">
+
+
+    
+<link rel="stylesheet" href="/css/toc.css">
+
+
+    <!-- Custom Fonts -->
+    <!-- <link href="https://maxcdn.bootstrapcdn.com/font-awesome/4.3.0/css/font-awesome.min.css" rel="stylesheet" type="text/css"> -->
+    <!-- Hux change font-awesome CDN to qiniu -->
+    <link href="https://cdn.staticfile.org/font-awesome/4.5.0/css/font-awesome.min.css" rel="stylesheet" type="text/css">
+
+
+    <!-- Hux Delete, sad but pending in China
+    <link href='http://fonts.googleapis.com/css?family=Lora:400,700,400italic,700italic' rel='stylesheet' type='text/css'>
+    <link href='http://fonts.googleapis.com/css?family=Open+Sans:300italic,400italic,600italic,700italic,800italic,400,300,600,700,800' rel='stylesheet' type='text/
+    css'>
+    -->
+
+
+    <!-- HTML5 Shim and Respond.js IE8 support of HTML5 elements and media queries -->
+    <!-- WARNING: Respond.js doesn't work if you view the page via file:// -->
+    <!--[if lt IE 9]>
+        <script src="https://oss.maxcdn.com/libs/html5shiv/3.7.0/html5shiv.js"></script>
+        <script src="https://oss.maxcdn.com/libs/respond.js/1.4.2/respond.min.js"></script>
+    <![endif]-->
+
+    <!-- ga & ba script hoook -->
+    <script></script>
+<meta name="generator" content="Hexo 4.2.0"><link rel="alternate" href="/atom.xml" title="运维之美" type="application/atom+xml">
+</head>
+
+
+<!-- hack iOS CSS :active style -->
+<body ontouchstart="">
+	<!-- Modified by Yu-Hsuan Yen -->
+<!-- Post Header -->
+<style type="text/css">
+    header.intro-header{
+        
+            background-image: url('/img/header_img/building.jpg')
+            /*post*/
+        
+    }
+    
+</style>
+
+<header class="intro-header" >
+    <!-- Signature -->
+    <div id="signature">
+        <div class="container">
+            <div class="row">
+                <div class="col-lg-8 col-lg-offset-2 col-md-10 col-md-offset-1">
+                
+                    <div class="post-heading">
+                        <div class="tags">
+                            
+                              <a class="tag" href="/tags/#Linux" title="Linux">Linux</a>
+                            
+                              <a class="tag" href="/tags/#技巧" title="技巧">技巧</a>
+                            
+                              <a class="tag" href="/tags/#mkcert" title="mkcert">mkcert</a>
+                            
+                        </div>
+                        <h1>手把手教你使用 mkcert 创建一个受信任的本地 SSL 证书</h1>
+                        <h2 class="subheading"></h2>
+                        <span class="meta">
+                            Posted by Mike on
+                            2019-01-11
+                        </span>
+                    </div>
+                
+
+
+                </div>
+            </div>
+        </div>
+    </div>
+</header>
+
+	
+    <!-- Navigation -->
+<nav class="navbar navbar-default navbar-custom navbar-fixed-top">
+    <div class="container-fluid">
+        <!-- Brand and toggle get grouped for better mobile display -->
+        <div class="navbar-header page-scroll">
+            <button type="button" class="navbar-toggle">
+                <span class="sr-only">Toggle navigation</span>
+                <span class="icon-bar"></span>
+                <span class="icon-bar"></span>
+                <span class="icon-bar"></span>
+            </button>
+            <a class="navbar-brand" href="/">运维之美</a>
+        </div>
+
+        <!-- Collect the nav links, forms, and other content for toggling -->
+        <!-- Known Issue, found by Hux:
+            <nav>'s height woule be hold on by its content.
+            so, when navbar scale out, the <nav> will cover tags.
+            also mask any touch event of tags, unfortunately.
+        -->
+        <div id="huxblog_navbar">
+            <div class="navbar-collapse">
+                <ul class="nav navbar-nav navbar-right">
+                    <li>
+                        <a href="/">Home</a>
+                    </li>
+
+                    
+
+                        
+                    
+
+                        
+                    
+
+                        
+                        <li>
+                            <a href="/about/">About</a>
+                        </li>
+                        
+                    
+
+                        
+                        <li>
+                            <a href="/archive/">Archives</a>
+                        </li>
+                        
+                    
+
+                        
+                        <li>
+                            <a href="/tags/">Tags</a>
+                        </li>
+                        
+                    
+                    
+                </ul>
+            </div>
+        </div>
+        <!-- /.navbar-collapse -->
+    </div>
+    <!-- /.container -->
+</nav>
+<script>
+    // Drop Bootstarp low-performance Navbar
+    // Use customize navbar with high-quality material design animation
+    // in high-perf jank-free CSS3 implementation
+    var $body   = document.body;
+    var $toggle = document.querySelector('.navbar-toggle');
+    var $navbar = document.querySelector('#huxblog_navbar');
+    var $collapse = document.querySelector('.navbar-collapse');
+
+    $toggle.addEventListener('click', handleMagic)
+    function handleMagic(e){
+        if ($navbar.className.indexOf('in') > 0) {
+        // CLOSE
+            $navbar.className = " ";
+            // wait until animation end.
+            setTimeout(function(){
+                // prevent frequently toggle
+                if($navbar.className.indexOf('in') < 0) {
+                    $collapse.style.height = "0px"
+                }
+            },400)
+        }else{
+        // OPEN
+            $collapse.style.height = "auto"
+            $navbar.className += " in";
+        }
+    }
+</script>
+
+
+    <!-- Main Content -->
+    <!-- Modify by Yu-Hsuan Yen -->
+
+<!-- Post Content -->
+<article>
+    <div class="container">
+        <div class="row">
+
+            <!-- Post Container -->
+            <div class="
+                col-lg-8 col-lg-offset-2
+                col-md-10 col-md-offset-1
+                post-container">
+
+                <div id="vip-container"><p>您是否厌倦了在本地开发项目中使用不受信任的 SSL 证书？维护自己的证书颁发机构（CA）是一个痛苦的事情，这过程中需要用到神秘的程序和命令。在本指南中，我将向您展示一种在没有 CA 的情况下在本地开发计算机上使用受信任 SSL 证书的简单方法。</p>
+<p><code>mkcert</code> 是一个简单的零配置工具，由 Filippo Valsorda 使用 Go 编写，用于制作具有您喜欢的任何名称的本地可信开发证书，无需任何配置。这将对您有所帮助，因为无法从可信证书颁发机构获取没有有效 DNS 记录的本地名称的证书。让我们深入研究安装和使用 <code>mkcert</code>。</p>
+<blockquote>
+<p>项目地址：<a href="https://github.com/FiloSottile/mkcert" target="_blank" rel="noopener">https://github.com/FiloSottile/mkcert</a></p>
+</blockquote>
+<p>如果你想申请一个线上可以使用免费证书，也可以参考「<a href="https://mp.weixin.qq.com/s?__biz=MzI3MTI2NzkxMA==&amp;mid=2247486876&amp;idx=1&amp;sn=cd9985177db1afe602b2bfde1a25eeea&amp;chksm=eac52cb5ddb2a5a3665c5afb03e6dc5682228855ccca1c1e25f350b54c4c76682099903e15b7&amp;token=665425999&amp;lang=zh_CN#rd" target="_blank" rel="noopener">手把手教你免费申请支持通配符的 SSL 证书</a>」和「<a href="https://mp.weixin.qq.com/s?__biz=MzI3MTI2NzkxMA==&amp;mid=2247485728&amp;idx=1&amp;sn=e0d8a88cc7db1e5071698842e6eddf21&amp;chksm=eac52809ddb2a11fe4d54820a9a9f98236a71783090a63e94e537c89cba63ad472fc71fe31f2&amp;token=665425999&amp;lang=zh_CN#rd" target="_blank" rel="noopener">Let’s Encrypt 免费通配符 SSL 证书申请教程</a>」两篇教程。</p>
+<h2 id="在不同平台下安装-mkcert">在不同平台下安装 mkcert</h2>
+<ol>
+<li>如何在 Ubuntu / Debian 上安装 mkcert</li>
+</ol>
+<p>要在任何 Ubuntu 或 Debian 系统上安装 <code>mkcert</code>，首先要安装 <code>certutil</code> 依赖项：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">$ sudo apt-get updatesudo apt install wget libnss3-tools</span><br></pre></td></tr></table></figure>
+<p>安装完成后，下载 <code>mkcert</code> 来自 Github 的二进制包。检查 <code>mkcert</code> 发布页面以获取最新版本。在撰写本文时，最新版本是。v1.4.0</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">$ export VER&#x3D;&quot;v1.4.0&quot; &amp;&amp; wget -O mkcert https:&#x2F;&#x2F;github.com&#x2F;FiloSottile&#x2F;mkcert&#x2F;releases&#x2F;download&#x2F;$&#123;VER&#125;&#x2F;mkcert-$&#123;VER&#125;-linux-amd64</span><br></pre></td></tr></table></figure>
+<p>下载文件后，使文件可执行并将二进制文件放在 <code>/usr/local/bin</code> 下面。</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">$ chmod +x  mkcert</span><br><span class="line">$ sudo mv mkcert &#x2F;usr&#x2F;local&#x2F;bin</span><br></pre></td></tr></table></figure>
+<a id="more"></a>
+<ol start="2">
+<li>如何在 CentOS / Fedora 上安装 mkcert</li>
+</ol>
+<p>在 CentOS 和 Fedora 上安装 <code>mkcert</code> 类似于 Ubuntu / Debian 安装，您只需要先安装 <code>nss-tools</code>工具。</p>
+<p>安装 nss-tools</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">$ sudo yum install nss-tools</span><br></pre></td></tr></table></figure>
+<p>安装完成后，下载 <code>mkcert</code> 二进制包，就像安装 Ubuntu 一样。</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">$ export VER&#x3D;&quot;v1.4.0&quot; &amp;&amp; wget -O mkcert https:&#x2F;&#x2F;github.com&#x2F;FiloSottile&#x2F;mkcert&#x2F;releases&#x2F;download&#x2F;$&#123;VER&#125;&#x2F;mkcert-$&#123;VER&#125;-linux-amd64</span><br></pre></td></tr></table></figure>
+<p>下载文件后，使文件可执行并将二进制文件放在 <code>/usr/local/bin</code> 下面。</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">$ chmod +x  mkcert</span><br><span class="line">$ sudo mv mkcert &#x2F;usr&#x2F;local&#x2F;bin</span><br></pre></td></tr></table></figure>
+<ol start="3">
+<li>如何在 Arch Linux 上安装 mkcert</li>
+</ol>
+<p>对于 Arch Linux，您可以使用上述过程或使用 AUR 安装 <code>mkcert</code>。对于通过 AUR 安装你需要使用 AUR 助手，推荐 <code>yay</code>。<code>yay</code> 是 Arch Linux/Manjaro 的最佳 AUR 助手。</p>
+<p>安装 <code>yay</code> 后，使用以下命令安装 <code>mkcert</code>。</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">$ yay -S --noconfirm --needed go</span><br><span class="line">$ yay -S --noconfirm --needed mkcert</span><br></pre></td></tr></table></figure>
+<ol start="4">
+<li>如何在 macOS 上安装 mkcert</li>
+</ol>
+<p>对于 macOS 用户，您可以下载二进制包或者从中 brew 安装 <code>mkcert</code>。</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">$ brew install mkcert</span><br><span class="line">$ brew install nss # if you use Firefox</span><br></pre></td></tr></table></figure>
+<p>对于二进制安装：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">$ export VER&#x3D;&quot;v1.4.0&quot; &amp;&amp; wget -O mkcert https:&#x2F;&#x2F;github.com&#x2F;FiloSottile&#x2F;mkcert&#x2F;releases&#x2F;download&#x2F;$&#123;VER&#125;&#x2F;mkcert-$&#123;VER&#125;-linux-amd64</span><br></pre></td></tr></table></figure>
+<p>下载文件后，使文件可执行并将二进制文件放在 /usr/local/bin 下面。</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">$ chmod +x  mkcert</span><br><span class="line">$ sudo mv mkcert &#x2F;usr&#x2F;local&#x2F;bin</span><br></pre></td></tr></table></figure>
+<h2 id="如何使用-mkcert-生成本地受信任的-ssl-证书">如何使用 mkcert 生成本地受信任的 SSL 证书</h2>
+<ol>
+<li>生成本地受信任的 SSL 证书</li>
+</ol>
+<p><code>mkcert</code> 支持以下根存储：</p>
+<ul>
+<li>macOS system store</li>
+<li>Windows system store</li>
+<li>update-ca-trust （Fedora、RHEL、CentOS）</li>
+<li>update-ca-certificates （Ubuntu、Debian）</li>
+<li>Firefox（仅限macOS和Linux）</li>
+<li>Chrome and Chromium</li>
+<li>Java（ JAVA_HOME ）</li>
+</ul>
+<p>要获取 <code>mkcert</code> 的帮助页面，请传递该选项 <code>--help</code>。</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br></pre></td><td class="code"><pre><span class="line">Usage of mkcert:</span><br><span class="line"></span><br><span class="line">$ mkcert -install</span><br><span class="line">Install the local CA in the system trust store.</span><br><span class="line"></span><br><span class="line">$ mkcert example.org</span><br><span class="line">Generate &quot;example.org.pem&quot; and &quot;example.org-key.pem&quot;.</span><br><span class="line"></span><br><span class="line">$ mkcert example.com myapp.dev localhost 127.0.0.1 ::1</span><br><span class="line">Generate &quot;example.com+4.pem&quot; and &quot;example.com+4-key.pem&quot;.</span><br><span class="line"></span><br><span class="line">$ mkcert &#39;*.example.com&#39;</span><br><span class="line">Generate &quot;_wildcard.example.com.pem&quot; and &quot;_wildcard.example.com-key.pem&quot;.</span><br><span class="line"></span><br><span class="line">$ mkcert -pkcs12 example.com</span><br><span class="line">Generate &quot;example.com.p12&quot; instead of a PEM file.</span><br><span class="line"></span><br><span class="line">$ mkcert -uninstall</span><br><span class="line">Uninstall the local CA (but do not delete it).</span><br><span class="line"></span><br><span class="line">Change the CA certificate and key storage location by setting $CAROOT,</span><br><span class="line">print it with &quot;mkcert -CAROOT&quot;.</span><br></pre></td></tr></table></figure>
+<p>您需要首先在系统信任库中安装本地 CA.</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">$ mkcert -install</span><br><span class="line"></span><br><span class="line">Created a new local CA at &quot;&#x2F;home&#x2F;myfreax&#x2F;.local&#x2F;share&#x2F;mkcert&quot; ?</span><br><span class="line">The local CA is now installed in the system trust store! ⚡️</span><br></pre></td></tr></table></figure>
+<p>完成后，您可以开始为您的域名生成 SSL 证书。例如，我将生成一个对以下名称有效的新证书。</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">&quot;mydomain.com&quot;</span><br><span class="line">&quot;*.mydomain.co&quot;</span><br><span class="line">&quot;myapp.net&quot;</span><br><span class="line">&quot;localhost&quot;</span><br><span class="line">&quot;127.0.0.1&quot;</span><br><span class="line">&quot;::1&quot;</span><br></pre></td></tr></table></figure>
+<p>你可以使用如下命令对上面的域名生成证书。</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">$ mkcert mydomain.com &#39;*.mydomain.co&#39; myapp.net localhost 127.0.0.1 ::1</span><br></pre></td></tr></table></figure>
+<p>命令执行后，会输出以下内容。</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line">Using the local CA at &quot;&#x2F;root&#x2F;.local&#x2F;share&#x2F;mkcert&quot; ✨</span><br><span class="line"></span><br><span class="line">Created a new certificate valid for the following names ?</span><br><span class="line">- &quot;mydomain.com&quot;</span><br><span class="line">- &quot;*.mydomain.co&quot;</span><br><span class="line">- &quot;myapp.net&quot;</span><br><span class="line">- &quot;localhost&quot;</span><br><span class="line">- &quot;127.0.0.1&quot;</span><br><span class="line">- &quot;::1&quot;</span><br><span class="line">The certificate is at &quot;.&#x2F;mydomain.com+5.pem&quot; and the key at &quot;.&#x2F;mydomain.com+5-key.pem&quot; ✅</span><br></pre></td></tr></table></figure>
+<p>证书生成完后，你也可以查看证书的内容。</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">$ cat .&#x2F;mydomain.com+5.pem</span><br></pre></td></tr></table></figure>
+<ol start="2">
+<li>测试 mkcert 证书</li>
+</ol>
+<p>现在让我们使用一个简单的 <code>Nginx</code> 配置文件测试 <code>mkcert</code> 证书。这个例子是在 <code>Ubuntu 16.04</code> 系统上完成的。</p>
+<ol start="0">
+<li>安装一个 Nginx 服务器</li>
+</ol>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">$ sudo apt-get install nginx</span><br></pre></td></tr></table></figure>
+<ol>
+<li>创建一个简单的网页</li>
+</ol>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">$ echo &#39;Hello Hi-Linux.com !&#39; &gt; &#x2F;var&#x2F;www&#x2F;test&#x2F;index.html</span><br></pre></td></tr></table></figure>
+<ol start="2">
+<li>配置一个简单的 HTTPS 服务器</li>
+</ol>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br></pre></td><td class="code"><pre><span class="line">$ cat &#x2F;etc&#x2F;nginx&#x2F;conf.d&#x2F;test.conf </span><br><span class="line">server &#123;</span><br><span class="line">   listen 80;</span><br><span class="line">   server_name mydomain.com myapp.net;</span><br><span class="line">   root &#x2F;var&#x2F;www&#x2F;test;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line">server &#123;</span><br><span class="line">   listen *:443 ssl http2;</span><br><span class="line">   root &#x2F;var&#x2F;www&#x2F;test;</span><br><span class="line">   server_name mydomain.com myapp.net;</span><br><span class="line">   ssl_certificate &#x2F;home&#x2F;jmutai&#x2F;mydomain.com+5.pem; </span><br><span class="line">   ssl_certificate_key &#x2F;home&#x2F;jmutai&#x2F;mydomain.com+5-key.pem;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<ol start="3">
+<li>确保您的 <code>/etc/hosts</code> 文件包含已使用域名的记录。</li>
+</ol>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">$ cat&#x2F;etc&#x2F;hosts</span><br><span class="line"></span><br><span class="line">127.0.0.1 myapp.net</span><br><span class="line">127.0.0.1 mydomain.com</span><br></pre></td></tr></table></figure>
+<p>打开浏览器并使用提供的域名，你应该得到一个带有绿色安全图标的地址栏，至此创建一个受信任的本地 <code>SSL</code> 证书就完成了。</p>
+<blockquote>
+<p>来源：myfreax</p>
+<p>原文：<a href="http://t.cn/AiRQ3uFJ" target="_blank" rel="noopener">http://t.cn/AiRQ3uFJ</a></p>
+<p>题图：来自谷歌图片搜索</p>
+<p>版权：本文版权归原作者所有</p>
+<p>投稿：欢迎投稿，邮箱: <a href="mailto:editor@hi-linux.com">editor@hi-linux.com</a></p>
+</blockquote>
+</div>
+
+			<script src="https://my.openwrite.cn/js/readmore.js" type="text/javascript"></script>
+			<script>
+			var isMobile = navigator.userAgent.match(/(phone|pad|pod|iPhone|iPod|ios|iPad|Android|Mobile|BlackBerry|IEMobile|MQQBrowser|JUC|Fennec|wOSBrowser|BrowserNG|WebOS|Symbian|Windows Phone)/i);
+			if (!isMobile) {
+			    var btw = new BTWPlugin();
+			    btw.init({
+			        "id": "vip-container",
+			        "blogId": "10135-1588830050631-449",
+			        "name": "「奇妙的 Linux 世界」",
+			        "qrcode": "https://www.hi-linux.com/img/wechat/mp_qrcode_12.jpg",
+			        "keyword": "VIP"
+			    });
+			}
+			</script>
+		
+                
+
+                <hr>
+                <!-- Pager -->
+                <ul class="pager">
+                    
+                        <li class="previous">
+                            <a href="/posts/36494.html" data-toggle="tooltip" data-placement="top" title="xargs 命令入门教程">&larr; Previous Post</a>
+                        </li>
+                    
+                    
+                        <li class="next">
+                            <a href="/posts/29611.html" data-toggle="tooltip" data-placement="top" title="手把手教你一个让任意终端程序都支持通过代理访问的神技">Next Post &rarr;</a>
+                        </li>
+                    
+                </ul>
+
+                <!-- duoshuo Share start -->
+                
+                <!-- 多说 Share end-->
+
+                <!-- 多说评论框 start -->
+                
+                <!-- 多说评论框 end -->
+
+                <!-- disqus comment start -->
+                
+                <!-- disqus comment end -->
+
+                
+                    <!-- disqus 评论框 start -->
+                    <div class="comment">
+                        <div id="lv-container" data-id="city" data-uid="MTAyMC8yNzg2My80NDQw"></div>
+                    </div>
+                    <!-- disqus 评论框 end -->
+                
+
+            </div>
+            
+            <!-- Tabe of Content -->
+            <!-- Table of Contents -->
+
+  
+    <style>
+      span.toc-nav-number{
+        display: none
+      }
+    </style>
+  
+    
+      <aside id="sidebar">
+        <div id="toc" class="toc-article">
+        <strong class="toc-title">Contents</strong>
+        
+          <ol class="toc-nav"><li class="toc-nav-item toc-nav-level-2"><a class="toc-nav-link" href="#在不同平台下安装-mkcert"><span class="toc-nav-number">1.</span> <span class="toc-nav-text">在不同平台下安装 mkcert</span></a></li><li class="toc-nav-item toc-nav-level-2"><a class="toc-nav-link" href="#如何使用-mkcert-生成本地受信任的-ssl-证书"><span class="toc-nav-number">2.</span> <span class="toc-nav-text">如何使用 mkcert 生成本地受信任的 SSL 证书</span></a></li></ol>
+        
+        </div>
+      </aside>
+    
+
+                
+            <!-- Sidebar Container -->
+            <div class="
+                col-lg-8 col-lg-offset-2
+                col-md-10 col-md-offset-1
+                sidebar-container">
+
+                <!-- Featured Tags -->
+                
+                <section>
+                    <!-- no hr -->
+                    <h5><a href="/tags/">FEATURED TAGS</a></h5>
+                    <div class="tags">
+                       
+                          <a class="tag" href="/tags/#Linux" title="Linux">Linux</a>
+                        
+                          <a class="tag" href="/tags/#技巧" title="技巧">技巧</a>
+                        
+                          <a class="tag" href="/tags/#mkcert" title="mkcert">mkcert</a>
+                        
+                    </div>
+                </section>
+                
+
+                <!-- Friends Blog -->
+                
+                <hr>
+                <h5>FRIENDS</h5>
+                <ul class="list-inline">
+
+                    
+                        <li><a href="http://www.mike.org.cn/" target="_blank">简单.生活</a></li>
+                    
+                        <li><a href="http://shang.qq.com/wpa/qunwpa?idkey=ea4c43493c2269428ac6ef6141de4b6d78e5ab2d41380ca4099b833b62884ee9" target="_blank">技术交流群</a></li>
+                    
+                        <li><a href="" target="_blank"></a></li>
+                    
+                        <li><a href="" target="_blank"></a></li>
+                    
+                </ul>
+                
+            </div>
+        </div>
+    </div>
+</article>
+
+
+
+
+
+
+    <!-- 来必力City版公共JS代码 start (一个网页只需插入一次) -->
+    <script type="text/javascript">
+       (function(d, s) {
+           var j, e = d.getElementsByTagName(s)[0];
+    
+           if (typeof LivereTower === 'function') { return; }
+    
+           j = d.createElement(s);
+           j.src = 'https://cdn-city.livere.com/js/embed.dist.js';
+           j.async = true;
+    
+           e.parentNode.insertBefore(j, e);
+       })(document, 'script');
+    </script>
+    <noscript>为正常使用来必力评论功能请激活JavaScript</noscript>
+    <!-- 来必力City版 公共JS代码 end -->
+
+
+
+<!-- async load function -->
+<script>
+    function async(u, c) {
+      var d = document, t = 'script',
+          o = d.createElement(t),
+          s = d.getElementsByTagName(t)[0];
+      o.src = u;
+      if (c) { o.addEventListener('load', function (e) { c(null, e); }, false); }
+      s.parentNode.insertBefore(o, s);
+    }
+</script>
+<!-- anchor-js, Doc:http://bryanbraun.github.io/anchorjs/ -->
+<script>
+    async("https://cdn.bootcss.com/anchor-js/1.1.1/anchor.min.js",function(){
+        anchors.options = {
+          visible: 'hover',
+          placement: 'left',
+          icon: 'ℬ'
+        };
+        anchors.add().remove('.intro-header h1').remove('.subheading').remove('.sidebar-container h5');
+    })
+</script>
+<style>
+    /* place left on bigger screen */
+    @media all and (min-width: 800px) {
+        .anchorjs-link{
+            position: absolute;
+            left: -0.75em;
+            font-size: 1.1em;
+            margin-top : -0.1em;
+        }
+    }
+</style>
+
+
+
+    <!-- Footer -->
+    <!-- Footer -->
+<footer>
+    <div class="container">
+        <div class="row">
+            <div class="col-lg-8 col-lg-offset-2 col-md-10 col-md-offset-1">
+                <ul class="list-inline text-center">
+                
+                    <li>
+                        <a href="/atom.xml">
+                            <span class="fa-stack fa-lg">
+                                <i class="fa fa-circle fa-stack-2x"></i>
+                                <i class="fa fa-rss fa-stack-1x fa-inverse"></i>
+                            </span>
+                        </a>
+                    </li>
+                
+                
+                
+                    <li>
+                        <a target="_blank" href="https://www.zhihu.com/people/80imike">
+                            <span class="fa-stack fa-lg">
+                                <i class="fa fa-circle fa-stack-2x"></i>
+                                <i class="fa  fa-stack-1x fa-inverse">知</i>
+                            </span>
+                        </a>
+                    </li>
+                
+
+                
+                    <li>
+                        <a target="_blank" href="http://weibo.com/2093524665">
+                            <span class="fa-stack fa-lg">
+                                <i class="fa fa-circle fa-stack-2x"></i>
+                                <i class="fa fa-weibo fa-stack-1x fa-inverse"></i>
+                            </span>
+                        </a>
+                    </li>
+                
+
+                
+
+                
+
+                
+
+                </ul>
+                <p class="copyright text-muted">
+                    Copyright &copy; Mike 2020 | Hosted by <a href="https://pages.coding.me" target="_blank" rel="noopener" style="font-weight: bold">Coding Pages</a>
+                    <br>
+                    Theme by <a href="http://beantech.org" target="_blank" rel="noopener">BeanTech</a> 
+                    <span style="display: inline-block; margin: 0 5px;">
+                        <i class="fa fa-heart"></i>
+                    </span> 
+                    re-Ported by <a href="http://www.huweihuang.com" target="_blank" rel="noopener">胡伟煌</a> | 
+                    <iframe
+                        style="margin-left: 2px; margin-bottom:-5px;"
+                        frameborder="0" scrolling="0" width="91px" height="20px"
+                        src="https://ghbtns.com/github-btn.html?user=huweihuang&repo=hexo-theme-huweihuang&type=star&count=true" >
+                    </iframe>
+                </p>
+            </div>
+        </div>
+    </div>
+</footer>
+
+<!-- jQuery -->
+
+<script src="/js/jquery.min.js"></script>
+
+
+<!-- Bootstrap Core JavaScript -->
+
+<script src="/js/bootstrap.min.js"></script>
+
+
+<!-- Custom Theme JavaScript -->
+
+<script src="/js/hux-blog.min.js"></script>
+
+
+
+<!-- async load function -->
+<script>
+    function async(u, c) {
+      var d = document, t = 'script',
+          o = d.createElement(t),
+          s = d.getElementsByTagName(t)[0];
+      o.src = u;
+      if (c) { o.addEventListener('load', function (e) { c(null, e); }, false); }
+      s.parentNode.insertBefore(o, s);
+    }
+</script>
+
+<!-- 
+     Because of the native support for backtick-style fenced code blocks 
+     right within the Markdown is landed in Github Pages, 
+     From V1.6, There is no need for Highlight.js, 
+     so Huxblog drops it officially.
+
+     - https://github.com/blog/2100-github-pages-now-faster-and-simpler-with-jekyll-3-0  
+     - https://help.github.com/articles/creating-and-highlighting-code-blocks/    
+-->
+<!--
+    <script>
+        async("http://cdn.bootcss.com/highlight.js/8.6/highlight.min.js", function(){
+            hljs.initHighlightingOnLoad();
+        })
+    </script>
+    <link href="http://cdn.bootcss.com/highlight.js/8.6/styles/github.min.css" rel="stylesheet">
+-->
+
+
+<!-- jquery.tagcloud.js -->
+<script>
+    // only load tagcloud.js in tag.html
+    if($('#tag_cloud').length !== 0){
+        async("https://www.hi-linux.com/js/jquery.tagcloud.js",function(){
+            $.fn.tagcloud.defaults = {
+                //size: {start: 1, end: 1, unit: 'em'},
+                color: {start: '#bbbbee', end: '#0085a1'},
+            };
+            $('#tag_cloud a').tagcloud();
+        })
+    }
+</script>
+
+<!--fastClick.js -->
+<script>
+    async("https://cdn.bootcss.com/fastclick/1.0.6/fastclick.min.js", function(){
+        var $nav = document.querySelector("nav");
+        if($nav) FastClick.attach($nav);
+    })
+</script>
+
+
+<!-- Google Analytics -->
+
+
+
+
+<!-- Baidu Tongji -->
+
+
+
+
+
+
+	<a id="rocket" href="#top" class=""></a>
+	<script type="text/javascript" src="/js/totop.js?v=1.0.0" async=""></script>
+    <script type="text/javascript" src="/js/toc.js?v=1.0.0" async=""></script>
+<!-- Image to hack wechat -->
+<img src="https://www.hi-linux.com/img/icon_wechat.png" width="0" height="0" />
+<!-- Migrate from head to bottom, no longer block render and still work -->
+
+</body>
+
+</html>

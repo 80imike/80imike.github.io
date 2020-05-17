@@ -1,0 +1,693 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<!-- Head tag -->
+<head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="google-site-verification" content="xBT4GhYoi5qRD5tr338pgPM5OWHHIDR6mNg1a3euekI" />
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="description" content="">
+    <meta name="keyword"  content="Linux,运维,Nginx,Zabbix,Centos,Ansible,MySQL,Python,Docker,ELK,Haproxy,Git,Nodejs,安全,技术">
+    <link rel="shortcut icon" href="/img/ironman-draw.png">
+    <!-- Place this tag in your head or just before your close body tag. -->
+    <script async defer src="https://buttons.github.io/buttons.js"></script>
+    <title>
+        
+          在 Kubernetes 上使用 Tekton 快速实现应用自动发布 - 运维之美
+        
+    </title>
+
+    <link rel="canonical" href="https://www.hi-linux.com/posts/27392.html">
+
+    <!-- Bootstrap Core CSS -->
+    
+<link rel="stylesheet" href="/css/bootstrap.min.css">
+
+
+    <!-- Custom CSS --> 
+    
+<link rel="stylesheet" href="/css/beantech.min.css">
+
+    
+    <!-- Pygments Highlight CSS -->
+    
+<link rel="stylesheet" href="/css/highlight.css">
+
+
+    
+<link rel="stylesheet" href="/css/widget.css">
+
+
+    
+<link rel="stylesheet" href="/css/rocket.css">
+
+
+    
+<link rel="stylesheet" href="/css/signature.css">
+
+
+    
+<link rel="stylesheet" href="/css/toc.css">
+
+
+    <!-- Custom Fonts -->
+    <!-- <link href="https://maxcdn.bootstrapcdn.com/font-awesome/4.3.0/css/font-awesome.min.css" rel="stylesheet" type="text/css"> -->
+    <!-- Hux change font-awesome CDN to qiniu -->
+    <link href="https://cdn.staticfile.org/font-awesome/4.5.0/css/font-awesome.min.css" rel="stylesheet" type="text/css">
+
+
+    <!-- Hux Delete, sad but pending in China
+    <link href='http://fonts.googleapis.com/css?family=Lora:400,700,400italic,700italic' rel='stylesheet' type='text/css'>
+    <link href='http://fonts.googleapis.com/css?family=Open+Sans:300italic,400italic,600italic,700italic,800italic,400,300,600,700,800' rel='stylesheet' type='text/
+    css'>
+    -->
+
+
+    <!-- HTML5 Shim and Respond.js IE8 support of HTML5 elements and media queries -->
+    <!-- WARNING: Respond.js doesn't work if you view the page via file:// -->
+    <!--[if lt IE 9]>
+        <script src="https://oss.maxcdn.com/libs/html5shiv/3.7.0/html5shiv.js"></script>
+        <script src="https://oss.maxcdn.com/libs/respond.js/1.4.2/respond.min.js"></script>
+    <![endif]-->
+
+    <!-- ga & ba script hoook -->
+    <script></script>
+<meta name="generator" content="Hexo 4.2.0"><link rel="alternate" href="/atom.xml" title="运维之美" type="application/atom+xml">
+</head>
+
+
+<!-- hack iOS CSS :active style -->
+<body ontouchstart="">
+	<!-- Modified by Yu-Hsuan Yen -->
+<!-- Post Header -->
+<style type="text/css">
+    header.intro-header{
+        
+            background-image: url('/img/header_img/building.jpg')
+            /*post*/
+        
+    }
+    
+</style>
+
+<header class="intro-header" >
+    <!-- Signature -->
+    <div id="signature">
+        <div class="container">
+            <div class="row">
+                <div class="col-lg-8 col-lg-offset-2 col-md-10 col-md-offset-1">
+                
+                    <div class="post-heading">
+                        <div class="tags">
+                            
+                              <a class="tag" href="/tags/#Linux" title="Linux">Linux</a>
+                            
+                              <a class="tag" href="/tags/#Kubernetes" title="Kubernetes">Kubernetes</a>
+                            
+                              <a class="tag" href="/tags/#Tekton" title="Tekton">Tekton</a>
+                            
+                        </div>
+                        <h1>在 Kubernetes 上使用 Tekton 快速实现应用自动发布</h1>
+                        <h2 class="subheading"></h2>
+                        <span class="meta">
+                            Posted by Mike on
+                            2020-05-17
+                        </span>
+                    </div>
+                
+
+
+                </div>
+            </div>
+        </div>
+    </div>
+</header>
+
+	
+    <!-- Navigation -->
+<nav class="navbar navbar-default navbar-custom navbar-fixed-top">
+    <div class="container-fluid">
+        <!-- Brand and toggle get grouped for better mobile display -->
+        <div class="navbar-header page-scroll">
+            <button type="button" class="navbar-toggle">
+                <span class="sr-only">Toggle navigation</span>
+                <span class="icon-bar"></span>
+                <span class="icon-bar"></span>
+                <span class="icon-bar"></span>
+            </button>
+            <a class="navbar-brand" href="/">运维之美</a>
+        </div>
+
+        <!-- Collect the nav links, forms, and other content for toggling -->
+        <!-- Known Issue, found by Hux:
+            <nav>'s height woule be hold on by its content.
+            so, when navbar scale out, the <nav> will cover tags.
+            also mask any touch event of tags, unfortunately.
+        -->
+        <div id="huxblog_navbar">
+            <div class="navbar-collapse">
+                <ul class="nav navbar-nav navbar-right">
+                    <li>
+                        <a href="/">Home</a>
+                    </li>
+
+                    
+
+                        
+                    
+
+                        
+                    
+
+                        
+                        <li>
+                            <a href="/about/">About</a>
+                        </li>
+                        
+                    
+
+                        
+                        <li>
+                            <a href="/archive/">Archives</a>
+                        </li>
+                        
+                    
+
+                        
+                        <li>
+                            <a href="/tags/">Tags</a>
+                        </li>
+                        
+                    
+                    
+                </ul>
+            </div>
+        </div>
+        <!-- /.navbar-collapse -->
+    </div>
+    <!-- /.container -->
+</nav>
+<script>
+    // Drop Bootstarp low-performance Navbar
+    // Use customize navbar with high-quality material design animation
+    // in high-perf jank-free CSS3 implementation
+    var $body   = document.body;
+    var $toggle = document.querySelector('.navbar-toggle');
+    var $navbar = document.querySelector('#huxblog_navbar');
+    var $collapse = document.querySelector('.navbar-collapse');
+
+    $toggle.addEventListener('click', handleMagic)
+    function handleMagic(e){
+        if ($navbar.className.indexOf('in') > 0) {
+        // CLOSE
+            $navbar.className = " ";
+            // wait until animation end.
+            setTimeout(function(){
+                // prevent frequently toggle
+                if($navbar.className.indexOf('in') < 0) {
+                    $collapse.style.height = "0px"
+                }
+            },400)
+        }else{
+        // OPEN
+            $collapse.style.height = "auto"
+            $navbar.className += " in";
+        }
+    }
+</script>
+
+
+    <!-- Main Content -->
+    <!-- Modify by Yu-Hsuan Yen -->
+
+<!-- Post Content -->
+<article>
+    <div class="container">
+        <div class="row">
+
+            <!-- Post Container -->
+            <div class="
+                col-lg-8 col-lg-offset-2
+                col-md-10 col-md-offset-1
+                post-container">
+
+                <div id="vip-container"><p>Tekton 是一个功能强大且灵活的 Kubernetes 原生开源框架，用于创建持续集成和交付（CI/CD）系统。通过抽象底层实现细节，用户可以跨多云平台和本地系统进行构建、测试和部署。</p>
+<p><img src="https://static.geekbang.org/infoq/5c93359665d11.png" alt=""></p>
+<p>Tekton 提供的开源组件可以跨供应商，Tekton 提供的管道、版本、工作流程和其他 CI/CD 组件的行业规范一致，可以和你现有的 CI/CD 工具（例如：Jenkins、Jenkins X、Skaffold 和 Knative 等）配合使用。</p>
+<p><img src="https://static.geekbang.org/infoq/5c9337c34200d.png" alt=""></p>
+<p>Tekton 和其它几种 CI/CD 工具的比较</p>
+<p><img src="https://user-gold-cdn.xitu.io/2019/8/19/16ca90bd97da7f1c?imageView2/0/w/1280/h/960/format/webp/ignore-error/1" alt=""></p>
+<p>使用 Tekton 的内置最佳实践可以快速创建云原生 CI / CD 管道，目标是让开发人员创建和部署不可变镜像，管理基础架构的版本控制或执行更简单的回滚。 还可以利用 Tekton 的滚动部署，蓝 / 绿部署，金丝雀部署或 GitOps 工作流等高级部署模式。</p>
+<p><img src="https://static.geekbang.org/infoq/5c9341655e5d6.png" alt=""></p>
+<p>使用 Tekton 可跨多个环境（例如：VM、无服务器、Kubernetes 或 Firebase）进行构建，测试和部署。你还可以使用 Tekton 管道跨多云平台或混合环境进行部署。</p>
+<p><img src="https://static.geekbang.org/infoq/5c93423576184.png" alt=""></p>
+<p>Tekton 提供了最大的灵活性，让你可以使用自己喜欢的 CI/CD 工具构建强大的管道。</p>
+<p><img src="https://static.geekbang.org/infoq/5c9342c97323c.png" alt=""></p>
+<blockquote>
+<p>项目地址：<a href="https://github.com/tektoncd/pipeline" target="_blank" rel="noopener">https://github.com/tektoncd/pipeline</a></p>
+</blockquote>
+<p>下面来看一个基于阿里云 Kubernetes 服务部署 Tekton Pipeline 的实例，部署完成后我们使用它来完成源码拉取、应用打包、镜像推送和应用部署。</p>
+<p><img src="https://tva1.sinaimg.cn/large/006Xmmmggy1g6e4xs926jj32bd0qqq91.jpg" alt=""></p>
+<p>Tekton Pipeline 中有 5 类对象，核心理念是通过定义 YAML 定义构建过程，构建任务的状态存放在 status 字段中。</p>
+<p>其中 5 类对象分别是：PipelineResouce、Task、TaskRun、Pipeline、PipelineRun。</p>
+<p>Task 是单个任务的构建过程，需要通过定义 TaskRun 任务去运行 Task。</p>
+<p>Pipeline 包含多个 Task，并在此基础上定义 input 和 output，input 和 output 以 PipelineResource 作为交付。</p>
+<p>PipelineResource 是可用于 input 和 output 的对象集合。</p>
+<p>同样地,需要定义 PipelineRun 才会运行 Pipeline。</p>
+<a id="more"></a>
+<h2 id="在阿里云-kubernetes-集群中部署-tekton-pipeline">在阿里云 Kubernetes 集群中部署 Tekton Pipeline</h2>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">$ kubectl apply --filename https:&#x2F;&#x2F;storage.googleapis.com&#x2F;tekton-releases&#x2F;latest&#x2F;release.yaml</span><br></pre></td></tr></table></figure>
+<p>查看Tekton Pipelines组件是否运行正常：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">$ kubectl -n tekton-pipelines get po</span><br><span class="line">NAME                                                     READY   STATUS      RESTARTS   AGE</span><br><span class="line">tekton-pipelines-controller-6bcd7ff5d6-vzmrh             1&#x2F;1     Running     0          25h</span><br><span class="line">tekton-pipelines-webhook-6856cf9c47-l6nj6                1&#x2F;1     Running     0          25h</span><br></pre></td></tr></table></figure>
+<h2 id="创建-git-resource-和-registry-resource">创建 Git Resource 和 Registry Resource</h2>
+<ol>
+<li>编辑 git-pipeline-resource.yaml 文件</li>
+</ol>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line"># git repo 的分支名称为 tekton</span><br><span class="line">apiVersion: tekton.dev&#x2F;v1alpha1</span><br><span class="line">kind: PipelineResource</span><br><span class="line">metadata:</span><br><span class="line">  name: git-pipeline-resource</span><br><span class="line">spec:</span><br><span class="line">  type: git</span><br><span class="line">  params:</span><br><span class="line">    - name: revision</span><br><span class="line">      value: tekton</span><br><span class="line">    - name: url</span><br><span class="line">      value: https:&#x2F;&#x2F;code.aliyun.com&#x2F;haoshuwei&#x2F;jenkins-demo.git</span><br></pre></td></tr></table></figure>
+<ol start="2">
+<li>编辑 registry-pipeline-resource.yaml 文件</li>
+</ol>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line"># 容器镜像仓库地址为 registry.cn-hangzhou.aliyuncs.com&#x2F;haoshuwei&#x2F;tekton-demo， 标签为 latest</span><br><span class="line">apiVersion: tekton.dev&#x2F;v1alpha1</span><br><span class="line">kind: PipelineResource</span><br><span class="line">metadata:</span><br><span class="line">  name: registry-pipeline-resource</span><br><span class="line">spec:</span><br><span class="line">  type: image</span><br><span class="line">  params:</span><br><span class="line">    - name: url</span><br><span class="line">      value: registry.cn-hangzhou.aliyuncs.com&#x2F;haoshuwei&#x2F;tekton-demo</span><br></pre></td></tr></table></figure>
+<ol start="3">
+<li>创建 pipeline resource</li>
+</ol>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">$ kubectl -n tekton-pipelines create -f git-pipeline-resource.yaml</span><br><span class="line">$ kubectl -n tekton-pipelines create -f registry-pipeline-resource.yaml</span><br></pre></td></tr></table></figure>
+<ol start="4">
+<li>查看已创建的 pipeline resource 资源</li>
+</ol>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">$ kubectl -n tekton-pipelines get PipelineResource</span><br><span class="line">NAME                         AGE</span><br><span class="line">git-pipeline-resource        2h</span><br><span class="line">registry-pipeline-resource   2h</span><br></pre></td></tr></table></figure>
+<h2 id="创建-git-repo-docker-registry-authentication">创建 Git Repo / Docker Registry Authentication</h2>
+<p>拉取私有 Git 源码项目需要配置使用 Git Repo Authentication，拉取和推送 Docker 镜像需要配置 Docker Registry Authentication。</p>
+<p>在 Tekton Pipeline 中，Git Repo / Docker Registry Authentication 会被定义成ServiceAccount来使用。</p>
+<ol>
+<li>编辑 secret tekton-basic-user-pass-git.yaml</li>
+</ol>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line">apiVersion: v1</span><br><span class="line">kind: Secret</span><br><span class="line">metadata:</span><br><span class="line">  name: tekton-basic-user-pass-git</span><br><span class="line">  annotations:</span><br><span class="line">    tekton.dev&#x2F;git-0: https:&#x2F;&#x2F;code.aliyun.com</span><br><span class="line">type: kubernetes.io&#x2F;basic-auth</span><br><span class="line">stringData:</span><br><span class="line">  username: &lt;cleartext non-encoded&gt;</span><br><span class="line">  password: &lt;cleartext non-encoded&gt;</span><br></pre></td></tr></table></figure>
+<ol start="2">
+<li>编辑 secret tekton-basic-user-pass-registry.yaml</li>
+</ol>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line">apiVersion: v1</span><br><span class="line">kind: Secret</span><br><span class="line">metadata:</span><br><span class="line">  name: tekton-basic-user-pass-registry</span><br><span class="line">  annotations:</span><br><span class="line">    tekton.dev&#x2F;docker-0: https:&#x2F;&#x2F;registry.cn-hangzhou.aliyuncs.com</span><br><span class="line">type: kubernetes.io&#x2F;basic-auth</span><br><span class="line">stringData:</span><br><span class="line">  username: &lt;cleartext non-encoded&gt;</span><br><span class="line">  password: &lt;cleartext non-encoded&gt;</span><br></pre></td></tr></table></figure>
+<ol start="3">
+<li>编辑 serviceaccount tekton-git-and-registry.yaml</li>
+</ol>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line">apiVersion: v1</span><br><span class="line">kind: ServiceAccount</span><br><span class="line">metadata:</span><br><span class="line">  name: tekton-git-and-registry</span><br><span class="line">secrets:</span><br><span class="line">  - name: tekton-basic-user-pass-git</span><br><span class="line">  - name: tekton-basic-user-pass-registry</span><br></pre></td></tr></table></figure>
+<ol start="4">
+<li>创建 serviceaccount</li>
+</ol>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">$ kubectl -n tekton-pipelines create -f tekton-basic-user-pass-git.yaml</span><br><span class="line">$ kubectl -n tekton-pipelines create -f tekton-basic-user-pass-registry.yaml</span><br><span class="line">$ kubectl -n tekton-pipelines create -f tekton-git-and-registry.yaml</span><br></pre></td></tr></table></figure>
+<ol start="5">
+<li>查看 secret 以及 sa</li>
+</ol>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br></pre></td><td class="code"><pre><span class="line">$ kubectl -n tekton-pipelines get secret</span><br><span class="line">NAME                                      TYPE                                  DATA   AGE</span><br><span class="line">default-token-pwncj                       kubernetes.io&#x2F;service-account-token   3      25h</span><br><span class="line">tekton-basic-user-pass-git                kubernetes.io&#x2F;basic-auth              2      151m</span><br><span class="line">tekton-basic-user-pass-registry           kubernetes.io&#x2F;basic-auth              2      151m</span><br><span class="line">tekton-git-and-registry-token-tr95m       kubernetes.io&#x2F;service-account-token   3      151m</span><br><span class="line">tekton-pipelines-controller-token-lc2fv   kubernetes.io&#x2F;service-account-token   3      25h  </span><br><span class="line">webhook-certs                             Opaque                                3      25h</span><br><span class="line"></span><br><span class="line">$  kubectl -n tekton-pipelines get sa</span><br><span class="line">NAME                          SECRETS   AGE</span><br><span class="line">default                       1         25h</span><br><span class="line">tekton-git-and-registry       3         152m</span><br><span class="line">tekton-pipelines-controller   1         25h</span><br></pre></td></tr></table></figure>
+<h2 id="配置-serviceaccount">配置 serviceaccount</h2>
+<p>配置一个 tekton-git-and-registry 帐号以获取命名空间 tekton-pipelines 的管理权限，用于部署应用。</p>
+<ol>
+<li>创建 ClusterRoleBinding tekton-cluster-admin</li>
+</ol>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line">apiVersion: rbac.authorization.k8s.io&#x2F;v1</span><br><span class="line">kind: ClusterRoleBinding</span><br><span class="line">metadata:</span><br><span class="line">  name: tekton-cluster-admin</span><br><span class="line">subjects:</span><br><span class="line">  - kind: ServiceAccount</span><br><span class="line">    name: tekton-git-and-registry</span><br><span class="line">    namespace: tekton-pipelines</span><br><span class="line">roleRef:</span><br><span class="line">  kind: ClusterRole</span><br><span class="line">  name: cluster-admin</span><br><span class="line">  apiGroup: rbac.authorization.k8s.io</span><br></pre></td></tr></table></figure>
+<h2 id="创建一个-task">创建一个 Task</h2>
+<ol>
+<li>创建 task build-app.yaml</li>
+</ol>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br></pre></td><td class="code"><pre><span class="line">apiVersion: tekton.dev&#x2F;v1alpha1</span><br><span class="line">kind: Task</span><br><span class="line">metadata:</span><br><span class="line">  name: build-app</span><br><span class="line">spec:</span><br><span class="line">  inputs:</span><br><span class="line">    resources:</span><br><span class="line">      - name: java-demo</span><br><span class="line">        type: git</span><br><span class="line">    params:</span><br><span class="line">      - name: pathToDockerFile</span><br><span class="line">        description: The path to the dockerfile to build</span><br><span class="line">        default: &#x2F;workspace&#x2F;java-demo&#x2F;Dockerfile</span><br><span class="line">      - name: pathToContext</span><br><span class="line">        description: The build context used by Kaniko</span><br><span class="line">        default: &#x2F;workspace&#x2F;java-dem</span><br><span class="line">      - name: pathToYaml</span><br><span class="line">        description: The path to teh manifest to apply</span><br><span class="line">  outputs:</span><br><span class="line">    resources:</span><br><span class="line">      - name: builtImage</span><br><span class="line">        type: image</span><br><span class="line">  steps:</span><br><span class="line">    - name: build-mvn-package</span><br><span class="line">      image: registry.cn-beijing.aliyuncs.com&#x2F;acs-sample&#x2F;jenkins-slave-maven:3.3.9-jdk-8-alpine</span><br><span class="line">      workingDir: &#x2F;workspace&#x2F;java-demo</span><br><span class="line">      command:</span><br><span class="line">        - mvn</span><br><span class="line">      args:</span><br><span class="line">        - package</span><br><span class="line">        - -B</span><br><span class="line">        - -DskipTests</span><br><span class="line">    - name: build-docker-image</span><br><span class="line">      image: registry.cn-beijing.aliyuncs.com&#x2F;acs-sample&#x2F;jenkins-slave-kaniko:0.6.0</span><br><span class="line">      command:</span><br><span class="line">        - kaniko</span><br><span class="line">      args:</span><br><span class="line">        - --dockerfile&#x3D;$&#123;inputs.params.pathToDockerFile&#125;</span><br><span class="line">        - --destination&#x3D;$&#123;outputs.resources.builtImage.url&#125;</span><br><span class="line">        - --context&#x3D;$&#123;inputs.params.pathToContext&#125;</span><br><span class="line">    - name: deploy-app</span><br><span class="line">      image: registry.cn-beijing.aliyuncs.com&#x2F;acs-sample&#x2F;jenkins-slave-kubectl:1.11.5</span><br><span class="line">      command:</span><br><span class="line">        - kubectl</span><br><span class="line">      args:</span><br><span class="line">        - apply</span><br><span class="line">        - -f</span><br><span class="line">        - $&#123;inputs.params.pathToYaml&#125;</span><br></pre></td></tr></table></figure>
+<h2 id="创建-taskrun-运行任务">创建 TaskRun 运行任务</h2>
+<ol>
+<li>创建 taskrun build-app-task-run.yaml</li>
+</ol>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br></pre></td><td class="code"><pre><span class="line">apiVersion: tekton.dev&#x2F;v1alpha1</span><br><span class="line">kind: TaskRun</span><br><span class="line">metadata:</span><br><span class="line">  name: build-app-task-run</span><br><span class="line">spec:</span><br><span class="line">  serviceAccount: tekton-git-and-registry</span><br><span class="line">  taskRef:</span><br><span class="line">    name: build-app</span><br><span class="line">  trigger:</span><br><span class="line">    type: manual</span><br><span class="line">  inputs:</span><br><span class="line">    resources:</span><br><span class="line">      - name: java-demo</span><br><span class="line">        resourceRef:</span><br><span class="line">          name: git-pipeline-resource</span><br><span class="line">    params:</span><br><span class="line">      - name: pathToDockerFile</span><br><span class="line">        value: Dockerfile</span><br><span class="line">      - name: pathToContext</span><br><span class="line">        value: &#x2F;workspace&#x2F;java-demo</span><br><span class="line">      - name: pathToYaml</span><br><span class="line">        value: &#x2F;workspace&#x2F;java-demo&#x2F;deployment.yaml</span><br><span class="line">  outputs:</span><br><span class="line">    resources:</span><br><span class="line">      - name: builtImage</span><br><span class="line">        resourceRef:</span><br><span class="line">          name: registry-pipeline-resource</span><br></pre></td></tr></table></figure>
+<h2 id="查看构建状态以及日志">查看构建状态以及日志</h2>
+<ol>
+<li>查看 taskrun 状态</li>
+</ol>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">$ kubectl -n tekton-pipelines get taskrun</span><br><span class="line">NAME                 SUCCEEDED   REASON    STARTTIME   COMPLETIONTIME</span><br><span class="line">build-app-task-run   Unknown     Pending   4s</span><br></pre></td></tr></table></figure>
+<ol start="2">
+<li>查看构建日志</li>
+</ol>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line">$ kubectl -n tekton-pipelines get po</span><br><span class="line">NAME                                           READY   STATUS    RESTARTS   AGE</span><br><span class="line">build-app-task-run-pod-b8f890                  3&#x2F;5     Running   0          75s</span><br><span class="line">tekton-pipelines-controller-6bcd7ff5d6-vzmrh   1&#x2F;1     Running   0          25h</span><br><span class="line">tekton-pipelines-webhook-6856cf9c47-l6nj6      1&#x2F;1     Running   0          25h</span><br><span class="line"></span><br><span class="line">$ kubectl -n tekton-pipelines logs -f build-app-task-run-pod-b8f890</span><br><span class="line">Error from server (BadRequest): a container name must be specified for pod build-app-task-run-pod-b8f890, choose one of:   [build-step-git-source-git-pipeline-resource-77l5v build-step-build-mvn-package build-step-build-docker-image build-step-deploy-app nop] or one of the init containers: [build-step-credential-initializer-8dsnm build-step-place-tools]</span><br></pre></td></tr></table></figure>
+<ul>
+<li>MVN Build 的日志</li>
+</ul>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br></pre></td><td class="code"><pre><span class="line">$ kubectl -n tekton-pipelines logs -f build-app-task-run-pod-b8f890 -c build-step-build-mvn-package</span><br><span class="line">[INFO] Scanning for projects...</span><br><span class="line">[INFO]</span><br><span class="line">[INFO] ------------------------------------------------------------------------</span><br><span class="line">[INFO] Building jenkins-demo-web 1.0.0-SNAPSHOT</span><br><span class="line">[INFO] ------------------------------------------------------------------------</span><br><span class="line">[INFO] Downloading: https:&#x2F;&#x2F;repo.maven.apache.org&#x2F;maven2&#x2F;org&#x2F;apache&#x2F;maven&#x2F;plugins&#x2F;maven-resources-plugin&#x2F;2.6&#x2F;maven-resources-plugin-2.6.pom</span><br><span class="line">[INFO] Downloaded: https:&#x2F;&#x2F;repo.maven.apache.org&#x2F;maven2&#x2F;org&#x2F;apache&#x2F;maven&#x2F;plugins&#x2F;maven-resources-plugin&#x2F;2.6&#x2F;maven-resources-plugin-2.6.pom (8 KB at 7.3 KB&#x2F;sec)</span><br><span class="line">[INFO] Downloading: https:&#x2F;&#x2F;repo.maven.apache.org&#x2F;maven2&#x2F;org&#x2F;apache&#x2F;maven&#x2F;plugins&#x2F;maven-plugins&#x2F;23&#x2F;maven-plugins-23.pom</span><br><span class="line">[INFO] Downloaded: https:&#x2F;&#x2F;repo.maven.apache.org&#x2F;maven2&#x2F;org&#x2F;apache&#x2F;maven&#x2F;plugins&#x2F;maven-plugins&#x2F;23&#x2F;maven-plugins-23.pom (9 KB at 26.7 KB&#x2F;sec)</span><br><span class="line">[INFO] Downloading: https:&#x2F;&#x2F;repo.maven.apache.org&#x2F;maven2&#x2F;org&#x2F;apache&#x2F;maven&#x2F;maven-parent&#x2F;22&#x2F;maven-parent-22.pom</span><br><span class="line">[INFO] Downloaded: https:&#x2F;&#x2F;repo.maven.apache.org&#x2F;maven2&#x2F;org&#x2F;apache&#x2F;maven&#x2F;maven-parent&#x2F;22&#x2F;maven-parent-22.pom (30 KB at 61.3 KB&#x2F;sec)</span><br><span class="line">[INFO] Downloading: https:&#x2F;&#x2F;repo.maven.apache.org&#x2F;maven2&#x2F;org&#x2F;apache&#x2F;apache&#x2F;11&#x2F;apache-11.pom</span><br><span class="line">[INFO] Downloaded: https:&#x2F;&#x2F;repo.maven.apache.org&#x2F;maven2&#x2F;org&#x2F;apache&#x2F;apache&#x2F;11&#x2F;apache-11.pom (15 KB at 45.3 KB&#x2F;sec)</span><br><span class="line">....</span><br></pre></td></tr></table></figure>
+<ul>
+<li>Docker Build 的日志</li>
+</ul>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br></pre></td><td class="code"><pre><span class="line">$ kubectl -n tekton-pipelines logs -f build-app-task-run-pod-b8f890 -c build-step-build-docker-image</span><br><span class="line">INFO[0000] Downloading base image tomcat</span><br><span class="line">2019&#x2F;05&#x2F;06 11:58:46 No matching credentials were found, falling back on anonymous</span><br><span class="line">INFO[0003] Taking snapshot of full filesystem...</span><br><span class="line">INFO[0003] Skipping paths under &#x2F;builder&#x2F;home, as it is a whitelisted directory</span><br><span class="line">INFO[0003] Skipping paths under &#x2F;builder&#x2F;tools, as it is a whitelisted directory</span><br><span class="line">INFO[0003] Skipping paths under &#x2F;dev, as it is a whitelisted directory</span><br><span class="line">INFO[0003] Skipping paths under &#x2F;kaniko, as it is a whitelisted directory</span><br><span class="line">INFO[0003] Skipping paths under &#x2F;proc, as it is a whitelisted directory</span><br><span class="line">INFO[0003] Skipping paths under &#x2F;run&#x2F;secrets&#x2F;kubernetes.io&#x2F;serviceaccount, as it is a whitelisted directory</span><br><span class="line">INFO[0003] Skipping paths under &#x2F;sys, as it is a whitelisted directory</span><br><span class="line">INFO[0003] Skipping paths under &#x2F;var&#x2F;run, as it is a whitelisted directory</span><br><span class="line">INFO[0003] Skipping paths under &#x2F;workspace, as it is a whitelisted directory</span><br><span class="line">INFO[0003] Using files from context: [&#x2F;workspace&#x2F;java-demo&#x2F;target&#x2F;demo.war]</span><br><span class="line">INFO[0003] ADD target&#x2F;demo.war &#x2F;usr&#x2F;local&#x2F;tomcat&#x2F;webapps&#x2F;demo.war</span><br><span class="line">INFO[0003] Taking snapshot of files...</span><br><span class="line">...</span><br></pre></td></tr></table></figure>
+<ul>
+<li>app-deploy 的日志</li>
+</ul>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">$ kubectl -n tekton-pipelines logs -f build-app-task-run-pod-637855 -c build-step-deploy-app</span><br><span class="line">deployment.extensions&#x2F;jenkins-java-demo created</span><br><span class="line">service&#x2F;jenkins-java-demo created</span><br></pre></td></tr></table></figure>
+<ol start="3">
+<li>taskrun 的完成状态为 True 则构建部署过程完成</li>
+</ol>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">$ kubectl -n tekton-pipelines get taskrun</span><br><span class="line">NAME                 SUCCEEDED   REASON   STARTTIME   COMPLETIONTIME</span><br><span class="line">build-app-task-run   True                 4m          2m</span><br></pre></td></tr></table></figure>
+<h2 id="小结">小结</h2>
+<p>Tekton Pipeline 中的任务模板可以拿来复用，而不需要重复定义，另外通过 CRD 重新定义 CI/CD 是一大亮点。</p>
+<h2 id="参考文档">参考文档</h2>
+<ol>
+<li><a href="https://www.google.com" target="_blank" rel="noopener">https://www.google.com</a></li>
+<li><a href="https://www.infoq.cn/article/tZ6E1_lhsWeh26C9xUJf" target="_blank" rel="noopener">https://www.infoq.cn/article/tZ6E1_lhsWeh26C9xUJf</a></li>
+<li><a href="https://yq.aliyun.com/articles/701368?utm_content=g_1000055966" target="_blank" rel="noopener">https://yq.aliyun.com/articles/701368?utm_content=g_1000055966</a></li>
+<li><a href="https://juejin.im/post/5d5a612a6fb9a06b2d77d39a" target="_blank" rel="noopener">https://juejin.im/post/5d5a612a6fb9a06b2d77d39a</a></li>
+</ol>
+</div>
+
+			<script src="https://my.openwrite.cn/js/readmore.js" type="text/javascript"></script>
+			<script>
+			var isMobile = navigator.userAgent.match(/(phone|pad|pod|iPhone|iPod|ios|iPad|Android|Mobile|BlackBerry|IEMobile|MQQBrowser|JUC|Fennec|wOSBrowser|BrowserNG|WebOS|Symbian|Windows Phone)/i);
+			if (!isMobile) {
+			    var btw = new BTWPlugin();
+			    btw.init({
+			        "id": "vip-container",
+			        "blogId": "10135-1588830050631-449",
+			        "name": "「奇妙的 Linux 世界」",
+			        "qrcode": "https://www.hi-linux.com/img/wechat/mp_qrcode_12.jpg",
+			        "keyword": "VIP"
+			    });
+			}
+			</script>
+		
+                
+
+                <hr>
+                <!-- Pager -->
+                <ul class="pager">
+                    
+                        <li class="previous">
+                            <a href="/posts/26290.html" data-toggle="tooltip" data-placement="top" title="巧用 SSLH 实现 HTTPS 和 SSH 共享同一端口">&larr; Previous Post</a>
+                        </li>
+                    
+                    
+                        <li class="next">
+                            <a href="/posts/43626.html" data-toggle="tooltip" data-placement="top" title="Linux 爱好者周刊 ( 第 1 期 )">Next Post &rarr;</a>
+                        </li>
+                    
+                </ul>
+
+                <!-- duoshuo Share start -->
+                
+                <!-- 多说 Share end-->
+
+                <!-- 多说评论框 start -->
+                
+                <!-- 多说评论框 end -->
+
+                <!-- disqus comment start -->
+                
+                <!-- disqus comment end -->
+
+                
+                    <!-- disqus 评论框 start -->
+                    <div class="comment">
+                        <div id="lv-container" data-id="city" data-uid="MTAyMC8yNzg2My80NDQw"></div>
+                    </div>
+                    <!-- disqus 评论框 end -->
+                
+
+            </div>
+            
+            <!-- Tabe of Content -->
+            <!-- Table of Contents -->
+
+  
+    <style>
+      span.toc-nav-number{
+        display: none
+      }
+    </style>
+  
+    
+      <aside id="sidebar">
+        <div id="toc" class="toc-article">
+        <strong class="toc-title">Contents</strong>
+        
+          <ol class="toc-nav"><li class="toc-nav-item toc-nav-level-2"><a class="toc-nav-link" href="#在阿里云-kubernetes-集群中部署-tekton-pipeline"><span class="toc-nav-number">1.</span> <span class="toc-nav-text">在阿里云 Kubernetes 集群中部署 Tekton Pipeline</span></a></li><li class="toc-nav-item toc-nav-level-2"><a class="toc-nav-link" href="#创建-git-resource-和-registry-resource"><span class="toc-nav-number">2.</span> <span class="toc-nav-text">创建 Git Resource 和 Registry Resource</span></a></li><li class="toc-nav-item toc-nav-level-2"><a class="toc-nav-link" href="#创建-git-repo-docker-registry-authentication"><span class="toc-nav-number">3.</span> <span class="toc-nav-text">创建 Git Repo &#x2F; Docker Registry Authentication</span></a></li><li class="toc-nav-item toc-nav-level-2"><a class="toc-nav-link" href="#配置-serviceaccount"><span class="toc-nav-number">4.</span> <span class="toc-nav-text">配置 serviceaccount</span></a></li><li class="toc-nav-item toc-nav-level-2"><a class="toc-nav-link" href="#创建一个-task"><span class="toc-nav-number">5.</span> <span class="toc-nav-text">创建一个 Task</span></a></li><li class="toc-nav-item toc-nav-level-2"><a class="toc-nav-link" href="#创建-taskrun-运行任务"><span class="toc-nav-number">6.</span> <span class="toc-nav-text">创建 TaskRun 运行任务</span></a></li><li class="toc-nav-item toc-nav-level-2"><a class="toc-nav-link" href="#查看构建状态以及日志"><span class="toc-nav-number">7.</span> <span class="toc-nav-text">查看构建状态以及日志</span></a></li><li class="toc-nav-item toc-nav-level-2"><a class="toc-nav-link" href="#小结"><span class="toc-nav-number">8.</span> <span class="toc-nav-text">小结</span></a></li><li class="toc-nav-item toc-nav-level-2"><a class="toc-nav-link" href="#参考文档"><span class="toc-nav-number">9.</span> <span class="toc-nav-text">参考文档</span></a></li></ol>
+        
+        </div>
+      </aside>
+    
+
+                
+            <!-- Sidebar Container -->
+            <div class="
+                col-lg-8 col-lg-offset-2
+                col-md-10 col-md-offset-1
+                sidebar-container">
+
+                <!-- Featured Tags -->
+                
+                <section>
+                    <!-- no hr -->
+                    <h5><a href="/tags/">FEATURED TAGS</a></h5>
+                    <div class="tags">
+                       
+                          <a class="tag" href="/tags/#Linux" title="Linux">Linux</a>
+                        
+                          <a class="tag" href="/tags/#Kubernetes" title="Kubernetes">Kubernetes</a>
+                        
+                          <a class="tag" href="/tags/#Tekton" title="Tekton">Tekton</a>
+                        
+                    </div>
+                </section>
+                
+
+                <!-- Friends Blog -->
+                
+                <hr>
+                <h5>FRIENDS</h5>
+                <ul class="list-inline">
+
+                    
+                        <li><a href="http://www.mike.org.cn/" target="_blank">简单.生活</a></li>
+                    
+                        <li><a href="http://shang.qq.com/wpa/qunwpa?idkey=ea4c43493c2269428ac6ef6141de4b6d78e5ab2d41380ca4099b833b62884ee9" target="_blank">技术交流群</a></li>
+                    
+                        <li><a href="" target="_blank"></a></li>
+                    
+                        <li><a href="" target="_blank"></a></li>
+                    
+                </ul>
+                
+            </div>
+        </div>
+    </div>
+</article>
+
+
+
+
+
+
+    <!-- 来必力City版公共JS代码 start (一个网页只需插入一次) -->
+    <script type="text/javascript">
+       (function(d, s) {
+           var j, e = d.getElementsByTagName(s)[0];
+    
+           if (typeof LivereTower === 'function') { return; }
+    
+           j = d.createElement(s);
+           j.src = 'https://cdn-city.livere.com/js/embed.dist.js';
+           j.async = true;
+    
+           e.parentNode.insertBefore(j, e);
+       })(document, 'script');
+    </script>
+    <noscript>为正常使用来必力评论功能请激活JavaScript</noscript>
+    <!-- 来必力City版 公共JS代码 end -->
+
+
+
+<!-- async load function -->
+<script>
+    function async(u, c) {
+      var d = document, t = 'script',
+          o = d.createElement(t),
+          s = d.getElementsByTagName(t)[0];
+      o.src = u;
+      if (c) { o.addEventListener('load', function (e) { c(null, e); }, false); }
+      s.parentNode.insertBefore(o, s);
+    }
+</script>
+<!-- anchor-js, Doc:http://bryanbraun.github.io/anchorjs/ -->
+<script>
+    async("https://cdn.bootcss.com/anchor-js/1.1.1/anchor.min.js",function(){
+        anchors.options = {
+          visible: 'hover',
+          placement: 'left',
+          icon: 'ℬ'
+        };
+        anchors.add().remove('.intro-header h1').remove('.subheading').remove('.sidebar-container h5');
+    })
+</script>
+<style>
+    /* place left on bigger screen */
+    @media all and (min-width: 800px) {
+        .anchorjs-link{
+            position: absolute;
+            left: -0.75em;
+            font-size: 1.1em;
+            margin-top : -0.1em;
+        }
+    }
+</style>
+
+
+
+    <!-- Footer -->
+    <!-- Footer -->
+<footer>
+    <div class="container">
+        <div class="row">
+            <div class="col-lg-8 col-lg-offset-2 col-md-10 col-md-offset-1">
+                <ul class="list-inline text-center">
+                
+                    <li>
+                        <a href="/atom.xml">
+                            <span class="fa-stack fa-lg">
+                                <i class="fa fa-circle fa-stack-2x"></i>
+                                <i class="fa fa-rss fa-stack-1x fa-inverse"></i>
+                            </span>
+                        </a>
+                    </li>
+                
+                
+                
+                    <li>
+                        <a target="_blank" href="https://www.zhihu.com/people/80imike">
+                            <span class="fa-stack fa-lg">
+                                <i class="fa fa-circle fa-stack-2x"></i>
+                                <i class="fa  fa-stack-1x fa-inverse">知</i>
+                            </span>
+                        </a>
+                    </li>
+                
+
+                
+                    <li>
+                        <a target="_blank" href="http://weibo.com/2093524665">
+                            <span class="fa-stack fa-lg">
+                                <i class="fa fa-circle fa-stack-2x"></i>
+                                <i class="fa fa-weibo fa-stack-1x fa-inverse"></i>
+                            </span>
+                        </a>
+                    </li>
+                
+
+                
+
+                
+
+                
+
+                </ul>
+                <p class="copyright text-muted">
+                    Copyright &copy; Mike 2020 | Hosted by <a href="https://pages.coding.me" target="_blank" rel="noopener" style="font-weight: bold">Coding Pages</a>
+                    <br>
+                    Theme by <a href="http://beantech.org" target="_blank" rel="noopener">BeanTech</a> 
+                    <span style="display: inline-block; margin: 0 5px;">
+                        <i class="fa fa-heart"></i>
+                    </span> 
+                    re-Ported by <a href="http://www.huweihuang.com" target="_blank" rel="noopener">胡伟煌</a> | 
+                    <iframe
+                        style="margin-left: 2px; margin-bottom:-5px;"
+                        frameborder="0" scrolling="0" width="91px" height="20px"
+                        src="https://ghbtns.com/github-btn.html?user=huweihuang&repo=hexo-theme-huweihuang&type=star&count=true" >
+                    </iframe>
+                </p>
+            </div>
+        </div>
+    </div>
+</footer>
+
+<!-- jQuery -->
+
+<script src="/js/jquery.min.js"></script>
+
+
+<!-- Bootstrap Core JavaScript -->
+
+<script src="/js/bootstrap.min.js"></script>
+
+
+<!-- Custom Theme JavaScript -->
+
+<script src="/js/hux-blog.min.js"></script>
+
+
+
+<!-- async load function -->
+<script>
+    function async(u, c) {
+      var d = document, t = 'script',
+          o = d.createElement(t),
+          s = d.getElementsByTagName(t)[0];
+      o.src = u;
+      if (c) { o.addEventListener('load', function (e) { c(null, e); }, false); }
+      s.parentNode.insertBefore(o, s);
+    }
+</script>
+
+<!-- 
+     Because of the native support for backtick-style fenced code blocks 
+     right within the Markdown is landed in Github Pages, 
+     From V1.6, There is no need for Highlight.js, 
+     so Huxblog drops it officially.
+
+     - https://github.com/blog/2100-github-pages-now-faster-and-simpler-with-jekyll-3-0  
+     - https://help.github.com/articles/creating-and-highlighting-code-blocks/    
+-->
+<!--
+    <script>
+        async("http://cdn.bootcss.com/highlight.js/8.6/highlight.min.js", function(){
+            hljs.initHighlightingOnLoad();
+        })
+    </script>
+    <link href="http://cdn.bootcss.com/highlight.js/8.6/styles/github.min.css" rel="stylesheet">
+-->
+
+
+<!-- jquery.tagcloud.js -->
+<script>
+    // only load tagcloud.js in tag.html
+    if($('#tag_cloud').length !== 0){
+        async("https://www.hi-linux.com/js/jquery.tagcloud.js",function(){
+            $.fn.tagcloud.defaults = {
+                //size: {start: 1, end: 1, unit: 'em'},
+                color: {start: '#bbbbee', end: '#0085a1'},
+            };
+            $('#tag_cloud a').tagcloud();
+        })
+    }
+</script>
+
+<!--fastClick.js -->
+<script>
+    async("https://cdn.bootcss.com/fastclick/1.0.6/fastclick.min.js", function(){
+        var $nav = document.querySelector("nav");
+        if($nav) FastClick.attach($nav);
+    })
+</script>
+
+
+<!-- Google Analytics -->
+
+
+
+
+<!-- Baidu Tongji -->
+
+
+
+
+
+
+	<a id="rocket" href="#top" class=""></a>
+	<script type="text/javascript" src="/js/totop.js?v=1.0.0" async=""></script>
+    <script type="text/javascript" src="/js/toc.js?v=1.0.0" async=""></script>
+<!-- Image to hack wechat -->
+<img src="https://www.hi-linux.com/img/icon_wechat.png" width="0" height="0" />
+<!-- Migrate from head to bottom, no longer block render and still work -->
+
+</body>
+
+</html>

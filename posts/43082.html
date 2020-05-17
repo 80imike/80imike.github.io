@@ -1,0 +1,1002 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<!-- Head tag -->
+<head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="google-site-verification" content="xBT4GhYoi5qRD5tr338pgPM5OWHHIDR6mNg1a3euekI" />
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="description" content="">
+    <meta name="keyword"  content="Linux,运维,Nginx,Zabbix,Centos,Ansible,MySQL,Python,Docker,ELK,Haproxy,Git,Nodejs,安全,技术">
+    <link rel="shortcut icon" href="/img/ironman-draw.png">
+    <!-- Place this tag in your head or just before your close body tag. -->
+    <script async defer src="https://buttons.github.io/buttons.js"></script>
+    <title>
+        
+          一文读透 Kubernetes 的 16 个核心概念 - 运维之美
+        
+    </title>
+
+    <link rel="canonical" href="https://www.hi-linux.com/posts/43082.html">
+
+    <!-- Bootstrap Core CSS -->
+    
+<link rel="stylesheet" href="/css/bootstrap.min.css">
+
+
+    <!-- Custom CSS --> 
+    
+<link rel="stylesheet" href="/css/beantech.min.css">
+
+    
+    <!-- Pygments Highlight CSS -->
+    
+<link rel="stylesheet" href="/css/highlight.css">
+
+
+    
+<link rel="stylesheet" href="/css/widget.css">
+
+
+    
+<link rel="stylesheet" href="/css/rocket.css">
+
+
+    
+<link rel="stylesheet" href="/css/signature.css">
+
+
+    
+<link rel="stylesheet" href="/css/toc.css">
+
+
+    <!-- Custom Fonts -->
+    <!-- <link href="https://maxcdn.bootstrapcdn.com/font-awesome/4.3.0/css/font-awesome.min.css" rel="stylesheet" type="text/css"> -->
+    <!-- Hux change font-awesome CDN to qiniu -->
+    <link href="https://cdn.staticfile.org/font-awesome/4.5.0/css/font-awesome.min.css" rel="stylesheet" type="text/css">
+
+
+    <!-- Hux Delete, sad but pending in China
+    <link href='http://fonts.googleapis.com/css?family=Lora:400,700,400italic,700italic' rel='stylesheet' type='text/css'>
+    <link href='http://fonts.googleapis.com/css?family=Open+Sans:300italic,400italic,600italic,700italic,800italic,400,300,600,700,800' rel='stylesheet' type='text/
+    css'>
+    -->
+
+
+    <!-- HTML5 Shim and Respond.js IE8 support of HTML5 elements and media queries -->
+    <!-- WARNING: Respond.js doesn't work if you view the page via file:// -->
+    <!--[if lt IE 9]>
+        <script src="https://oss.maxcdn.com/libs/html5shiv/3.7.0/html5shiv.js"></script>
+        <script src="https://oss.maxcdn.com/libs/respond.js/1.4.2/respond.min.js"></script>
+    <![endif]-->
+
+    <!-- ga & ba script hoook -->
+    <script></script>
+<meta name="generator" content="Hexo 4.2.0"><link rel="alternate" href="/atom.xml" title="运维之美" type="application/atom+xml">
+</head>
+
+
+<!-- hack iOS CSS :active style -->
+<body ontouchstart="">
+	<!-- Modified by Yu-Hsuan Yen -->
+<!-- Post Header -->
+<style type="text/css">
+    header.intro-header{
+        
+            background-image: url('/img/header_img/building.jpg')
+            /*post*/
+        
+    }
+    
+</style>
+
+<header class="intro-header" >
+    <!-- Signature -->
+    <div id="signature">
+        <div class="container">
+            <div class="row">
+                <div class="col-lg-8 col-lg-offset-2 col-md-10 col-md-offset-1">
+                
+                    <div class="post-heading">
+                        <div class="tags">
+                            
+                              <a class="tag" href="/tags/#Linux" title="Linux">Linux</a>
+                            
+                              <a class="tag" href="/tags/#技巧" title="技巧">技巧</a>
+                            
+                              <a class="tag" href="/tags/#Kubernetes" title="Kubernetes">Kubernetes</a>
+                            
+                        </div>
+                        <h1>一文读透 Kubernetes 的 16 个核心概念</h1>
+                        <h2 class="subheading"></h2>
+                        <span class="meta">
+                            Posted by Mike on
+                            2019-01-13
+                        </span>
+                    </div>
+                
+
+
+                </div>
+            </div>
+        </div>
+    </div>
+</header>
+
+	
+    <!-- Navigation -->
+<nav class="navbar navbar-default navbar-custom navbar-fixed-top">
+    <div class="container-fluid">
+        <!-- Brand and toggle get grouped for better mobile display -->
+        <div class="navbar-header page-scroll">
+            <button type="button" class="navbar-toggle">
+                <span class="sr-only">Toggle navigation</span>
+                <span class="icon-bar"></span>
+                <span class="icon-bar"></span>
+                <span class="icon-bar"></span>
+            </button>
+            <a class="navbar-brand" href="/">运维之美</a>
+        </div>
+
+        <!-- Collect the nav links, forms, and other content for toggling -->
+        <!-- Known Issue, found by Hux:
+            <nav>'s height woule be hold on by its content.
+            so, when navbar scale out, the <nav> will cover tags.
+            also mask any touch event of tags, unfortunately.
+        -->
+        <div id="huxblog_navbar">
+            <div class="navbar-collapse">
+                <ul class="nav navbar-nav navbar-right">
+                    <li>
+                        <a href="/">Home</a>
+                    </li>
+
+                    
+
+                        
+                    
+
+                        
+                    
+
+                        
+                        <li>
+                            <a href="/about/">About</a>
+                        </li>
+                        
+                    
+
+                        
+                        <li>
+                            <a href="/archive/">Archives</a>
+                        </li>
+                        
+                    
+
+                        
+                        <li>
+                            <a href="/tags/">Tags</a>
+                        </li>
+                        
+                    
+                    
+                </ul>
+            </div>
+        </div>
+        <!-- /.navbar-collapse -->
+    </div>
+    <!-- /.container -->
+</nav>
+<script>
+    // Drop Bootstarp low-performance Navbar
+    // Use customize navbar with high-quality material design animation
+    // in high-perf jank-free CSS3 implementation
+    var $body   = document.body;
+    var $toggle = document.querySelector('.navbar-toggle');
+    var $navbar = document.querySelector('#huxblog_navbar');
+    var $collapse = document.querySelector('.navbar-collapse');
+
+    $toggle.addEventListener('click', handleMagic)
+    function handleMagic(e){
+        if ($navbar.className.indexOf('in') > 0) {
+        // CLOSE
+            $navbar.className = " ";
+            // wait until animation end.
+            setTimeout(function(){
+                // prevent frequently toggle
+                if($navbar.className.indexOf('in') < 0) {
+                    $collapse.style.height = "0px"
+                }
+            },400)
+        }else{
+        // OPEN
+            $collapse.style.height = "auto"
+            $navbar.className += " in";
+        }
+    }
+</script>
+
+
+    <!-- Main Content -->
+    <!-- Modify by Yu-Hsuan Yen -->
+
+<!-- Post Content -->
+<article>
+    <div class="container">
+        <div class="row">
+
+            <!-- Post Container -->
+            <div class="
+                col-lg-8 col-lg-offset-2
+                col-md-10 col-md-offset-1
+                post-container">
+
+                <div id="vip-container"><p>Kubernetes 是 Google 开源的容器集群管理系统，是 Google 多年⼤规模容器管理技术 Borg 的开源版本，主要功能包括:</p>
+<ol>
+<li>
+<p>基于容器的应用部署、维护和滚动升级</p>
+</li>
+<li>
+<p>负载均衡和服务发现</p>
+</li>
+<li>
+<p>跨机器和跨地区的集群调度</p>
+</li>
+<li>
+<p>自动伸缩</p>
+</li>
+<li>
+<p>无状态服务和有状态服务</p>
+</li>
+<li>
+<p>广泛的 Volume 支持</p>
+</li>
+<li>
+<p>插件机制保证扩展性</p>
+</li>
+</ol>
+<p>Kubernetes 发展非常迅速，已经成为容器编排领域的领导者，接下来我们将讲解 Kubernetes 中涉及到的一些主要概念。</p>
+<h2 id="1-pod-实例">1. Pod - 实例</h2>
+<p>Pod 是一组紧密关联的容器集合，支持多个容器在一个 Pod 中共享网络和文件系统，可以通过进程间通信和文件共享这种简单高效的方式完成服务。Pod 是 Kubernetes 调度的基本单位，Pod 的设计理念是每个 Pod 都有一个唯一的 IP。</p>
+<p>Pod 具有如下特征：</p>
+<ul>
+<li>
+<p>包含多个共享 IPC、Network 和 UTC Namespace 的容器，可直接通过 Localhost 通信</p>
+</li>
+<li>
+<p>所有 Pod 内容器都可以访问共享的 Volume，可以访问共享数据</p>
+</li>
+<li>
+<p>优雅终止：Pod 删除的时候先给其内的进程发送 SIGTERM，等待一段时间 (Grace Period) 后才强制停止依然还在运行的进程</p>
+</li>
+<li>
+<p>特权容器 (通过 SecurityContext 配置) 具有改变系统配置的权限 ( 在网络插件中大量应用 )</p>
+</li>
+<li>
+<p>支持三种重启策略（restartPolicy），分别是：Always、OnFailure、Never</p>
+</li>
+<li>
+<p>支持三种镜像拉取策略（imagePullPolicy ），分别是：Always、Never、IfNotPresent</p>
+</li>
+<li>
+<p>资源限制，Kubernetes 通过 CGroup 限制容器的 CPU 以及内存等资源，可以设置 Request 以及 Limit 值</p>
+</li>
+<li>
+<p>健康检查，提供两种健康检查探针，分别是 LivenessProbe 和 RedinessProbe。前者用于探测容器是否存活，如果探测失败，则根据重启策略进行重启操作。后者用于检查容器状态是否正常，如果检查容器状态不正常，则请求不会到达该 Pod</p>
+</li>
+<li>
+<p>Init Container 在所有容器运行之前执行，常用来初始化配置</p>
+</li>
+<li>
+<p>容器生命周期钩子函数，用于监听容器生命周期的特定事件，并在事件发生时执行已注册的回调函数，支持两种钩子函数：postStart 和 preStop，前者是在容器启动后执行，后者是在容器停止前执行</p>
+</li>
+</ul>
+<a id="more"></a>
+<h2 id="2-namespace-命名空间">2. Namespace - 命名空间</h2>
+<p>Namespace（命名空间）是对一组资源和对象的抽象集合，比如可以用来将系统内部的对象划分为不同的项目组或者用户组。常见的 Pod、Service、ReplicaSet 和 Deployment 等都是属于某一个 Namespace 的 (默认是 default)，而 Node, PersistentVolumes 等则不属于任何Namespace。</p>
+<p>常用 Namespace 操作：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line"># 查询所有 Namespaces </span><br><span class="line">$ kubectl get namespace</span><br><span class="line"></span><br><span class="line"># 创建 Namespace</span><br><span class="line">$ kubectl create namespace ns-name </span><br><span class="line"></span><br><span class="line"># 删除 Namespace</span><br><span class="line">$ kubectl delete namespace ns-name</span><br></pre></td></tr></table></figure>
+<p>删除命名空间时，需注意以下几点：</p>
+<ul>
+<li>
+<p>删除一个 Namespace 会自动删除所有属于该 Namespace 的资源。</p>
+</li>
+<li>
+<p>default 和 kube-system 命名空间不可删除。</p>
+</li>
+<li>
+<p>PersistentVolumes 是不属于任何 Namespace 的，但 PersistentVolumeClaim 是属于某个特定 Namespace 的。</p>
+</li>
+<li>
+<p>Events 是否属于 Namespace 取决于产生 events 的对象。</p>
+</li>
+</ul>
+<h2 id="3-node-节点">3. Node 节点</h2>
+<p>Node 是 Pod 真正运行的主机，可以是物理机也可以是虚拟机。Node 本质上不是 Kubernetes 来创建的， Kubernetes 只是管理 Node 上的资源。为了管理 Pod，每个 Node 节点上至少需要运行 Container Runtime（Docker）、Kubelet 和 Kube-proxy 服务。</p>
+<p>常用 Node 操作：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line"># 查询所有 Node</span><br><span class="line">$ kubectl get nodes</span><br><span class="line"></span><br><span class="line"># 将 Node标志为不可调度</span><br><span class="line">$ kubectl cordon $nodename</span><br><span class="line"></span><br><span class="line"># 将 Node 标志为可调度</span><br><span class="line">$ kubectl uncordon $nodename</span><br></pre></td></tr></table></figure>
+<h3 id="31-taint-污点">3.1 taint (污点)</h3>
+<p>使用 <code>kubectl taint</code> 命令可以给某个 Node 节点设置污点，Node 被设置上污点之后就和 Pod 之间存在了一种相斥的关系，可以让 Node 拒绝 Pod 的调度执行，甚至将 Node 已经存在的 Pod 驱逐出去。每个污点的组成：<code>key=value:effect</code>，当前 taint effect 支持如下三个选项：</p>
+<ul>
+<li>
+<p>NoSchedule：表示 K8s 将不会将 Pod 调度到具有该污点的 Node 上</p>
+</li>
+<li>
+<p>PreferNoSchedule：表示 K8s 将尽量避免将 Pod 调度到具有该污点的 Node 上</p>
+</li>
+<li>
+<p>NoExecute：表示 K8s 将不会将 Pod 调度到具有该污点的 Node上，同时会将 Node 上已经存在的 Pod 驱逐出去</p>
+</li>
+</ul>
+<p>常用命令如下：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line"># 为节点 node0 设置不可调度污点</span><br><span class="line">$ kubectl taint node node0 key1&#x3D;value1:NoShedule</span><br><span class="line"></span><br><span class="line"># 将 node0 上 key 值为 key1 的污点移除</span><br><span class="line">$ kubectl taint node node0  key:NoSchedule-</span><br><span class="line"></span><br><span class="line"># 为 kube-master 节点设置不可调度污点</span><br><span class="line">$ kubectl taint node node1 node-role.kubernetes.io&#x2F;master&#x3D;:NoSchedule</span><br><span class="line"></span><br><span class="line"># 为kube-master节点设置尽量不可调度污点</span><br><span class="line">$ kubectl taint node node1 node-role.kubernetes.io&#x2F;master&#x3D;PreferNoSchedule</span><br></pre></td></tr></table></figure>
+<h3 id="32-容忍-tolerations">3.2 容忍 (Tolerations)</h3>
+<p>设置了污点的 Node 将根据 Taint 的 Effect：NoSchedule、PreferNoSchedule、NoExecute 和 Pod 之间产生互斥的关系，Pod 将在一定程度上不会被调度到 Node上。 但我们可以在 Pod 上设置容忍 (Toleration)，意思是设置了容忍的 Pod 将可以容忍污点的存在，可以被调度到存在污点的 Node 上。</p>
+<h2 id="4-service-服务">4. Service 服务</h2>
+<p>Service 是对一组提供相同功能的 Pods 的抽象，并为他们提供一个统一的入口。借助 Service 应用可以方便的实现服务发现与负载均衡，并实现应用的零宕机升级。Service 通过标签 (Label) 来选取后端 Pod，一般配合 ReplicaSet 或者 Deployment 来保证后端容器的正常运行。</p>
+<p>Service 有如下四种类型，默认是 ClusterIP：</p>
+<ul>
+<li>
+<p>ClusterIP: 默认类型，自动分配一个仅集群内部可以访问的虚拟 IP</p>
+</li>
+<li>
+<p>NodePort: 在 ClusterIP 基础上为 Service 在每台机器上绑定一个端口，这样就可以通过 <code>NodeIP:NodePort</code> 来访问该服务</p>
+</li>
+<li>
+<p>LoadBalancer: 在 NodePort 的基础上，借助 Cloud Provider 创建一个外部的负载均衡器，并将请求转发到 <code>NodeIP:NodePort</code></p>
+</li>
+<li>
+<p>ExternalName: 将服务通过 DNS CNAME 记录方式转发到指定的域名</p>
+</li>
+</ul>
+<p>另外，也可以将已有的服务以 Service 的形式加入到 Kubernetes 集群中来，只需要在创建 Service 的时候不指定 Label selector，而是在 Service 创建好后手动为其添加 Endpoint。</p>
+<h2 id="5-volume-存储卷">5. Volume 存储卷</h2>
+<p>默认情况下容器的数据是非持久化的，容器消亡以后数据也会跟着丢失。所以 Docker 提供了 Volume 机制以便将数据持久化存储。Kubernetes 提供了更强大的 Volume 机制和插件，解决了容器数据持久化以及容器间共享数据的问题。</p>
+<h3 id="51-kubernetes-存储卷的生命周期与-pod-绑定">5.1 Kubernetes 存储卷的生命周期与 Pod 绑定</h3>
+<ul>
+<li>
+<p>容器挂掉后 Kubelet 再次重启容器时，Volume 的数据依然还在</p>
+</li>
+<li>
+<p>Pod 删除时，Volume 才会清理。数据是否丢失取决于具体的 Volume 类型，比如 emptyDir 的数据会丢失，而 PV 的数据则不会丢</p>
+</li>
+</ul>
+<h3 id="52-目前-kubernetes-主要支持以下-volume-类型">5.2 目前 Kubernetes 主要支持以下 Volume 类型：</h3>
+<ul>
+<li>
+<p>emptyDir：Pod 存在，emptyDir 就会存在。容器挂掉不会引起 emptyDir 目录下的数据丢失，但是 Pod 被删除或者迁移，emptyDir 也会被删除</p>
+</li>
+<li>
+<p>hostPath：hostPath 允许挂载 Node 上的文件系统到 Pod 里面去</p>
+</li>
+<li>
+<p>NFS（Network File System）：网络文件系统，Kubernetes 中通过简单地配置就可以挂载 NFS 到 Pod 中，而 NFS 中的数据是可以永久保存的，同时 NFS 支持同时写操作。</p>
+</li>
+<li>
+<p>Glusterfs：同 NFS 一样是一种网络文件系统，Kubernetes 可以将 Glusterfs 挂载到 Pod 中，并进行永久保存</p>
+</li>
+<li>
+<p>Cephfs：一种分布式网络文件系统，可以挂载到 Pod 中，并进行永久保存</p>
+</li>
+<li>
+<p>Subpath：Pod 的多个容器使用同一个 Volume 时，会经常用到</p>
+</li>
+<li>
+<p>Secret：密钥管理，可以将敏感信息进行加密之后保存并挂载到 Pod 中</p>
+</li>
+<li>
+<p>PersistentVolumeClaim：用于将持久化存储（PersistentVolume）挂载到 Pod 中</p>
+</li>
+</ul>
+<h2 id="6-persistentvolume-pv-持久化存储卷">6. PersistentVolume (PV) 持久化存储卷</h2>
+<p>PersistentVolume (PV) 是集群之中的一块网络存储。跟 Node 一样，也是集群的资源。PersistentVolume (PV) 和PersistentVolumeClaim (PVC) 提供了方便的持久化卷: PV 提供网络存储资源，而 PVC 请求存储资源并将其挂载到 Pod 中。</p>
+<h3 id="61-pv-的访问模式-accessmodes-有三种">6.1 PV 的访问模式 (accessModes) 有三种:</h3>
+<ul>
+<li>
+<p>ReadWriteOnce (RWO): 是最基本的方式，可读可写，但只支持被单个 Pod 挂载。</p>
+</li>
+<li>
+<p>ReadOnlyMany (ROX): 可以以只读的方式被多个 Pod 挂载。</p>
+</li>
+<li>
+<p>ReadWriteMany (RWX): 这种存储可以以读写的方式被多个 Pod 共享。</p>
+</li>
+</ul>
+<p>不是每一种存储都支持这三种方式，像共享方式，目前支持的还比较少，比较常用的是 NFS。在 PVC 绑定 PV 时通常根据两个条件来绑定，一个是存储的大小，另一个就是访问模式。</p>
+<h3 id="62-pv-的回收策略-persistentvolumereclaimpolicy-也有三种">6.2 PV 的回收策略 (persistentVolumeReclaimPolicy) 也有三种</h3>
+<ul>
+<li>
+<p>Retain，不清理保留 Volume (需要手动清理)</p>
+</li>
+<li>
+<p>Recycle，删除数据，即 <code>rm -rf /thevolume/*</code> (只有 NFS 和 HostPath 支持)</p>
+</li>
+<li>
+<p>Delete，删除存储资源</p>
+</li>
+</ul>
+<h2 id="7-deployment-无状态应用">7. Deployment 无状态应用</h2>
+<p>一般情况下我们不需要手动创建 Pod 实例，而是采用更高一层的抽象或定义来管理 Pod。针对无状态类型的应用，Kubernetes 使用 Deloyment 的 Controller 对象与之对应。其典型的应用场景包括：</p>
+<ul>
+<li>
+<p>定义 Deployment 来创建 Pod 和 ReplicaSet</p>
+</li>
+<li>
+<p>滚动升级和回滚应用</p>
+</li>
+<li>
+<p>扩容和缩容</p>
+</li>
+<li>
+<p>暂停和继续 Deployment</p>
+</li>
+</ul>
+<h3 id="71-常用的操作命令">7.1 常用的操作命令</h3>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br></pre></td><td class="code"><pre><span class="line"># 生成一个 Deployment 对象</span><br><span class="line">$ kubectl run www --image&#x3D;10.0.0.183:5000&#x2F;hanker&#x2F;www:0.0.1 --port&#x3D;8080</span><br><span class="line"></span><br><span class="line"># 查找 Deployment</span><br><span class="line">$ kubectl get deployment --all-namespaces</span><br><span class="line"></span><br><span class="line"># 查看某个 Deployment</span><br><span class="line">$ kubectl describe deployment www</span><br><span class="line"></span><br><span class="line"># 编辑 Deployment 定义</span><br><span class="line">$ kubectl edit deployment www</span><br><span class="line"></span><br><span class="line"># 删除某 Deployment</span><br><span class="line">$ kubectl delete deployment www</span><br><span class="line"></span><br><span class="line"># 扩缩容操作，即修改 Deployment 下的 Pod 实例个数</span><br><span class="line">$ kubectl scale deployment&#x2F;www --replicas&#x3D;2</span><br><span class="line"></span><br><span class="line"># 更新镜像</span><br><span class="line">$ kubectl set image deployment&#x2F;nginx-deployment nginx&#x3D;nginx:1.9.1</span><br><span class="line"></span><br><span class="line"># 回滚操作</span><br><span class="line">$ kubectl rollout undo deployment&#x2F;nginx-deployment</span><br><span class="line"></span><br><span class="line"># 查看回滚进度</span><br><span class="line">$ kubectl rollout status deployment&#x2F;nginx-deployment</span><br><span class="line"></span><br><span class="line"># 启用水平伸缩（HPA - horizontal pod autoscaling），设置最小、最大实例数量以及目标 Cpu 使用率</span><br><span class="line">$ kubectl autoscale deployment nginx-deployment --min&#x3D;10 --max&#x3D;15 --cpu-percent&#x3D;80</span><br><span class="line"></span><br><span class="line"># 暂停更新 Deployment</span><br><span class="line">$ kubectl rollout pause deployment&#x2F;nginx-deployment</span><br><span class="line"></span><br><span class="line"># 恢复更新 Deployment</span><br><span class="line">$ kubectl rollout resume deploy nginx</span><br></pre></td></tr></table></figure>
+<h3 id="72-更新策略">7.2 更新策略</h3>
+<p><code>.spec.strategy</code> 指新的 Pod 替换旧的 Pod 的策略，有以下两种类型：</p>
+<ul>
+<li>
+<p><code>RollingUpdate</code> 滚动升级，可以保证应用在升级期间，对外正常提供服务。</p>
+</li>
+<li>
+<p><code>Recreate</code> 重建策略，在创建出新的 Pod 之前会先杀掉所有已存在的 Pod。</p>
+</li>
+</ul>
+<h3 id="73-deployment-和-replicaset-两者之间的关系">7.3 Deployment 和 ReplicaSet 两者之间的关系</h3>
+<ul>
+<li>
+<p>使用 Deployment 来创建 ReplicaSet。ReplicaSet 在后台创建 Pod，检查启动状态，看它是成功还是失败。</p>
+</li>
+<li>
+<p>当执行更新操作时，会创建一个新的 ReplicaSet，Deployment 会按照控制的速率将 Pod 从旧的 ReplicaSet 移动到新的 ReplicaSet 中</p>
+</li>
+</ul>
+<h2 id="8-statefulset-有状态应用">8. StatefulSet 有状态应用</h2>
+<p>Deployments 和 ReplicaSets 是为无状态服务设计的，那么 StatefulSet 则是为了有状态服务而设计，其应用场景包括：</p>
+<ul>
+<li>
+<p>稳定的持久化存储，即 Pod 重新调度后还是能访问到相同的持久化数据，基于 PVC 来实现</p>
+</li>
+<li>
+<p>稳定的网络标志，即 Pod 重新调度后其 PodName 和 HostName 不变，基于 Headless Service (即没有 Cluster IP 的 Service )来实现</p>
+</li>
+<li>
+<p>有序部署，有序扩展，即 Pod 是有顺序的。在部署或者扩展的时候要依据定义的顺序依次进行操作 (即从 0 到 N-1，在下一个 Pod 运行之前所有之前的 Pod 必须都是 Running 和 Ready 状态)，基于 <code>Init Containers</code> 来实现</p>
+</li>
+<li>
+<p>有序收缩，有序删除 (即从 N-1 到0)</p>
+</li>
+</ul>
+<h3 id="81-支持两种更新策略">8.1 支持两种更新策略</h3>
+<ul>
+<li>
+<p>OnDelete: 当 <code>.spec.template</code> 更新时，并不立即删除旧的 Pod，而是等待用户手动删除这些旧 Pod 后自动创建新 Pod。这是默认的更新策略，兼容 v1.6 版本的行为</p>
+</li>
+<li>
+<p>RollingUpdate: 当 <code>.spec.template</code>更新时，自动删除旧的 Pod 并创建新 Pod 替换。在更新时这些 Pod 是按逆序的方式进行，依次删除、创建并等待 Pod 变成 Ready 状态才进行下一个 Pod 的更新。</p>
+</li>
+</ul>
+<h2 id="9-daemonset-守护进程集">9. DaemonSet 守护进程集</h2>
+<p>DaemonSet 保证在特定或所有 Node 节点上都运行一个 Pod 实例，常用来部署一些集群的日志采集、监控或者其他系统管理应用。典型的应用包括:</p>
+<ul>
+<li>
+<p>日志收集，比如 Fluentd，Logstash 等</p>
+</li>
+<li>
+<p>系统监控，比如 Prometheus Node Exporter，Collectd 等</p>
+</li>
+<li>
+<p>系统程序，比如 Kube-Proxy、Kube-Dns、Glusterd、Ceph、Ingress-Controller 等</p>
+</li>
+</ul>
+<h3 id="91-指定-node-节点">9.1 指定 Node 节点</h3>
+<p>DaemonSet 会忽略 Node 的 unschedulable 状态，有两种方式来指定 Pod 只运行在指定的 Node 节点上:</p>
+<ul>
+<li>
+<p>nodeSelector: 只调度到匹配指定 Label 的 Node 上</p>
+</li>
+<li>
+<p>nodeAffinity: 功能更丰富的 Node 选择器，比如支持集合操作</p>
+</li>
+<li>
+<p>podAffinity: 调度到满足条件的 Pod 所在的 Node 上</p>
+</li>
+</ul>
+<p>目前支持两种策略</p>
+<ul>
+<li>
+<p>OnDelete: 默认策略，更新模板后，只有手动删除了旧的 Pod 后才会创建新的 Pod</p>
+</li>
+<li>
+<p>RollingUpdate: 更新 DaemonSet 模版后，自动删除旧的 Pod 并创建新的 Pod</p>
+</li>
+</ul>
+<h2 id="10-ingress-负载均衡">10. Ingress 负载均衡</h2>
+<p>Kubernetes 中的负载均衡我们主要用到了以下两种机制：</p>
+<ul>
+<li>
+<p>Service：使用 Service 提供集群内部的负载均衡，Kube-proxy 负责将 Service 请求负载均衡到后端的 Pod 中</p>
+</li>
+<li>
+<p>Ingress Controller：使用 Ingress 提供集群外部的负载均衡</p>
+</li>
+</ul>
+<p>Service 和 Pod 的 IP 仅可在集群内部访问。集群外部的请求需要通过负载均衡转发到 Service 所在节点暴露的端口上，然后再由 Kube-Proxy 通过边缘路由器将其转发到相关的 Pod。Ingress 可以给 Service 提供集群外部访问的 URL、负载均衡、HTTP 路由等，为了配置这些Ingress 规则，集群管理员需要部署一个 <code>Ingress Controller</code>，它监听 Ingress 和 Service 的变化，并根据规则配置负载均衡并提供访问入口。</p>
+<p>常用的 Ingress Controller 有：</p>
+<ul>
+<li>
+<p>Nginx</p>
+</li>
+<li>
+<p>Traefik</p>
+</li>
+<li>
+<p>Kong</p>
+</li>
+<li>
+<p>Openresty</p>
+</li>
+</ul>
+<h2 id="11-job-amp-cronjob-任务和定时任务">11. Job &amp; CronJob 任务和定时任务</h2>
+<p>Job 负责批量处理短暂的一次性任务 (short lived one-off tasks)，即仅执行一次的任务，它保证批处理任务的一个或多个 Pod 成功结束。</p>
+<p>CronJob 即定时任务，就类似于 Linux 系统的 Crontab，在指定的时间周期运行指定的任务。</p>
+<h2 id="12-hpahorizontal-pod-autoscaling-水平伸缩">12. HPA（Horizontal Pod Autoscaling） 水平伸缩</h2>
+<p><code>Horizontal Pod Autoscaling</code> 可以根据 CPU、内存使用率或应用自定义 Metrics 自动扩展 Pod 数量 (支持 Replication Controller、Deployment 和 Replicaset)。</p>
+<ul>
+<li>
+<p>控制管理器默认每隔 30s 查询 Metrics 的资源使用情况 (可以通过 <code>--horizontal-pod-autoscaler-sync-period</code> 修改)</p>
+</li>
+<li>
+<p>支持三种 Metrics 类型</p>
+<ul>
+<li>
+<p>预定义 Metrics (比如 Pod 的 CPU)以利用率的方式计算</p>
+</li>
+<li>
+<p>自定义的 Pod Metrics，以原始值 (Raw Value) 的方式计算</p>
+</li>
+<li>
+<p>自定义的 Object Metrics</p>
+</li>
+</ul>
+</li>
+<li>
+<p>支持两种 Metrics 查询方式 :Heapster 和自定义的 REST API</p>
+</li>
+<li>
+<p>支持多 Metrics</p>
+</li>
+</ul>
+<p>你可以通过如下命令来创建 HPA：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">$ kubectl autoscale deployment php-apache --cpu-percent&#x3D;50 --min&#x3D;1 --max&#x3D;10</span><br></pre></td></tr></table></figure>
+<h2 id="13-service-account">13. Service Account</h2>
+<p>Service account 是为了方便 Pod 里面的进程调用 Kubernetes API 或其他外部服务而设计的。</p>
+<h3 id="131-授权">13.1 授权</h3>
+<p>Service Account 为服务提供了一种方便的认证机制，但它不关心授权的问题。可以配合 RBAC (Role Based Access Control) 来为 Service Account 鉴权，通过定义 Role、RoleBinding、ClusterRole、ClusterRoleBinding 来对 sa 进行授权。</p>
+<h2 id="14-secret-密钥">14. Secret 密钥</h2>
+<p>Sercert 密钥解决了密码、Token、密钥等敏感数据的配置问题，而不需要把这些敏感数据暴露到镜像或者 <code>Pod Spec</code> 中。Secret 可以以 Volume 或者环境变量的方式使用。有如下三种类型：</p>
+<ul>
+<li>
+<p>Service Account: 用来访问 Kubernetes API，由 Kubernetes 自动创建，并且会自动挂载到 Pod 的 <code>/run/secrets/kubernetes.io/serviceaccount</code> 目录中;</p>
+</li>
+<li>
+<p>Opaque: Base64 编码格式的 Secret，用来存储密码、密钥等;</p>
+</li>
+<li>
+<p><a href="http://kubernetes.io/dockerconfigjson:" target="_blank" rel="noopener">kubernetes.io/dockerconfigjson:</a> 用来存储私有 <code>Docker Registry</code> 的认证信息。</p>
+</li>
+</ul>
+<h2 id="15-configmap-配置中心">15. ConfigMap 配置中心</h2>
+<p>ConfigMap 用于保存配置数据的键值对，可以用来保存单个属性，也可以用来保存配置文件。ConfigMap 跟 Secret 很类似，但它可以更方便地处理不包含敏感信息的字符串。</p>
+<p>ConfigMap 可以通过三种方式在 Pod 中使用，三种分别方式为:设置环境变量、设置容器命令行参数以及在 Volume 中直接挂载文件或目录。</p>
+<p>你可以使用 <code>kubectl create configmap</code> 从文件、目录或者 key-value 字符串创建等创建 ConfigMap。也可以通过 <code>kubectl create -f value.yaml</code> 来创建。</p>
+<h2 id="16-resource-quotas-资源配额">16. Resource Quotas 资源配额</h2>
+<p>资源配额 (Resource Quotas) 是用来限制用户资源用量的一种机制。</p>
+<h3 id="161-资源配额有如下类型">16.1 资源配额有如下类型：</h3>
+<ul>
+<li>
+<p>计算资源，包括 Cpu 和 Memory</p>
+<ul>
+<li>
+<p>cpu、limits.cpu、requests.cpu</p>
+</li>
+<li>
+<p>memory、limits.memory、requests.memory</p>
+</li>
+</ul>
+</li>
+<li>
+<p>存储资源，包括存储资源的总量以及指定 Storage Class 的总量</p>
+<ul>
+<li>
+<p>requests.storage: 存储资源总量，如 500Gi</p>
+</li>
+<li>
+<p>persistentvolumeclaims: PV 的个数</p>
+</li>
+<li>
+<p>.storageclass.storage.k8s.io/requests.storage</p>
+</li>
+<li>
+<p>.storageclass.storage.k8s.io/persistentvolumeclaims</p>
+</li>
+</ul>
+</li>
+<li>
+<p>对象数，即可创建的对象的个数</p>
+<ul>
+<li>
+<p>pods、replicationcontrollers、configmaps、secrets</p>
+</li>
+<li>
+<p>resourcequotas、persistentvolumeclaims</p>
+</li>
+<li>
+<p>services、services.loadbalancers、services.nodeports</p>
+</li>
+</ul>
+</li>
+</ul>
+<h3 id="162-工作原理">16.2 工作原理</h3>
+<ul>
+<li>
+<p>资源配额应用在 Namespace 上，并且每个 Namespace 最多只能有一个 ResourceQuota 对象</p>
+</li>
+<li>
+<p>开启计算资源配额后，创建容器时必须配置计算资源请求或限制 (也可以用 LimitRange 设置默认值)</p>
+</li>
+<li>
+<p>用户超额后禁止创建新的资源</p>
+</li>
+</ul>
+<blockquote>
+<p>来源：知乎</p>
+<p>原文1：<a href="https://url.cn/5d3HBWo" target="_blank" rel="noopener">https://url.cn/5d3HBWo</a></p>
+<p>原文2：<a href="https://url.cn/5Aneke8" target="_blank" rel="noopener">https://url.cn/5Aneke8</a></p>
+<p>题图：来自谷歌图片搜索</p>
+<p>版权：本文版权归原作者所有</p>
+<p>投稿：欢迎投稿，邮箱: <a href="mailto:editor@hi-linux.com">editor@hi-linux.com</a></p>
+</blockquote>
+</div>
+
+			<script src="https://my.openwrite.cn/js/readmore.js" type="text/javascript"></script>
+			<script>
+			var isMobile = navigator.userAgent.match(/(phone|pad|pod|iPhone|iPod|ios|iPad|Android|Mobile|BlackBerry|IEMobile|MQQBrowser|JUC|Fennec|wOSBrowser|BrowserNG|WebOS|Symbian|Windows Phone)/i);
+			if (!isMobile) {
+			    var btw = new BTWPlugin();
+			    btw.init({
+			        "id": "vip-container",
+			        "blogId": "10135-1588830050631-449",
+			        "name": "「奇妙的 Linux 世界」",
+			        "qrcode": "https://www.hi-linux.com/img/wechat/mp_qrcode_12.jpg",
+			        "keyword": "VIP"
+			    });
+			}
+			</script>
+		
+                
+
+                <hr>
+                <!-- Pager -->
+                <ul class="pager">
+                    
+                        <li class="previous">
+                            <a href="/posts/50053.html" data-toggle="tooltip" data-placement="top" title="11 个你必须知道的运维定律">&larr; Previous Post</a>
+                        </li>
+                    
+                    
+                        <li class="next">
+                            <a href="/posts/42132.html" data-toggle="tooltip" data-placement="top" title="巧用 KubeSphere 轻松实现微服务灰度发布与熔断">Next Post &rarr;</a>
+                        </li>
+                    
+                </ul>
+
+                <!-- duoshuo Share start -->
+                
+                <!-- 多说 Share end-->
+
+                <!-- 多说评论框 start -->
+                
+                <!-- 多说评论框 end -->
+
+                <!-- disqus comment start -->
+                
+                <!-- disqus comment end -->
+
+                
+                    <!-- disqus 评论框 start -->
+                    <div class="comment">
+                        <div id="lv-container" data-id="city" data-uid="MTAyMC8yNzg2My80NDQw"></div>
+                    </div>
+                    <!-- disqus 评论框 end -->
+                
+
+            </div>
+            
+            <!-- Tabe of Content -->
+            <!-- Table of Contents -->
+
+  
+    <style>
+      span.toc-nav-number{
+        display: none
+      }
+    </style>
+  
+    
+      <aside id="sidebar">
+        <div id="toc" class="toc-article">
+        <strong class="toc-title">Contents</strong>
+        
+          <ol class="toc-nav"><li class="toc-nav-item toc-nav-level-2"><a class="toc-nav-link" href="#1-pod-实例"><span class="toc-nav-number">1.</span> <span class="toc-nav-text">1. Pod - 实例</span></a></li><li class="toc-nav-item toc-nav-level-2"><a class="toc-nav-link" href="#2-namespace-命名空间"><span class="toc-nav-number">2.</span> <span class="toc-nav-text">2. Namespace - 命名空间</span></a></li><li class="toc-nav-item toc-nav-level-2"><a class="toc-nav-link" href="#3-node-节点"><span class="toc-nav-number">3.</span> <span class="toc-nav-text">3. Node 节点</span></a><ol class="toc-nav-child"><li class="toc-nav-item toc-nav-level-3"><a class="toc-nav-link" href="#31-taint-污点"><span class="toc-nav-number">3.1.</span> <span class="toc-nav-text">3.1 taint (污点)</span></a></li><li class="toc-nav-item toc-nav-level-3"><a class="toc-nav-link" href="#32-容忍-tolerations"><span class="toc-nav-number">3.2.</span> <span class="toc-nav-text">3.2 容忍 (Tolerations)</span></a></li></ol></li><li class="toc-nav-item toc-nav-level-2"><a class="toc-nav-link" href="#4-service-服务"><span class="toc-nav-number">4.</span> <span class="toc-nav-text">4. Service 服务</span></a></li><li class="toc-nav-item toc-nav-level-2"><a class="toc-nav-link" href="#5-volume-存储卷"><span class="toc-nav-number">5.</span> <span class="toc-nav-text">5. Volume 存储卷</span></a><ol class="toc-nav-child"><li class="toc-nav-item toc-nav-level-3"><a class="toc-nav-link" href="#51-kubernetes-存储卷的生命周期与-pod-绑定"><span class="toc-nav-number">5.1.</span> <span class="toc-nav-text">5.1 Kubernetes 存储卷的生命周期与 Pod 绑定</span></a></li><li class="toc-nav-item toc-nav-level-3"><a class="toc-nav-link" href="#52-目前-kubernetes-主要支持以下-volume-类型"><span class="toc-nav-number">5.2.</span> <span class="toc-nav-text">5.2 目前 Kubernetes 主要支持以下 Volume 类型：</span></a></li></ol></li><li class="toc-nav-item toc-nav-level-2"><a class="toc-nav-link" href="#6-persistentvolume-pv-持久化存储卷"><span class="toc-nav-number">6.</span> <span class="toc-nav-text">6. PersistentVolume (PV) 持久化存储卷</span></a><ol class="toc-nav-child"><li class="toc-nav-item toc-nav-level-3"><a class="toc-nav-link" href="#61-pv-的访问模式-accessmodes-有三种"><span class="toc-nav-number">6.1.</span> <span class="toc-nav-text">6.1 PV 的访问模式 (accessModes) 有三种:</span></a></li><li class="toc-nav-item toc-nav-level-3"><a class="toc-nav-link" href="#62-pv-的回收策略-persistentvolumereclaimpolicy-也有三种"><span class="toc-nav-number">6.2.</span> <span class="toc-nav-text">6.2 PV 的回收策略 (persistentVolumeReclaimPolicy) 也有三种</span></a></li></ol></li><li class="toc-nav-item toc-nav-level-2"><a class="toc-nav-link" href="#7-deployment-无状态应用"><span class="toc-nav-number">7.</span> <span class="toc-nav-text">7. Deployment 无状态应用</span></a><ol class="toc-nav-child"><li class="toc-nav-item toc-nav-level-3"><a class="toc-nav-link" href="#71-常用的操作命令"><span class="toc-nav-number">7.1.</span> <span class="toc-nav-text">7.1 常用的操作命令</span></a></li><li class="toc-nav-item toc-nav-level-3"><a class="toc-nav-link" href="#72-更新策略"><span class="toc-nav-number">7.2.</span> <span class="toc-nav-text">7.2 更新策略</span></a></li><li class="toc-nav-item toc-nav-level-3"><a class="toc-nav-link" href="#73-deployment-和-replicaset-两者之间的关系"><span class="toc-nav-number">7.3.</span> <span class="toc-nav-text">7.3 Deployment 和 ReplicaSet 两者之间的关系</span></a></li></ol></li><li class="toc-nav-item toc-nav-level-2"><a class="toc-nav-link" href="#8-statefulset-有状态应用"><span class="toc-nav-number">8.</span> <span class="toc-nav-text">8. StatefulSet 有状态应用</span></a><ol class="toc-nav-child"><li class="toc-nav-item toc-nav-level-3"><a class="toc-nav-link" href="#81-支持两种更新策略"><span class="toc-nav-number">8.1.</span> <span class="toc-nav-text">8.1 支持两种更新策略</span></a></li></ol></li><li class="toc-nav-item toc-nav-level-2"><a class="toc-nav-link" href="#9-daemonset-守护进程集"><span class="toc-nav-number">9.</span> <span class="toc-nav-text">9. DaemonSet 守护进程集</span></a><ol class="toc-nav-child"><li class="toc-nav-item toc-nav-level-3"><a class="toc-nav-link" href="#91-指定-node-节点"><span class="toc-nav-number">9.1.</span> <span class="toc-nav-text">9.1 指定 Node 节点</span></a></li></ol></li><li class="toc-nav-item toc-nav-level-2"><a class="toc-nav-link" href="#10-ingress-负载均衡"><span class="toc-nav-number">10.</span> <span class="toc-nav-text">10. Ingress 负载均衡</span></a></li><li class="toc-nav-item toc-nav-level-2"><a class="toc-nav-link" href="#11-job-amp-cronjob-任务和定时任务"><span class="toc-nav-number">11.</span> <span class="toc-nav-text">11. Job &amp; CronJob 任务和定时任务</span></a></li><li class="toc-nav-item toc-nav-level-2"><a class="toc-nav-link" href="#12-hpahorizontal-pod-autoscaling-水平伸缩"><span class="toc-nav-number">12.</span> <span class="toc-nav-text">12. HPA（Horizontal Pod Autoscaling） 水平伸缩</span></a></li><li class="toc-nav-item toc-nav-level-2"><a class="toc-nav-link" href="#13-service-account"><span class="toc-nav-number">13.</span> <span class="toc-nav-text">13. Service Account</span></a><ol class="toc-nav-child"><li class="toc-nav-item toc-nav-level-3"><a class="toc-nav-link" href="#131-授权"><span class="toc-nav-number">13.1.</span> <span class="toc-nav-text">13.1 授权</span></a></li></ol></li><li class="toc-nav-item toc-nav-level-2"><a class="toc-nav-link" href="#14-secret-密钥"><span class="toc-nav-number">14.</span> <span class="toc-nav-text">14. Secret 密钥</span></a></li><li class="toc-nav-item toc-nav-level-2"><a class="toc-nav-link" href="#15-configmap-配置中心"><span class="toc-nav-number">15.</span> <span class="toc-nav-text">15. ConfigMap 配置中心</span></a></li><li class="toc-nav-item toc-nav-level-2"><a class="toc-nav-link" href="#16-resource-quotas-资源配额"><span class="toc-nav-number">16.</span> <span class="toc-nav-text">16. Resource Quotas 资源配额</span></a><ol class="toc-nav-child"><li class="toc-nav-item toc-nav-level-3"><a class="toc-nav-link" href="#161-资源配额有如下类型"><span class="toc-nav-number">16.1.</span> <span class="toc-nav-text">16.1 资源配额有如下类型：</span></a></li><li class="toc-nav-item toc-nav-level-3"><a class="toc-nav-link" href="#162-工作原理"><span class="toc-nav-number">16.2.</span> <span class="toc-nav-text">16.2 工作原理</span></a></li></ol></li></ol>
+        
+        </div>
+      </aside>
+    
+
+                
+            <!-- Sidebar Container -->
+            <div class="
+                col-lg-8 col-lg-offset-2
+                col-md-10 col-md-offset-1
+                sidebar-container">
+
+                <!-- Featured Tags -->
+                
+                <section>
+                    <!-- no hr -->
+                    <h5><a href="/tags/">FEATURED TAGS</a></h5>
+                    <div class="tags">
+                       
+                          <a class="tag" href="/tags/#Linux" title="Linux">Linux</a>
+                        
+                          <a class="tag" href="/tags/#技巧" title="技巧">技巧</a>
+                        
+                          <a class="tag" href="/tags/#Kubernetes" title="Kubernetes">Kubernetes</a>
+                        
+                    </div>
+                </section>
+                
+
+                <!-- Friends Blog -->
+                
+                <hr>
+                <h5>FRIENDS</h5>
+                <ul class="list-inline">
+
+                    
+                        <li><a href="http://www.mike.org.cn/" target="_blank">简单.生活</a></li>
+                    
+                        <li><a href="http://shang.qq.com/wpa/qunwpa?idkey=ea4c43493c2269428ac6ef6141de4b6d78e5ab2d41380ca4099b833b62884ee9" target="_blank">技术交流群</a></li>
+                    
+                        <li><a href="" target="_blank"></a></li>
+                    
+                        <li><a href="" target="_blank"></a></li>
+                    
+                </ul>
+                
+            </div>
+        </div>
+    </div>
+</article>
+
+
+
+
+
+
+    <!-- 来必力City版公共JS代码 start (一个网页只需插入一次) -->
+    <script type="text/javascript">
+       (function(d, s) {
+           var j, e = d.getElementsByTagName(s)[0];
+    
+           if (typeof LivereTower === 'function') { return; }
+    
+           j = d.createElement(s);
+           j.src = 'https://cdn-city.livere.com/js/embed.dist.js';
+           j.async = true;
+    
+           e.parentNode.insertBefore(j, e);
+       })(document, 'script');
+    </script>
+    <noscript>为正常使用来必力评论功能请激活JavaScript</noscript>
+    <!-- 来必力City版 公共JS代码 end -->
+
+
+
+<!-- async load function -->
+<script>
+    function async(u, c) {
+      var d = document, t = 'script',
+          o = d.createElement(t),
+          s = d.getElementsByTagName(t)[0];
+      o.src = u;
+      if (c) { o.addEventListener('load', function (e) { c(null, e); }, false); }
+      s.parentNode.insertBefore(o, s);
+    }
+</script>
+<!-- anchor-js, Doc:http://bryanbraun.github.io/anchorjs/ -->
+<script>
+    async("https://cdn.bootcss.com/anchor-js/1.1.1/anchor.min.js",function(){
+        anchors.options = {
+          visible: 'hover',
+          placement: 'left',
+          icon: 'ℬ'
+        };
+        anchors.add().remove('.intro-header h1').remove('.subheading').remove('.sidebar-container h5');
+    })
+</script>
+<style>
+    /* place left on bigger screen */
+    @media all and (min-width: 800px) {
+        .anchorjs-link{
+            position: absolute;
+            left: -0.75em;
+            font-size: 1.1em;
+            margin-top : -0.1em;
+        }
+    }
+</style>
+
+
+
+    <!-- Footer -->
+    <!-- Footer -->
+<footer>
+    <div class="container">
+        <div class="row">
+            <div class="col-lg-8 col-lg-offset-2 col-md-10 col-md-offset-1">
+                <ul class="list-inline text-center">
+                
+                    <li>
+                        <a href="/atom.xml">
+                            <span class="fa-stack fa-lg">
+                                <i class="fa fa-circle fa-stack-2x"></i>
+                                <i class="fa fa-rss fa-stack-1x fa-inverse"></i>
+                            </span>
+                        </a>
+                    </li>
+                
+                
+                
+                    <li>
+                        <a target="_blank" href="https://www.zhihu.com/people/80imike">
+                            <span class="fa-stack fa-lg">
+                                <i class="fa fa-circle fa-stack-2x"></i>
+                                <i class="fa  fa-stack-1x fa-inverse">知</i>
+                            </span>
+                        </a>
+                    </li>
+                
+
+                
+                    <li>
+                        <a target="_blank" href="http://weibo.com/2093524665">
+                            <span class="fa-stack fa-lg">
+                                <i class="fa fa-circle fa-stack-2x"></i>
+                                <i class="fa fa-weibo fa-stack-1x fa-inverse"></i>
+                            </span>
+                        </a>
+                    </li>
+                
+
+                
+
+                
+
+                
+
+                </ul>
+                <p class="copyright text-muted">
+                    Copyright &copy; Mike 2020 | Hosted by <a href="https://pages.coding.me" target="_blank" rel="noopener" style="font-weight: bold">Coding Pages</a>
+                    <br>
+                    Theme by <a href="http://beantech.org" target="_blank" rel="noopener">BeanTech</a> 
+                    <span style="display: inline-block; margin: 0 5px;">
+                        <i class="fa fa-heart"></i>
+                    </span> 
+                    re-Ported by <a href="http://www.huweihuang.com" target="_blank" rel="noopener">胡伟煌</a> | 
+                    <iframe
+                        style="margin-left: 2px; margin-bottom:-5px;"
+                        frameborder="0" scrolling="0" width="91px" height="20px"
+                        src="https://ghbtns.com/github-btn.html?user=huweihuang&repo=hexo-theme-huweihuang&type=star&count=true" >
+                    </iframe>
+                </p>
+            </div>
+        </div>
+    </div>
+</footer>
+
+<!-- jQuery -->
+
+<script src="/js/jquery.min.js"></script>
+
+
+<!-- Bootstrap Core JavaScript -->
+
+<script src="/js/bootstrap.min.js"></script>
+
+
+<!-- Custom Theme JavaScript -->
+
+<script src="/js/hux-blog.min.js"></script>
+
+
+
+<!-- async load function -->
+<script>
+    function async(u, c) {
+      var d = document, t = 'script',
+          o = d.createElement(t),
+          s = d.getElementsByTagName(t)[0];
+      o.src = u;
+      if (c) { o.addEventListener('load', function (e) { c(null, e); }, false); }
+      s.parentNode.insertBefore(o, s);
+    }
+</script>
+
+<!-- 
+     Because of the native support for backtick-style fenced code blocks 
+     right within the Markdown is landed in Github Pages, 
+     From V1.6, There is no need for Highlight.js, 
+     so Huxblog drops it officially.
+
+     - https://github.com/blog/2100-github-pages-now-faster-and-simpler-with-jekyll-3-0  
+     - https://help.github.com/articles/creating-and-highlighting-code-blocks/    
+-->
+<!--
+    <script>
+        async("http://cdn.bootcss.com/highlight.js/8.6/highlight.min.js", function(){
+            hljs.initHighlightingOnLoad();
+        })
+    </script>
+    <link href="http://cdn.bootcss.com/highlight.js/8.6/styles/github.min.css" rel="stylesheet">
+-->
+
+
+<!-- jquery.tagcloud.js -->
+<script>
+    // only load tagcloud.js in tag.html
+    if($('#tag_cloud').length !== 0){
+        async("https://www.hi-linux.com/js/jquery.tagcloud.js",function(){
+            $.fn.tagcloud.defaults = {
+                //size: {start: 1, end: 1, unit: 'em'},
+                color: {start: '#bbbbee', end: '#0085a1'},
+            };
+            $('#tag_cloud a').tagcloud();
+        })
+    }
+</script>
+
+<!--fastClick.js -->
+<script>
+    async("https://cdn.bootcss.com/fastclick/1.0.6/fastclick.min.js", function(){
+        var $nav = document.querySelector("nav");
+        if($nav) FastClick.attach($nav);
+    })
+</script>
+
+
+<!-- Google Analytics -->
+
+
+
+
+<!-- Baidu Tongji -->
+
+
+
+
+
+
+	<a id="rocket" href="#top" class=""></a>
+	<script type="text/javascript" src="/js/totop.js?v=1.0.0" async=""></script>
+    <script type="text/javascript" src="/js/toc.js?v=1.0.0" async=""></script>
+<!-- Image to hack wechat -->
+<img src="https://www.hi-linux.com/img/icon_wechat.png" width="0" height="0" />
+<!-- Migrate from head to bottom, no longer block render and still work -->
+
+</body>
+
+</html>
