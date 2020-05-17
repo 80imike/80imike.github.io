@@ -1,0 +1,897 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<!-- Head tag -->
+<head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="google-site-verification" content="xBT4GhYoi5qRD5tr338pgPM5OWHHIDR6mNg1a3euekI" />
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="description" content="">
+    <meta name="keyword"  content="Linux,运维,Nginx,Zabbix,Centos,Ansible,MySQL,Python,Docker,ELK,Haproxy,Git,Nodejs,安全,技术">
+    <link rel="shortcut icon" href="/img/ironman-draw.png">
+    <!-- Place this tag in your head or just before your close body tag. -->
+    <script async defer src="https://buttons.github.io/buttons.js"></script>
+    <title>
+        
+          史上最全的高性能代理服务器 Envoy 中文实战教程 - 运维之美
+        
+    </title>
+
+    <link rel="canonical" href="https://www.hi-linux.com/posts/57326.html">
+
+    <!-- Bootstrap Core CSS -->
+    
+<link rel="stylesheet" href="/css/bootstrap.min.css">
+
+
+    <!-- Custom CSS --> 
+    
+<link rel="stylesheet" href="/css/beantech.min.css">
+
+    
+    <!-- Pygments Highlight CSS -->
+    
+<link rel="stylesheet" href="/css/highlight.css">
+
+
+    
+<link rel="stylesheet" href="/css/widget.css">
+
+
+    
+<link rel="stylesheet" href="/css/rocket.css">
+
+
+    
+<link rel="stylesheet" href="/css/signature.css">
+
+
+    
+<link rel="stylesheet" href="/css/toc.css">
+
+
+    <!-- Custom Fonts -->
+    <!-- <link href="https://maxcdn.bootstrapcdn.com/font-awesome/4.3.0/css/font-awesome.min.css" rel="stylesheet" type="text/css"> -->
+    <!-- Hux change font-awesome CDN to qiniu -->
+    <link href="https://cdn.staticfile.org/font-awesome/4.5.0/css/font-awesome.min.css" rel="stylesheet" type="text/css">
+
+
+    <!-- Hux Delete, sad but pending in China
+    <link href='http://fonts.googleapis.com/css?family=Lora:400,700,400italic,700italic' rel='stylesheet' type='text/css'>
+    <link href='http://fonts.googleapis.com/css?family=Open+Sans:300italic,400italic,600italic,700italic,800italic,400,300,600,700,800' rel='stylesheet' type='text/
+    css'>
+    -->
+
+
+    <!-- HTML5 Shim and Respond.js IE8 support of HTML5 elements and media queries -->
+    <!-- WARNING: Respond.js doesn't work if you view the page via file:// -->
+    <!--[if lt IE 9]>
+        <script src="https://oss.maxcdn.com/libs/html5shiv/3.7.0/html5shiv.js"></script>
+        <script src="https://oss.maxcdn.com/libs/respond.js/1.4.2/respond.min.js"></script>
+    <![endif]-->
+
+    <!-- ga & ba script hoook -->
+    <script></script>
+<meta name="generator" content="Hexo 4.2.0"><link rel="alternate" href="/atom.xml" title="运维之美" type="application/atom+xml">
+</head>
+
+
+<!-- hack iOS CSS :active style -->
+<body ontouchstart="">
+	<!-- Modified by Yu-Hsuan Yen -->
+<!-- Post Header -->
+<style type="text/css">
+    header.intro-header{
+        
+            background-image: url('/img/header_img/building.jpg')
+            /*post*/
+        
+    }
+    
+</style>
+
+<header class="intro-header" >
+    <!-- Signature -->
+    <div id="signature">
+        <div class="container">
+            <div class="row">
+                <div class="col-lg-8 col-lg-offset-2 col-md-10 col-md-offset-1">
+                
+                    <div class="post-heading">
+                        <div class="tags">
+                            
+                              <a class="tag" href="/tags/#Linux" title="Linux">Linux</a>
+                            
+                              <a class="tag" href="/tags/#Kubernetes" title="Kubernetes">Kubernetes</a>
+                            
+                              <a class="tag" href="/tags/#Envoy" title="Envoy">Envoy</a>
+                            
+                        </div>
+                        <h1>史上最全的高性能代理服务器 Envoy 中文实战教程</h1>
+                        <h2 class="subheading"></h2>
+                        <span class="meta">
+                            Posted by Mike on
+                            2020-05-17
+                        </span>
+                    </div>
+                
+
+
+                </div>
+            </div>
+        </div>
+    </div>
+</header>
+
+	
+    <!-- Navigation -->
+<nav class="navbar navbar-default navbar-custom navbar-fixed-top">
+    <div class="container-fluid">
+        <!-- Brand and toggle get grouped for better mobile display -->
+        <div class="navbar-header page-scroll">
+            <button type="button" class="navbar-toggle">
+                <span class="sr-only">Toggle navigation</span>
+                <span class="icon-bar"></span>
+                <span class="icon-bar"></span>
+                <span class="icon-bar"></span>
+            </button>
+            <a class="navbar-brand" href="/">运维之美</a>
+        </div>
+
+        <!-- Collect the nav links, forms, and other content for toggling -->
+        <!-- Known Issue, found by Hux:
+            <nav>'s height woule be hold on by its content.
+            so, when navbar scale out, the <nav> will cover tags.
+            also mask any touch event of tags, unfortunately.
+        -->
+        <div id="huxblog_navbar">
+            <div class="navbar-collapse">
+                <ul class="nav navbar-nav navbar-right">
+                    <li>
+                        <a href="/">Home</a>
+                    </li>
+
+                    
+
+                        
+                    
+
+                        
+                    
+
+                        
+                        <li>
+                            <a href="/about/">About</a>
+                        </li>
+                        
+                    
+
+                        
+                        <li>
+                            <a href="/archive/">Archives</a>
+                        </li>
+                        
+                    
+
+                        
+                        <li>
+                            <a href="/tags/">Tags</a>
+                        </li>
+                        
+                    
+                    
+                </ul>
+            </div>
+        </div>
+        <!-- /.navbar-collapse -->
+    </div>
+    <!-- /.container -->
+</nav>
+<script>
+    // Drop Bootstarp low-performance Navbar
+    // Use customize navbar with high-quality material design animation
+    // in high-perf jank-free CSS3 implementation
+    var $body   = document.body;
+    var $toggle = document.querySelector('.navbar-toggle');
+    var $navbar = document.querySelector('#huxblog_navbar');
+    var $collapse = document.querySelector('.navbar-collapse');
+
+    $toggle.addEventListener('click', handleMagic)
+    function handleMagic(e){
+        if ($navbar.className.indexOf('in') > 0) {
+        // CLOSE
+            $navbar.className = " ";
+            // wait until animation end.
+            setTimeout(function(){
+                // prevent frequently toggle
+                if($navbar.className.indexOf('in') < 0) {
+                    $collapse.style.height = "0px"
+                }
+            },400)
+        }else{
+        // OPEN
+            $collapse.style.height = "auto"
+            $navbar.className += " in";
+        }
+    }
+</script>
+
+
+    <!-- Main Content -->
+    <!-- Modify by Yu-Hsuan Yen -->
+
+<!-- Post Content -->
+<article>
+    <div class="container">
+        <div class="row">
+
+            <!-- Post Container -->
+            <div class="
+                col-lg-8 col-lg-offset-2
+                col-md-10 col-md-offset-1
+                post-container">
+
+                <div id="vip-container"><h2 id="什么是-envoy">什么是 Envoy</h2>
+<p><code>Envoy</code> 是一款 <code>CNCF</code> 旗下的开源项目，由 <code>Lyft</code> 开源。<code>Envoy</code> 采用 C++ 实现，是面向 <code>Service Mesh</code> 的高性能网络代理服务。它与应用程序并行运行，通过以平台无关的方式提供通用功能来抽象网络。当基础架构中的所有服务流量都通过 Envoy 网格时，通过一致的可观测性，很容易地查看问题区域，调整整体性能。</p>
+<p><code>Envoy</code> 也是 <code>Istio Service Mesh</code> 中默认的 <code>Data Plane</code>，本文我们将讲解 <code>Envoy</code> 的一些基本概念，并采用一些实例来介绍如何在本地环境中快速使用 <code>Envoy</code> 作为 <code>Service Mesh</code> 的数据平面，以帮助读者理解 <code>Istio</code> 的 <code>Data Panel</code> 层实现。</p>
+<blockquote>
+<p>官网：<a href="https://www.envoyproxy.io" target="_blank" rel="noopener">https://www.envoyproxy.io</a></p>
+</blockquote>
+<h3 id="envoy-特性">Envoy 特性</h3>
+<ol>
+<li>整体架构</li>
+</ol>
+<p><img src="https://ws1.sinaimg.cn/large/4483e99egy1ftn7wet57fj233f1utag1.jpg" alt=""></p>
+<ol start="2">
+<li>进程无关架构</li>
+</ol>
+<p><code>Envoy</code> 是一个自组织的模块，与应用 <code>Server</code> 并无直接依赖。所有的 <code>Envoy</code> 构建了一个透明的服务网格 <code>Service Mesh</code>，处于其中的应用只需要简单的与本地的 <code>Envoy</code> 进行收发信息，并不需要关注整个网络拓扑。这种架构对于应用通信有两大好处：</p>
+<ul>
+<li>
+<p><code>Envoy</code> 可以让任何的编程语言编写的服务通信，协同工作，<code>Envoy</code> 帮你屏蔽了服务之间的沟壑。</p>
+</li>
+<li>
+<p>任何曾经在大型微服务开发中工作过的人都知道发布一个库更新是多么的痛苦。<code>Envoy</code> 可以以一种透明的方式快速的发布更新整个基础架构中的版本。</p>
+</li>
+</ul>
+<a id="more"></a>
+<ol start="3">
+<li>高级负载均衡</li>
+</ol>
+<p>分布式系统中不同模块间的负载均衡是一个复杂的问题。因为 <code>Envoy</code> 是一个自组织的代理，所以它能在一个地方实现高级负载均衡技术并使他们可被访问。当前 <code>Envoy</code> 支持自动重试、断路器、全局限速、阻隔请求、异常检测，将来还会支持按计划进行请求速率控制。</p>
+<ol start="4">
+<li>动态配置</li>
+</ol>
+<p><code>Envoy</code> 提供了可选的一系列的分层的动态配置 <code>API</code>，使用这些 <code>API</code> 可以构建出复杂的集中式部署管理。</p>
+<ol start="5">
+<li>正向代理支持</li>
+</ol>
+<p>虽然 <code>Envoy</code> 设计初衷是服务和服务之间通信系统，得益于其监视、管理、服务发现和负载均衡算法的实现，<code>Enovy</code> 包含了足够多的特性为绝大多数 <code>Web</code> 服务做正向代理。</p>
+<p>除了这些之外还有对 <code>HTTP/2</code> 的支持，<code>L3</code>、<code>L4</code>、<code>L7</code> 代理，可以实现 <code>TCP Proxy</code>、<code>HTTP Proxy</code> 等功能。</p>
+<ol start="6">
+<li>线程模型</li>
+</ol>
+<p><code>Envoy</code> 使用单进程多线程架构，其中一个扮演主线程的控制各种协调任务，而一些工作线程负责监听、过滤和转发。一旦某个链接被监听器 <code>Listener</code> 接受，那么这个链接将会剩余的生命周期绑定在这个 <code>Woker</code> 线程。这种架构会使得大部分工作工作在单线程的情况下，只有少量的工作会涉及到线程间通信，<code>Envoy</code> 代码是 100% 非阻塞的。</p>
+<ol start="7">
+<li>Listener 监听器</li>
+</ol>
+<ul>
+<li>
+<p>一个 <code>Envoy</code> 进程可以设置多个不同的 <code>Listener</code>，建议一台机器只使用一个 <code>Envoy</code> 实例。</p>
+</li>
+<li>
+<p>每一个 <code>Listener</code> 的网络层 <code>L3/L4</code> 过滤器是独立配置的。并且一个 <code>Listener</code> 是可以通过配置来完成多种任务的，比如：访问限制、TLS 客户端校验、HTTP 链接管理等。</p>
+</li>
+<li>
+<p><code>Listener</code> 也有自己的非网络层过滤器，它可以修改链接的 <code>Metadata</code> 信息，通常用来影响接下来链接是如何被网络层过滤器处理的。</p>
+</li>
+<li>
+<p>无论网络层过滤器还是 <code>Listener</code> 过滤器都可以提前终止后续的过滤器链的执行。</p>
+</li>
+</ul>
+<ol start="8">
+<li>HTTP 连接管理器</li>
+</ol>
+<ul>
+<li>
+<p><code>Envoy</code> 是完整支持 <code>HTTP/1.1</code>、<code>Websockets</code> 和 <code>HTTP/2</code>，不支持 <code>SPDY</code>。</p>
+</li>
+<li>
+<p>这层过滤器主要是将原始的传递数据转变成 <code>HTTP</code> 层级的信息和事件，如收到 <code>Headers</code>、收到 <code>Body</code> 数据，同样它也可以做接入日志、<code>Request ID</code> 生成和追踪、<code>Req/Res</code> 头部修改工作、路由表管理、统计分析。</p>
+</li>
+<li>
+<p>每一个 <code>HTTP</code> 链接管理器有一个相匹配的路由表，路由表可以静态指定，也可以动态地通过 <code>RDS API</code> 来设置 <code>route-dynamic</code>。</p>
+</li>
+<li>
+<p>其内部还有 <code>HTTP</code> 过滤器，可以支持在 <code>HTTP</code> 层级。在无需关注使用什么协议 (<code>HTTP/1.1</code> 或 <code>HTTP/2</code>) 实现的情况下进行操作 <code>HTTP</code> 内容，支持 <code>Encode</code>、<code>Decode</code>、<code>Encode/Decode</code> 三种不同类型过滤器。</p>
+</li>
+</ul>
+<ol start="9">
+<li>HTTP 路由器</li>
+</ol>
+<ul>
+<li>
+<p>经常用在做边缘/反向代理和构建内部 <code>Envoy Mesh</code> 发挥巨大作用。</p>
+</li>
+<li>
+<p><code>HTTP</code> 路由器可以支持请求重试配置：最大重试次数和设置重试条件，比如某些 <code>5XX</code> 错误和具有幂等性操作的 <code>4XX</code> 错误。</p>
+</li>
+<li>
+<p><code>Envoy</code> 自己使用 <code>HTTP/2</code> 链接管理器实现了 <code>gRPC</code> 协议，将原来官方的 <code>Google gRPC</code> 内置的很多功能，比如重试、超时、<code>Endpoint</code> 发现、负载均衡、负载报告、健康检查等功能都实现了。将来除非特殊特性必须，都可以使用 <code>Envoy gRPC</code> 来实现。</p>
+</li>
+</ul>
+<ol start="10">
+<li>Cluster 管理器</li>
+</ol>
+<p><code>Cluster</code> 管理器暴露 <code>API</code> 给过滤器，并允许过滤器可以得到链接到上游集群的 <code>L3/L4</code> 链接或者维持一个抽象的 <code>HTTP</code> 连接池用来链接上游集群（上游主机支持 <code>HTTP 1.1</code> 还是 <code>HTTP 2</code> 都是被隐藏的）。过滤器决定是使用 <code>L3/L4</code> 链接还是 <code>HTTP Stream</code> 来链接上游集群。而对于集群管理器来说，它负责所有集群内主机的可用性、负载均衡、健康度、线程安全的上游链接数据，上游链接类型 <code>TCP/UP</code>、<code>UDS</code>，上游可接受的协议 <code>HTTP 1.1/2</code>。</p>
+<p><code>Cluster</code> 管理器既可以静态配置，也可以使用 <code>CDS-Cluster-Discovery-Service API</code> 来动态配置。 集群在正式使用之前有一个 “加热” <code>Warming</code> 的过程：先做服务发现必要的初始化，比如 <code>DNS</code> 记录更新、<code>EDS</code> 更新，然后进行健康检查，当进行完上述的过程，会进入<code>Becoming available</code> 状态，这个阶段 <code>Envoy</code> 不会把流量指向它们; 在更新集群时，也不会把正在处理流量的集群处理掉，而是用新的去替换老的那些还未进行任何流量的集群。</p>
+<ol start="11">
+<li>与 Nginx 的区别</li>
+</ol>
+<ul>
+<li>
+<p><code>Envoy</code> 对 <code>HTTP/2</code> 的支持比 <code>Nginx</code> 更好，支持包括 <code>upstream</code> 和 <code>downstream</code> 在内的双向通信，而 <code>Nginx</code> 只支持 <code>downstream</code> 的连接。</p>
+</li>
+<li>
+<p>高级负载均衡功能是免费的，<code>Nginx</code> 的高级负载均衡功能则需要付费的 <code>Nginx Plus</code> 支持。</p>
+</li>
+<li>
+<p><code>Envoy</code> 支持热更新，<code>Nginx</code> 配置更新之后需要 <code>Reload</code>。</p>
+</li>
+<li>
+<p><code>Envoy</code> 更贴近 <code>Service Mesh</code> 的使用习惯，<code>Nginx</code> 更贴近传统服务的使用习惯。</p>
+</li>
+</ul>
+<h3 id="envoy-术语">Envoy 术语</h3>
+<p>要深入理解 <code>Envoy</code>，首先需要先了解一下 <code>Envoy</code> 中的一些术语。</p>
+<p><img src="https://ws1.sinaimg.cn/large/4483e99egy1fto85kdq0wj20lo0b2wej.jpg" alt=""></p>
+<ul>
+<li>
+<p><code>Host</code>：能够进行网络通信的实体（如服务器上的应用程序）。</p>
+</li>
+<li>
+<p><code>Downstream</code>：下游主机连接到 <code>Envoy</code>，发送请求并接收响应。</p>
+</li>
+<li>
+<p><code>Upstream</code>：上游主机接收来自 <code>Envoy</code> 连接和请求并返回响应。</p>
+</li>
+<li>
+<p><code>Listener</code>：可以被下游客户端连接的命名网络（如端口、<code>Unix</code> 套接字）。一般是每台主机运行一个 <code>Envoy</code>，使用单进程运行，但是每个进程中可以启动任意数量的 <code>Listener</code>（监听器），每个监听器都独立配置一定数量的（ <code>L3/L4</code> ）网络过滤器。</p>
+</li>
+<li>
+<p><code>Cluster</code>：<code>Envoy</code> 连接到的一组逻辑上相似的上游主机。</p>
+</li>
+<li>
+<p><code>Mesh</code>：以提供一致的网络拓扑的一组主机。</p>
+</li>
+<li>
+<p><code>Runtime Configuration</code>：与 <code>Envoy</code> 一起部署的外置实时配置系统。</p>
+</li>
+<li>
+<p><code>Listener Filter</code>：<code>Listener</code> 使用 <code>Listener Filter</code>（监听器过滤器）来操作链接的元数据，它的作用是在不更改 <code>Envoy</code> 的核心功能的情况下添加更多的集成功能。</p>
+</li>
+<li>
+<p><code>Http Route Table</code>：<code>HTTP</code> 的路由规则，例如请求的域名，<code>Path</code> 符合什么规则，转发给哪个 <code>Cluster</code>。</p>
+</li>
+</ul>
+<h2 id="部署-envoy">部署 Envoy</h2>
+<p>官方提供了 <code>Envoy</code> 的 <code>Docker</code> 镜像，直接下载对应镜像即可使用。</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">$ docker pull envoyproxy&#x2F;envoy:latest</span><br></pre></td></tr></table></figure>
+<p>镜像中已经将 Envoy 安装到 <code>/usr/local/bin</code> 目录下，可以先看看 <code>Envoy</code> 进程的帮助信息。</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br></pre></td><td class="code"><pre><span class="line"># &#x2F;usr&#x2F;local&#x2F;bin&#x2F;envoy --help</span><br><span class="line">USAGE: </span><br><span class="line">   &#x2F;usr&#x2F;local&#x2F;bin&#x2F;envoy  [--disable-hot-restart] [--max-obj-name-len</span><br><span class="line">                         &lt;uint64_t&gt;] [--max-stats &lt;uint64_t&gt;] [--mode</span><br><span class="line">                         &lt;string&gt;] [--parent-shutdown-time-s &lt;uint32_t&gt;]</span><br><span class="line">                         [--drain-time-s &lt;uint32_t&gt;]</span><br><span class="line">                         [--file-flush-interval-msec &lt;uint32_t&gt;]</span><br><span class="line">                         [--service-zone &lt;string&gt;] [--service-node</span><br><span class="line">                         &lt;string&gt;] [--service-cluster &lt;string&gt;]</span><br><span class="line">                         [--hot-restart-version] [--restart-epoch</span><br><span class="line">                         &lt;uint32_t&gt;] [--log-path &lt;string&gt;] [--log-format</span><br><span class="line">                         &lt;string&gt;] [-l &lt;string&gt;]</span><br><span class="line">                         [--local-address-ip-version &lt;string&gt;]</span><br><span class="line">                         [--admin-address-path &lt;string&gt;] [--v2-config-only]</span><br><span class="line">                         [--config-yaml &lt;string&gt;] [-c &lt;string&gt;]</span><br><span class="line">                         [--concurrency &lt;uint32_t&gt;] [--base-id &lt;uint32_t&gt;]</span><br><span class="line">                         [--] [--version] [-h]</span><br></pre></td></tr></table></figure>
+<p><code>Envoy</code> 进程启动的时候需要指定一些参数，其中最重要的是 <code>--config-yaml</code> 参数，用于指定 <code>Envoy</code> 进程启动的时候需要读取的配置文件地址。<code>Docker</code> 中配置文件默认是放在 <code>/etc/envoy</code> 目录下，配置文件的文件名是 <code>envoy.yaml</code>。所以我们在启动容器的时候需要将自定义的 <code>envoy.yaml</code> 配置文件挂载到指定目录下替换掉默认的配置文件。</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"># &#x2F;usr&#x2F;local&#x2F;bin&#x2F;envoy -c &lt;path to config&gt;.&#123;json,yaml,pb,pb_text&#125; --v2-config-only</span><br></pre></td></tr></table></figure>
+<blockquote>
+<p>注意：<code>Envoy</code> 默认的日志级别是 <code>info</code>，对于开发阶段需要进行调试的话，调整日志级别到 <code>Debug</code> 是非常有用的。你可以在启动参数中添加 <code>-l debug</code> 来将日志级别进行切换。</p>
+</blockquote>
+<h2 id="编写-envoy-配置文件">编写 Envoy 配置文件</h2>
+<p>在介绍 <code>Envoy</code> 的配置文件之前，先介绍一下 <code>Envoy</code> 的 <code>API</code>。<code>Envoy</code> 提供了两个版本的 <code>API</code>，<code>V1</code> 和 <code>V2</code> 版本 <code>API</code>。现阶段 <code>V1</code> 版本已经不建议使用了，通常都是使用 <code>V2</code> 的 <code>API</code>。</p>
+<p><code>V2</code> 的 <code>API</code> 提供了两种方式的访问，一种是 <code>HTTP Rest</code> 的方式访问，还有一种 <code>GRPC</code> 的访问方式。关于 <code>GRPC</code> 的介绍可以参考官方文档，在后面的文章中只实现了 <code>GRPC</code> 的 <code>API</code>。</p>
+<p><code>Envoy</code> 的启动配置文件分为两种方式：静态配置和动态配置。</p>
+<p>静态配置是将所有信息都放在配置文件中，启动的时候直接加载。</p>
+<p>动态配置需要提供一个 <code>Envoy</code> 的服务端，用于动态生成 <code>Envoy</code> 需要的服务发现接口，这里叫 <code>XDS</code> ，通过发现服务来动态的调整配置信息，<code>Istio</code> 就是实现了 <code>V2</code> 的 <code>API</code>。</p>
+<h3 id="静态配置">静态配置</h3>
+<p>以一个最简化的静态配置来做示例，体验一下 <code>Envoy</code>。</p>
+<p>下面是 <code>envoy.yaml</code>配置文件：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br></pre></td><td class="code"><pre><span class="line">admin:</span><br><span class="line">  access_log_path: &#x2F;tmp&#x2F;admin_access.log</span><br><span class="line">  address:</span><br><span class="line">    socket_address: &#123; address: 127.0.0.1, port_value: 9901 &#125;</span><br><span class="line"></span><br><span class="line">static_resources:</span><br><span class="line">  listeners:</span><br><span class="line">  - name: listener_0</span><br><span class="line">    address:</span><br><span class="line">      socket_address: &#123; address: 0.0.0.0, port_value: 10000 &#125;</span><br><span class="line">    filter_chains:</span><br><span class="line">    - filters:</span><br><span class="line">      - name: envoy.http_connection_manager</span><br><span class="line">        config:</span><br><span class="line">          stat_prefix: ingress_http</span><br><span class="line">          codec_type: AUTO</span><br><span class="line">          route_config:</span><br><span class="line">            name: local_route</span><br><span class="line">            virtual_hosts:</span><br><span class="line">            - name: local_service</span><br><span class="line">              domains: [&quot;*&quot;]</span><br><span class="line">              routes:</span><br><span class="line">              - match: &#123; prefix: &quot;&#x2F;&quot; &#125;</span><br><span class="line">                route: &#123; cluster: some_service &#125;</span><br><span class="line">          http_filters:</span><br><span class="line">          - name: envoy.router</span><br><span class="line">  clusters:</span><br><span class="line">  - name: some_service</span><br><span class="line">    connect_timeout: 0.25s</span><br><span class="line">    type: STATIC</span><br><span class="line">    lb_policy: ROUND_ROBIN</span><br><span class="line">    hosts: [&#123; socket_address: &#123; address: 127.0.0.1, port_value: 80 &#125;&#125;]</span><br></pre></td></tr></table></figure>
+<p>在此基础上启动两个容器，<code>envoyproxy</code> 容器和 <code>nginx</code> 容器，<code>nginx</code> 容器共享 <code>envoyproxy</code> 容器的网络，以此来模拟 <code>Sidecar</code>。</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">$ docker run -d -p 10000:10000 -v &#96;pwd&#96;&#x2F;envoy.yaml:&#x2F;etc&#x2F;envoy&#x2F;envoy.yaml --name envoyproxy envoyproxy&#x2F;envoy:latest</span><br><span class="line">$ docker run -d --network&#x3D;container:envoyproxy --name nginx nginx</span><br></pre></td></tr></table></figure>
+<p>根据配置文件的规则，<code>Envoy</code> 监听在 <code>10000</code> 端口，同时该端口也在宿主机的 <code>10000</code> 端口上暴露出来。当有请求到达监听上后，<code>Envoy</code> 会对所有请求路由到 <code>some_service</code> 这个 <code>Cluster</code> 上，而该 <code>Cluster</code> 的 <code>Upstream</code> 指向本地的 <code>80</code> 端口，也就是 <code>Nginx</code> 服务上。</p>
+<p><img src="https://upload-images.jianshu.io/upload_images/12196676-5550ffdbe14a2d0c.png" alt=""></p>
+<h3 id="动态配置">动态配置</h3>
+<p>动态配置可以实现全动态，即实现 <code>LDS</code> (<code>Listener Discovery Service</code>)、<code>CDS</code> (<code>Cluster Discovery Service</code>)、<code>RDS</code> (<code>Route Discovery Service</code>)、<code>EDS</code> (<code>Endpoint Discovery Service</code>)，以及 <code>ADS</code> (<code>Aggregated Discovery Service</code>)。</p>
+<p><code>ADS</code> 不是一个实际意义上的 <code>XDS</code>，它提供了一个汇聚的功能，以实现需要多个同步 <code>XDS</code> 访问的时候可以在一个 <code>Stream</code> 中完成的作用。</p>
+<p>下面的图通过在静态配置的基础上，比较直观的表示出各个发现服务所提供的信息。</p>
+<p><img src="https://upload-images.jianshu.io/upload_images/12196676-1927da1e7ee7bb65.png" alt=""></p>
+<p>由此，典型的动态配置文件如下：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br></pre></td><td class="code"><pre><span class="line">admin:</span><br><span class="line">  access_log_path: &#x2F;tmp&#x2F;admin_access.log</span><br><span class="line">  address:</span><br><span class="line">    socket_address: &#123; address: 127.0.0.1, port_value: 9901 &#125;</span><br><span class="line"></span><br><span class="line">dynamic_resources:</span><br><span class="line">  cds_config:</span><br><span class="line">    ads: &#123;&#125;</span><br><span class="line">  lds_config:</span><br><span class="line">    ads: &#123;&#125;</span><br><span class="line">  ads_config:</span><br><span class="line">    api_type: GRPC</span><br><span class="line">    cluster_names: [xds_cluster]</span><br><span class="line"></span><br><span class="line">static_resources:</span><br><span class="line">  clusters:</span><br><span class="line">  - name: xds_cluster</span><br><span class="line">    connect_timeout: 0.25s</span><br><span class="line">    type: STRICT_DNS</span><br><span class="line">    lb_policy: ROUND_ROBIN</span><br><span class="line">    http2_protocol_options: &#123;&#125;</span><br><span class="line">    hosts: [&#123; socket_address: &#123; address: envoy-server, port_value: 50051 &#125;&#125;]</span><br></pre></td></tr></table></figure>
+<blockquote>
+<p>注意：动态配置和静态配置最大的区别在于，启动的时候一定要指定 <code>cluster</code> 和 <code>id</code>，这两个参数表示该 Envoy 进程属于哪个 <code>Cluster</code>，<code>id</code> 要求在相同的 <code>Cluster</code> 下唯一，以表示不同的指向发现服务的连接信息。这两个参数可以在 <code>Envoy</code> 的启动命令中添加<code>--service-cluster</code> 和 <code>--service-node</code> 来指定，也可以在 <code>envoy.yaml</code> 配置文件中指定 <code>node.cluster</code> 和 <code>node.id</code>。</p>
+</blockquote>
+<h2 id="envoy-使用实例">Envoy 使用实例</h2>
+<h3 id="入门实例">入门实例</h3>
+<p>了解一个开源软件，从官方实例入手再好不过了，因此下面的例子将会围绕官方仓库中的实例展开。所以在开始之前，你需要安装并配置以下工具：</p>
+<ul>
+<li><code>Docker</code></li>
+<li><code>Docker Compose</code></li>
+<li><code>Git</code></li>
+<li><code>Curl</code></li>
+</ul>
+<p>我们将会使用 <code>Docker</code> 和 <code>Docker Compose</code> 来构建和运行几个 <code>Envoy</code> 示例服务，并用 <code>Curl</code> 来检测 <code>Envoy</code> 示例服务是否在运行。</p>
+<h4 id="运行-envoy">运行 Envoy</h4>
+<p>首先克隆 <code>Envoy</code> 官方仓库到本地,并定位到 <code>envoy/examples/front-proxy</code> 文件夹。</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">$ git clone https:&#x2F;&#x2F;github.com&#x2F;envoyproxy&#x2F;envoy</span><br><span class="line">$ cd envoy&#x2F;examples&#x2F;front-proxy</span><br></pre></td></tr></table></figure>
+<p><code>front-proxy</code> 文件夹中的服务是一个用 <code>Flask</code> 实现的后端服务，入口文件在 <code>service.py</code> 文件里面。<code>Envoy</code> 作为一个 <code>Sidecar</code> 部件，将与 <code>service.py</code> 在同一个容器中运行，并由 <code>docker-compose,.yaml</code> 文件配置。</p>
+<p>前端代理比后端服务更简单，它使用配置文件 <code>front-envoy.yaml</code> 来运行 <code>Envoy</code>。<code>Dockerfile-frontenvoy</code> 文件则是 <code>front-envoy</code> 的 <code>Dockerfile</code>。</p>
+<p>如果你之前没有接触过 <code>Docker</code> 的话，你可以使用以下命令在本地构建并运行 <code>front-proxy</code> 的 <code>Docker</code> 镜像：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">$ cd &#x2F;path&#x2F;to&#x2F;envoy&#x2F;examples&#x2F;front-proxy</span><br><span class="line">$ docker-compose up --build -d</span><br></pre></td></tr></table></figure>
+<p>其中的 <code>--build</code> 表示构建镜像， <code>-d</code> 表示在后台运行所有 <code>docker-compose</code> 配置文件中定义的镜像，具体可参考 <code>Docker</code> 相关文档。</p>
+<p>命令运行成功后，将会启动一个前端代理和两个服务实例：<code>service1</code> 和 <code>service2</code>。你可以通过以下命令来验证容器是否正常运行:</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">$ docker-compose ps</span><br></pre></td></tr></table></figure>
+<p>正常的话会返回以下内容:</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">$ front-proxy git:(master) docker-compose ps</span><br><span class="line">          Name                         Command               State                            Ports</span><br><span class="line">----------------------------------------------------------------------------------------------------------------------------</span><br><span class="line">front-proxy_front-envoy_1   &#x2F;usr&#x2F;bin&#x2F;dumb-init -- &#x2F;bin ...   Up      10000&#x2F;tcp, 0.0.0.0:8000-&gt;80&#x2F;tcp, 0.0.0.0:8001-&gt;8001&#x2F;tcp</span><br><span class="line">front-proxy_service1_1      &#x2F;bin&#x2F;sh -c &#x2F;usr&#x2F;local&#x2F;bin&#x2F; ...   Up      10000&#x2F;tcp, 80&#x2F;tcp</span><br><span class="line">front-proxy_service2_1      &#x2F;bin&#x2F;sh -c &#x2F;usr&#x2F;local&#x2F;bin&#x2F; ...   Up      10000&#x2F;tcp, 80&#x2F;tcp</span><br></pre></td></tr></table></figure>
+<h4 id="测试服务是否连通">测试服务是否连通</h4>
+<p>你可以使用 <code>curl</code> 或者浏览器来测试服务是否在正常运行</p>
+<p>浏览器中输入 <code>http://localhost:8000/service/1</code> 或者使用以下命令:</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">$ curl http:&#x2F;&#x2F;localhost:8000&#x2F;service&#x2F;1</span><br></pre></td></tr></table></figure>
+<p>如果返回结果是像下面这样，则表示 <code>service1</code> 的 <code>Envoy</code> 服务正常运行:</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">Hello from behind Envoy (service 1)! hostname: a841ffceafd0 resolvedhostname: 172.18.0.4</span><br></pre></td></tr></table></figure>
+<p>你也可以用同样的方法测试 <code>service 2</code> 的服务。</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">$ curl http:&#x2F;&#x2F;localhost:8000&#x2F;service&#x2F;2</span><br></pre></td></tr></table></figure>
+<p>返回的结果和 <code>service 1</code> 类似。</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">Hello from behind Envoy (service 2)! hostname: e83b35c6f4fe resolvedhostname: 172.18.0.3 。</span><br></pre></td></tr></table></figure>
+<h4 id="envoy-配置">Envoy 配置</h4>
+<p>下面我们先简单看一下 <code>Envoy</code> 的静态配置信息，之后再继续看 <code>Demo</code> 中的动态配置信息。</p>
+<p>我们先从 <code>front-envoy.yml</code> 入手。打开文件之后，我们会发现这个 <code>yaml</code> 有两个最高的层级，分别是 <code>static_resources</code> 和 <code>admin</code> 。<code>admin</code> 的内容相对比较简单，总共只有六行:</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">admin:</span><br><span class="line">   access_log_path: &quot;&#x2F;dev&#x2F;null&quot;</span><br><span class="line">   address:</span><br><span class="line">     socket_address:</span><br><span class="line">       address: 0.0.0.0</span><br><span class="line">       port_value: 8001</span><br></pre></td></tr></table></figure>
+<p>其中 <code>access_log_path</code> 字段值是 <code>/dev/null</code>，其含义是 <code>admin</code> 服务的请求日志将不会被保存。生产环境中可自行将目标目录指定到需要的地方。<code>address</code> 和 <code>port_value</code> 字段分别表示 <code>admin server</code> 运行的 <code>IP</code> 端口。</p>
+<p><code>static_resource</code> 的内容定义了非动态管理的集群（<code>Cluster</code>）和监听器（<code>Listener</code>）相关配置。集群是 <code>Envoy</code> 连接到的一组逻辑上相似的上游主机，一个集群是一组被定义的 <code>ip/port</code> 集合，<code>Envoy</code> 将借此实现负载均衡。监听器是一组被定义的网络地址，它是可以由下游客户端连接的命名网络位置（例如，端口、<code>Unix</code> 域套接字等）。监听器是服务(程序)监听者，就是真正干活的，客户端可借此连接至服务。</p>
+<p><code>front proxy</code> 中只有一个监听器，监听器中除了 <code>socket_address</code> 之外还有一个字段是 <code>filter_chains</code>，<code>Envoy</code> 通过此字段来管理 <code>HTTP</code> 的连接和过滤。</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line">listeners:</span><br><span class="line">- address:</span><br><span class="line">    socket_address:</span><br><span class="line">      address: 0.0.0.0</span><br><span class="line">      port_value: 80</span><br><span class="line">  filter_chains:</span><br><span class="line">  - filters:</span><br><span class="line">    - name: envoy.http_connection_manager</span><br><span class="line">      config:</span><br><span class="line">        codec_type: auto</span><br><span class="line">        stat_prefix: ingress_http</span><br><span class="line">        route_config:</span><br><span class="line">          name: local_route</span><br></pre></td></tr></table></figure>
+<p>其中有个配置选项是 <code>virtual_hosts</code>，该选项在 <code>HTTP</code> 连接管理过滤器中用作定义虚拟主机，并通过正则过滤允许访问服务的域名。路由也在其中配置，例子中将 <code>/service/1</code> 和 <code>/service/2</code> 的请求分别转发到了其相应的集群中。</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line">virtual_hosts:</span><br><span class="line">- name: backend</span><br><span class="line">  domains:</span><br><span class="line">  - &quot;*&quot;</span><br><span class="line">  routes:</span><br><span class="line">  - match:</span><br><span class="line">      prefix: &quot;&#x2F;service&#x2F;1&quot;</span><br><span class="line">    route:</span><br><span class="line">      cluster: service1</span><br><span class="line">  - match:</span><br><span class="line">      prefix: &quot;&#x2F;service&#x2F;2&quot;</span><br><span class="line">    route:</span><br><span class="line">      cluster: service2</span><br></pre></td></tr></table></figure>
+<p>接下来我们继续看静态集群的配置:</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br></pre></td><td class="code"><pre><span class="line">clusters:</span><br><span class="line">- name: service1</span><br><span class="line">  connect_timeout: 0.25s</span><br><span class="line">  type: strict_dns</span><br><span class="line">  lb_policy: round_robin</span><br><span class="line">  http2_protocol_options: &#123;&#125;</span><br><span class="line">  hosts:</span><br><span class="line">  - socket_address:</span><br><span class="line">      address: service1</span><br><span class="line">      port_value: 80</span><br><span class="line">- name: service2</span><br><span class="line">  connect_timeout: 0.25s</span><br><span class="line">  type: strict_dns</span><br><span class="line">  lb_policy: round_robin</span><br><span class="line">  http2_protocol_options: &#123;&#125;</span><br><span class="line">  hosts:</span><br><span class="line">  - socket_address:</span><br><span class="line">      address: service2</span><br><span class="line">      port_value: 80</span><br></pre></td></tr></table></figure>
+<p>在静态集群的配置内容中，我们可以配置超时时间、熔断器、服务发现等等内容。集群由一系列端点 (<code>Endpoints</code>) 组成，端点就是一组服务集群中可以响应访问请求的网络地址。在上面的例子中，端点标准定义成 <code>DNS</code> ，除此之外，端点可以直接被定义成 <code>Socket</code> 地址，或者是可动态读取的服务发现机制。</p>
+<p><strong>尝试动手修改配置</strong></p>
+<p>我们可以在本地尝试自己修改配置，重建镜像，测试修改后的配置。监听过滤器是 <code>Envoy</code> 为监听器提供的附加功能。比方说，想要增加访问日志到我们的 <code>HTTP</code> 过滤器中，只要增加 <code>access_log</code> 字段到配置文件中即可:</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line">- filters:</span><br><span class="line">  - name: envoy.http_connection_manager</span><br><span class="line">    config:</span><br><span class="line">      codec_type: auto</span><br><span class="line">      stat_prefix: ingress_http</span><br><span class="line">      access_log:</span><br><span class="line">        - name: envoy.file_access_log</span><br><span class="line">          config:</span><br><span class="line">            path: &quot;&#x2F;var&#x2F;log&#x2F;access.log&quot;</span><br><span class="line">      route_config:</span><br></pre></td></tr></table></figure>
+<p>修改之后，先通过 <code>docker-compose down</code> 命令关闭 <code>docker-compose</code> 容器组，然后使用 <code>docker-compose up --build -d</code> 命令重新构建镜像并运行容器组即可。</p>
+<p>为了验证我们新增的 <code>access_log</code> 字段是否生效，我们可以模拟几次请求。然后通过命令 <code>docker-compose exec front-envoy /bin/bash</code> 手动进入容器内部查看访问日志是否在相应的目录中，你会看到 <code>/var/log/access.log</code> 文件记录着你的请求结果。</p>
+<h4 id="管理页面">管理页面</h4>
+<p>Envoy 的一大特色是内置了管理页面，你可以通过 <code>http://localhost:8001</code> 访问。管理页面中 <code>/cluster</code> 菜单展示了上游 (<code>Upstream</code>) 集群端口的统计内容，<code>stats</code> 菜单则显示了更多端口的统计内容。</p>
+<p><img src="https://i.loli.net/2019/10/23/TowFauBL4Ae6Yz8.png" alt=""></p>
+<p>更多管理页面的内容你可以直接访问帮助页面 <code>http://localhost:8001/help</code> 来查看。</p>
+<h3 id="请求处理流程">请求处理流程</h3>
+<p><code>Envoy</code> 中对访问请求的处理流程大致如下，先将请求数据预处理，转成 <code>Envoy</code> 中的 <code>Filter</code>， 读写请求的 <code>filter</code> 分别是 <code>ReadFilter</code> 和 <code>WriteFiler</code>，对每个网络层也有各自的 <code>filter</code> ，<code>TCP</code> 的是 <code>TcpProxyFilter</code>, <code>HTTP</code> 的是 <code>ConnectionManager</code>，都由读 <code>filter ReadFilter</code> 继承而来。各个 <code>filter</code> 预处理完成之后就会组织成上面示例配置文件中有提到的 <code>FilterChain</code>， 收到 <code>FilterChain</code> 之后会将其路由到指定的集群中，并根据负载均衡获取到相应的地址，然后将请求转发出去。</p>
+<h3 id="进阶实例">进阶实例</h3>
+<p>接下来的实验主要以动态配置的方式来实现一个简单的需求，首先描述一下需求场景：有两个微服务，一个是 <code>envoy-web</code>，一个 <code>envoy-server</code>。</p>
+<ul>
+<li>
+<p><code>envoy-web</code> 相当于下图中的 <code>front-envoy</code> 作为对外访问的入口。</p>
+</li>
+<li>
+<p><code>envoy-server</code> 相当于下图中的 <code>service_1</code> 和 <code>service_2</code>，是内部的一个微服务，部署 <code>2</code> 个实例。</p>
+</li>
+</ul>
+<p><img src="https://upload-images.jianshu.io/upload_images/12196676-2a45b1388924b33a.png" alt=""></p>
+<p><code>envoy-server</code> 有 3 个 <code>API</code>，分别是 <code>/envoy-server/hello</code>、<code>/envoy-server/hi</code>、<code>/envoy-server/self</code>，目的是测试 <code>Envoy</code> 对于流入 <code>envoy-server</code> 的流量控制，对外只允许访问 <code>/envoy-server/hello</code> 和 <code>/envoy-server/hi</code> 两个 <code>API</code>，<code>/envoy-server/self</code> 不对外暴露服务。</p>
+<p><code>envoy-web</code> 也有 3 个 <code>API</code>，分别是 <code>/envoy-web/hello</code>、<code>/envoy-web/hi</code>、<code>/envoy-web/self</code>，目的是测试 <code>Envoy</code> 对于流出 <code>envoy-web</code> 的流量控制，出口流量只允许 <code>/envoy-web/hello</code> 和 <code>/envoy-web/self</code> 两个访问出去。</p>
+<p>最终的实验：外部只能访问 <code>envoy-web</code> 暴露的接口</p>
+<ul>
+<li>
+<p>当访问 <code>/envoy-web/hello</code> 接口时返回 <code>envoy-server</code> 的 <code>/hello</code> 接口的数据，表示 <code>envoy-web</code> 作为客户端访问 <code>envoy-server</code> 返回服务响应的结果。</p>
+</li>
+<li>
+<p>当访问 <code>/envoy-web/hi</code> 接口时，<code>envoy-web</code> 的 <code>envoy</code> 拦截住出口流量，限制 <code>envoy-web</code> 向 <code>envoy-server</code> 发送请求，对于前端用户返回 <code>mock</code> 数据。</p>
+</li>
+<li>
+<p>当访问 <code>/envoy-web/self</code> 接口时，<code>envoy-web</code> 出口流量可以到达 <code>envoy-server</code> 容器，但是 <code>envoy-server</code> 在入口流量处控制住了此次请求，拒绝访问 <code>envoy-server</code>服务，对于前端用户返回 <code>mock</code> 数据。</p>
+</li>
+</ul>
+<h3 id="静态配置">静态配置</h3>
+<p>首先，以静态配置的方式先实现功能。</p>
+<h4 id="编写服务代码">编写服务代码</h4>
+<p>服务代码分为 <code>envoy-web</code> 和 <code>envoy-server</code> 两个服务，采用 <code>SpringBoot</code> 的方式，下面记录一些重要的代码片段。</p>
+<ul>
+<li>envoy-server</li>
+</ul>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br></pre></td><td class="code"><pre><span class="line">@RestController</span><br><span class="line">public class HelloRest &#123;</span><br><span class="line">    private static final Logger LOGGER &#x3D; LoggerFactory.getLogger(HelloRest.class);</span><br><span class="line"></span><br><span class="line">    @GetMapping(&quot;&#x2F;envoy-server&#x2F;hello&quot;)</span><br><span class="line">    public String hello() &#123;</span><br><span class="line">        LOGGER.info(&quot;get request from remote, send response, say hello&quot;);</span><br><span class="line">        return &quot;hello&quot;;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    @GetMapping(&quot;&#x2F;envoy-server&#x2F;hi&quot;)</span><br><span class="line">    public String hi() &#123;</span><br><span class="line">        LOGGER.info(&quot;get request from remote, send response, say hi&quot;);</span><br><span class="line">        return &quot;hi&quot;;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    @GetMapping(&quot;&#x2F;envoy-server&#x2F;self&quot;)</span><br><span class="line">    public String self() &#123;</span><br><span class="line">        LOGGER.info(&quot;get request from remote, send response, say self&quot;);</span><br><span class="line">        return &quot;self&quot;;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<ul>
+<li>envoy-web</li>
+</ul>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br></pre></td><td class="code"><pre><span class="line">@RestController</span><br><span class="line">public class HelloController &#123;</span><br><span class="line">    private static final Logger LOGGER &#x3D; LoggerFactory.getLogger(HelloController.class);</span><br><span class="line"></span><br><span class="line">    @Autowired</span><br><span class="line">    private RestTemplate template;</span><br><span class="line"></span><br><span class="line">    @GetMapping(&quot;&#x2F;envoy-web&#x2F;local&quot;)</span><br><span class="line">    public String sayLocal() &#123;</span><br><span class="line">        LOGGER.info(&quot;get request, send response&quot;);</span><br><span class="line">        return &quot;local&quot;;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    @GetMapping(&quot;&#x2F;envoy-web&#x2F;hello&quot;)</span><br><span class="line">    public String sayHello() &#123;</span><br><span class="line">        String url &#x3D; &quot;http:&#x2F;&#x2F;127.0.0.1:10000&#x2F;envoy-server&#x2F;hello&quot;;</span><br><span class="line">        LOGGER.info(&quot;get request, send rest template to &#123;&#125;&quot;, url);</span><br><span class="line">        return getRemote(url, &quot;mock value for hello&quot;);</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    @GetMapping(&quot;&#x2F;envoy-web&#x2F;hi&quot;)</span><br><span class="line">    public String sayHi() &#123;</span><br><span class="line">        String url &#x3D; &quot;http:&#x2F;&#x2F;127.0.0.1:10000&#x2F;envoy-server&#x2F;hi&quot;;</span><br><span class="line">        LOGGER.info(&quot;get request, send rest template to &#123;&#125;&quot;, url);</span><br><span class="line">        return getRemote(url, &quot;mock value for hi&quot;);</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    @GetMapping(&quot;&#x2F;envoy-web&#x2F;self&quot;)</span><br><span class="line">    public String saySelf() &#123;</span><br><span class="line">        String url &#x3D; &quot;http:&#x2F;&#x2F;127.0.0.1:10000&#x2F;envoy-server&#x2F;self&quot;;</span><br><span class="line">        LOGGER.info(&quot;get request, send rest template to &#123;&#125;&quot;, url);</span><br><span class="line">        return getRemote(url, &quot;mock value for self&quot;);</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    private String getRemote(String url, String mock) &#123;</span><br><span class="line">        try &#123;</span><br><span class="line">            ResponseEntity&lt;String&gt; response &#x3D; template.getForEntity(url, String.class);</span><br><span class="line">            return response.getBody();</span><br><span class="line">        &#125; catch (Exception e) &#123;</span><br><span class="line">            LOGGER.error(&quot;error happens: &#123;&#125;&quot;, e);</span><br><span class="line">            return mock;</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<blockquote>
+<p>注：为简化起见，代码只是介绍对出入流量的控制，直接在 <code>envoy-web</code> 上访问了本地的 <code>Envoy</code> 端口进行转发流量，实际代码中可以用服务名:服务端口号访问，而此时为了使得 <code>Envoy</code> 仍然可以拦截入和出的流量，可以配置 <code>Iptables</code>（<code>Istio</code> 的实现中也是使用了 <code>Iptables</code>）。</p>
+</blockquote>
+<h4 id="编写配置文件">编写配置文件</h4>
+<p>针对不同的服务，也配置了两份 <code>envoy.yaml</code> 配置文件。</p>
+<ul>
+<li>envoy-server</li>
+</ul>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br></pre></td><td class="code"><pre><span class="line">admin:</span><br><span class="line">  access_log_path: &#x2F;tmp&#x2F;admin_access.log</span><br><span class="line">  address:</span><br><span class="line">    socket_address: &#123; address: 0.0.0.0, port_value: 9900 &#125;</span><br><span class="line">static_resources:</span><br><span class="line">  listeners:</span><br><span class="line">  - name: listener_ingress</span><br><span class="line">    address:</span><br><span class="line">      socket_address: &#123; address: 0.0.0.0, port_value: 10000 &#125;</span><br><span class="line">    filter_chains:</span><br><span class="line">    - filters:</span><br><span class="line">      - name: envoy.http_connection_manager</span><br><span class="line">        config:</span><br><span class="line">          stat_prefix: ingress_http</span><br><span class="line">          codec_type: AUTO</span><br><span class="line">          route_config:</span><br><span class="line">            name: local_route</span><br><span class="line">            virtual_hosts:</span><br><span class="line">            - name: local_service</span><br><span class="line">              domains: [&quot;*&quot;]</span><br><span class="line">              routes:</span><br><span class="line">              - match: &#123; prefix: &quot;&#x2F;envoy-server&#x2F;hello&quot; &#125;</span><br><span class="line">                route: &#123; cluster: cluster_server &#125;</span><br><span class="line">              - match: &#123; prefix: &quot;&#x2F;envoy-server&#x2F;hi&quot; &#125;</span><br><span class="line">                route: &#123; cluster: cluster_server &#125;</span><br><span class="line">          http_filters:</span><br><span class="line">          - name: envoy.router</span><br><span class="line">  clusters:</span><br><span class="line">  - name: cluster_server</span><br><span class="line">    connect_timeout: 0.5s</span><br><span class="line">    type: STATIC</span><br><span class="line">    lb_policy: ROUND_ROBIN</span><br><span class="line">    hosts: </span><br><span class="line">    - &#123; socket_address: &#123; address: 127.0.0.1, port_value: 8081 &#125;&#125;</span><br></pre></td></tr></table></figure>
+<ul>
+<li>envoy-web</li>
+</ul>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br></pre></td><td class="code"><pre><span class="line">admin:</span><br><span class="line">  access_log_path: &#x2F;tmp&#x2F;admin_access.log</span><br><span class="line">  address:</span><br><span class="line">    socket_address: &#123; address: 0.0.0.0, port_value: 9900 &#125;</span><br><span class="line">static_resources:</span><br><span class="line">  listeners:</span><br><span class="line">  - name: listener_ingress</span><br><span class="line">    address:</span><br><span class="line">      socket_address: &#123; address: 0.0.0.0, port_value: 10000 &#125;</span><br><span class="line">    filter_chains:</span><br><span class="line">    - filters:</span><br><span class="line">      - name: envoy.http_connection_manager</span><br><span class="line">        config:</span><br><span class="line">          stat_prefix: ingress_http</span><br><span class="line">          codec_type: AUTO</span><br><span class="line">          route_config:</span><br><span class="line">            name: local_route</span><br><span class="line">            virtual_hosts:</span><br><span class="line">            - name: local_service</span><br><span class="line">              domains: [&quot;*&quot;]</span><br><span class="line">              routes:</span><br><span class="line">              - match: &#123; prefix: &quot;&#x2F;envoy-web&#x2F;&quot; &#125;</span><br><span class="line">                route: &#123; cluster: cluster_ingress &#125;</span><br><span class="line">              - match: &#123; prefix: &quot;&#x2F;envoy-server&#x2F;hello&quot; &#125;</span><br><span class="line">                route: &#123; cluster: cluster_egress &#125;</span><br><span class="line">              - match: &#123; prefix: &quot;&#x2F;envoy-server&#x2F;self&quot; &#125;</span><br><span class="line">                route: &#123; cluster: cluster_egress &#125;</span><br><span class="line">          http_filters:</span><br><span class="line">          - name: envoy.router</span><br><span class="line">  clusters:</span><br><span class="line">  - name: cluster_ingress</span><br><span class="line">    connect_timeout: 0.5s</span><br><span class="line">    type: STATIC</span><br><span class="line">    lb_policy: ROUND_ROBIN</span><br><span class="line">    hosts:</span><br><span class="line">    - &#123; socket_address: &#123; address: 127.0.0.1, port_value: 8080 &#125;&#125;</span><br><span class="line">  - name: cluster_egress</span><br><span class="line">    connect_timeout: 0.5s</span><br><span class="line">    type: STATIC</span><br><span class="line">    lb_policy: ROUND_ROBIN</span><br><span class="line">    hosts:</span><br><span class="line">    - &#123; socket_address: &#123; address: 172.17.0.2, port_value: 10000 &#125;&#125;</span><br><span class="line">    - &#123; socket_address: &#123; address: 172.17.0.3, port_value: 10000 &#125;&#125;</span><br></pre></td></tr></table></figure>
+<h4 id="启动测试">启动测试</h4>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line"># envoy-server1</span><br><span class="line">$ docker run -d -v &#96;pwd&#96;&#x2F;envoy-server.yaml:&#x2F;etc&#x2F;envoy&#x2F;envoy.yaml --name envoyproxy-server1 envoyproxy&#x2F;envoy:latest &#x2F;usr&#x2F;local&#x2F;bin&#x2F;envoy --service-cluster envoy-server --service-node 1 -c &#x2F;etc&#x2F;envoy&#x2F;envoy.yaml --v2-config-only</span><br><span class="line">$ docker run -d --network&#x3D;container:envoyproxy-server1 --name envoy-server1 envoy-server:1.1</span><br><span class="line"></span><br><span class="line"># envoy-server2</span><br><span class="line">$ docker run -d -v &#96;pwd&#96;&#x2F;envoy-server.yaml:&#x2F;etc&#x2F;envoy&#x2F;envoy.yaml --name envoyproxy-server2 envoyproxy&#x2F;envoy:latest &#x2F;usr&#x2F;local&#x2F;bin&#x2F;envoy --service-cluster envoy-server --service-node 2 -c &#x2F;etc&#x2F;envoy&#x2F;envoy.yaml --v2-config-only</span><br><span class="line">$ docker run -d --network&#x3D;container:envoyproxy-server2 --name envoy-server2 envoy-server:1.1</span><br><span class="line"></span><br><span class="line"># envoy-web</span><br><span class="line">$ docker run -d -p 10000:10000 -v &#96;pwd&#96;&#x2F;envoy-web.yaml:&#x2F;etc&#x2F;envoy&#x2F;envoy.yaml --name envoyproxy-web envoyproxy&#x2F;envoy:latest &#x2F;usr&#x2F;local&#x2F;bin&#x2F;envoy --service-cluster envoy-web --service-node 1 -c &#x2F;etc&#x2F;envoy&#x2F;envoy.yaml --v2-config-only</span><br><span class="line">$ docker run -d --network&#x3D;container:envoyproxy-web --name envoy-web envoy-web:1.1</span><br></pre></td></tr></table></figure>
+<p>当容器部署完毕之后，可以直接访问以下 3 个 URL ，其中 hi 和 self 的访问返回的是 mock 数据，虽然同为 mock 数据，但是这两个 <code>URL</code> 其实是不相同的，一个是在 <code>Envoy</code> 出口流量处做的控制，一个是在 <code>Envoy</code> 入口流量处做的控制，其中的细节可以再去品味品味。</p>
+<p><img src="https://upload-images.jianshu.io/upload_images/12196676-83ac7de7c28ad6a1.png" alt=""></p>
+<h3 id="动态配置">动态配置</h3>
+<p>动态配置需要实现发现服务，通过 <code>GRPC</code> 的方式获取相应。</p>
+<p>动态的配置文件在前面的内容中已经有过介绍，最重要的是需要提供一个发现服务，对外提供 <code>XDS</code> 服务，下面以其中的一个 <code>LDS</code> 作为介绍，其他 <code>XDS</code> 实现类似。</p>
+<p>服务端：既然作为服务，就需要对外提供接口服务。</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br></pre></td><td class="code"><pre><span class="line">public class GrpcService &#123;</span><br><span class="line">    private Server server;</span><br><span class="line">    private static final int PORT &#x3D; 50051;</span><br><span class="line"></span><br><span class="line">    private void start() throws IOException &#123;</span><br><span class="line">        server &#x3D; ServerBuilder.forPort(PORT)</span><br><span class="line">                .addService(new LdsService())</span><br><span class="line">                .addService(new CdsService())</span><br><span class="line">                .addService(new RdsService())</span><br><span class="line">                .addService(new EdsService())</span><br><span class="line">                .addService(new AdsService())</span><br><span class="line">                .build()</span><br><span class="line">                .start();</span><br><span class="line">        System.err.println(&quot;Server started, listening on &quot; + PORT);</span><br><span class="line">        Runtime.getRuntime().addShutdownHook(new Thread(() -&gt; &#123;</span><br><span class="line">            System.err.println(&quot;*** shutting down gRPC server since JVM is shutting down&quot;);</span><br><span class="line">            GrpcService.this.stop();</span><br><span class="line">            System.err.println(&quot;*** server shut down&quot;);</span><br><span class="line">        &#125;));</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    private void stop() &#123;</span><br><span class="line">        if (server !&#x3D; null) &#123;</span><br><span class="line">            server.shutdown();</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    private void blockUntilShutdown() throws InterruptedException &#123;</span><br><span class="line">        if (server !&#x3D; null) &#123;</span><br><span class="line">            server.awaitTermination();</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    public static void main(String[] args) throws IOException, InterruptedException &#123;</span><br><span class="line">        final GrpcService server &#x3D; new GrpcService();</span><br><span class="line">        server.start();</span><br><span class="line">        server.blockUntilShutdown();</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p><code>XDS</code> 通过 <code>GRPC</code> 生成服务端的 <code>stub</code> 文件，实现 <code>LdsServer</code> 继承自 <code>ListenerDiscoveryServiceGrpc.ListenerDiscoveryServiceImplBase</code>，需要实现 <code>streamListeners</code> 方法。</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br></pre></td><td class="code"><pre><span class="line">public class LdsService extends ListenerDiscoveryServiceGrpc.ListenerDiscoveryServiceImplBase &#123;</span><br><span class="line">    private static final Logger LOGGER &#x3D; LogManager.getLogger();</span><br><span class="line"></span><br><span class="line">    @Override</span><br><span class="line">    public StreamObserver&lt;Discovery.DiscoveryRequest&gt; streamListeners(StreamObserver&lt;Discovery.DiscoveryResponse&gt; responseObserver) &#123;</span><br><span class="line">        return new StreamObserver&lt;Discovery.DiscoveryRequest&gt;() &#123;</span><br><span class="line">            @Override</span><br><span class="line">            public void onNext(Discovery.DiscoveryRequest request) &#123;</span><br><span class="line">                XdsHelper.getInstance().buildAndSendResult(request, responseObserver);</span><br><span class="line">            &#125;</span><br><span class="line"></span><br><span class="line">            @Override</span><br><span class="line">            public void onError(Throwable throwable) &#123;</span><br><span class="line">                LOGGER.warn(&quot;Error happens&quot;, throwable);</span><br><span class="line">            &#125;</span><br><span class="line"></span><br><span class="line">            @Override</span><br><span class="line">            public void onCompleted() &#123;</span><br><span class="line">                LOGGER.info(&quot;LdsService completed&quot;);</span><br><span class="line">            &#125;</span><br><span class="line">        &#125;;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<h2 id="总结">总结</h2>
+<p>至此，我们就基本介绍完 <code>Envoy</code> 使用的一些常见的使用方法，在实现的时候也会有其他一些细节需要注意。比如，<code>Envoy</code> 作为一个服务之间网络请求的代理，如何拦截全部的入和出流量？</p>
+<p><code>Istio</code> 给了一个很好的解决方案，就是通过 <code>Iptables</code>。它会使用一个特定的 <code>uid</code>（默认 1337）用户运行 <code>Envoy</code> 进程，<code>Iptables</code> 对于 <code>1337</code> 用户的流量不做拦截。下面就是参考 <code>Istio</code> 的 <code>iptables.sh</code> 做的一个实现：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line">uname&#x3D;envoy</span><br><span class="line">uid&#x3D;1337</span><br><span class="line">iptalbes -t nat -F</span><br><span class="line">iptables -t nat -I PREROUTING -p tcp -j REDIRECT --to-ports 10000</span><br><span class="line">iptables -t nat -N ENVOY_OUTPUT</span><br><span class="line">iptables -t nat -A OUTPUT -p tcp -j ENVOY_OUTPUT</span><br><span class="line">iptables -t nat -A ENVOY_OUTPUT -p tcp -d 127.0.0.1&#x2F;32 -j RETURN</span><br><span class="line">iptables -t nat -A ENVOY_OUTPUT -m owner --uid-owner $&#123;uid&#125; -j RETURN</span><br><span class="line">iptables -t nat -A ENVOY_OUTPUT -p tcp -j REDIRECT --to-ports 10000</span><br></pre></td></tr></table></figure>
+<h2 id="参考文档">参考文档</h2>
+<ol>
+<li>
+<p><a href="https://www.google.com" target="_blank" rel="noopener">https://www.google.com</a></p>
+</li>
+<li>
+<p><a href="https://holajiawei.com/envoy/" target="_blank" rel="noopener">https://holajiawei.com/envoy/</a></p>
+</li>
+<li>
+<p><a href="https://www.lijiaocn.com/soft/envoy/" target="_blank" rel="noopener">https://www.lijiaocn.com/soft/envoy/</a></p>
+</li>
+<li>
+<p><a href="https://www.jianshu.com/p/90f9ee98ce70" target="_blank" rel="noopener">https://www.jianshu.com/p/90f9ee98ce70</a></p>
+</li>
+<li>
+<p><a href="https://github.com/wellls/blog/issues/47" target="_blank" rel="noopener">https://github.com/wellls/blog/issues/47</a></p>
+</li>
+<li>
+<p><a href="https://jimmysong.io/posts/envoy-as-front-proxy/" target="_blank" rel="noopener">https://jimmysong.io/posts/envoy-as-front-proxy/</a></p>
+</li>
+<li>
+<p><a href="https://www.yangcs.net/posts/run-envoy-on-your-laptop/" target="_blank" rel="noopener">https://www.yangcs.net/posts/run-envoy-on-your-laptop/</a></p>
+</li>
+</ol>
+</div>
+
+			<script src="https://my.openwrite.cn/js/readmore.js" type="text/javascript"></script>
+			<script>
+			var isMobile = navigator.userAgent.match(/(phone|pad|pod|iPhone|iPod|ios|iPad|Android|Mobile|BlackBerry|IEMobile|MQQBrowser|JUC|Fennec|wOSBrowser|BrowserNG|WebOS|Symbian|Windows Phone)/i);
+			if (!isMobile) {
+			    var btw = new BTWPlugin();
+			    btw.init({
+			        "id": "vip-container",
+			        "blogId": "10135-1588830050631-449",
+			        "name": "「奇妙的 Linux 世界」",
+			        "qrcode": "https://www.hi-linux.com/img/wechat/mp_qrcode_12.jpg",
+			        "keyword": "VIP"
+			    });
+			}
+			</script>
+		
+                
+
+                <hr>
+                <!-- Pager -->
+                <ul class="pager">
+                    
+                        <li class="previous">
+                            <a href="/posts/23035.html" data-toggle="tooltip" data-placement="top" title="U 盘多系统安装盘制作神器 YUMI 使用教程">&larr; Previous Post</a>
+                        </li>
+                    
+                    
+                        <li class="next">
+                            <a href="/posts/23179.html" data-toggle="tooltip" data-placement="top" title="如何通过 Alertmanager 有效的给 Prometheus 添加一个警报系统">Next Post &rarr;</a>
+                        </li>
+                    
+                </ul>
+
+                <!-- duoshuo Share start -->
+                
+                <!-- 多说 Share end-->
+
+                <!-- 多说评论框 start -->
+                
+                <!-- 多说评论框 end -->
+
+                <!-- disqus comment start -->
+                
+                <!-- disqus comment end -->
+
+                
+                    <!-- disqus 评论框 start -->
+                    <div class="comment">
+                        <div id="lv-container" data-id="city" data-uid="MTAyMC8yNzg2My80NDQw"></div>
+                    </div>
+                    <!-- disqus 评论框 end -->
+                
+
+            </div>
+            
+            <!-- Tabe of Content -->
+            <!-- Table of Contents -->
+
+  
+    <style>
+      span.toc-nav-number{
+        display: none
+      }
+    </style>
+  
+    
+      <aside id="sidebar">
+        <div id="toc" class="toc-article">
+        <strong class="toc-title">Contents</strong>
+        
+          <ol class="toc-nav"><li class="toc-nav-item toc-nav-level-2"><a class="toc-nav-link" href="#什么是-envoy"><span class="toc-nav-number">1.</span> <span class="toc-nav-text">什么是 Envoy</span></a><ol class="toc-nav-child"><li class="toc-nav-item toc-nav-level-3"><a class="toc-nav-link" href="#envoy-特性"><span class="toc-nav-number">1.1.</span> <span class="toc-nav-text">Envoy 特性</span></a></li><li class="toc-nav-item toc-nav-level-3"><a class="toc-nav-link" href="#envoy-术语"><span class="toc-nav-number">1.2.</span> <span class="toc-nav-text">Envoy 术语</span></a></li></ol></li><li class="toc-nav-item toc-nav-level-2"><a class="toc-nav-link" href="#部署-envoy"><span class="toc-nav-number">2.</span> <span class="toc-nav-text">部署 Envoy</span></a></li><li class="toc-nav-item toc-nav-level-2"><a class="toc-nav-link" href="#编写-envoy-配置文件"><span class="toc-nav-number">3.</span> <span class="toc-nav-text">编写 Envoy 配置文件</span></a><ol class="toc-nav-child"><li class="toc-nav-item toc-nav-level-3"><a class="toc-nav-link" href="#静态配置"><span class="toc-nav-number">3.1.</span> <span class="toc-nav-text">静态配置</span></a></li><li class="toc-nav-item toc-nav-level-3"><a class="toc-nav-link" href="#动态配置"><span class="toc-nav-number">3.2.</span> <span class="toc-nav-text">动态配置</span></a></li></ol></li><li class="toc-nav-item toc-nav-level-2"><a class="toc-nav-link" href="#envoy-使用实例"><span class="toc-nav-number">4.</span> <span class="toc-nav-text">Envoy 使用实例</span></a><ol class="toc-nav-child"><li class="toc-nav-item toc-nav-level-3"><a class="toc-nav-link" href="#入门实例"><span class="toc-nav-number">4.1.</span> <span class="toc-nav-text">入门实例</span></a><ol class="toc-nav-child"><li class="toc-nav-item toc-nav-level-4"><a class="toc-nav-link" href="#运行-envoy"><span class="toc-nav-number">4.1.1.</span> <span class="toc-nav-text">运行 Envoy</span></a></li><li class="toc-nav-item toc-nav-level-4"><a class="toc-nav-link" href="#测试服务是否连通"><span class="toc-nav-number">4.1.2.</span> <span class="toc-nav-text">测试服务是否连通</span></a></li><li class="toc-nav-item toc-nav-level-4"><a class="toc-nav-link" href="#envoy-配置"><span class="toc-nav-number">4.1.3.</span> <span class="toc-nav-text">Envoy 配置</span></a></li><li class="toc-nav-item toc-nav-level-4"><a class="toc-nav-link" href="#管理页面"><span class="toc-nav-number">4.1.4.</span> <span class="toc-nav-text">管理页面</span></a></li></ol></li><li class="toc-nav-item toc-nav-level-3"><a class="toc-nav-link" href="#请求处理流程"><span class="toc-nav-number">4.2.</span> <span class="toc-nav-text">请求处理流程</span></a></li><li class="toc-nav-item toc-nav-level-3"><a class="toc-nav-link" href="#进阶实例"><span class="toc-nav-number">4.3.</span> <span class="toc-nav-text">进阶实例</span></a></li><li class="toc-nav-item toc-nav-level-3"><a class="toc-nav-link" href="#静态配置"><span class="toc-nav-number">4.4.</span> <span class="toc-nav-text">静态配置</span></a><ol class="toc-nav-child"><li class="toc-nav-item toc-nav-level-4"><a class="toc-nav-link" href="#编写服务代码"><span class="toc-nav-number">4.4.1.</span> <span class="toc-nav-text">编写服务代码</span></a></li><li class="toc-nav-item toc-nav-level-4"><a class="toc-nav-link" href="#编写配置文件"><span class="toc-nav-number">4.4.2.</span> <span class="toc-nav-text">编写配置文件</span></a></li><li class="toc-nav-item toc-nav-level-4"><a class="toc-nav-link" href="#启动测试"><span class="toc-nav-number">4.4.3.</span> <span class="toc-nav-text">启动测试</span></a></li></ol></li><li class="toc-nav-item toc-nav-level-3"><a class="toc-nav-link" href="#动态配置"><span class="toc-nav-number">4.5.</span> <span class="toc-nav-text">动态配置</span></a></li></ol></li><li class="toc-nav-item toc-nav-level-2"><a class="toc-nav-link" href="#总结"><span class="toc-nav-number">5.</span> <span class="toc-nav-text">总结</span></a></li><li class="toc-nav-item toc-nav-level-2"><a class="toc-nav-link" href="#参考文档"><span class="toc-nav-number">6.</span> <span class="toc-nav-text">参考文档</span></a></li></ol>
+        
+        </div>
+      </aside>
+    
+
+                
+            <!-- Sidebar Container -->
+            <div class="
+                col-lg-8 col-lg-offset-2
+                col-md-10 col-md-offset-1
+                sidebar-container">
+
+                <!-- Featured Tags -->
+                
+                <section>
+                    <!-- no hr -->
+                    <h5><a href="/tags/">FEATURED TAGS</a></h5>
+                    <div class="tags">
+                       
+                          <a class="tag" href="/tags/#Linux" title="Linux">Linux</a>
+                        
+                          <a class="tag" href="/tags/#Kubernetes" title="Kubernetes">Kubernetes</a>
+                        
+                          <a class="tag" href="/tags/#Envoy" title="Envoy">Envoy</a>
+                        
+                    </div>
+                </section>
+                
+
+                <!-- Friends Blog -->
+                
+                <hr>
+                <h5>FRIENDS</h5>
+                <ul class="list-inline">
+
+                    
+                        <li><a href="http://www.mike.org.cn/" target="_blank">简单.生活</a></li>
+                    
+                        <li><a href="http://shang.qq.com/wpa/qunwpa?idkey=ea4c43493c2269428ac6ef6141de4b6d78e5ab2d41380ca4099b833b62884ee9" target="_blank">技术交流群</a></li>
+                    
+                        <li><a href="" target="_blank"></a></li>
+                    
+                        <li><a href="" target="_blank"></a></li>
+                    
+                </ul>
+                
+            </div>
+        </div>
+    </div>
+</article>
+
+
+
+
+
+
+    <!-- 来必力City版公共JS代码 start (一个网页只需插入一次) -->
+    <script type="text/javascript">
+       (function(d, s) {
+           var j, e = d.getElementsByTagName(s)[0];
+    
+           if (typeof LivereTower === 'function') { return; }
+    
+           j = d.createElement(s);
+           j.src = 'https://cdn-city.livere.com/js/embed.dist.js';
+           j.async = true;
+    
+           e.parentNode.insertBefore(j, e);
+       })(document, 'script');
+    </script>
+    <noscript>为正常使用来必力评论功能请激活JavaScript</noscript>
+    <!-- 来必力City版 公共JS代码 end -->
+
+
+
+<!-- async load function -->
+<script>
+    function async(u, c) {
+      var d = document, t = 'script',
+          o = d.createElement(t),
+          s = d.getElementsByTagName(t)[0];
+      o.src = u;
+      if (c) { o.addEventListener('load', function (e) { c(null, e); }, false); }
+      s.parentNode.insertBefore(o, s);
+    }
+</script>
+<!-- anchor-js, Doc:http://bryanbraun.github.io/anchorjs/ -->
+<script>
+    async("https://cdn.bootcss.com/anchor-js/1.1.1/anchor.min.js",function(){
+        anchors.options = {
+          visible: 'hover',
+          placement: 'left',
+          icon: 'ℬ'
+        };
+        anchors.add().remove('.intro-header h1').remove('.subheading').remove('.sidebar-container h5');
+    })
+</script>
+<style>
+    /* place left on bigger screen */
+    @media all and (min-width: 800px) {
+        .anchorjs-link{
+            position: absolute;
+            left: -0.75em;
+            font-size: 1.1em;
+            margin-top : -0.1em;
+        }
+    }
+</style>
+
+
+
+    <!-- Footer -->
+    <!-- Footer -->
+<footer>
+    <div class="container">
+        <div class="row">
+            <div class="col-lg-8 col-lg-offset-2 col-md-10 col-md-offset-1">
+                <ul class="list-inline text-center">
+                
+                    <li>
+                        <a href="/atom.xml">
+                            <span class="fa-stack fa-lg">
+                                <i class="fa fa-circle fa-stack-2x"></i>
+                                <i class="fa fa-rss fa-stack-1x fa-inverse"></i>
+                            </span>
+                        </a>
+                    </li>
+                
+                
+                
+                    <li>
+                        <a target="_blank" href="https://www.zhihu.com/people/80imike">
+                            <span class="fa-stack fa-lg">
+                                <i class="fa fa-circle fa-stack-2x"></i>
+                                <i class="fa  fa-stack-1x fa-inverse">知</i>
+                            </span>
+                        </a>
+                    </li>
+                
+
+                
+                    <li>
+                        <a target="_blank" href="http://weibo.com/2093524665">
+                            <span class="fa-stack fa-lg">
+                                <i class="fa fa-circle fa-stack-2x"></i>
+                                <i class="fa fa-weibo fa-stack-1x fa-inverse"></i>
+                            </span>
+                        </a>
+                    </li>
+                
+
+                
+
+                
+
+                
+
+                </ul>
+                <p class="copyright text-muted">
+                    Copyright &copy; Mike 2020 | Hosted by <a href="https://pages.coding.me" target="_blank" rel="noopener" style="font-weight: bold">Coding Pages</a>
+                    <br>
+                    Theme by <a href="http://beantech.org" target="_blank" rel="noopener">BeanTech</a> 
+                    <span style="display: inline-block; margin: 0 5px;">
+                        <i class="fa fa-heart"></i>
+                    </span> 
+                    re-Ported by <a href="http://www.huweihuang.com" target="_blank" rel="noopener">胡伟煌</a> | 
+                    <iframe
+                        style="margin-left: 2px; margin-bottom:-5px;"
+                        frameborder="0" scrolling="0" width="91px" height="20px"
+                        src="https://ghbtns.com/github-btn.html?user=huweihuang&repo=hexo-theme-huweihuang&type=star&count=true" >
+                    </iframe>
+                </p>
+            </div>
+        </div>
+    </div>
+</footer>
+
+<!-- jQuery -->
+
+<script src="/js/jquery.min.js"></script>
+
+
+<!-- Bootstrap Core JavaScript -->
+
+<script src="/js/bootstrap.min.js"></script>
+
+
+<!-- Custom Theme JavaScript -->
+
+<script src="/js/hux-blog.min.js"></script>
+
+
+
+<!-- async load function -->
+<script>
+    function async(u, c) {
+      var d = document, t = 'script',
+          o = d.createElement(t),
+          s = d.getElementsByTagName(t)[0];
+      o.src = u;
+      if (c) { o.addEventListener('load', function (e) { c(null, e); }, false); }
+      s.parentNode.insertBefore(o, s);
+    }
+</script>
+
+<!-- 
+     Because of the native support for backtick-style fenced code blocks 
+     right within the Markdown is landed in Github Pages, 
+     From V1.6, There is no need for Highlight.js, 
+     so Huxblog drops it officially.
+
+     - https://github.com/blog/2100-github-pages-now-faster-and-simpler-with-jekyll-3-0  
+     - https://help.github.com/articles/creating-and-highlighting-code-blocks/    
+-->
+<!--
+    <script>
+        async("http://cdn.bootcss.com/highlight.js/8.6/highlight.min.js", function(){
+            hljs.initHighlightingOnLoad();
+        })
+    </script>
+    <link href="http://cdn.bootcss.com/highlight.js/8.6/styles/github.min.css" rel="stylesheet">
+-->
+
+
+<!-- jquery.tagcloud.js -->
+<script>
+    // only load tagcloud.js in tag.html
+    if($('#tag_cloud').length !== 0){
+        async("https://www.hi-linux.com/js/jquery.tagcloud.js",function(){
+            $.fn.tagcloud.defaults = {
+                //size: {start: 1, end: 1, unit: 'em'},
+                color: {start: '#bbbbee', end: '#0085a1'},
+            };
+            $('#tag_cloud a').tagcloud();
+        })
+    }
+</script>
+
+<!--fastClick.js -->
+<script>
+    async("https://cdn.bootcss.com/fastclick/1.0.6/fastclick.min.js", function(){
+        var $nav = document.querySelector("nav");
+        if($nav) FastClick.attach($nav);
+    })
+</script>
+
+
+<!-- Google Analytics -->
+
+
+
+
+<!-- Baidu Tongji -->
+
+
+
+
+
+
+	<a id="rocket" href="#top" class=""></a>
+	<script type="text/javascript" src="/js/totop.js?v=1.0.0" async=""></script>
+    <script type="text/javascript" src="/js/toc.js?v=1.0.0" async=""></script>
+<!-- Image to hack wechat -->
+<img src="https://www.hi-linux.com/img/icon_wechat.png" width="0" height="0" />
+<!-- Migrate from head to bottom, no longer block render and still work -->
+
+</body>
+
+</html>

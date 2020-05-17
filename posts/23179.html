@@ -1,0 +1,818 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<!-- Head tag -->
+<head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="google-site-verification" content="xBT4GhYoi5qRD5tr338pgPM5OWHHIDR6mNg1a3euekI" />
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="description" content="">
+    <meta name="keyword"  content="Linux,运维,Nginx,Zabbix,Centos,Ansible,MySQL,Python,Docker,ELK,Haproxy,Git,Nodejs,安全,技术">
+    <link rel="shortcut icon" href="/img/ironman-draw.png">
+    <!-- Place this tag in your head or just before your close body tag. -->
+    <script async defer src="https://buttons.github.io/buttons.js"></script>
+    <title>
+        
+          如何通过 Alertmanager 有效的给 Prometheus 添加一个警报系统 - 运维之美
+        
+    </title>
+
+    <link rel="canonical" href="https://www.hi-linux.com/posts/23179.html">
+
+    <!-- Bootstrap Core CSS -->
+    
+<link rel="stylesheet" href="/css/bootstrap.min.css">
+
+
+    <!-- Custom CSS --> 
+    
+<link rel="stylesheet" href="/css/beantech.min.css">
+
+    
+    <!-- Pygments Highlight CSS -->
+    
+<link rel="stylesheet" href="/css/highlight.css">
+
+
+    
+<link rel="stylesheet" href="/css/widget.css">
+
+
+    
+<link rel="stylesheet" href="/css/rocket.css">
+
+
+    
+<link rel="stylesheet" href="/css/signature.css">
+
+
+    
+<link rel="stylesheet" href="/css/toc.css">
+
+
+    <!-- Custom Fonts -->
+    <!-- <link href="https://maxcdn.bootstrapcdn.com/font-awesome/4.3.0/css/font-awesome.min.css" rel="stylesheet" type="text/css"> -->
+    <!-- Hux change font-awesome CDN to qiniu -->
+    <link href="https://cdn.staticfile.org/font-awesome/4.5.0/css/font-awesome.min.css" rel="stylesheet" type="text/css">
+
+
+    <!-- Hux Delete, sad but pending in China
+    <link href='http://fonts.googleapis.com/css?family=Lora:400,700,400italic,700italic' rel='stylesheet' type='text/css'>
+    <link href='http://fonts.googleapis.com/css?family=Open+Sans:300italic,400italic,600italic,700italic,800italic,400,300,600,700,800' rel='stylesheet' type='text/
+    css'>
+    -->
+
+
+    <!-- HTML5 Shim and Respond.js IE8 support of HTML5 elements and media queries -->
+    <!-- WARNING: Respond.js doesn't work if you view the page via file:// -->
+    <!--[if lt IE 9]>
+        <script src="https://oss.maxcdn.com/libs/html5shiv/3.7.0/html5shiv.js"></script>
+        <script src="https://oss.maxcdn.com/libs/respond.js/1.4.2/respond.min.js"></script>
+    <![endif]-->
+
+    <!-- ga & ba script hoook -->
+    <script></script>
+<meta name="generator" content="Hexo 4.2.0"><link rel="alternate" href="/atom.xml" title="运维之美" type="application/atom+xml">
+</head>
+
+
+<!-- hack iOS CSS :active style -->
+<body ontouchstart="">
+	<!-- Modified by Yu-Hsuan Yen -->
+<!-- Post Header -->
+<style type="text/css">
+    header.intro-header{
+        
+            background-image: url('/img/header_img/building.jpg')
+            /*post*/
+        
+    }
+    
+</style>
+
+<header class="intro-header" >
+    <!-- Signature -->
+    <div id="signature">
+        <div class="container">
+            <div class="row">
+                <div class="col-lg-8 col-lg-offset-2 col-md-10 col-md-offset-1">
+                
+                    <div class="post-heading">
+                        <div class="tags">
+                            
+                              <a class="tag" href="/tags/#Linux" title="Linux">Linux</a>
+                            
+                              <a class="tag" href="/tags/#Kubernetes" title="Kubernetes">Kubernetes</a>
+                            
+                              <a class="tag" href="/tags/#Prometheus" title="Prometheus">Prometheus</a>
+                            
+                        </div>
+                        <h1>如何通过 Alertmanager 有效的给 Prometheus 添加一个警报系统</h1>
+                        <h2 class="subheading"></h2>
+                        <span class="meta">
+                            Posted by Mike on
+                            2020-05-17
+                        </span>
+                    </div>
+                
+
+
+                </div>
+            </div>
+        </div>
+    </div>
+</header>
+
+	
+    <!-- Navigation -->
+<nav class="navbar navbar-default navbar-custom navbar-fixed-top">
+    <div class="container-fluid">
+        <!-- Brand and toggle get grouped for better mobile display -->
+        <div class="navbar-header page-scroll">
+            <button type="button" class="navbar-toggle">
+                <span class="sr-only">Toggle navigation</span>
+                <span class="icon-bar"></span>
+                <span class="icon-bar"></span>
+                <span class="icon-bar"></span>
+            </button>
+            <a class="navbar-brand" href="/">运维之美</a>
+        </div>
+
+        <!-- Collect the nav links, forms, and other content for toggling -->
+        <!-- Known Issue, found by Hux:
+            <nav>'s height woule be hold on by its content.
+            so, when navbar scale out, the <nav> will cover tags.
+            also mask any touch event of tags, unfortunately.
+        -->
+        <div id="huxblog_navbar">
+            <div class="navbar-collapse">
+                <ul class="nav navbar-nav navbar-right">
+                    <li>
+                        <a href="/">Home</a>
+                    </li>
+
+                    
+
+                        
+                    
+
+                        
+                    
+
+                        
+                        <li>
+                            <a href="/about/">About</a>
+                        </li>
+                        
+                    
+
+                        
+                        <li>
+                            <a href="/archive/">Archives</a>
+                        </li>
+                        
+                    
+
+                        
+                        <li>
+                            <a href="/tags/">Tags</a>
+                        </li>
+                        
+                    
+                    
+                </ul>
+            </div>
+        </div>
+        <!-- /.navbar-collapse -->
+    </div>
+    <!-- /.container -->
+</nav>
+<script>
+    // Drop Bootstarp low-performance Navbar
+    // Use customize navbar with high-quality material design animation
+    // in high-perf jank-free CSS3 implementation
+    var $body   = document.body;
+    var $toggle = document.querySelector('.navbar-toggle');
+    var $navbar = document.querySelector('#huxblog_navbar');
+    var $collapse = document.querySelector('.navbar-collapse');
+
+    $toggle.addEventListener('click', handleMagic)
+    function handleMagic(e){
+        if ($navbar.className.indexOf('in') > 0) {
+        // CLOSE
+            $navbar.className = " ";
+            // wait until animation end.
+            setTimeout(function(){
+                // prevent frequently toggle
+                if($navbar.className.indexOf('in') < 0) {
+                    $collapse.style.height = "0px"
+                }
+            },400)
+        }else{
+        // OPEN
+            $collapse.style.height = "auto"
+            $navbar.className += " in";
+        }
+    }
+</script>
+
+
+    <!-- Main Content -->
+    <!-- Modify by Yu-Hsuan Yen -->
+
+<!-- Post Content -->
+<article>
+    <div class="container">
+        <div class="row">
+
+            <!-- Post Container -->
+            <div class="
+                col-lg-8 col-lg-offset-2
+                col-md-10 col-md-offset-1
+                post-container">
+
+                <div id="vip-container"><p>警报是监控系统中必不可少的一块, 当然了, 也是最难搞的一块. 我们乍一想, 警报似乎很简单一件事:</p>
+<blockquote>
+<p>假如发生了异常情况, 发送或邮件/消息通知给某人或某频道</p>
+</blockquote>
+<p>一把梭搞起来之后, 就不免有一些小麻烦:</p>
+<ul>
+<li>
+<p>这个啊…一天中总有那么几次波动, 也难修难查了, 算了算了不看了</p>
+</li>
+<li>
+<p>警报太多了, 实在看不过来, 屏蔽/归档/放生吧…</p>
+</li>
+<li>
+<p>有毒吧, 这个阈值也太低了</p>
+</li>
+<li>
+<p>卧槽, 这些警报啥意思啊, 发给我干嘛啊?</p>
+</li>
+<li>
+<p>卧槽卧槽卧槽, 怎么一下子几十百来条警报, 哦…原来网络出问题了全崩了</p>
+</li>
+</ul>
+<p>到最后我们还能总结出一个奇怪的规律:</p>
+<blockquote>
+<p>这世界上只有两种警报，一种是疯狂报警但是没有卵用完全没人看的警报，一种是非常有效大家都想看但在用户反馈前从来都报不出来的警报。—— 鲁迅(</p>
+</blockquote>
+<p>玩笑归玩笑，但至少我们能看出，警报不是一个简单的计算+通知系统。只是，”做好警报”这件事本身是个综合问题，代码能解决的也只是其中的一小部分，更多的事情要在组织、人事和管理上去做。我掰不出那么有深度的文章，这篇文章就专注一点，只讲代码部分里的通知，也就是 Prometheus 生态中的 Alertmanager 这个组件。</p>
+<a id="more"></a>
+<h2 id="为什么要-alertmanager">为什么要 Alertmanager？</h2>
+<p>我们先介绍一点背景知识，Prometheus 生态中的警报是在 Prometheus Server 中计算警报规则(Alert Rule)并产生的，而所谓计算警报规则，其实就是周期性地执行一段 PromQL，得到的查询结果就是警报，比如:</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">node_load5 &gt; 20</span><br></pre></td></tr></table></figure>
+<p>这个 PromQL 会查出所有”在最近一次采样中，5分钟平均 Load 大于 20”的时间序列。这些序列带上它们的标签就被转化为警报。</p>
+<p>只是，当 Prometheus Server 计算出一些警报后，它自己并没有能力将这些警报通知出去，只能将警报推给 Alertmanager，由 Alertmanager 进行发送。</p>
+<p>这个切分，一方面是出于单一职责的考虑，让 Prometheus “do one thing and do it well”, 另一方面则是因为警报发送确实不是一件”简单”的事，需要一个专门的系统来做好它。可以这么说，Alertmanager 的目标不是简单地”发出警报”，而是”发出高质量的警报”。它提供的高级功能包括但不限于：</p>
+<ul>
+<li>
+<p>Go Template 渲染警报内容；</p>
+</li>
+<li>
+<p>管理警报的重复提醒时机与消除后消除通知的发送；</p>
+</li>
+<li>
+<p>根据标签定义警报路由，实现警报的优先级、接收人划分，并针对不同的优先级和接收人定制不同的发送策略；</p>
+</li>
+<li>
+<p>将同类型警报打包成一条通知发送出去，降低警报通知的频率；</p>
+</li>
+<li>
+<p>支持静默规则: 用户可以定义一条静默规则，在一段时间内停止发送部分特定的警报，比如已经确认是搜索集群问题，在修复搜索集群时，先静默掉搜索集群相关警报；</p>
+</li>
+<li>
+<p>支持”抑制”规则(Inhibition Rule): 用户可以定义一条”抑制”规则，规定在某种警报发生时，不发送另一种警报，比如在”A 机房网络故障”这条警报发生时，不发送所有”A 机房中的警报”；</p>
+</li>
+</ul>
+<p>假如你很忙，那么读到这里就完全 OK 了，反正这类文章最大的作用就是让我们”知道有 X 这回事，大概了解有啥特性，当有需求匹配时，能想到试试看 X 合不合适“，其中 X = Alertmanager。当然，假如你是个好奇宝宝，那么还可以看看下面的解析。</p>
+<h2 id="alertmanager-内部架构">Alertmanager 内部架构</h2>
+<p>先看官方文档中的架构图：</p>
+<p><img src="https://aleiwu.com/img/alertmanager/alertmanager.png" alt=""></p>
+<ol>
+<li>
+<p>从左上开始，Prometheus 发送的警报到 Alertmanager;</p>
+</li>
+<li>
+<p>警报会被存储到 AlertProvider 中，Alertmanager 的内置实现就是包了一个 map，也就是存放在本机内存中，这里可以很容易地扩展其它 Provider;</p>
+</li>
+<li>
+<p>Dispatcher 是一个单独的 goroutine，它会不断到 AlertProvider 拉新的警报，并且根据 YAML 配置的 Routing Tree 将警报路由到一个分组中;</p>
+</li>
+<li>
+<p>分组会定时进行 flush (间隔为配置参数中的 group_interval), flush 后这组警报会走一个 Notification Pipeline 链式处理;</p>
+</li>
+<li>
+<p>Notification Pipeline 为这组警报确定发送目标，并执行抑制逻辑，静默逻辑，去重逻辑，发送与重试逻辑，实现警报的最终投递;</p>
+</li>
+</ol>
+<p>下面就分开讲一讲核心的两块：</p>
+<ol>
+<li>
+<p>Dispatcher 中的 Routing Tree 的实现与设计意图</p>
+</li>
+<li>
+<p>Notification Pipeline 的实现与设计意图</p>
+</li>
+</ol>
+<h3 id="routing-tree">Routing Tree</h3>
+<p>Routing Tree 的是一颗多叉树，节点的数据结构定义如下：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line">&#x2F;&#x2F; 节点包含警报的路由逻辑</span><br><span class="line">type Route struct &#123;</span><br><span class="line">    &#x2F;&#x2F; 父节点</span><br><span class="line">    parent *Route</span><br><span class="line">    &#x2F;&#x2F; 节点的配置，下文详解</span><br><span class="line">    RouteOpts RouteOpts</span><br><span class="line">    &#x2F;&#x2F; Matchers 是一组匹配规则，用于判断 Alert 与当前节点是否匹配</span><br><span class="line">    Matchers types.Matchers</span><br><span class="line">    &#x2F;&#x2F; 假如为 true, 那么 Alert 在匹配到一个节点后，还会继续往下匹配</span><br><span class="line">    Continue bool</span><br><span class="line">    &#x2F;&#x2F; 子节点</span><br><span class="line">    Routes []*Route</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>具体的处理代码很简单，深度优先搜索：警报从 root 开始匹配（root 默认匹配所有警报），然后根据节点中定义的 Matchers 检测警报与节点是否匹配，匹配则继续往下搜索，默认情况下第一个”最深”的 match (也就是 DFS 回溯之前的最后一个节点)会被返回。特殊情况就是节点配置了 Continue=true，这时假如这个节点匹配上了，那不会立即返回，而是继续搜索，用于支持警报发送给多方这种场景（比如”抄送”)</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br></pre></td><td class="code"><pre><span class="line"># 深度优先搜索</span><br><span class="line">func (r *Route) Match(lset model.LabelSet) []*Route &#123;</span><br><span class="line">    if !r.Matchers.Match(lset) &#123;</span><br><span class="line">    return nil</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    var all []*Route</span><br><span class="line">    for _, cr :&#x3D; range r.Routes &#123;</span><br><span class="line">        &#x2F;&#x2F; 递归调用子节点的 Match 方法</span><br><span class="line">        matches :&#x3D; cr.Match(lset)</span><br><span class="line"></span><br><span class="line">        all &#x3D; append(all, matches...)</span><br><span class="line"></span><br><span class="line">        if matches !&#x3D; nil &amp;&amp; !cr.Continue &#123;</span><br><span class="line">          break</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    &#x2F;&#x2F; 假如没有任何节点匹配上，那就匹配根节点</span><br><span class="line">    if len(all) &#x3D;&#x3D;0 &#123;</span><br><span class="line">        all &#x3D; append(all, r)</span><br><span class="line">    &#125;</span><br><span class="line">    return all</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>为什么要设计一个复杂的 Routing Tree 逻辑呢？我们看看 Prometheus 官方的配置例子： 为了简化编写，Alertmanager 的设计是根节点的所有参数都会被子节点继承（除非子节点重写了这个参数）</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br></pre></td><td class="code"><pre><span class="line">route:</span><br><span class="line">  # 根节点的警报会发送给默认的接收组</span><br><span class="line">  # 该节点中的警报会按’cluster’和’alertname’做 Group，每个分组中最多每5分钟发送一条警报，同样的警报最多4小时发送一次</span><br><span class="line">  receiver:’default-receiver’</span><br><span class="line">  group_wait: 30s</span><br><span class="line">  group_interval: 5m</span><br><span class="line">  repeat_interval: 4h</span><br><span class="line">  group_by: [cluster, alertname]</span><br><span class="line">  # 没有匹配到子节点的警报，会默认匹配到根节点上</span><br><span class="line">  # 接下来是子节点的配置：</span><br><span class="line">  routes:</span><br><span class="line">    # 所有 service 字段为 mysql 或 cassandra 的警报，会发送到’database-pager’这个接收组</span><br><span class="line">    # 由于继承逻辑，这个节点中的警报仍然是按’cluster’和’alertname’做 Group 的</span><br><span class="line">  - receiver:’database-pager’</span><br><span class="line">    group_wait: 10s</span><br><span class="line">    match_re:</span><br><span class="line">    service: mysql|cassandra</span><br><span class="line">    # 所有 team 字段为 fronted 的警报，会发送到’frontend-pager’这个接收组</span><br><span class="line">    # 很重要的一点是，这个组中的警报是按’product’和’environment’做分组的，因为’frontend’面向用户，更关心哪个’产品’的什么’环境’出问题了</span><br><span class="line">  - receiver:’frontend-pager’</span><br><span class="line">    group_by: [product, environment]</span><br><span class="line">    match:</span><br><span class="line">    team: frontend</span><br></pre></td></tr></table></figure>
+<p>总结一下，Routing Tree 的设计意图是让用户能够非常自由地给警报归类，然后根据归类后的类别来配置要发送给谁以及怎么发送：</p>
+<ul>
+<li>
+<p>发送给谁？上面已经做了很好的示例，’数据库警报’和’前端警报’都有特定的接收组，都没有匹配上那么就是’默认警报’, 发送给默认接收组</p>
+</li>
+<li>
+<p>怎么发送？对于一类警报，有个多个字段来配置发送行为：</p>
+<ul>
+<li>
+<p>group_by：决定了警报怎么分组，每个 group 只会定时产生一次通知，这就达到了降噪的效果，而不同的警报类别分组方式显然是不一样的，举个例子：</p>
+<ul>
+<li>
+<p>配置中的 ‘数据库警报’ 是按 ‘集群’ 和 ‘规则名’ 分组的，这表明对于数据库警报，我们关心的是“哪个集群的哪个规则出问题了”，比如一个时间段内，’华东’集群产生了10条 ‘API响应时间过长’ 警报，这些警报就会聚合在一个通知里发出来；</p>
+</li>
+<li>
+<p>配置中的 ‘前端警报’ 是按 ‘产品’ 和 ‘环境’ 分组的， 这表明对于前端警报，我们关心的是“哪个产品的哪个环境出问题了”</p>
+</li>
+</ul>
+</li>
+<li>
+<p>group_interval 和 group_wait: 控制分组的细节，不细谈，其中 group_interval 控制了这个分组最快多久执行一次 Notification Pipeline</p>
+</li>
+<li>
+<p>repeat_interval: 假如一个相同的警报一直 FIRING，Alertmanager 并不会一直发送警报，而会等待一段时间，这个等待时间就是 repeat_interval，显然，不同类型警报的发送频率也是不一样的</p>
+</li>
+</ul>
+</li>
+</ul>
+<p>group_interval 和 repeat_interval 的区别会在下文中详述</p>
+<h3 id="notification-pipeline">Notification Pipeline</h3>
+<p>由 Routing Tree 分组后的警报会触发 Notification Pipeline:</p>
+<ul>
+<li>
+<p>当一个 AlertGroup 新建后，它会等待一段时间（group_wait 参数)，再触发第一次 Notification Pipeline</p>
+</li>
+<li>
+<p>假如这个 AlertGroup 持续存在，那么之后每隔一段时间（group_interval 参数)，都会触发一次 Notification Pipeline</p>
+</li>
+</ul>
+<p>每次触发 Notification Pipeline，AlertGroup 都会将组内所有的 Alert 作为一个列表传进 Pipeline, Notification Pipeline 本身是一个按照责任链模式设计的接口，MultiStage 这个实现会链式执行所有的 Stage：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br></pre></td><td class="code"><pre><span class="line">&#x2F;&#x2F; A Stage processes alerts under the constraints of the given context.</span><br><span class="line">type Stage interface &#123;</span><br><span class="line">    Exec(ctx context.Context, l log.Logger, alerts …*types.Alert) (context.Context, []*types.Alert, error)</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line">&#x2F;&#x2F; A MultiStage executes a series of stages sequencially.</span><br><span class="line">type MultiStage []Stage</span><br><span class="line"></span><br><span class="line">&#x2F;&#x2F; Exec implements the Stage interface.</span><br><span class="line">func (ms MultiStage) Exec(ctx context.Context, l log.Logger, alerts …*types.Alert) (context.Context, []*types.Alert, error) &#123;</span><br><span class="line">    var err error</span><br><span class="line">    for _, s :&#x3D; range ms &#123;</span><br><span class="line">        if len(alerts) &#x3D;&#x3D;0&#123;</span><br><span class="line">            return ctx, nil, nil</span><br><span class="line">        &#125;</span><br><span class="line"></span><br><span class="line">        ctx, alerts, err &#x3D; s.Exec(ctx, l, alerts…)</span><br><span class="line">        if err !&#x3D; nil &#123;</span><br><span class="line">            return ctx, nil, err</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">    return ctx, alerts, nil</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>MultiStage 里塞的就是开头架构图里画的 InhibitStage、SilenceStage…这么一条链式处理的流程，这里要提一下，官方的架构图画错了，RoutingStage 其实处在整个 Pipeline 的首位，不过这个顺序并不影响逻辑。 要重点说的是DedupStage和NotifySetStage它俩协同负责去重工作，具体做法是：</p>
+<ul>
+<li>
+<p>NotifySetStage 会为发送成功的警报记录一条发送通知，key 是’接收组名字’+’GroupKey 的 key 值’，value 是当前 Stage 收到的 []Alert (这个列表和最开始进入 Notification Pipeline 的警报列表有可能是不同的，因为其中有些 Alert 可能在前置 Stage 中已经被过滤掉了)</p>
+</li>
+<li>
+<p>DedupStage 中会以’接收组名字’+’GroupKey 的 key 值’为 key 查询通知记录，假如：</p>
+<ul>
+<li>
+<p>查询无结果，那么这条通知没发过，为这组警报发送一条通知；</p>
+</li>
+<li>
+<p>查询有结果，那么查询得到已经发送过的一组警报 S，判断当前的这组警报 A 是否为 S 的子集：</p>
+<ul>
+<li>
+<p>假如 A 是 S 的子集，那么表明 A 和 S 重复，这时候要根据 repeat_interval 来决定是否再次发送：</p>
+<ul>
+<li>
+<p>距离 S 的发送时间已经过去了足够久（repeat_interval)，那么我们要再发送一遍；</p>
+</li>
+<li>
+<p>距离 S 的发送时间还没有达到 repeat_interval，那么为了降低警报频率，触发去重逻辑，这次我们就不发了；</p>
+</li>
+</ul>
+</li>
+<li>
+<p>假如 A 不是 S 的子集，那么 A 和 S 不重复，需要再发送一次； 上面的表述可能有些抽象，最后表现出来的结果是：</p>
+</li>
+</ul>
+</li>
+</ul>
+</li>
+<li>
+<p>假如一个 AlertGroup 里的警报一直发生变化，那么虽然每次都是新警报，不会被去重，但是由于 group_interval （假设是5分钟）存在，这个 AlertGroup 最多 5 分钟触发一次 Notification Pipeline，因此最多也只会 5 分钟发送一条通知；</p>
+</li>
+<li>
+<p>假如一个 AlertGroup 里的警报一直不变化，就是那么几条一直 FIRING 着，那么虽然每个 group_interval 都会触发 Notification Pipeline，但是由于 repeate_interval（假设是1小时）存在，因此最多也只会每 1 小时为这个重复的警报发送一条通知； 再说一下 Silence 和 Inhibit，两者都是基于用户主动定义的规则的：</p>
+</li>
+<li>
+<p>Silence Rule：静默规则用来关闭掉部分警报的通知，比如某个性能问题已经修复了，但需要排期上线，那么在上线前就可以把对应的警报静默掉来减少噪音；</p>
+</li>
+<li>
+<p>Inhibit Rule：抑制规则用于在某类警报发生时，抑制掉另一类警报，比如某个机房宕机了，那么会影响所有上层服务，产生级联的警报洪流，反而会掩盖掉根本原因，这时候抑制规则就有用了； 因此 Notification Pipeline 的设计意图就很明确了：通过一系列逻辑（如抑制、静默、去重）来获得更高的警报质量，由于警报质量的维度很多（剔除重复、类似的警报，静默暂时无用的警报，抑制级联警报），因此 Notification Pipeline 设计成了责任链模式，以便于随时添加新的环节来优化警报质量</p>
+</li>
+</ul>
+<h2 id="一个-prometheus-报警处理实例">一个 Prometheus 报警处理实例</h2>
+<p>最近又被问到了 Prometheus 为啥不报警，恰好回忆起之前经常解答相关问题，不妨写一篇文章来解决下面两个问题：</p>
+<ul>
+<li>
+<p>我的 Prometheus 为啥报警？</p>
+</li>
+<li>
+<p>我的 Prometheus 为啥不报警？</p>
+</li>
+</ul>
+<h3 id="从-for-参数开始">从 for 参数开始</h3>
+<p>我们首先需要一些背景知识：Prometheus 是如何计算并产生警报的？</p>
+<p>看一条简单的警报规则：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line">- alert: KubeAPILatencyHigh</span><br><span class="line">  annotations:</span><br><span class="line">    message: The API server has a 99th percentile latency of &#123;&#123; $value &#125;&#125; seconds</span><br><span class="line">      for &#123;&#123; $labels.verb &#125;&#125; &#123;&#123; $labels.resource &#125;&#125;.</span><br><span class="line">  expr: |</span><br><span class="line">    cluster_quantile:apiserver_request_latencies:histogram_quantile&#123;job&#x3D;&quot;apiserver&quot;,quantile&#x3D;&quot;0.99&quot;,subresource!&#x3D;&quot;log&quot;&#125; &gt; 4</span><br><span class="line">  for: 10m</span><br><span class="line">  labels:</span><br><span class="line">    severity: critical</span><br></pre></td></tr></table></figure>
+<p>这条警报的<em>大致</em>含义是，假如 kube-apiserver 的 P99 响应时间大于 4 秒，并持续 10 分钟以上，就产生报警。</p>
+<p>首先要注意的是由 <code>for</code> 指定的 Pending Duration。这个参数主要用于降噪，很多类似响应时间这样的指标都是有抖动的，通过指定 Pending Duration，我们可以 过滤掉这些瞬时抖动，让 on-call 人员能够把注意力放在真正有持续影响的问题上。</p>
+<p>那么显然，下面这样的状况是不会触发这条警报规则的，因为虽然指标已经达到了警报阈值，但持续时间并不够长：</p>
+<p><img src="https://aleiwu.com/prometheus-peaks.png" alt=""></p>
+<p>但偶尔我们也会碰到更奇怪的事情。</p>
+<h3 id="为什么不报警">为什么不报警？</h3>
+<p><img src="https://aleiwu.com/no-alert.jpg" alt=""></p>
+<p>类似上面这样持续超出阈值的场景，为什么有时候会不报警呢？</p>
+<h3 id="为什么报警">为什么报警？</h3>
+<p><img src="https://aleiwu.com/why-alert.jpg" alt=""></p>
+<p>类似上面这样并未持续超出阈值的场景，为什么有时又会报警呢？</p>
+<h3 id="采样间隔">采样间隔</h3>
+<p>这其实都源自于 Prometheus 的数据存储方式与计算方式。</p>
+<p>首先，Prometheus 按照配置的抓取间隔(<code>scrape_interval</code>)定时抓取指标数据，因此存储的是形如 (timestamp, value) 这样的采样点。</p>
+<p>对于警报， Prometheus 会按固定的时间间隔重复计算每条警报规则，因此警报规则计算得到的只是稀疏的采样点，而警报持续时间是否大于 <code>for</code> 指定的 Pending Duration 则是由这些稀疏的采样点决定的。</p>
+<p>而在 Grafana 渲染图表时，Grafana 发送给 Prometheus 的是一个 Range Query，其执行机制是从时间区间的起始点开始，每隔一定的时间点（由 Range Query 的 <code>step</code> 请求参数决定） 进行一次计算采样。</p>
+<p>这些结合在一起，就会导致警报规则计算时“看到的内容”和我们在 Grafana 图表上观察到的内容不一致，比如下面这张示意图：</p>
+<p><img src="https://aleiwu.com/alert-firing.jpg" alt=""></p>
+<p>上面图中，圆点代表原始采样点：</p>
+<ul>
+<li>
+<p>40s 时，第一次计算，低于阈值</p>
+</li>
+<li>
+<p>80s 时，第二次计算，高于阈值，进入 Pending 状态</p>
+</li>
+<li>
+<p>120s 时，第三次计算，仍然高于阈值，90s 处的原始采样点虽然低于阈值，但是警报规则计算时并没有”看到它“</p>
+</li>
+<li>
+<p>160s 时，第四次计算，高于阈值，Pending 达到 2 分钟，进入 firing 状态</p>
+</li>
+<li>
+<p>持续高于阈值</p>
+</li>
+<li>
+<p>直到 360s 时，计算得到低于阈值，警报消除</p>
+</li>
+</ul>
+<p>由于采样是稀疏的，部分采样点会出现被跳过的状况，而当 Grafana 渲染图表时，取决于 Range Query 中采样点的分布，图表则有可能捕捉到 被警报规则忽略掉的”低谷“（图三)或者也可能无法捕捉到警报规则碰到的”低谷“（图二）。如此这般，我们就被”图表“给蒙骗过去，质疑起警报来了。</p>
+<h3 id="如何应对">如何应对</h3>
+<p>首先嘛， Prometheus 作为一个指标系统天生就不是精确的——由于指标本身就是稀疏采样的，事实上所有的图表和警报都是”估算”，我们也就不必 太纠结于图表和警报的对应性，能够帮助我们发现问题解决问题就是一个好监控系统。当然，有时候我们也得证明这个警报确实没问题，那可以看一眼 <code>ALERTS</code> 指标。<code>ALERTS</code> 是 Prometheus 在警报计算过程中维护的内建指标，它记录每个警报从 Pending 到 Firing 的整个历史过程，拉出来一看也就清楚了。</p>
+<p>但有时候 ALERTS 的说服力可能还不够，因为它本身并没有记录每次计算出来的值到底是啥，而在我们回头去考证警报时，又无法选取出和警报计算过程中一模一样的计算时间点， 因此也就无法还原警报计算时看到的计算值究竟是啥。这时候终极解决方案就是把警报所要计算的指标定义成一条 Recording Rule，计算出一个新指标来记录计算值，然后针对这个 新指标做阈值报警。kube-prometheus 的警报规则中就大量采用了这种技术。</p>
+<h3 id="到此为止了吗">到此为止了吗？</h3>
+<p>Prometheus 警报不仅包含 Prometheus 本身，还包含用于警报治理的 Alertmanager，我们可以看一看上面那张指标计算示意图的全图：</p>
+<p><img src="https://aleiwu.com/alert-overview.jpg" alt=""></p>
+<p>在警报产生后，还要经过 Alertmanager 的分组、抑制处理、静默处理、去重处理和降噪处理最后再发送给接收者。而这个过程也有大量的因素可能会导致警报产生了却最终没有进行通知。</p>
+<h2 id="结语">结语</h2>
+<p>Alertmanager 整体的设计意图就是奔着治理警报（通知）去的，首先它用 Routing Tree 来帮助用户定义警报的归类与发送逻辑，然后再用 Notification Pipeline 来做抑制、静默、去重以提升警报质量。这些功能虽然不能解决”警报”这件事中所有令人头疼的问题，但确实为我们着手去解决”警报质量”相关问题提供了趁手的工具。</p>
+<blockquote>
+<p>本文转载自：「Aylei’s Blog」，原文：1.<a href="https://url.cn/5Gp0VLq%E3%80%812.https://url.cn/5MEMY8K%EF%BC%8C%E7%89%88%E6%9D%83%E5%BD%92%E5%8E%9F%E4%BD%9C%E8%80%85%E6%89%80%E6%9C%89%E3%80%82%E6%AC%A2%E8%BF%8E%E6%8A%95%E7%A8%BF%EF%BC%8C%E6%8A%95%E7%A8%BF%E9%82%AE%E7%AE%B1:" target="_blank" rel="noopener">https://url.cn/5Gp0VLq、2.https://url.cn/5MEMY8K，版权归原作者所有。欢迎投稿，投稿邮箱:</a> <code>editor@hi-linux.com</code> 。</p>
+</blockquote>
+</div>
+
+			<script src="https://my.openwrite.cn/js/readmore.js" type="text/javascript"></script>
+			<script>
+			var isMobile = navigator.userAgent.match(/(phone|pad|pod|iPhone|iPod|ios|iPad|Android|Mobile|BlackBerry|IEMobile|MQQBrowser|JUC|Fennec|wOSBrowser|BrowserNG|WebOS|Symbian|Windows Phone)/i);
+			if (!isMobile) {
+			    var btw = new BTWPlugin();
+			    btw.init({
+			        "id": "vip-container",
+			        "blogId": "10135-1588830050631-449",
+			        "name": "「奇妙的 Linux 世界」",
+			        "qrcode": "https://www.hi-linux.com/img/wechat/mp_qrcode_12.jpg",
+			        "keyword": "VIP"
+			    });
+			}
+			</script>
+		
+                
+
+                <hr>
+                <!-- Pager -->
+                <ul class="pager">
+                    
+                        <li class="previous">
+                            <a href="/posts/57326.html" data-toggle="tooltip" data-placement="top" title="史上最全的高性能代理服务器 Envoy 中文实战教程">&larr; Previous Post</a>
+                        </li>
+                    
+                    
+                        <li class="next">
+                            <a href="/posts/13318.html" data-toggle="tooltip" data-placement="top" title="推荐一款让所有终端程序轻松支持 SOCKS5 代理的神器 graftcp">Next Post &rarr;</a>
+                        </li>
+                    
+                </ul>
+
+                <!-- duoshuo Share start -->
+                
+                <!-- 多说 Share end-->
+
+                <!-- 多说评论框 start -->
+                
+                <!-- 多说评论框 end -->
+
+                <!-- disqus comment start -->
+                
+                <!-- disqus comment end -->
+
+                
+                    <!-- disqus 评论框 start -->
+                    <div class="comment">
+                        <div id="lv-container" data-id="city" data-uid="MTAyMC8yNzg2My80NDQw"></div>
+                    </div>
+                    <!-- disqus 评论框 end -->
+                
+
+            </div>
+            
+            <!-- Tabe of Content -->
+            <!-- Table of Contents -->
+
+  
+    <style>
+      span.toc-nav-number{
+        display: none
+      }
+    </style>
+  
+    
+      <aside id="sidebar">
+        <div id="toc" class="toc-article">
+        <strong class="toc-title">Contents</strong>
+        
+          <ol class="toc-nav"><li class="toc-nav-item toc-nav-level-2"><a class="toc-nav-link" href="#为什么要-alertmanager"><span class="toc-nav-number">1.</span> <span class="toc-nav-text">为什么要 Alertmanager？</span></a></li><li class="toc-nav-item toc-nav-level-2"><a class="toc-nav-link" href="#alertmanager-内部架构"><span class="toc-nav-number">2.</span> <span class="toc-nav-text">Alertmanager 内部架构</span></a><ol class="toc-nav-child"><li class="toc-nav-item toc-nav-level-3"><a class="toc-nav-link" href="#routing-tree"><span class="toc-nav-number">2.1.</span> <span class="toc-nav-text">Routing Tree</span></a></li><li class="toc-nav-item toc-nav-level-3"><a class="toc-nav-link" href="#notification-pipeline"><span class="toc-nav-number">2.2.</span> <span class="toc-nav-text">Notification Pipeline</span></a></li></ol></li><li class="toc-nav-item toc-nav-level-2"><a class="toc-nav-link" href="#一个-prometheus-报警处理实例"><span class="toc-nav-number">3.</span> <span class="toc-nav-text">一个 Prometheus 报警处理实例</span></a><ol class="toc-nav-child"><li class="toc-nav-item toc-nav-level-3"><a class="toc-nav-link" href="#从-for-参数开始"><span class="toc-nav-number">3.1.</span> <span class="toc-nav-text">从 for 参数开始</span></a></li><li class="toc-nav-item toc-nav-level-3"><a class="toc-nav-link" href="#为什么不报警"><span class="toc-nav-number">3.2.</span> <span class="toc-nav-text">为什么不报警？</span></a></li><li class="toc-nav-item toc-nav-level-3"><a class="toc-nav-link" href="#为什么报警"><span class="toc-nav-number">3.3.</span> <span class="toc-nav-text">为什么报警？</span></a></li><li class="toc-nav-item toc-nav-level-3"><a class="toc-nav-link" href="#采样间隔"><span class="toc-nav-number">3.4.</span> <span class="toc-nav-text">采样间隔</span></a></li><li class="toc-nav-item toc-nav-level-3"><a class="toc-nav-link" href="#如何应对"><span class="toc-nav-number">3.5.</span> <span class="toc-nav-text">如何应对</span></a></li><li class="toc-nav-item toc-nav-level-3"><a class="toc-nav-link" href="#到此为止了吗"><span class="toc-nav-number">3.6.</span> <span class="toc-nav-text">到此为止了吗？</span></a></li></ol></li><li class="toc-nav-item toc-nav-level-2"><a class="toc-nav-link" href="#结语"><span class="toc-nav-number">4.</span> <span class="toc-nav-text">结语</span></a></li></ol>
+        
+        </div>
+      </aside>
+    
+
+                
+            <!-- Sidebar Container -->
+            <div class="
+                col-lg-8 col-lg-offset-2
+                col-md-10 col-md-offset-1
+                sidebar-container">
+
+                <!-- Featured Tags -->
+                
+                <section>
+                    <!-- no hr -->
+                    <h5><a href="/tags/">FEATURED TAGS</a></h5>
+                    <div class="tags">
+                       
+                          <a class="tag" href="/tags/#Linux" title="Linux">Linux</a>
+                        
+                          <a class="tag" href="/tags/#Kubernetes" title="Kubernetes">Kubernetes</a>
+                        
+                          <a class="tag" href="/tags/#Prometheus" title="Prometheus">Prometheus</a>
+                        
+                    </div>
+                </section>
+                
+
+                <!-- Friends Blog -->
+                
+                <hr>
+                <h5>FRIENDS</h5>
+                <ul class="list-inline">
+
+                    
+                        <li><a href="http://www.mike.org.cn/" target="_blank">简单.生活</a></li>
+                    
+                        <li><a href="http://shang.qq.com/wpa/qunwpa?idkey=ea4c43493c2269428ac6ef6141de4b6d78e5ab2d41380ca4099b833b62884ee9" target="_blank">技术交流群</a></li>
+                    
+                        <li><a href="" target="_blank"></a></li>
+                    
+                        <li><a href="" target="_blank"></a></li>
+                    
+                </ul>
+                
+            </div>
+        </div>
+    </div>
+</article>
+
+
+
+
+
+
+    <!-- 来必力City版公共JS代码 start (一个网页只需插入一次) -->
+    <script type="text/javascript">
+       (function(d, s) {
+           var j, e = d.getElementsByTagName(s)[0];
+    
+           if (typeof LivereTower === 'function') { return; }
+    
+           j = d.createElement(s);
+           j.src = 'https://cdn-city.livere.com/js/embed.dist.js';
+           j.async = true;
+    
+           e.parentNode.insertBefore(j, e);
+       })(document, 'script');
+    </script>
+    <noscript>为正常使用来必力评论功能请激活JavaScript</noscript>
+    <!-- 来必力City版 公共JS代码 end -->
+
+
+
+<!-- async load function -->
+<script>
+    function async(u, c) {
+      var d = document, t = 'script',
+          o = d.createElement(t),
+          s = d.getElementsByTagName(t)[0];
+      o.src = u;
+      if (c) { o.addEventListener('load', function (e) { c(null, e); }, false); }
+      s.parentNode.insertBefore(o, s);
+    }
+</script>
+<!-- anchor-js, Doc:http://bryanbraun.github.io/anchorjs/ -->
+<script>
+    async("https://cdn.bootcss.com/anchor-js/1.1.1/anchor.min.js",function(){
+        anchors.options = {
+          visible: 'hover',
+          placement: 'left',
+          icon: 'ℬ'
+        };
+        anchors.add().remove('.intro-header h1').remove('.subheading').remove('.sidebar-container h5');
+    })
+</script>
+<style>
+    /* place left on bigger screen */
+    @media all and (min-width: 800px) {
+        .anchorjs-link{
+            position: absolute;
+            left: -0.75em;
+            font-size: 1.1em;
+            margin-top : -0.1em;
+        }
+    }
+</style>
+
+
+
+    <!-- Footer -->
+    <!-- Footer -->
+<footer>
+    <div class="container">
+        <div class="row">
+            <div class="col-lg-8 col-lg-offset-2 col-md-10 col-md-offset-1">
+                <ul class="list-inline text-center">
+                
+                    <li>
+                        <a href="/atom.xml">
+                            <span class="fa-stack fa-lg">
+                                <i class="fa fa-circle fa-stack-2x"></i>
+                                <i class="fa fa-rss fa-stack-1x fa-inverse"></i>
+                            </span>
+                        </a>
+                    </li>
+                
+                
+                
+                    <li>
+                        <a target="_blank" href="https://www.zhihu.com/people/80imike">
+                            <span class="fa-stack fa-lg">
+                                <i class="fa fa-circle fa-stack-2x"></i>
+                                <i class="fa  fa-stack-1x fa-inverse">知</i>
+                            </span>
+                        </a>
+                    </li>
+                
+
+                
+                    <li>
+                        <a target="_blank" href="http://weibo.com/2093524665">
+                            <span class="fa-stack fa-lg">
+                                <i class="fa fa-circle fa-stack-2x"></i>
+                                <i class="fa fa-weibo fa-stack-1x fa-inverse"></i>
+                            </span>
+                        </a>
+                    </li>
+                
+
+                
+
+                
+
+                
+
+                </ul>
+                <p class="copyright text-muted">
+                    Copyright &copy; Mike 2020 | Hosted by <a href="https://pages.coding.me" target="_blank" rel="noopener" style="font-weight: bold">Coding Pages</a>
+                    <br>
+                    Theme by <a href="http://beantech.org" target="_blank" rel="noopener">BeanTech</a> 
+                    <span style="display: inline-block; margin: 0 5px;">
+                        <i class="fa fa-heart"></i>
+                    </span> 
+                    re-Ported by <a href="http://www.huweihuang.com" target="_blank" rel="noopener">胡伟煌</a> | 
+                    <iframe
+                        style="margin-left: 2px; margin-bottom:-5px;"
+                        frameborder="0" scrolling="0" width="91px" height="20px"
+                        src="https://ghbtns.com/github-btn.html?user=huweihuang&repo=hexo-theme-huweihuang&type=star&count=true" >
+                    </iframe>
+                </p>
+            </div>
+        </div>
+    </div>
+</footer>
+
+<!-- jQuery -->
+
+<script src="/js/jquery.min.js"></script>
+
+
+<!-- Bootstrap Core JavaScript -->
+
+<script src="/js/bootstrap.min.js"></script>
+
+
+<!-- Custom Theme JavaScript -->
+
+<script src="/js/hux-blog.min.js"></script>
+
+
+
+<!-- async load function -->
+<script>
+    function async(u, c) {
+      var d = document, t = 'script',
+          o = d.createElement(t),
+          s = d.getElementsByTagName(t)[0];
+      o.src = u;
+      if (c) { o.addEventListener('load', function (e) { c(null, e); }, false); }
+      s.parentNode.insertBefore(o, s);
+    }
+</script>
+
+<!-- 
+     Because of the native support for backtick-style fenced code blocks 
+     right within the Markdown is landed in Github Pages, 
+     From V1.6, There is no need for Highlight.js, 
+     so Huxblog drops it officially.
+
+     - https://github.com/blog/2100-github-pages-now-faster-and-simpler-with-jekyll-3-0  
+     - https://help.github.com/articles/creating-and-highlighting-code-blocks/    
+-->
+<!--
+    <script>
+        async("http://cdn.bootcss.com/highlight.js/8.6/highlight.min.js", function(){
+            hljs.initHighlightingOnLoad();
+        })
+    </script>
+    <link href="http://cdn.bootcss.com/highlight.js/8.6/styles/github.min.css" rel="stylesheet">
+-->
+
+
+<!-- jquery.tagcloud.js -->
+<script>
+    // only load tagcloud.js in tag.html
+    if($('#tag_cloud').length !== 0){
+        async("https://www.hi-linux.com/js/jquery.tagcloud.js",function(){
+            $.fn.tagcloud.defaults = {
+                //size: {start: 1, end: 1, unit: 'em'},
+                color: {start: '#bbbbee', end: '#0085a1'},
+            };
+            $('#tag_cloud a').tagcloud();
+        })
+    }
+</script>
+
+<!--fastClick.js -->
+<script>
+    async("https://cdn.bootcss.com/fastclick/1.0.6/fastclick.min.js", function(){
+        var $nav = document.querySelector("nav");
+        if($nav) FastClick.attach($nav);
+    })
+</script>
+
+
+<!-- Google Analytics -->
+
+
+
+
+<!-- Baidu Tongji -->
+
+
+
+
+
+
+	<a id="rocket" href="#top" class=""></a>
+	<script type="text/javascript" src="/js/totop.js?v=1.0.0" async=""></script>
+    <script type="text/javascript" src="/js/toc.js?v=1.0.0" async=""></script>
+<!-- Image to hack wechat -->
+<img src="https://www.hi-linux.com/img/icon_wechat.png" width="0" height="0" />
+<!-- Migrate from head to bottom, no longer block render and still work -->
+
+</body>
+
+</html>
