@@ -1,0 +1,736 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<!-- Head tag -->
+<head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="google-site-verification" content="xBT4GhYoi5qRD5tr338pgPM5OWHHIDR6mNg1a3euekI" />
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="description" content="">
+    <meta name="keyword"  content="Linux,运维,Nginx,Zabbix,Centos,Ansible,MySQL,Python,Docker,ELK,Haproxy,Git,Nodejs,安全,技术">
+    <link rel="shortcut icon" href="/img/ironman-draw.png">
+    <!-- Place this tag in your head or just before your close body tag. -->
+    <script async defer src="https://buttons.github.io/buttons.js"></script>
+    <title>
+        
+          实战 Btrfs 文件系统之 Subvolume 与 Snapshot - 运维之美
+        
+    </title>
+
+    <link rel="canonical" href="https://www.hi-linux.com/posts/25994.html">
+
+    <!-- Bootstrap Core CSS -->
+    
+<link rel="stylesheet" href="/css/bootstrap.min.css">
+
+
+    <!-- Custom CSS --> 
+    
+<link rel="stylesheet" href="/css/beantech.min.css">
+
+    
+    <!-- Pygments Highlight CSS -->
+    
+<link rel="stylesheet" href="/css/highlight.css">
+
+
+    
+<link rel="stylesheet" href="/css/widget.css">
+
+
+    
+<link rel="stylesheet" href="/css/rocket.css">
+
+
+    
+<link rel="stylesheet" href="/css/signature.css">
+
+
+    
+<link rel="stylesheet" href="/css/toc.css">
+
+
+    <!-- Custom Fonts -->
+    <!-- <link href="https://maxcdn.bootstrapcdn.com/font-awesome/4.3.0/css/font-awesome.min.css" rel="stylesheet" type="text/css"> -->
+    <!-- Hux change font-awesome CDN to qiniu -->
+    <link href="https://cdn.staticfile.org/font-awesome/4.5.0/css/font-awesome.min.css" rel="stylesheet" type="text/css">
+
+
+    <!-- Hux Delete, sad but pending in China
+    <link href='http://fonts.googleapis.com/css?family=Lora:400,700,400italic,700italic' rel='stylesheet' type='text/css'>
+    <link href='http://fonts.googleapis.com/css?family=Open+Sans:300italic,400italic,600italic,700italic,800italic,400,300,600,700,800' rel='stylesheet' type='text/
+    css'>
+    -->
+
+
+    <!-- HTML5 Shim and Respond.js IE8 support of HTML5 elements and media queries -->
+    <!-- WARNING: Respond.js doesn't work if you view the page via file:// -->
+    <!--[if lt IE 9]>
+        <script src="https://oss.maxcdn.com/libs/html5shiv/3.7.0/html5shiv.js"></script>
+        <script src="https://oss.maxcdn.com/libs/respond.js/1.4.2/respond.min.js"></script>
+    <![endif]-->
+
+    <!-- ga & ba script hoook -->
+    <script></script>
+<meta name="generator" content="Hexo 4.2.0"><link rel="alternate" href="/atom.xml" title="运维之美" type="application/atom+xml">
+</head>
+
+
+<!-- hack iOS CSS :active style -->
+<body ontouchstart="">
+	<!-- Modified by Yu-Hsuan Yen -->
+<!-- Post Header -->
+<style type="text/css">
+    header.intro-header{
+        
+            background-image: url('/img/header_img/building.jpg')
+            /*post*/
+        
+    }
+    
+</style>
+
+<header class="intro-header" >
+    <!-- Signature -->
+    <div id="signature">
+        <div class="container">
+            <div class="row">
+                <div class="col-lg-8 col-lg-offset-2 col-md-10 col-md-offset-1">
+                
+                    <div class="post-heading">
+                        <div class="tags">
+                            
+                              <a class="tag" href="/tags/#Linux" title="Linux">Linux</a>
+                            
+                              <a class="tag" href="/tags/#技巧" title="技巧">技巧</a>
+                            
+                              <a class="tag" href="/tags/#Btrfs" title="Btrfs">Btrfs</a>
+                            
+                        </div>
+                        <h1>实战 Btrfs 文件系统之 Subvolume 与 Snapshot</h1>
+                        <h2 class="subheading"></h2>
+                        <span class="meta">
+                            Posted by Mike on
+                            2020-05-20
+                        </span>
+                    </div>
+                
+
+
+                </div>
+            </div>
+        </div>
+    </div>
+</header>
+
+	
+    <!-- Navigation -->
+<nav class="navbar navbar-default navbar-custom navbar-fixed-top">
+    <div class="container-fluid">
+        <!-- Brand and toggle get grouped for better mobile display -->
+        <div class="navbar-header page-scroll">
+            <button type="button" class="navbar-toggle">
+                <span class="sr-only">Toggle navigation</span>
+                <span class="icon-bar"></span>
+                <span class="icon-bar"></span>
+                <span class="icon-bar"></span>
+            </button>
+            <a class="navbar-brand" href="/">运维之美</a>
+        </div>
+
+        <!-- Collect the nav links, forms, and other content for toggling -->
+        <!-- Known Issue, found by Hux:
+            <nav>'s height woule be hold on by its content.
+            so, when navbar scale out, the <nav> will cover tags.
+            also mask any touch event of tags, unfortunately.
+        -->
+        <div id="huxblog_navbar">
+            <div class="navbar-collapse">
+                <ul class="nav navbar-nav navbar-right">
+                    <li>
+                        <a href="/">Home</a>
+                    </li>
+
+                    
+
+                        
+                    
+
+                        
+                    
+
+                        
+                        <li>
+                            <a href="/about/">About</a>
+                        </li>
+                        
+                    
+
+                        
+                        <li>
+                            <a href="/archive/">Archives</a>
+                        </li>
+                        
+                    
+
+                        
+                        <li>
+                            <a href="/tags/">Tags</a>
+                        </li>
+                        
+                    
+                    
+                </ul>
+            </div>
+        </div>
+        <!-- /.navbar-collapse -->
+    </div>
+    <!-- /.container -->
+</nav>
+<script>
+    // Drop Bootstarp low-performance Navbar
+    // Use customize navbar with high-quality material design animation
+    // in high-perf jank-free CSS3 implementation
+    var $body   = document.body;
+    var $toggle = document.querySelector('.navbar-toggle');
+    var $navbar = document.querySelector('#huxblog_navbar');
+    var $collapse = document.querySelector('.navbar-collapse');
+
+    $toggle.addEventListener('click', handleMagic)
+    function handleMagic(e){
+        if ($navbar.className.indexOf('in') > 0) {
+        // CLOSE
+            $navbar.className = " ";
+            // wait until animation end.
+            setTimeout(function(){
+                // prevent frequently toggle
+                if($navbar.className.indexOf('in') < 0) {
+                    $collapse.style.height = "0px"
+                }
+            },400)
+        }else{
+        // OPEN
+            $collapse.style.height = "auto"
+            $navbar.className += " in";
+        }
+    }
+</script>
+
+
+    <!-- Main Content -->
+    <!-- Modify by Yu-Hsuan Yen -->
+
+<!-- Post Content -->
+<article>
+    <div class="container">
+        <div class="row">
+
+            <!-- Post Container -->
+            <div class="
+                col-lg-8 col-lg-offset-2
+                col-md-10 col-md-offset-1
+                post-container">
+
+                <div id="vip-container"><p>对于大部分文件系统来说，在磁盘上创建好文件系统，然后再挂载到系统中去就完事了。但对于 Btrfs 来说，除了在格式化和挂载的时候指定不同的参数外，还支持很多其他的功能。比如：管理多块硬盘、支持 LVM 和 RAID 等，具体的可以参考它的「官方文档」或者「Linux 下常见文件系统对比」。</p>
+<blockquote>
+<p>Btrfs 是 Oracle 07 年基于 GPL 协议开源的 Linux 文件系统，其目的是替换传统的 Ext3、Ext4 系列文件系统。Ext 系列文件系统存在着诸多问题，比如反删除能力有限等；而 Btrfs 在解决问题同时提供了更加强大的高级特性。</p>
+</blockquote>
+<p><strong>Btrfs 特性</strong></p>
+<p>Btrfs 在文件系统级别支持写时复制 (COW) 机制，并且支持快照 (增量快照)、支持对单个文件快照；同时支持单个超大文件、文件检查、内建 RAID；支持 B 树子卷 (组合多个物理卷，多卷支持) 等。具体如下：</p>
+<p>Btrfs 核心特性：</p>
+<ul>
+<li>
+<p>多物理卷支持：Btrfs 可有多个物理卷组成 (类似 LVM)；支持 RAID 以及联机 添加、删除、修改</p>
+</li>
+<li>
+<p>写时复制更新机制 (COW)：复制、更新、替换指针，而非传统意义上的覆盖</p>
+</li>
+<li>
+<p>支持数据及元数据校验码：Checksum 机制</p>
+</li>
+<li>
+<p>支持创建子卷：Subvolume 机制，同时可多层创建</p>
+</li>
+<li>
+<p>支持快照：基于 COW 实现快照，并且相对于 LVM 可以实现快照的快照 (增量快照)</p>
+</li>
+<li>
+<p>支持透明压缩：后台自动压缩文件(消耗一定 CPU)，对前端程序透明</p>
+</li>
+</ul>
+<a id="more"></a>
+<p>Btrfs 是 Linux 下大家公认的将会替代 ext4 的下一代文件系统，功能非常强大。本篇不会介绍 Btrfs 的原理，也不会介绍 Btrfs 的所有功能，只是挑了其中的 Subvolume 和 Snapshot 这两个特性来进行介绍。</p>
+<p>本篇所有例子都在 Ubuntu-Server-X86_64 16.04 下执行通过。</p>
+<h2 id="准备环境">准备环境</h2>
+<p>先创建一个虚拟的硬盘，然后将它格式化成 Btrfs，最后将它挂载到目录 /mnt/btrfs 。</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br></pre></td><td class="code"><pre><span class="line"># 为了简单起见，这里只使用一块硬盘来做测试（Btrf s可以管理多块硬盘或分区）。</span><br><span class="line"># 新建一个文件，用来虚拟一块硬盘。</span><br><span class="line">dev@ubuntu:~$ fallocate -l 512M &#x2F;tmp&#x2F;btrfs.img</span><br><span class="line"></span><br><span class="line"># 在上面创建 Btrfs 文件系统</span><br><span class="line">dev@ubuntu:~$ mkfs.btrfs &#x2F;tmp&#x2F;btrfs.img</span><br><span class="line">btrfs-progs v4.4</span><br><span class="line">See http:&#x2F;&#x2F;btrfs.wiki.kernel.org for more information.</span><br><span class="line"></span><br><span class="line">Label:              (null)</span><br><span class="line">UUID:               fd5efcd3-adc2-406b-a684-e6c87dde99a1</span><br><span class="line">Node size:          16384</span><br><span class="line">Sector size:        4096</span><br><span class="line">Filesystem size:    512.00MiB</span><br><span class="line">Block group profiles:</span><br><span class="line">  Data:             single            8.00MiB</span><br><span class="line">  Metadata:         DUP              40.00MiB</span><br><span class="line">  System:           DUP              12.00MiB</span><br><span class="line">SSD detected:       no</span><br><span class="line">Incompat features:  extref, skinny-metadata</span><br><span class="line">Number of devices:  1</span><br><span class="line">Devices:</span><br><span class="line">   ID        SIZE  PATH</span><br><span class="line">    1   512.00MiB  &#x2F;tmp&#x2F;btrfs.img</span><br><span class="line"></span><br><span class="line"># 创建文件夹并挂载</span><br><span class="line">dev@ubuntu:~$ sudo mkdir &#x2F;mnt&#x2F;btrfs</span><br><span class="line">dev@ubuntu:~$ sudo mount &#x2F;tmp&#x2F;btrfs.img &#x2F;mnt&#x2F;btrfs</span><br><span class="line"></span><br><span class="line"># 修改权限，这样后面的部分操作就不再需要 sudo</span><br><span class="line">dev@ubuntu:~$ sudo chmod 777 &#x2F;mnt&#x2F;btrfs</span><br></pre></td></tr></table></figure>
+<h2 id="subvolume">Subvolume</h2>
+<p>可以把 Subvolume 理解为一个虚拟的设备，由 Btrfs 管理，创建好了之后就自动挂载到了 Btrfs 文件系统的一个目录上，所以我们在文件系统里面看到的 Subvolume 就是一个目录，但它是一个特殊的目录，具有挂载点的一些属性。</p>
+<p>新创建的 Btrfs 文件系统会创建一个路径为 “/” 的默认 Subvolume，即 Root Subvolume。其 ID 为 5（别名为 0），这是一个 ID 和目录都预设好的 Subvolume。</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"># 这里从 mount 的参数 “subvolid&#x3D;5,subvol&#x3D;&#x2F;” 就可以看出来默认的 Root Subvolume 的 id 为 5，路径为 “&#x2F;” 。</span><br><span class="line">dev@debian:&#x2F;mnt&#x2F;btrfs$ mount|grep btrfs</span><br><span class="line">&#x2F;dev&#x2F;loop1 on &#x2F;mnt&#x2F;btrfs type btrfs (rw,relatime,space_cache,subvolid&#x3D;5,subvol&#x3D;&#x2F;)</span><br></pre></td></tr></table></figure>
+<h3 id="创建-subvolume">创建 Subvolume</h3>
+<p>这里我们将会利用 Btrfs 提供的工具创建两个新 Subvolume 和两个文件夹，来看看他们之间的差别</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br></pre></td><td class="code"><pre><span class="line">dev@ubuntu:~$ cd &#x2F;mnt&#x2F;btrfs</span><br><span class="line"># btrfs 命令是 Btrfs 提供的应用层工具，可以用来管理 Btrfs。</span><br><span class="line"># 这里依次创建两个 Subvolume，创建完成之后会自动在当前目录下生成两个目录。</span><br><span class="line">dev@ubuntu:&#x2F;mnt&#x2F;btrfs$ btrfs subvolume create sub1</span><br><span class="line">Create subvolume &#39;.&#x2F;sub1&#39;</span><br><span class="line">dev@ubuntu:&#x2F;mnt&#x2F;btrfs$ btrfs subvolume create sub2</span><br><span class="line">Create subvolume &#39;.&#x2F;sub2&#39;</span><br><span class="line"></span><br><span class="line"># 创建两个文件夹</span><br><span class="line">dev@ubuntu:&#x2F;mnt&#x2F;btrfs$ mkdir dir1 dir2</span><br><span class="line"></span><br><span class="line"># 在sub1、sub2 和 dir1 中分别创建一个文件</span><br><span class="line">dev@ubuntu:&#x2F;mnt&#x2F;btrfs$ touch dir1&#x2F;dir1-01.txt</span><br><span class="line">dev@ubuntu:&#x2F;mnt&#x2F;btrfs$ touch sub1&#x2F;sub1-01.txt</span><br><span class="line">dev@ubuntu:&#x2F;mnt&#x2F;btrfs$ touch sub2&#x2F;sub2-01.txt</span><br><span class="line"></span><br><span class="line"># 最后看看目录结构，是不是看起来 sub1 和 dir1 没什么区别？</span><br><span class="line">dev@ubuntu:&#x2F;mnt&#x2F;btrfs$ tree</span><br><span class="line">.</span><br><span class="line">├── dir1</span><br><span class="line">│   └── dir1-01.txt</span><br><span class="line">├── dir2</span><br><span class="line">├── sub1</span><br><span class="line">│   └── sub1-01.txt</span><br><span class="line">└── sub2</span><br><span class="line">    └── sub2-01.txt</span><br></pre></td></tr></table></figure>
+<p>不过由于每个 Subvolume 都是一个单独的虚拟设备，所以无法跨 Subvolume 建立硬链接。</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"># 虽然 sub1 和 sub2 属于相同的 Btrfs 文件系统，并且在一块物理硬盘上。但由于他们属于不同的 Subvolume，所以在它们之间建立硬链接失败。</span><br><span class="line">dev@ubuntu:&#x2F;mnt&#x2F;btrfs$ ln .&#x2F;sub1&#x2F;sub1-01.txt .&#x2F;sub2&#x2F;</span><br><span class="line">ln: failed to create hard link &#39;.&#x2F;sub2&#x2F;sub1-01.txt&#39; &#x3D;&gt; &#39;.&#x2F;sub1&#x2F;sub1-01.txt&#39;: Invalid cross-device link</span><br></pre></td></tr></table></figure>
+<h3 id="删除-subvolume">删除 Subvolume</h3>
+<p>Subvolume 不能用 rm 命令来删除的，只能通过 btrfs 命令来删除。</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br></pre></td><td class="code"><pre><span class="line"># 普通的目录通过 rm 命令就可以被删除</span><br><span class="line">dev@ubuntu:&#x2F;mnt&#x2F;btrfs$ rm -r dir2</span><br><span class="line"></span><br><span class="line"># 通过 rm 命令删除 Subvolume 就会失败</span><br><span class="line">dev@ubuntu:&#x2F;mnt&#x2F;btrfs$ sudo rm -r sub2</span><br><span class="line">rm: cannot remove &#39;sub2&#39;: Operation not permitted</span><br><span class="line"></span><br><span class="line"># 需要通过 btrfs 命令才能删除，删除 sub2 成功（就算 Subvolume 里面有文件也能被删除）</span><br><span class="line">dev@ubuntu:&#x2F;mnt&#x2F;btrfs$ sudo btrfs subvolume del sub2</span><br><span class="line">Delete subvolume (no-commit): &#39;&#x2F;mnt&#x2F;btrfs&#x2F;sub2&#39;</span><br><span class="line">dev@ubuntu:&#x2F;mnt&#x2F;btrfs$ tree</span><br><span class="line">.</span><br><span class="line">├── dir1</span><br><span class="line">│   └── dir1-01.txt</span><br><span class="line">└── sub1</span><br><span class="line">    └── sub1-01.txt</span><br></pre></td></tr></table></figure>
+<p>上面删除的时候可以看到这样的提示： Delete subvolume (no-commit)，表示 Subvolume 被删除了，但没有提交。意思是在内存里面生效了，但磁盘上的内容还没删，意味着如果这个时候系统 Crash 掉，这个 Subvolume 有可能还会回来。Btrfs 这样做的好处是删除速度很快，不会影响使用，缺点是有可能在后台 Commit 的过程中系统挂掉，导致 Commit 失败。</p>
+<p>为了确保 Subvolume 里的数据被真正的从磁盘上移除掉，可以在删除 Subvolume 的时候指定 -c 参数，这样 btrfs命令会等提交完成之后再返回。</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">dev@ubuntu:&#x2F;mnt&#x2F;btrfs$ sudo btrfs subvolume del -c sub2</span><br><span class="line">Delete subvolume (commit): &#39;&#x2F;mnt&#x2F;btrfs&#x2F;sub2&#39;</span><br></pre></td></tr></table></figure>
+<h3 id="挂载-subvolume">挂载 Subvolume</h3>
+<p>Subvolume 可以直接通过 mount 命令进行挂载，和挂载其它设备没什么区别，具体的挂载参数请查看参考官方文档。</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line"># 创建一个用于挂载点的目录</span><br><span class="line">dev@ubuntu:&#x2F;mnt&#x2F;btrfs$ sudo mkdir &#x2F;mnt&#x2F;sub1</span><br><span class="line"></span><br><span class="line"># 先查看待挂载的 Subvolume 的 id</span><br><span class="line">dev@debian:&#x2F;mnt&#x2F;btrfs$ sudo btrfs subvolume list &#x2F;mnt&#x2F;btrfs&#x2F;</span><br><span class="line">ID 256 gen 9 top level 5 path sub1</span><br><span class="line"></span><br><span class="line"># 通过 -o 参数来指定要挂载的 Subvolume 的 ID</span><br><span class="line"># 通过路径来挂载也是一样的效果：sudo mount -o subvol&#x3D;&#x2F;sub1 &#x2F;tmp&#x2F;btrfs.img &#x2F;mnt&#x2F;sub1&#x2F;</span><br><span class="line">dev@debian:&#x2F;mnt&#x2F;btrfs$ sudo mount -o subvolid&#x3D;256 &#x2F;tmp&#x2F;btrfs.img &#x2F;mnt&#x2F;sub1&#x2F;</span><br><span class="line">dev@debian:&#x2F;mnt&#x2F;btrfs$ tree &#x2F;mnt&#x2F;sub1&#x2F;</span><br><span class="line">&#x2F;mnt&#x2F;sub1&#x2F;</span><br><span class="line">└── sub1-01.txt</span><br></pre></td></tr></table></figure>
+<h3 id="设置-subvolume-只读">设置 Subvolume 只读</h3>
+<p>Subvolume 可以被设置成只读状态。</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br></pre></td><td class="code"><pre><span class="line"># 通过 btrfs property 可以查看和修改 Subvolume 的只读状态</span><br><span class="line"># 默认情况下，Subvolume 的只读属性为 false，即允许写</span><br><span class="line">dev@ubuntu:&#x2F;mnt&#x2F;btrfs$ btrfs property get -ts .&#x2F;sub1&#x2F;</span><br><span class="line">ro&#x3D;false</span><br><span class="line"></span><br><span class="line"># 将 sub1 的只读属性设置成 true</span><br><span class="line">dev@ubuntu:&#x2F;mnt&#x2F;btrfs$ btrfs property set -ts .&#x2F;sub1&#x2F; ro true</span><br><span class="line">dev@ubuntu:&#x2F;mnt&#x2F;btrfs$ btrfs property get -ts .&#x2F;sub1</span><br><span class="line">ro&#x3D;true</span><br><span class="line"></span><br><span class="line"># 写文件失败，提示文件系统只读</span><br><span class="line">dev@ubuntu:&#x2F;mnt&#x2F;btrfs$ touch .&#x2F;sub1&#x2F;sub1-02.txt</span><br><span class="line">touch: cannot touch &#39;.&#x2F;sub1&#x2F;sub1-02.txt&#39;: Read-only file system</span><br><span class="line"></span><br><span class="line"># 将sub1的状态改回去，以免影响后续测试</span><br><span class="line">dev@ubuntu:&#x2F;mnt&#x2F;btrfs$ btrfs property set -ts .&#x2F;sub1&#x2F; ro false</span><br></pre></td></tr></table></figure>
+<h2 id="snapshot">Snapshot</h2>
+<p>可以在 Subvolume 的基础上制作快照，几点需要注意：</p>
+<ul>
+<li>
+<p>默认情况下 Subvolume 的快照是可写的</p>
+</li>
+<li>
+<p>快照是特殊的 Subvolume，具有 Subvolume 的属性。所以快照也可以通过 mount 挂载，也可以通过 btrfs property 命令设置只读属性</p>
+</li>
+<li>
+<p>由于快照的本质就是一个 Subvolume ，所以可以在快照上面再做快照</p>
+</li>
+</ul>
+<p>在 Subvolume 上做了快照后，Subvolume 和快照就会共享所有的文件。只有当文件更新的时候，才会触发 COW（copy on write），所以创建快照很快，基本不花时间。并且 Btrfs 的 COW 机制很高效，就算多个快照共享一个文件，更新这个文件也和更新一个普通文件差不多的速度。</p>
+<p>如果用过 Git 的话，就能很容易理解 Btrfs 里的快照，可以把 Subvolume 理解为 Git 里面的 master 分支，而快照就是从 master checkout 出来的新分支，于是快照跟 Git 里的分支有类似的特点：</p>
+<ul>
+<li>
+<p>创建快照几乎没有开销</p>
+</li>
+<li>
+<p>可以在快照的基础上再创建快照</p>
+</li>
+<li>
+<p>当前快照里面的修改不会影响其它快照</p>
+</li>
+<li>
+<p>快照可以被删除</p>
+</li>
+</ul>
+<p>当然 Subvolume 也可以像 Git 里的 master 一样被删除。</p>
+<h3 id="创建快照">创建快照</h3>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br></pre></td><td class="code"><pre><span class="line"># 在 Root Subvolume 的基础上创建一个快照</span><br><span class="line"># 默认情况下快照是可写的，如果要创建只读快照，需要加上 -r 参数</span><br><span class="line">dev@debian:&#x2F;mnt&#x2F;btrfs$ sudo btrfs subvolume snapshot .&#x2F; .&#x2F;snap-root</span><br><span class="line">Create a snapshot of &#39;.&#x2F;&#39; in &#39;.&#x2F;snap-root&#39;</span><br><span class="line"></span><br><span class="line"># 创建完成后，可以看到我们已经有了两个 Subvolume</span><br><span class="line">dev@debian:&#x2F;mnt&#x2F;btrfs$ sudo btrfs subvolume list .&#x2F;</span><br><span class="line">ID 256 gen 11 top level 5 path sub1</span><br><span class="line">ID 257 gen 13 top level 5 path snap-root</span><br><span class="line"></span><br><span class="line"># 我们可以通过指定 -s 参数来只列出快照</span><br><span class="line">dev@debian:&#x2F;mnt&#x2F;btrfs$ sudo btrfs subvolume list -s .&#x2F;</span><br><span class="line">ID 257 gen 10 cgen 10 top level 5 otime 2017-03-05 21:46:03 path snap-root</span><br><span class="line"></span><br><span class="line"># 再来看看快照 snap-root 中的文件，可以看到有 dir1 及下面的文件，但看不到 sub1 下的文件，那是因为 sub1 是一个subvolume。在做一个 Subvolume 的快照的时候，不会将它里面的 Subvolume 也做快照</span><br><span class="line">dev@debian:&#x2F;mnt&#x2F;btrfs$ tree .&#x2F;snap-root</span><br><span class="line">.&#x2F;snap-root</span><br><span class="line">├── dir1</span><br><span class="line">│   └── dir1-01.txt</span><br><span class="line">└── sub1</span><br><span class="line"></span><br><span class="line"># 创建 sub1 的一个快照，可以看到 sub1 里面的文件出现在了快照里面</span><br><span class="line">dev@debian:&#x2F;mnt&#x2F;btrfs$ sudo btrfs subvolume snapshot .&#x2F;sub1&#x2F; .&#x2F;snap-sub1</span><br><span class="line">Create a snapshot of &#39;.&#x2F;sub1&#x2F;&#39; in &#39;.&#x2F;snap-sub1&#39;</span><br><span class="line"></span><br><span class="line"># 然后在 sub1 和它的快照 snap-sub1 下面各自创建一个文件，会发现它们之间不受影响</span><br><span class="line">dev@debian:&#x2F;mnt&#x2F;btrfs$ touch snap-sub1&#x2F;snap-sub1-01.txt</span><br><span class="line">dev@debian:&#x2F;mnt&#x2F;btrfs$ touch sub1&#x2F;sub1-02.txt</span><br><span class="line">dev@debian:&#x2F;mnt&#x2F;btrfs$ tree</span><br><span class="line">.</span><br><span class="line">├── dir1</span><br><span class="line">│   └── dir1-01.txt</span><br><span class="line">├── snap-root</span><br><span class="line">│   ├── dir1</span><br><span class="line">│   │   └── dir1-01.txt</span><br><span class="line">│   └── sub1</span><br><span class="line">├── snap-sub1</span><br><span class="line">│   ├── snap-sub1-01.txt</span><br><span class="line">│   └── sub1-01.txt</span><br><span class="line">└── sub1</span><br><span class="line">    ├── sub1-01.txt</span><br><span class="line">    └── sub1-02.txt</span><br></pre></td></tr></table></figure>
+<h3 id="删除快照">删除快照</h3>
+<p>删除快照和删除 Subvolume 是一样的，没有区别。</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line">dev@debian:&#x2F;mnt&#x2F;btrfs$ sudo btrfs subvolume del snap-root</span><br><span class="line">Delete subvolume (no-commit): &#39;&#x2F;mnt&#x2F;btrfs&#x2F;snap-root&#39;</span><br><span class="line">dev@debian:&#x2F;mnt&#x2F;btrfs$ sudo btrfs subvolume del snap-sub1</span><br><span class="line">Delete subvolume (no-commit): &#39;&#x2F;mnt&#x2F;btrfs&#x2F;snap-sub1&#39;</span><br><span class="line">dev@debian:&#x2F;mnt&#x2F;btrfs$ tree</span><br><span class="line">.</span><br><span class="line">├── dir1</span><br><span class="line">│   └── dir1-01.txt</span><br><span class="line">└── sub1</span><br><span class="line">    ├── sub1-01.txt</span><br><span class="line">    └── sub1-02.txt</span><br></pre></td></tr></table></figure>
+<h2 id="default-subvolume">Default Subvolume</h2>
+<p>可以设置 Btrfs 分区的默认 Subvolume，即在挂载磁盘的时候，可以只让分区中的指定 Subvolume 对用户可见。看下面的例子：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br></pre></td><td class="code"><pre><span class="line"># 查看 sub1 的ID</span><br><span class="line">dev@debian:&#x2F;mnt&#x2F;btrfs$ sudo btrfs subvolume list .&#x2F;</span><br><span class="line">ID 256 gen 14 top level 5 path sub1</span><br><span class="line"></span><br><span class="line"># 将 sub1 设置为当前 Btrfs 文件系统的默认 Subvolume</span><br><span class="line">dev@debian:&#x2F;mnt&#x2F;btrfs$ sudo btrfs subvolume set-default 256 &#x2F;mnt&#x2F;btrfs&#x2F;</span><br><span class="line"></span><br><span class="line"># 重新将虚拟硬盘挂载到一个新目录</span><br><span class="line">dev@debian:&#x2F;mnt&#x2F;btrfs$ sudo mkdir &#x2F;mnt&#x2F;btrfs1</span><br><span class="line">dev@debian:&#x2F;mnt&#x2F;btrfs$ sudo mount &#x2F;tmp&#x2F;btrfs.img &#x2F;mnt&#x2F;btrfs1&#x2F;</span><br><span class="line"></span><br><span class="line"># 这里将只能看到 sub1 下的文件</span><br><span class="line">dev@debian:&#x2F;mnt&#x2F;btrfs$ tree &#x2F;mnt&#x2F;btrfs1</span><br><span class="line">&#x2F;mnt&#x2F;btrfs1</span><br><span class="line">├── sub1-01.txt</span><br><span class="line">└── sub1-02.txt</span><br><span class="line"></span><br><span class="line"># 由于 Btrfs 原来的默认 Subvolume 是 Root Subvolume，其 ID 是5（也可以通过 0 来标识），所以我们可以通过同样的命令将默认 Subvolume 再改回去</span><br><span class="line">dev@debian:&#x2F;mnt&#x2F;btrfs$ sudo btrfs subvolume set-default 0 &#x2F;mnt&#x2F;btrfs&#x2F;</span><br></pre></td></tr></table></figure>
+<h3 id="default-subvolume-有什么用呢">Default Subvolume 有什么用呢？</h3>
+<p>利用 Snapshot 和 Default Subvolume，可以很方便的实现不同系统版本的切换。比如将系统安装在一个 Subvolume 下面，当要做什么危险操作的时候，先在 Subvolume 的基础上做一个快照 A。如果操作成功，那么什么都不用做（或者把 A 删掉），继续用原来的 Subvolume，A 不被删掉也没关系，多一个快照在那里也不占空间。如果操作失败，那么可以将 A 设置成 Default Subvolume，并将原来的 Subvolume 删除，这样就相当于系统回滚。</p>
+<p>有了这样的功能后，Linux 的每次操作都能回滚，养成在修改操作前做 Snapshot 的习惯，就再也不用担心 rm 误删文件了。</p>
+<p>现在有些发行版已经有了类似的功能，如 Ubuntu，将安装工具 Apt 和 Btrfs 结合，自动的在安装软件之前打一个 Snapshot。然后安装软件，如果成功，删除新的 Snapshot，如果失败，修改 Default Subvolume 为新的 Snapshot，删除掉原来的 Snapshot，这样对系统没有任何影响，并且所有操作对用户是透明的。</p>
+<p>随着 Btrfs 的成熟和普及，相信会改变一些我们使用 Linux 的习惯。</p>
+<h2 id="延伸阅读">延伸阅读</h2>
+<h3 id="btrfs-相关命令">btrfs 相关命令</h3>
+<p>管理 btrfs 使用 btrfs 命令，该命令包含诸多子命令已完成不同的功能管理，常用命令如下：</p>
+<ul>
+<li>
+<p>btrfs 文件系统属性查看： <code>btrfs filesystem show</code></p>
+</li>
+<li>
+<p>调整文件系统大小： <code>btrfs filesystem resize +10g MOUNT_POINT</code></p>
+</li>
+<li>
+<p>添加硬件设备： <code>btrfs filesystem add DEVICE MOUNT_POINT</code></p>
+</li>
+<li>
+<p>均衡文件负载： <code>btrfs blance status|start|pause|resume|cancel MOUNT_POINT</code></p>
+</li>
+<li>
+<p>移除物理卷(联机、自动移动)： <code>btrfs device delete DEVICE MOUNT_POINT</code></p>
+</li>
+<li>
+<p>动态调整数据存放机制： <code>btrfs balance start -dconvert=RAID MOUNT_POINT</code></p>
+</li>
+<li>
+<p>动态调整元数据存放机制： <code>btrfs balance start -mconvert=RAID MOUNT_POINT</code></p>
+</li>
+<li>
+<p>动态调整文件系统数据数据存放机制： <code>btrfs balance start -sconvert=RAID MOUNT_POINT</code></p>
+</li>
+<li>
+<p>创建子卷： <code>btrfs subvolume create MOUNT_POINT/DIR</code></p>
+</li>
+<li>
+<p>列出所有子卷： <code>btrfs subvolume list MOUNT_POINT</code></p>
+</li>
+<li>
+<p>显示子卷详细信息： <code>btrfs subvolume show MOUNT_POINT</code></p>
+</li>
+<li>
+<p>删除子卷： <code>btrfs subvolume delete MOUNT_POIN/DIR</code></p>
+</li>
+<li>
+<p>创建子卷快照(子卷快照必须存放与当前子卷的同一父卷中)： <code>btrfs subvolume snapshot SUBVOL PARVOL</code></p>
+</li>
+<li>
+<p>删除快照同删除子卷一样： <code>btrfs subvolume delete MOUNT_POIN/DIR</code></p>
+</li>
+</ul>
+<h2 id="相关阅读链接">相关阅读链接</h2>
+<ol>
+<li>
+<p>Btrfs 官方文档：<a href="https://btrfs.wiki.kernel.org/index.php/Main_Page" target="_blank" rel="noopener">https://btrfs.wiki.kernel.org/index.php/Main_Page</a></p>
+</li>
+<li>
+<p>Linux 下常见文件系统对比 ：<a href="https://segmentfault.com/a/1190000008481493" target="_blank" rel="noopener">https://segmentfault.com/a/1190000008481493</a></p>
+</li>
+<li>
+<p>Btrfs 官方挂载硬盘文档：<a href="https://btrfs.wiki.kernel.org/index.php/Manpage/btrfs(5)#MOUNT_OPTIONS" target="_blank" rel="noopener">https://btrfs.wiki.kernel.org/index.php/Manpage/btrfs(5)#MOUNT_OPTIONS</a></p>
+</li>
+</ol>
+<h2 id="参考文档">参考文档</h2>
+<ol>
+<li>
+<p><a href="https://segmentfault.com/a/1190000008605135" target="_blank" rel="noopener">https://segmentfault.com/a/1190000008605135</a></p>
+</li>
+<li>
+<p><a href="https://mritd.me/2017/03/20/btrfs-note/" target="_blank" rel="noopener">https://mritd.me/2017/03/20/btrfs-note/</a></p>
+</li>
+</ol>
+</div>
+
+			<script src="https://my.openwrite.cn/js/readmore.js" type="text/javascript"></script>
+			<script>
+			var isMobile = navigator.userAgent.match(/(phone|pad|pod|iPhone|iPod|ios|iPad|Android|Mobile|BlackBerry|IEMobile|MQQBrowser|JUC|Fennec|wOSBrowser|BrowserNG|WebOS|Symbian|Windows Phone)/i);
+			if (!isMobile) {
+			    var btw = new BTWPlugin();
+			    btw.init({
+			        "id": "vip-container",
+			        "blogId": "10135-1588830050631-449",
+			        "name": "「奇妙的 Linux 世界」",
+			        "qrcode": "https://www.hi-linux.com/img/wechat/mp_qrcode_12.jpg",
+			        "keyword": "VIP"
+			    });
+			}
+			</script>
+		
+                
+
+                <hr>
+                <!-- Pager -->
+                <ul class="pager">
+                    
+                    
+                        <li class="next">
+                            <a href="/posts/61882.html" data-toggle="tooltip" data-placement="top" title="微软出品 Kubernetes 最新学习指南 v3.0，需要的赶紧下载吧！">Next Post &rarr;</a>
+                        </li>
+                    
+                </ul>
+
+                <!-- duoshuo Share start -->
+                
+                <!-- 多说 Share end-->
+
+                <!-- 多说评论框 start -->
+                
+                <!-- 多说评论框 end -->
+
+                <!-- disqus comment start -->
+                
+                <!-- disqus comment end -->
+
+                
+                    <!-- disqus 评论框 start -->
+                    <div class="comment">
+                        <div id="lv-container" data-id="city" data-uid="MTAyMC8yNzg2My80NDQw"></div>
+                    </div>
+                    <!-- disqus 评论框 end -->
+                
+
+            </div>
+            
+            <!-- Tabe of Content -->
+            <!-- Table of Contents -->
+
+  
+    <style>
+      span.toc-nav-number{
+        display: none
+      }
+    </style>
+  
+    
+      <aside id="sidebar">
+        <div id="toc" class="toc-article">
+        <strong class="toc-title">Contents</strong>
+        
+          <ol class="toc-nav"><li class="toc-nav-item toc-nav-level-2"><a class="toc-nav-link" href="#准备环境"><span class="toc-nav-number">1.</span> <span class="toc-nav-text">准备环境</span></a></li><li class="toc-nav-item toc-nav-level-2"><a class="toc-nav-link" href="#subvolume"><span class="toc-nav-number">2.</span> <span class="toc-nav-text">Subvolume</span></a><ol class="toc-nav-child"><li class="toc-nav-item toc-nav-level-3"><a class="toc-nav-link" href="#创建-subvolume"><span class="toc-nav-number">2.1.</span> <span class="toc-nav-text">创建 Subvolume</span></a></li><li class="toc-nav-item toc-nav-level-3"><a class="toc-nav-link" href="#删除-subvolume"><span class="toc-nav-number">2.2.</span> <span class="toc-nav-text">删除 Subvolume</span></a></li><li class="toc-nav-item toc-nav-level-3"><a class="toc-nav-link" href="#挂载-subvolume"><span class="toc-nav-number">2.3.</span> <span class="toc-nav-text">挂载 Subvolume</span></a></li><li class="toc-nav-item toc-nav-level-3"><a class="toc-nav-link" href="#设置-subvolume-只读"><span class="toc-nav-number">2.4.</span> <span class="toc-nav-text">设置 Subvolume 只读</span></a></li></ol></li><li class="toc-nav-item toc-nav-level-2"><a class="toc-nav-link" href="#snapshot"><span class="toc-nav-number">3.</span> <span class="toc-nav-text">Snapshot</span></a><ol class="toc-nav-child"><li class="toc-nav-item toc-nav-level-3"><a class="toc-nav-link" href="#创建快照"><span class="toc-nav-number">3.1.</span> <span class="toc-nav-text">创建快照</span></a></li><li class="toc-nav-item toc-nav-level-3"><a class="toc-nav-link" href="#删除快照"><span class="toc-nav-number">3.2.</span> <span class="toc-nav-text">删除快照</span></a></li></ol></li><li class="toc-nav-item toc-nav-level-2"><a class="toc-nav-link" href="#default-subvolume"><span class="toc-nav-number">4.</span> <span class="toc-nav-text">Default Subvolume</span></a><ol class="toc-nav-child"><li class="toc-nav-item toc-nav-level-3"><a class="toc-nav-link" href="#default-subvolume-有什么用呢"><span class="toc-nav-number">4.1.</span> <span class="toc-nav-text">Default Subvolume 有什么用呢？</span></a></li></ol></li><li class="toc-nav-item toc-nav-level-2"><a class="toc-nav-link" href="#延伸阅读"><span class="toc-nav-number">5.</span> <span class="toc-nav-text">延伸阅读</span></a><ol class="toc-nav-child"><li class="toc-nav-item toc-nav-level-3"><a class="toc-nav-link" href="#btrfs-相关命令"><span class="toc-nav-number">5.1.</span> <span class="toc-nav-text">btrfs 相关命令</span></a></li></ol></li><li class="toc-nav-item toc-nav-level-2"><a class="toc-nav-link" href="#相关阅读链接"><span class="toc-nav-number">6.</span> <span class="toc-nav-text">相关阅读链接</span></a></li><li class="toc-nav-item toc-nav-level-2"><a class="toc-nav-link" href="#参考文档"><span class="toc-nav-number">7.</span> <span class="toc-nav-text">参考文档</span></a></li></ol>
+        
+        </div>
+      </aside>
+    
+
+                
+            <!-- Sidebar Container -->
+            <div class="
+                col-lg-8 col-lg-offset-2
+                col-md-10 col-md-offset-1
+                sidebar-container">
+
+                <!-- Featured Tags -->
+                
+                <section>
+                    <!-- no hr -->
+                    <h5><a href="/tags/">FEATURED TAGS</a></h5>
+                    <div class="tags">
+                       
+                          <a class="tag" href="/tags/#Linux" title="Linux">Linux</a>
+                        
+                          <a class="tag" href="/tags/#技巧" title="技巧">技巧</a>
+                        
+                          <a class="tag" href="/tags/#Btrfs" title="Btrfs">Btrfs</a>
+                        
+                    </div>
+                </section>
+                
+
+                <!-- Friends Blog -->
+                
+                <hr>
+                <h5>FRIENDS</h5>
+                <ul class="list-inline">
+
+                    
+                        <li><a href="http://www.mike.org.cn/" target="_blank">简单.生活</a></li>
+                    
+                        <li><a href="http://shang.qq.com/wpa/qunwpa?idkey=ea4c43493c2269428ac6ef6141de4b6d78e5ab2d41380ca4099b833b62884ee9" target="_blank">技术交流群</a></li>
+                    
+                        <li><a href="" target="_blank"></a></li>
+                    
+                        <li><a href="" target="_blank"></a></li>
+                    
+                </ul>
+                
+            </div>
+        </div>
+    </div>
+</article>
+
+
+
+
+
+
+    <!-- 来必力City版公共JS代码 start (一个网页只需插入一次) -->
+    <script type="text/javascript">
+       (function(d, s) {
+           var j, e = d.getElementsByTagName(s)[0];
+    
+           if (typeof LivereTower === 'function') { return; }
+    
+           j = d.createElement(s);
+           j.src = 'https://cdn-city.livere.com/js/embed.dist.js';
+           j.async = true;
+    
+           e.parentNode.insertBefore(j, e);
+       })(document, 'script');
+    </script>
+    <noscript>为正常使用来必力评论功能请激活JavaScript</noscript>
+    <!-- 来必力City版 公共JS代码 end -->
+
+
+
+<!-- async load function -->
+<script>
+    function async(u, c) {
+      var d = document, t = 'script',
+          o = d.createElement(t),
+          s = d.getElementsByTagName(t)[0];
+      o.src = u;
+      if (c) { o.addEventListener('load', function (e) { c(null, e); }, false); }
+      s.parentNode.insertBefore(o, s);
+    }
+</script>
+<!-- anchor-js, Doc:http://bryanbraun.github.io/anchorjs/ -->
+<script>
+    async("https://cdn.bootcss.com/anchor-js/1.1.1/anchor.min.js",function(){
+        anchors.options = {
+          visible: 'hover',
+          placement: 'left',
+          icon: 'ℬ'
+        };
+        anchors.add().remove('.intro-header h1').remove('.subheading').remove('.sidebar-container h5');
+    })
+</script>
+<style>
+    /* place left on bigger screen */
+    @media all and (min-width: 800px) {
+        .anchorjs-link{
+            position: absolute;
+            left: -0.75em;
+            font-size: 1.1em;
+            margin-top : -0.1em;
+        }
+    }
+</style>
+
+
+
+    <!-- Footer -->
+    <!-- Footer -->
+<footer>
+    <div class="container">
+        <div class="row">
+            <div class="col-lg-8 col-lg-offset-2 col-md-10 col-md-offset-1">
+                <ul class="list-inline text-center">
+                
+                    <li>
+                        <a href="/atom.xml">
+                            <span class="fa-stack fa-lg">
+                                <i class="fa fa-circle fa-stack-2x"></i>
+                                <i class="fa fa-rss fa-stack-1x fa-inverse"></i>
+                            </span>
+                        </a>
+                    </li>
+                
+                
+                
+                    <li>
+                        <a target="_blank" href="https://www.zhihu.com/people/80imike">
+                            <span class="fa-stack fa-lg">
+                                <i class="fa fa-circle fa-stack-2x"></i>
+                                <i class="fa  fa-stack-1x fa-inverse">知</i>
+                            </span>
+                        </a>
+                    </li>
+                
+
+                
+                    <li>
+                        <a target="_blank" href="http://weibo.com/2093524665">
+                            <span class="fa-stack fa-lg">
+                                <i class="fa fa-circle fa-stack-2x"></i>
+                                <i class="fa fa-weibo fa-stack-1x fa-inverse"></i>
+                            </span>
+                        </a>
+                    </li>
+                
+
+                
+
+                
+
+                
+
+                </ul>
+                <p class="copyright text-muted">
+                    Copyright &copy; Mike 2020 | Hosted by <a href="https://pages.coding.me" target="_blank" rel="noopener" style="font-weight: bold">Coding Pages</a>
+                    <br>
+                    Theme by <a href="http://beantech.org" target="_blank" rel="noopener">BeanTech</a> 
+                    <span style="display: inline-block; margin: 0 5px;">
+                        <i class="fa fa-heart"></i>
+                    </span> 
+                    re-Ported by <a href="http://www.huweihuang.com" target="_blank" rel="noopener">胡伟煌</a> | 
+                    <iframe
+                        style="margin-left: 2px; margin-bottom:-5px;"
+                        frameborder="0" scrolling="0" width="91px" height="20px"
+                        src="https://ghbtns.com/github-btn.html?user=huweihuang&repo=hexo-theme-huweihuang&type=star&count=true" >
+                    </iframe>
+                </p>
+            </div>
+        </div>
+    </div>
+</footer>
+
+<!-- jQuery -->
+
+<script src="/js/jquery.min.js"></script>
+
+
+<!-- Bootstrap Core JavaScript -->
+
+<script src="/js/bootstrap.min.js"></script>
+
+
+<!-- Custom Theme JavaScript -->
+
+<script src="/js/hux-blog.min.js"></script>
+
+
+
+<!-- async load function -->
+<script>
+    function async(u, c) {
+      var d = document, t = 'script',
+          o = d.createElement(t),
+          s = d.getElementsByTagName(t)[0];
+      o.src = u;
+      if (c) { o.addEventListener('load', function (e) { c(null, e); }, false); }
+      s.parentNode.insertBefore(o, s);
+    }
+</script>
+
+<!-- 
+     Because of the native support for backtick-style fenced code blocks 
+     right within the Markdown is landed in Github Pages, 
+     From V1.6, There is no need for Highlight.js, 
+     so Huxblog drops it officially.
+
+     - https://github.com/blog/2100-github-pages-now-faster-and-simpler-with-jekyll-3-0  
+     - https://help.github.com/articles/creating-and-highlighting-code-blocks/    
+-->
+<!--
+    <script>
+        async("http://cdn.bootcss.com/highlight.js/8.6/highlight.min.js", function(){
+            hljs.initHighlightingOnLoad();
+        })
+    </script>
+    <link href="http://cdn.bootcss.com/highlight.js/8.6/styles/github.min.css" rel="stylesheet">
+-->
+
+
+<!-- jquery.tagcloud.js -->
+<script>
+    // only load tagcloud.js in tag.html
+    if($('#tag_cloud').length !== 0){
+        async("https://www.hi-linux.com/js/jquery.tagcloud.js",function(){
+            $.fn.tagcloud.defaults = {
+                //size: {start: 1, end: 1, unit: 'em'},
+                color: {start: '#bbbbee', end: '#0085a1'},
+            };
+            $('#tag_cloud a').tagcloud();
+        })
+    }
+</script>
+
+<!--fastClick.js -->
+<script>
+    async("https://cdn.bootcss.com/fastclick/1.0.6/fastclick.min.js", function(){
+        var $nav = document.querySelector("nav");
+        if($nav) FastClick.attach($nav);
+    })
+</script>
+
+
+<!-- Google Analytics -->
+
+
+
+
+<!-- Baidu Tongji -->
+
+
+
+
+
+
+	<a id="rocket" href="#top" class=""></a>
+	<script type="text/javascript" src="/js/totop.js?v=1.0.0" async=""></script>
+    <script type="text/javascript" src="/js/toc.js?v=1.0.0" async=""></script>
+<!-- Image to hack wechat -->
+<img src="https://www.hi-linux.com/img/icon_wechat.png" width="0" height="0" />
+<!-- Migrate from head to bottom, no longer block render and still work -->
+
+</body>
+
+</html>
