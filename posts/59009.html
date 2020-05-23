@@ -1,0 +1,709 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<!-- Head tag -->
+<head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="google-site-verification" content="xBT4GhYoi5qRD5tr338pgPM5OWHHIDR6mNg1a3euekI" />
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="description" content="">
+    <meta name="keyword"  content="Linux,运维,Nginx,Zabbix,Centos,Ansible,MySQL,Python,Docker,ELK,Haproxy,Git,Nodejs,安全,技术">
+    <link rel="shortcut icon" href="/img/ironman-draw.png">
+    <!-- Place this tag in your head or just before your close body tag. -->
+    <script async defer src="https://buttons.github.io/buttons.js"></script>
+    <title>
+        
+          GitHub Actions 入门教程 - 运维之美
+        
+    </title>
+
+    <link rel="canonical" href="https://www.hi-linux.com/posts/59009.html">
+
+    <!-- Bootstrap Core CSS -->
+    
+<link rel="stylesheet" href="/css/bootstrap.min.css">
+
+
+    <!-- Custom CSS --> 
+    
+<link rel="stylesheet" href="/css/beantech.min.css">
+
+    
+    <!-- Pygments Highlight CSS -->
+    
+<link rel="stylesheet" href="/css/highlight.css">
+
+
+    
+<link rel="stylesheet" href="/css/widget.css">
+
+
+    
+<link rel="stylesheet" href="/css/rocket.css">
+
+
+    
+<link rel="stylesheet" href="/css/signature.css">
+
+
+    
+<link rel="stylesheet" href="/css/toc.css">
+
+
+    <!-- Custom Fonts -->
+    <!-- <link href="https://maxcdn.bootstrapcdn.com/font-awesome/4.3.0/css/font-awesome.min.css" rel="stylesheet" type="text/css"> -->
+    <!-- Hux change font-awesome CDN to qiniu -->
+    <link href="https://cdn.staticfile.org/font-awesome/4.5.0/css/font-awesome.min.css" rel="stylesheet" type="text/css">
+
+
+    <!-- Hux Delete, sad but pending in China
+    <link href='http://fonts.googleapis.com/css?family=Lora:400,700,400italic,700italic' rel='stylesheet' type='text/css'>
+    <link href='http://fonts.googleapis.com/css?family=Open+Sans:300italic,400italic,600italic,700italic,800italic,400,300,600,700,800' rel='stylesheet' type='text/
+    css'>
+    -->
+
+
+    <!-- HTML5 Shim and Respond.js IE8 support of HTML5 elements and media queries -->
+    <!-- WARNING: Respond.js doesn't work if you view the page via file:// -->
+    <!--[if lt IE 9]>
+        <script src="https://oss.maxcdn.com/libs/html5shiv/3.7.0/html5shiv.js"></script>
+        <script src="https://oss.maxcdn.com/libs/respond.js/1.4.2/respond.min.js"></script>
+    <![endif]-->
+
+    <!-- ga & ba script hoook -->
+    <script></script>
+<meta name="generator" content="Hexo 4.2.0"><link rel="alternate" href="/atom.xml" title="运维之美" type="application/atom+xml">
+</head>
+
+
+<!-- hack iOS CSS :active style -->
+<body ontouchstart="">
+	<!-- Modified by Yu-Hsuan Yen -->
+<!-- Post Header -->
+<style type="text/css">
+    header.intro-header{
+        
+            background-image: url('/img/header_img/building.jpg')
+            /*post*/
+        
+    }
+    
+</style>
+
+<header class="intro-header" >
+    <!-- Signature -->
+    <div id="signature">
+        <div class="container">
+            <div class="row">
+                <div class="col-lg-8 col-lg-offset-2 col-md-10 col-md-offset-1">
+                
+                    <div class="post-heading">
+                        <div class="tags">
+                            
+                              <a class="tag" href="/tags/#Linux" title="Linux">Linux</a>
+                            
+                              <a class="tag" href="/tags/#技巧" title="技巧">技巧</a>
+                            
+                              <a class="tag" href="/tags/#GitHub" title="GitHub">GitHub</a>
+                            
+                        </div>
+                        <h1>GitHub Actions 入门教程</h1>
+                        <h2 class="subheading"></h2>
+                        <span class="meta">
+                            Posted by Mike on
+                            2020-05-23
+                        </span>
+                    </div>
+                
+
+
+                </div>
+            </div>
+        </div>
+    </div>
+</header>
+
+	
+    <!-- Navigation -->
+<nav class="navbar navbar-default navbar-custom navbar-fixed-top">
+    <div class="container-fluid">
+        <!-- Brand and toggle get grouped for better mobile display -->
+        <div class="navbar-header page-scroll">
+            <button type="button" class="navbar-toggle">
+                <span class="sr-only">Toggle navigation</span>
+                <span class="icon-bar"></span>
+                <span class="icon-bar"></span>
+                <span class="icon-bar"></span>
+            </button>
+            <a class="navbar-brand" href="/">运维之美</a>
+        </div>
+
+        <!-- Collect the nav links, forms, and other content for toggling -->
+        <!-- Known Issue, found by Hux:
+            <nav>'s height woule be hold on by its content.
+            so, when navbar scale out, the <nav> will cover tags.
+            also mask any touch event of tags, unfortunately.
+        -->
+        <div id="huxblog_navbar">
+            <div class="navbar-collapse">
+                <ul class="nav navbar-nav navbar-right">
+                    <li>
+                        <a href="/">Home</a>
+                    </li>
+
+                    
+
+                        
+                    
+
+                        
+                    
+
+                        
+                        <li>
+                            <a href="/about/">About</a>
+                        </li>
+                        
+                    
+
+                        
+                        <li>
+                            <a href="/archive/">Archives</a>
+                        </li>
+                        
+                    
+
+                        
+                        <li>
+                            <a href="/tags/">Tags</a>
+                        </li>
+                        
+                    
+                    
+                </ul>
+            </div>
+        </div>
+        <!-- /.navbar-collapse -->
+    </div>
+    <!-- /.container -->
+</nav>
+<script>
+    // Drop Bootstarp low-performance Navbar
+    // Use customize navbar with high-quality material design animation
+    // in high-perf jank-free CSS3 implementation
+    var $body   = document.body;
+    var $toggle = document.querySelector('.navbar-toggle');
+    var $navbar = document.querySelector('#huxblog_navbar');
+    var $collapse = document.querySelector('.navbar-collapse');
+
+    $toggle.addEventListener('click', handleMagic)
+    function handleMagic(e){
+        if ($navbar.className.indexOf('in') > 0) {
+        // CLOSE
+            $navbar.className = " ";
+            // wait until animation end.
+            setTimeout(function(){
+                // prevent frequently toggle
+                if($navbar.className.indexOf('in') < 0) {
+                    $collapse.style.height = "0px"
+                }
+            },400)
+        }else{
+        // OPEN
+            $collapse.style.height = "auto"
+            $navbar.className += " in";
+        }
+    }
+</script>
+
+
+    <!-- Main Content -->
+    <!-- Modify by Yu-Hsuan Yen -->
+
+<!-- Post Content -->
+<article>
+    <div class="container">
+        <div class="row">
+
+            <!-- Post Container -->
+            <div class="
+                col-lg-8 col-lg-offset-2
+                col-md-10 col-md-offset-1
+                post-container">
+
+                <div id="vip-container"><p>GitHub Actions 是 GitHub 的持续集成服务，于 2018 年 10 月推出。</p>
+<p>这些天，我一直在试用，觉得它非常强大，有创意，比 Travis CI 玩法更多。</p>
+<p>本文是一个简单教程，演示如何使用 GitHub Actions 自动发布一个 React 应用到 GitHub Pages。</p>
+<h2 id="github-actions-是什么">GitHub Actions 是什么？</h2>
+<p>大家知道，持续集成由很多操作组成，比如抓取代码、运行测试、登录远程服务器，发布到第三方服务等等。GitHub 把这些操作就称为 actions。</p>
+<p>很多操作在不同项目里面是类似的，完全可以共享。GitHub 注意到了这一点，想出了一个很妙的点子，允许开发者把每个操作写成独立的脚本文件，存放到代码仓库，使得其他开发者可以引用。</p>
+<p>如果你需要某个 action，不必自己写复杂的脚本，直接引用他人写好的 action 即可，整个持续集成过程，就变成了一个 actions 的组合。这就是 GitHub Actions 最特别的地方。</p>
+<p>GitHub 做了一个官方市场，可以搜索到他人提交的 actions。另外，还有一个 awesome actions 的仓库，也可以找到不少 action。</p>
+<p><img src="https://www.wangbase.com/blogimg/asset/201909/bg2019091105.jpg" alt=""></p>
+<p>上面说了，每个 action 就是一个独立脚本，因此可以做成代码仓库，使用 userName/repoName 的语法引用 action。比如，actions/setup-node 就表示 <a href="http://github.com/actions/setup-node" target="_blank" rel="noopener">github.com/actions/setup-node</a> 这个仓库，它代表一个 action，作用是安装 Node.js。事实上，GitHub 官方的 actions 都放在 <a href="http://github.com/actions" target="_blank" rel="noopener">github.com/actions</a> 里面。</p>
+<p>既然 actions 是代码仓库，当然就有版本的概念，用户可以引用某个具体版本的 action。下面都是合法的 action 引用，用的就是 Git 的指针概念，详见官方文档。</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">actions&#x2F;setup-node@74bc508 # 指向一个 commit</span><br><span class="line">actions&#x2F;setup-node@v1.0    # 指向一个标签</span><br><span class="line">actions&#x2F;setup-node@master  # 指向一个分支</span><br></pre></td></tr></table></figure>
+<a id="more"></a>
+<h2 id="基本概念">基本概念</h2>
+<p>GitHub Actions 有一些自己的术语。</p>
+<p>（1）workflow （工作流程）：持续集成一次运行的过程，就是一个 workflow。</p>
+<p>（2）job （任务）：一个 workflow 由一个或多个 jobs 构成，含义是一次持续集成的运行，可以完成多个任务。</p>
+<p>（3）step（步骤）：每个 job 由多个 step 构成，一步步完成。</p>
+<p>（4）action （动作）：每个 step 可以依次执行一个或多个命令（action）。</p>
+<h2 id="workflow-文件">workflow 文件</h2>
+<p>GitHub Actions 的配置文件叫做 workflow 文件，存放在代码仓库的 .github/workflows 目录。</p>
+<p>workflow 文件采用 YAML 格式，文件名可以任意取，但是后缀名统一为 .yml，比如 foo.yml。一个库可以有多个 workflow 文件。GitHub 只要发现 .github/workflows 目录里面有 .yml 文件，就会自动运行该文件。</p>
+<p>workflow 文件的配置字段非常多，详见官方文档。下面是一些基本字段。</p>
+<p><strong>（1）name</strong></p>
+<p>name 字段是 workflow 的名称。如果省略该字段，默认为当前 workflow 的文件名。</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">name: GitHub Actions Demo</span><br></pre></td></tr></table></figure>
+<p><strong>（2）on</strong></p>
+<p>on 字段指定触发 workflow 的条件，通常是某些事件。</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">on: push</span><br></pre></td></tr></table></figure>
+<p>上面代码指定，push 事件触发 workflow。</p>
+<p>on 字段也可以是事件的数组。</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">on: [push, pull_request]</span><br></pre></td></tr></table></figure>
+<p>上面代码指定，push 事件或 pull_request 事件都可以触发 workflow。</p>
+<p>完整的事件列表，请查看官方文档。除了代码库事件，GitHub Actions 也支持外部事件触发，或者定时运行。</p>
+<p><strong>（3）on.&lt;push|pull_request&gt;.&lt;tags|branches&gt;</strong></p>
+<p>指定触发事件时，可以限定分支或标签。</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">on:</span><br><span class="line">  push:</span><br><span class="line">    branches:    </span><br><span class="line">      - master</span><br></pre></td></tr></table></figure>
+<p>上面代码指定，只有 master 分支发生 push 事件时，才会触发 workflow。</p>
+<p><strong>（4）jobs.&lt;job_id&gt;.name</strong></p>
+<p>workflow 文件的主体是 jobs 字段，表示要执行的一项或多项任务。</p>
+<p>jobs 字段里面，需要写出每一项任务的 job_id，具体名称自定义。job_id 里面的 name 字段是任务的说明。</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">jobs:</span><br><span class="line">  my_first_job:</span><br><span class="line">    name: My first job</span><br><span class="line">  my_second_job:</span><br><span class="line">    name: My second job</span><br></pre></td></tr></table></figure>
+<p>上面代码的 jobs 字段包含两项任务，job_id 分别是 my_first_job 和 my_second_job。</p>
+<p><strong>（5）jobs.&lt;job_id&gt;.needs</strong></p>
+<p>needs 字段指定当前任务的依赖关系，即运行顺序。</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">jobs:</span><br><span class="line">  job1:</span><br><span class="line">  job2:</span><br><span class="line">    needs: job1</span><br><span class="line">  job3:</span><br><span class="line">    needs: [job1, job2]</span><br></pre></td></tr></table></figure>
+<p>上面代码中，job1 必须先于 job2 完成，而 job3 等待 job1 和 job2 的完成才能运行。因此，这个 workflow 的运行顺序依次为：job1、job2、job3。</p>
+<p><strong>（6）jobs.&lt;job_id&gt;.runs-on</strong></p>
+<p>runs-on 字段指定运行所需要的虚拟机环境。它是必填字段。目前可用的虚拟机如下。</p>
+<ul>
+<li>
+<p>ubuntu-latest，ubuntu-18.04 或 ubuntu-16.04</p>
+</li>
+<li>
+<p>windows-latest，windows-2019 或 windows-2016</p>
+</li>
+<li>
+<p>macOS-latest 或 macOS-10.14</p>
+</li>
+</ul>
+<p>下面代码指定虚拟机环境为 ubuntu-18.04。</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">runs-on: ubuntu-18.04</span><br></pre></td></tr></table></figure>
+<p><strong>（7）jobs.&lt;job_id&gt;.steps</strong></p>
+<p>steps 字段指定每个 Job 的运行步骤，可以包含一个或多个步骤。每个步骤都可以指定以下三个字段。</p>
+<ul>
+<li>
+<p>jobs.&lt;job_id&gt;.steps.name：步骤名称。</p>
+</li>
+<li>
+<p>jobs.&lt;job_id&gt;.steps.run：该步骤运行的命令或者 action。</p>
+</li>
+<li>
+<p>jobs.&lt;job_id&gt;.steps.env：该步骤所需的环境变量。</p>
+</li>
+</ul>
+<p>下面是一个完整的 workflow 文件的范例。</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br></pre></td><td class="code"><pre><span class="line">name: Greeting from Mona</span><br><span class="line">on: push</span><br><span class="line"></span><br><span class="line">jobs:</span><br><span class="line">  my-job:</span><br><span class="line">    name: My Job</span><br><span class="line">    runs-on: ubuntu-latest</span><br><span class="line">    steps:</span><br><span class="line">    - name: Print a greeting</span><br><span class="line">      env:</span><br><span class="line">        MY_VAR: Hi there! My name is</span><br><span class="line">        FIRST_NAME: Mona</span><br><span class="line">        MIDDLE_NAME: The</span><br><span class="line">        LAST_NAME: Octocat</span><br><span class="line">      run: |</span><br><span class="line">        echo $MY_VAR $FIRST_NAME $MIDDLE_NAME $LAST_NAME.</span><br></pre></td></tr></table></figure>
+<p>上面代码中，steps 字段只包括一个步骤。该步骤先注入四个环境变量，然后执行一条 Bash 命令。</p>
+<h2 id="实例react-项目发布到-github-pages">实例：React 项目发布到 GitHub Pages</h2>
+<p>下面是一个实例，通过 GitHub Actions 构建一个 React 项目，并发布到 GitHub Pages。最终代码都在这个仓库里面，发布后的参考网址为 <a href="http://ruanyf.github.io/github-actions-demo%E3%80%82" target="_blank" rel="noopener">ruanyf.github.io/github-actions-demo。</a></p>
+<p>第一步，GitHub Actions 目前还处在测试阶段，需要到这个网址申请测试资格。申请以后，可能需要几天才能通过。据说，2019 年 11 月就会放开。</p>
+<p>获得资格后，仓库顶部的菜单会出现 Actions 一项。</p>
+<p><img src="https://www.wangbase.com/blogimg/asset/201909/bg2019091106.jpg" alt=""></p>
+<p>第二步，这个示例需要将构建成果发到 GitHub 仓库，因此需要 GitHub 密钥。按照官方文档，生成一个密钥。然后，将这个密钥储存到当前仓库的 Settings/Secrets 里面。</p>
+<p><img src="https://www.wangbase.com/blogimg/asset/201909/bg2019091107.jpg" alt=""></p>
+<p>上图是储存秘密的环境变量的地方。环境变量的名字可以随便起，这里用的是 ACCESS_TOKEN。如果你不用这个名字，后面脚本里的变量名也要跟着改。</p>
+<p>第三步，本地计算机使用 create-react-app，生成一个标准的 React 应用。</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">$ npx create-react-app github-actions-demo</span><br><span class="line">$ cd github-actions-demo</span><br></pre></td></tr></table></figure>
+<p>第四步，在这个仓库的 .github/workflows 目录，生成一个 workflow 文件，名字可以随便取，这个示例是 ci.yml。</p>
+<p>我们选用一个别人已经写好的 action：JamesIves/github-pages-deploy-action，它提供了 workflow 的范例文件，直接拷贝过来就行了（查看源码）。</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br></pre></td><td class="code"><pre><span class="line">name: GitHub Actions Build and Deploy Demo</span><br><span class="line">on:</span><br><span class="line">  push:</span><br><span class="line">    branches:</span><br><span class="line">      - master</span><br><span class="line">jobs:</span><br><span class="line">  build-and-deploy:</span><br><span class="line">    runs-on: ubuntu-latest</span><br><span class="line">    steps:</span><br><span class="line">    - name: Checkout</span><br><span class="line">      uses: actions&#x2F;checkout@master</span><br><span class="line"></span><br><span class="line">    - name: Build and Deploy</span><br><span class="line">      uses: JamesIves&#x2F;github-pages-deploy-action@master</span><br><span class="line">      env:</span><br><span class="line">        ACCESS_TOKEN: $&#123;&#123; secrets.ACCESS_TOKEN &#125;&#125;</span><br><span class="line">        BRANCH: gh-pages</span><br><span class="line">        FOLDER: build</span><br><span class="line">        BUILD_SCRIPT: npm install &amp;&amp; npm run build</span><br></pre></td></tr></table></figure>
+<p>上面这个 workflow 文件的要点如下。</p>
+<ol>
+<li>
+<p>整个流程在 master 分支发生 push 事件时触发。</p>
+</li>
+<li>
+<p>只有一个 job，运行在虚拟机环境 ubuntu-latest。</p>
+</li>
+<li>
+<p>第一步是获取源码，使用的 action 是actions/checkout。</p>
+</li>
+<li>
+<p>第二步是构建和部署，使用的 action 是JamesIves/github-pages-deploy-action。</p>
+</li>
+<li>
+<p>第二步需要四个环境变量，分别为 GitHub 密钥、发布分支、构建成果所在目录、构建脚本。其中，只有 GitHub 密钥是秘密变量，需要写在双括号里面，其他三个都可以直接写在文件里。</p>
+</li>
+</ol>
+<p>第五步，保存上面的文件后，将整个仓库推送到 GitHub。</p>
+<p>GitHub 发现了 workflow 文件以后，就会自动运行。你可以在网站上实时查看运行日志，日志默认保存 30 天。</p>
+<p><img src="https://www.wangbase.com/blogimg/asset/201909/bg2019091108.jpg" alt=""></p>
+<p>等到 workflow 运行结束，访问 GitHub Page，会看到构建成果已经发上网了。</p>
+<p><img src="https://www.wangbase.com/blogimg/asset/201909/bg2019091109.jpg" alt=""></p>
+<p>以后，每次修改后推送源码，GitHub Actions 都会自动运行，将构建产物发布到网页。</p>
+<h2 id="参考链接">参考链接</h2>
+<ol>
+<li>
+<p>GitHub Pages 官方文档</p>
+</li>
+<li>
+<p>Github Actions for web apps, Luke Boyle</p>
+</li>
+<li>
+<p>My First Week With GitHub Actions, Adam Zolyak</p>
+</li>
+</ol>
+<blockquote>
+<p>来源：阮一峰的网络日志</p>
+<p>原文：<a href="https://tinyurl.com/y3zfap8m" target="_blank" rel="noopener">https://tinyurl.com/y3zfap8m</a></p>
+<p>题图：来自谷歌图片搜索</p>
+<p>版权：本文版权归原作者所有</p>
+<p>投稿：欢迎投稿，邮箱: <a href="mailto:editor@hi-linux.com">editor@hi-linux.com</a></p>
+</blockquote>
+</div>
+
+			<script src="https://my.openwrite.cn/js/readmore.js" type="text/javascript"></script>
+			<script>
+			var isMobile = navigator.userAgent.match(/(phone|pad|pod|iPhone|iPod|ios|iPad|Android|Mobile|BlackBerry|IEMobile|MQQBrowser|JUC|Fennec|wOSBrowser|BrowserNG|WebOS|Symbian|Windows Phone)/i);
+			if (!isMobile) {
+			    var btw = new BTWPlugin();
+			    btw.init({
+			        "id": "vip-container",
+			        "blogId": "10135-1588830050631-449",
+			        "name": "「奇妙的 Linux 世界」",
+			        "qrcode": "https://www.hi-linux.com/img/wechat/mp_qrcode_12.jpg",
+			        "keyword": "VIP"
+			    });
+			}
+			</script>
+		
+                
+
+                <hr>
+                <!-- Pager -->
+                <ul class="pager">
+                    
+                        <li class="previous">
+                            <a href="/posts/62964.html" data-toggle="tooltip" data-placement="top" title="你不可错过的 GitHub 万星大厂技术面试宝典">&larr; Previous Post</a>
+                        </li>
+                    
+                    
+                        <li class="next">
+                            <a href="/posts/42797.html" data-toggle="tooltip" data-placement="top" title="推荐几个 Linux 下快速分析内存占用的工具">Next Post &rarr;</a>
+                        </li>
+                    
+                </ul>
+
+                <!-- duoshuo Share start -->
+                
+                <!-- 多说 Share end-->
+
+                <!-- 多说评论框 start -->
+                
+                <!-- 多说评论框 end -->
+
+                <!-- disqus comment start -->
+                
+                <!-- disqus comment end -->
+
+                
+                    <!-- disqus 评论框 start -->
+                    <div class="comment">
+                        <div id="lv-container" data-id="city" data-uid="MTAyMC8yNzg2My80NDQw"></div>
+                    </div>
+                    <!-- disqus 评论框 end -->
+                
+
+            </div>
+            
+            <!-- Tabe of Content -->
+            <!-- Table of Contents -->
+
+  
+    <style>
+      span.toc-nav-number{
+        display: none
+      }
+    </style>
+  
+    
+      <aside id="sidebar">
+        <div id="toc" class="toc-article">
+        <strong class="toc-title">Contents</strong>
+        
+          <ol class="toc-nav"><li class="toc-nav-item toc-nav-level-2"><a class="toc-nav-link" href="#github-actions-是什么"><span class="toc-nav-number">1.</span> <span class="toc-nav-text">GitHub Actions 是什么？</span></a></li><li class="toc-nav-item toc-nav-level-2"><a class="toc-nav-link" href="#基本概念"><span class="toc-nav-number">2.</span> <span class="toc-nav-text">基本概念</span></a></li><li class="toc-nav-item toc-nav-level-2"><a class="toc-nav-link" href="#workflow-文件"><span class="toc-nav-number">3.</span> <span class="toc-nav-text">workflow 文件</span></a></li><li class="toc-nav-item toc-nav-level-2"><a class="toc-nav-link" href="#实例react-项目发布到-github-pages"><span class="toc-nav-number">4.</span> <span class="toc-nav-text">实例：React 项目发布到 GitHub Pages</span></a></li><li class="toc-nav-item toc-nav-level-2"><a class="toc-nav-link" href="#参考链接"><span class="toc-nav-number">5.</span> <span class="toc-nav-text">参考链接</span></a></li></ol>
+        
+        </div>
+      </aside>
+    
+
+                
+            <!-- Sidebar Container -->
+            <div class="
+                col-lg-8 col-lg-offset-2
+                col-md-10 col-md-offset-1
+                sidebar-container">
+
+                <!-- Featured Tags -->
+                
+                <section>
+                    <!-- no hr -->
+                    <h5><a href="/tags/">FEATURED TAGS</a></h5>
+                    <div class="tags">
+                       
+                          <a class="tag" href="/tags/#Linux" title="Linux">Linux</a>
+                        
+                          <a class="tag" href="/tags/#技巧" title="技巧">技巧</a>
+                        
+                          <a class="tag" href="/tags/#GitHub" title="GitHub">GitHub</a>
+                        
+                    </div>
+                </section>
+                
+
+                <!-- Friends Blog -->
+                
+                <hr>
+                <h5>FRIENDS</h5>
+                <ul class="list-inline">
+
+                    
+                        <li><a href="http://www.mike.org.cn/" target="_blank">简单.生活</a></li>
+                    
+                        <li><a href="http://shang.qq.com/wpa/qunwpa?idkey=ea4c43493c2269428ac6ef6141de4b6d78e5ab2d41380ca4099b833b62884ee9" target="_blank">技术交流群</a></li>
+                    
+                        <li><a href="" target="_blank"></a></li>
+                    
+                        <li><a href="" target="_blank"></a></li>
+                    
+                </ul>
+                
+            </div>
+        </div>
+    </div>
+</article>
+
+
+
+
+
+
+    <!-- 来必力City版公共JS代码 start (一个网页只需插入一次) -->
+    <script type="text/javascript">
+       (function(d, s) {
+           var j, e = d.getElementsByTagName(s)[0];
+    
+           if (typeof LivereTower === 'function') { return; }
+    
+           j = d.createElement(s);
+           j.src = 'https://cdn-city.livere.com/js/embed.dist.js';
+           j.async = true;
+    
+           e.parentNode.insertBefore(j, e);
+       })(document, 'script');
+    </script>
+    <noscript>为正常使用来必力评论功能请激活JavaScript</noscript>
+    <!-- 来必力City版 公共JS代码 end -->
+
+
+
+<!-- async load function -->
+<script>
+    function async(u, c) {
+      var d = document, t = 'script',
+          o = d.createElement(t),
+          s = d.getElementsByTagName(t)[0];
+      o.src = u;
+      if (c) { o.addEventListener('load', function (e) { c(null, e); }, false); }
+      s.parentNode.insertBefore(o, s);
+    }
+</script>
+<!-- anchor-js, Doc:http://bryanbraun.github.io/anchorjs/ -->
+<script>
+    async("https://cdn.bootcss.com/anchor-js/1.1.1/anchor.min.js",function(){
+        anchors.options = {
+          visible: 'hover',
+          placement: 'left',
+          icon: 'ℬ'
+        };
+        anchors.add().remove('.intro-header h1').remove('.subheading').remove('.sidebar-container h5');
+    })
+</script>
+<style>
+    /* place left on bigger screen */
+    @media all and (min-width: 800px) {
+        .anchorjs-link{
+            position: absolute;
+            left: -0.75em;
+            font-size: 1.1em;
+            margin-top : -0.1em;
+        }
+    }
+</style>
+
+
+
+    <!-- Footer -->
+    <!-- Footer -->
+<footer>
+    <div class="container">
+        <div class="row">
+            <div class="col-lg-8 col-lg-offset-2 col-md-10 col-md-offset-1">
+                <ul class="list-inline text-center">
+                
+                    <li>
+                        <a href="/atom.xml">
+                            <span class="fa-stack fa-lg">
+                                <i class="fa fa-circle fa-stack-2x"></i>
+                                <i class="fa fa-rss fa-stack-1x fa-inverse"></i>
+                            </span>
+                        </a>
+                    </li>
+                
+                
+                
+                    <li>
+                        <a target="_blank" href="https://www.zhihu.com/people/80imike">
+                            <span class="fa-stack fa-lg">
+                                <i class="fa fa-circle fa-stack-2x"></i>
+                                <i class="fa  fa-stack-1x fa-inverse">知</i>
+                            </span>
+                        </a>
+                    </li>
+                
+
+                
+                    <li>
+                        <a target="_blank" href="http://weibo.com/2093524665">
+                            <span class="fa-stack fa-lg">
+                                <i class="fa fa-circle fa-stack-2x"></i>
+                                <i class="fa fa-weibo fa-stack-1x fa-inverse"></i>
+                            </span>
+                        </a>
+                    </li>
+                
+
+                
+
+                
+
+                
+
+                </ul>
+                <p class="copyright text-muted">
+                    Copyright &copy; Mike 2020 | Hosted by <a href="https://pages.coding.me" target="_blank" rel="noopener" style="font-weight: bold">Coding Pages</a>
+                    <br>
+                    Theme by <a href="http://beantech.org" target="_blank" rel="noopener">BeanTech</a> 
+                    <span style="display: inline-block; margin: 0 5px;">
+                        <i class="fa fa-heart"></i>
+                    </span> 
+                    re-Ported by <a href="http://www.huweihuang.com" target="_blank" rel="noopener">胡伟煌</a> | 
+                    <iframe
+                        style="margin-left: 2px; margin-bottom:-5px;"
+                        frameborder="0" scrolling="0" width="91px" height="20px"
+                        src="https://ghbtns.com/github-btn.html?user=huweihuang&repo=hexo-theme-huweihuang&type=star&count=true" >
+                    </iframe>
+                </p>
+            </div>
+        </div>
+    </div>
+</footer>
+
+<!-- jQuery -->
+
+<script src="/js/jquery.min.js"></script>
+
+
+<!-- Bootstrap Core JavaScript -->
+
+<script src="/js/bootstrap.min.js"></script>
+
+
+<!-- Custom Theme JavaScript -->
+
+<script src="/js/hux-blog.min.js"></script>
+
+
+
+<!-- async load function -->
+<script>
+    function async(u, c) {
+      var d = document, t = 'script',
+          o = d.createElement(t),
+          s = d.getElementsByTagName(t)[0];
+      o.src = u;
+      if (c) { o.addEventListener('load', function (e) { c(null, e); }, false); }
+      s.parentNode.insertBefore(o, s);
+    }
+</script>
+
+<!-- 
+     Because of the native support for backtick-style fenced code blocks 
+     right within the Markdown is landed in Github Pages, 
+     From V1.6, There is no need for Highlight.js, 
+     so Huxblog drops it officially.
+
+     - https://github.com/blog/2100-github-pages-now-faster-and-simpler-with-jekyll-3-0  
+     - https://help.github.com/articles/creating-and-highlighting-code-blocks/    
+-->
+<!--
+    <script>
+        async("http://cdn.bootcss.com/highlight.js/8.6/highlight.min.js", function(){
+            hljs.initHighlightingOnLoad();
+        })
+    </script>
+    <link href="http://cdn.bootcss.com/highlight.js/8.6/styles/github.min.css" rel="stylesheet">
+-->
+
+
+<!-- jquery.tagcloud.js -->
+<script>
+    // only load tagcloud.js in tag.html
+    if($('#tag_cloud').length !== 0){
+        async("https://www.hi-linux.com/js/jquery.tagcloud.js",function(){
+            $.fn.tagcloud.defaults = {
+                //size: {start: 1, end: 1, unit: 'em'},
+                color: {start: '#bbbbee', end: '#0085a1'},
+            };
+            $('#tag_cloud a').tagcloud();
+        })
+    }
+</script>
+
+<!--fastClick.js -->
+<script>
+    async("https://cdn.bootcss.com/fastclick/1.0.6/fastclick.min.js", function(){
+        var $nav = document.querySelector("nav");
+        if($nav) FastClick.attach($nav);
+    })
+</script>
+
+
+<!-- Google Analytics -->
+
+
+
+
+<!-- Baidu Tongji -->
+
+
+
+
+
+
+	<a id="rocket" href="#top" class=""></a>
+	<script type="text/javascript" src="/js/totop.js?v=1.0.0" async=""></script>
+    <script type="text/javascript" src="/js/toc.js?v=1.0.0" async=""></script>
+<!-- Image to hack wechat -->
+<img src="https://www.hi-linux.com/img/icon_wechat.png" width="0" height="0" />
+<!-- Migrate from head to bottom, no longer block render and still work -->
+
+<script>(function(w,d, s, id) {w.webpushr=w.webpushr||function(){(w.webpushr.q=w.webpushr.q||[]).push(arguments)};var js, fjs = d.getElementsByTagName(s)[0];js = d.createElement(s); js.id = id;js.src = 'https://cdn.webpushr.com/app.min.js';fjs.parentNode.appendChild(js);}(window,document, 'script', 'webpushr-jssdk'));webpushr('init','BF9JK7xV9kjWTdMx2lr6RWaPfXV7wNuZaVAJ1bfIGoBNJavqLEBVFMKLubITnCA4bh2fI9iH9tMF95nXnPt7xxY');</script></body>
+
+</html>
