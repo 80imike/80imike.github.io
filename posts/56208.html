@@ -1,0 +1,733 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<!-- Head tag -->
+<head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="google-site-verification" content="xBT4GhYoi5qRD5tr338pgPM5OWHHIDR6mNg1a3euekI" />
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="description" content="">
+    <meta name="keyword"  content="Linux,运维,Nginx,Zabbix,Centos,Ansible,MySQL,Python,Docker,ELK,Haproxy,Git,Nodejs,安全,技术">
+    <link rel="shortcut icon" href="/img/ironman-draw.png">
+    <!-- Place this tag in your head or just before your close body tag. -->
+    <script async defer src="https://buttons.github.io/buttons.js"></script>
+    <title>
+        
+          如何有效的清除 DNS 缓存 - 运维之美
+        
+    </title>
+
+    <link rel="canonical" href="https://www.hi-linux.com/posts/56208.html">
+
+    <!-- Bootstrap Core CSS -->
+    
+<link rel="stylesheet" href="/css/bootstrap.min.css">
+
+
+    <!-- Custom CSS --> 
+    
+<link rel="stylesheet" href="/css/beantech.min.css">
+
+    
+    <!-- Pygments Highlight CSS -->
+    
+<link rel="stylesheet" href="/css/highlight.css">
+
+
+    
+<link rel="stylesheet" href="/css/widget.css">
+
+
+    
+<link rel="stylesheet" href="/css/rocket.css">
+
+
+    
+<link rel="stylesheet" href="/css/signature.css">
+
+
+    
+<link rel="stylesheet" href="/css/toc.css">
+
+
+    <!-- Custom Fonts -->
+    <!-- <link href="https://maxcdn.bootstrapcdn.com/font-awesome/4.3.0/css/font-awesome.min.css" rel="stylesheet" type="text/css"> -->
+    <!-- Hux change font-awesome CDN to qiniu -->
+    <link href="https://cdn.staticfile.org/font-awesome/4.5.0/css/font-awesome.min.css" rel="stylesheet" type="text/css">
+
+
+    <!-- Hux Delete, sad but pending in China
+    <link href='http://fonts.googleapis.com/css?family=Lora:400,700,400italic,700italic' rel='stylesheet' type='text/css'>
+    <link href='http://fonts.googleapis.com/css?family=Open+Sans:300italic,400italic,600italic,700italic,800italic,400,300,600,700,800' rel='stylesheet' type='text/
+    css'>
+    -->
+
+
+    <!-- HTML5 Shim and Respond.js IE8 support of HTML5 elements and media queries -->
+    <!-- WARNING: Respond.js doesn't work if you view the page via file:// -->
+    <!--[if lt IE 9]>
+        <script src="https://oss.maxcdn.com/libs/html5shiv/3.7.0/html5shiv.js"></script>
+        <script src="https://oss.maxcdn.com/libs/respond.js/1.4.2/respond.min.js"></script>
+    <![endif]-->
+
+    <!-- ga & ba script hoook -->
+    <script></script>
+<meta name="generator" content="Hexo 4.2.0"><link rel="alternate" href="/atom.xml" title="运维之美" type="application/atom+xml">
+</head>
+
+
+<!-- hack iOS CSS :active style -->
+<body ontouchstart="">
+	<!-- Modified by Yu-Hsuan Yen -->
+<!-- Post Header -->
+<style type="text/css">
+    header.intro-header{
+        
+            background-image: url('/img/header_img/building.jpg')
+            /*post*/
+        
+    }
+    
+</style>
+
+<header class="intro-header" >
+    <!-- Signature -->
+    <div id="signature">
+        <div class="container">
+            <div class="row">
+                <div class="col-lg-8 col-lg-offset-2 col-md-10 col-md-offset-1">
+                
+                    <div class="post-heading">
+                        <div class="tags">
+                            
+                              <a class="tag" href="/tags/#Linux" title="Linux">Linux</a>
+                            
+                              <a class="tag" href="/tags/#技巧" title="技巧">技巧</a>
+                            
+                              <a class="tag" href="/tags/#DNS" title="DNS">DNS</a>
+                            
+                        </div>
+                        <h1>如何有效的清除 DNS 缓存</h1>
+                        <h2 class="subheading"></h2>
+                        <span class="meta">
+                            Posted by Mike on
+                            2020-05-23
+                        </span>
+                    </div>
+                
+
+
+                </div>
+            </div>
+        </div>
+    </div>
+</header>
+
+	
+    <!-- Navigation -->
+<nav class="navbar navbar-default navbar-custom navbar-fixed-top">
+    <div class="container-fluid">
+        <!-- Brand and toggle get grouped for better mobile display -->
+        <div class="navbar-header page-scroll">
+            <button type="button" class="navbar-toggle">
+                <span class="sr-only">Toggle navigation</span>
+                <span class="icon-bar"></span>
+                <span class="icon-bar"></span>
+                <span class="icon-bar"></span>
+            </button>
+            <a class="navbar-brand" href="/">运维之美</a>
+        </div>
+
+        <!-- Collect the nav links, forms, and other content for toggling -->
+        <!-- Known Issue, found by Hux:
+            <nav>'s height woule be hold on by its content.
+            so, when navbar scale out, the <nav> will cover tags.
+            also mask any touch event of tags, unfortunately.
+        -->
+        <div id="huxblog_navbar">
+            <div class="navbar-collapse">
+                <ul class="nav navbar-nav navbar-right">
+                    <li>
+                        <a href="/">Home</a>
+                    </li>
+
+                    
+
+                        
+                    
+
+                        
+                    
+
+                        
+                        <li>
+                            <a href="/about/">About</a>
+                        </li>
+                        
+                    
+
+                        
+                        <li>
+                            <a href="/archive/">Archives</a>
+                        </li>
+                        
+                    
+
+                        
+                        <li>
+                            <a href="/tags/">Tags</a>
+                        </li>
+                        
+                    
+                    
+                </ul>
+            </div>
+        </div>
+        <!-- /.navbar-collapse -->
+    </div>
+    <!-- /.container -->
+</nav>
+<script>
+    // Drop Bootstarp low-performance Navbar
+    // Use customize navbar with high-quality material design animation
+    // in high-perf jank-free CSS3 implementation
+    var $body   = document.body;
+    var $toggle = document.querySelector('.navbar-toggle');
+    var $navbar = document.querySelector('#huxblog_navbar');
+    var $collapse = document.querySelector('.navbar-collapse');
+
+    $toggle.addEventListener('click', handleMagic)
+    function handleMagic(e){
+        if ($navbar.className.indexOf('in') > 0) {
+        // CLOSE
+            $navbar.className = " ";
+            // wait until animation end.
+            setTimeout(function(){
+                // prevent frequently toggle
+                if($navbar.className.indexOf('in') < 0) {
+                    $collapse.style.height = "0px"
+                }
+            },400)
+        }else{
+        // OPEN
+            $collapse.style.height = "auto"
+            $navbar.className += " in";
+        }
+    }
+</script>
+
+
+    <!-- Main Content -->
+    <!-- Modify by Yu-Hsuan Yen -->
+
+<!-- Post Content -->
+<article>
+    <div class="container">
+        <div class="row">
+
+            <!-- Post Container -->
+            <div class="
+                col-lg-8 col-lg-offset-2
+                col-md-10 col-md-offset-1
+                post-container">
+
+                <div id="vip-container"><p>DNS 缓存是一个临时数据库，用于存储有关以前的 DNS 查找的信息。换句话说，每当你访问网站时，你的操作系统和网络浏览器都会保留该域和相应 IP 地址的记录。这消除了对远程 DNS 服务器重复查询的需要，并允许你的 OS 或浏览器快速解析网站的 URL。</p>
+<p>但是在某些情况下，例如：对网络问题进行故障排除，或者在更改 DNS 解析器之后，你将需要刷新 DNS 缓存。这将清除缓存的 DNS 条目，并根据新配置的 DNS 设置执行后续查找以解析域。</p>
+<p>本指南提供有关如何在不同的操作系统和 Web 浏览器上刷新 DNS 缓存的说明。</p>
+<h2 id="在-windows-上清除刷新-dns-缓存">在 Windows 上清除/刷新 DNS 缓存</h2>
+<p>对于所有 Windows 版本，清除 DNS 缓存的过程都是相同的。你需要使用管理员权限打开命令提示符并运行 <code>ipconfig /flushdns</code>。</p>
+<h3 id="windows-10-和-windows-8">Windows 10 和 Windows 8</h3>
+<p>要在 Windows 10 和 Windows 8 中清除 DNS 缓存，请执行以下步骤：</p>
+<ol>
+<li>
+<p>在 Windows 搜索栏中键入 cmd 。</p>
+</li>
+<li>
+<p>右键单击 “命令提示符”，然后右击 “以管理员身份运行”。这将打开 “命令提示符” 窗口。</p>
+</li>
+<li>
+<p>在命令行上，键入以下行，然后按回车：</p>
+</li>
+</ol>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">ipconfig &#x2F;flushdns</span><br></pre></td></tr></table></figure>
+<p>成功后，系统将返回以下消息：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">Windows IP Configuration</span><br><span class="line"></span><br><span class="line">Successfully flushed the DNS Resolver Cache.</span><br></pre></td></tr></table></figure>
+<a id="more"></a>
+<h3 id="windows-7">Windows 7</h3>
+<p>要在 Windows 7 中清除 DNS 缓存，请执行以下步骤：</p>
+<ol>
+<li>
+<p>单击开始按钮。</p>
+</li>
+<li>
+<p>在开始菜单搜索文本框中键入 cmd。</p>
+</li>
+<li>
+<p>右键单击 “命令提示符”，然后单击 “以管理员身份运行”。这将打开 “命令提示符” 窗口。</p>
+</li>
+<li>
+<p>在命令行上，键入以下行，然后按回车：</p>
+</li>
+</ol>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">ipconfig &#x2F;flushdns</span><br></pre></td></tr></table></figure>
+<p>成功后，系统将返回以下消息：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">Windows IP Configuration</span><br><span class="line"></span><br><span class="line">Successfully flushed the DNS Resolver Cache.</span><br></pre></td></tr></table></figure>
+<h2 id="在-linux-上清除刷新-dns-缓存">在 Linux 上清除/刷新 DNS 缓存</h2>
+<p>在 Linux 上，除非已安装并运行诸如 <code>Systemd-Resolved</code>，<code>DNSMasq</code> 或 <code>Nscd</code> 之类的缓存服务，否则没有操作系统级 <code>DNS</code> 缓存。根据 Linux 发行版和所使用的缓存服务，清除 DNS 缓存的过程有所不同。</p>
+<h3 id="系统化解决">系统化解决</h3>
+<p>大多数现代 Linux 发行版，例如 Ubuntu 18.04，都使用 systemd 解析的服务来缓存 DNS 条目。</p>
+<p>要查找服务是否正在运行，请运行：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">$ sudo systemctl is-active systemd-resolved.service</span><br></pre></td></tr></table></figure>
+<p>如果该服务正在运行，则将打印命令 active，否则将看到 inactive。</p>
+<p>要清除系统解析的 DNS 缓存，你需要键入以下命令。</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">$ sudo systemd-resolve --flush-caches</span><br></pre></td></tr></table></figure>
+<p>成功后，该命令不会返回任何消息。</p>
+<h3 id="dnsmasq">Dnsmasq</h3>
+<p>Dnsmasq 是轻量级的 DHCP 和 DNS 缓存名称服务器。</p>
+<p>如果你的系统使用 DNSMasq 作为缓存服务器，则要清除 DNS 缓存，需要重新启动 Dnsmasq 服务：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">$ sudo systemctl restart dnsmasq.service</span><br></pre></td></tr></table></figure>
+<p>也可以使用以下命令</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">$ sudo service dnsmasq restart</span><br></pre></td></tr></table></figure>
+<h3 id="nscd">NSCD</h3>
+<p><code>NSCD</code> 是一个缓存守护程序，它是大多数基于 RedHat 的发行版的首选 DNS 缓存系统。</p>
+<p>如果系统使用 <code>NSCD</code> 来清除 DNS 缓存，则需要重新启动 <code>NSCD</code> 服务：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">$ sudo systemctl restart nscd.service</span><br><span class="line">或者</span><br><span class="line">$ sudo service nscd restart</span><br></pre></td></tr></table></figure>
+<h2 id="在-macos-上清除刷新-dns-缓存">在 MacOS 上清除/刷新 DNS 缓存</h2>
+<p>根据你所运行的版本，在 MacOS 中刷新缓存的命令略有不同。该命令必须以具有系统管理员特权的用户（sudo 用户）身份运行。</p>
+<p>要清除 MacOS 中的 DNS 缓存，请执行以下步骤：</p>
+<ol>
+<li>
+<p>打开查找器。</p>
+</li>
+<li>
+<p>转到应用程序&gt;实用程序&gt;终端。这将打开终端窗口。</p>
+</li>
+<li>
+<p>在命令行中，输入以下行，然后按回车：</p>
+</li>
+</ol>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">$ sudo killall -HUP mDNSResponder</span><br></pre></td></tr></table></figure>
+<p>输入你的 <code>sudo</code> 密码，然后再次按回车。成功后，系统不会返回任何消息。</p>
+<p>对于早期版本的 MacOS，刷新缓存的命令不同。</p>
+<ul>
+<li>MacOS 版本 10.11 和 10.9</li>
+</ul>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">$ sudo dscacheutil -flushcache</span><br><span class="line">$ sudo killall -HUP mDNSResponder</span><br></pre></td></tr></table></figure>
+<ul>
+<li>MacOS 版本 10.10</li>
+</ul>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">$ sudo discoveryutil mdnsflushcache</span><br><span class="line">$ sudo discoveryutil udnsflushcaches</span><br></pre></td></tr></table></figure>
+<ul>
+<li>MacOS 版本 10.6 和 10.5</li>
+</ul>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">$ sudo dscacheutil -flushcache</span><br></pre></td></tr></table></figure>
+<h2 id="清除刷新浏览器-dns-缓存">清除/刷新浏览器 DNS 缓存</h2>
+<p>大多数现代的 Web 浏览器都有一个内置的 DNS 客户端，以防止每次访问该网站时重复查询。</p>
+<h3 id="谷歌浏览器-chrome">谷歌浏览器 Chrome</h3>
+<p>要清除 Google Chrome 的 DNS 缓存，请执行以下步骤：</p>
+<ol>
+<li>
+<p>打开一个新标签，然后在地址栏输入 <code>chrome://net-internals/#dnsChrome</code>。</p>
+</li>
+<li>
+<p>点击 “清除主机缓存” 按钮。</p>
+</li>
+</ol>
+<p>如果那对你不起作用，请尝试清除缓存和 Cookie。</p>
+<ol>
+<li>
+<p>按下 <code>CTRL+Shift+Del</code> 以打开 “清除浏览数据” 对话框窗口。</p>
+</li>
+<li>
+<p>选择一个时间范围。选择 “所有时间” 以删除所有内容。</p>
+</li>
+<li>
+<p>选中 “Cookie 和其他站点数据” 和 “缓存的图像和文件” 框。</p>
+</li>
+<li>
+<p>点击 “清除数据” 按钮。</p>
+</li>
+</ol>
+<p>此方法适用于所有基于 Chrome 的浏览器，包括 Chromium，Vivaldi 和 Opera。</p>
+<h3 id="火狐-firefox">火狐 Firefox</h3>
+<p>要清除 Firefox 的 DNS 缓存，请执行以下步骤：</p>
+<ol>
+<li>
+<p>在右上角，单击汉堡包图标 ☰ 以打开 Firefox 的菜单：</p>
+</li>
+<li>
+<p>点击 ⚙ Options (Preferences) 链接。</p>
+</li>
+<li>
+<p>单击左侧的 “隐私和安全性” 或 “隐私” 选项卡。</p>
+</li>
+<li>
+<p>向下滚动到该 History 部分，然后单击 Clear History… 按钮。</p>
+</li>
+<li>
+<p>选择要清除的时间范围。选择 “所有内容” 以删除所有内容。</p>
+</li>
+<li>
+<p>选择所有框，然后单击 “立即清除” 。</p>
+</li>
+</ol>
+<p>如果这对你不起作用，请尝试以下方法并暂时禁用 DNS 缓存。</p>
+<ol>
+<li>
+<p>打开一个新标签，然后在 Firefox 的地址栏中输入 <code>about:config</code> 。</p>
+</li>
+<li>
+<p>搜索 <code>network.dnsCacheExpiration</code>，将值暂时设置为 0，然后单击 “确定”。然后，改回默认值，然后单击 “确定” 。</p>
+</li>
+<li>
+<p>搜索 <code>network.dnsCacheEntries</code>，将值暂时设置为 0，然后单击 “确定” 。然后，改回默认值，然后单击 “确定”。</p>
+</li>
+</ol>
+<h2 id="结论">结论</h2>
+<p>至此，你已经了解了如何在 Windows，Linux 和 MacOS 操作系统上清除或刷新 DNS 缓存。</p>
+<p>如果还存在问题，Linux 和 MacOS 还可以使用 <code>dig</code> 命令来查询 DNS 并对 DNS 问题进行故障排除。</p>
+<blockquote>
+<p>来源：myfreax</p>
+<p>原文：<a href="https://tinyurl.com/yyl2n44e" target="_blank" rel="noopener">https://tinyurl.com/yyl2n44e</a></p>
+<p>题图：来自谷歌图片搜索</p>
+<p>版权：本文版权归原作者所有</p>
+<p>投稿：欢迎投稿，邮箱: <a href="mailto:editor@hi-linux.com">editor@hi-linux.com</a></p>
+</blockquote>
+</div>
+
+			<script src="https://my.openwrite.cn/js/readmore.js" type="text/javascript"></script>
+			<script>
+			var isMobile = navigator.userAgent.match(/(phone|pad|pod|iPhone|iPod|ios|iPad|Android|Mobile|BlackBerry|IEMobile|MQQBrowser|JUC|Fennec|wOSBrowser|BrowserNG|WebOS|Symbian|Windows Phone)/i);
+			if (!isMobile) {
+			    var btw = new BTWPlugin();
+			    btw.init({
+			        "id": "vip-container",
+			        "blogId": "10135-1588830050631-449",
+			        "name": "「奇妙的 Linux 世界」",
+			        "qrcode": "https://www.hi-linux.com/img/wechat/mp_qrcode_12.jpg",
+			        "keyword": "VIP"
+			    });
+			}
+			</script>
+		
+                
+
+                <hr>
+                <!-- Pager -->
+                <ul class="pager">
+                    
+                    
+                        <li class="next">
+                            <a href="/posts/22481.html" data-toggle="tooltip" data-placement="top" title="浅谈边缘计算">Next Post &rarr;</a>
+                        </li>
+                    
+                </ul>
+
+                <!-- duoshuo Share start -->
+                
+                <!-- 多说 Share end-->
+
+                <!-- 多说评论框 start -->
+                
+                <!-- 多说评论框 end -->
+
+                <!-- disqus comment start -->
+                
+                <!-- disqus comment end -->
+
+                
+                    <!-- disqus 评论框 start -->
+                    <div class="comment">
+                        <div id="lv-container" data-id="city" data-uid="MTAyMC8yNzg2My80NDQw"></div>
+                    </div>
+                    <!-- disqus 评论框 end -->
+                
+
+            </div>
+            
+            <!-- Tabe of Content -->
+            <!-- Table of Contents -->
+
+  
+    <style>
+      span.toc-nav-number{
+        display: none
+      }
+    </style>
+  
+    
+      <aside id="sidebar">
+        <div id="toc" class="toc-article">
+        <strong class="toc-title">Contents</strong>
+        
+          <ol class="toc-nav"><li class="toc-nav-item toc-nav-level-2"><a class="toc-nav-link" href="#在-windows-上清除刷新-dns-缓存"><span class="toc-nav-number">1.</span> <span class="toc-nav-text">在 Windows 上清除&#x2F;刷新 DNS 缓存</span></a><ol class="toc-nav-child"><li class="toc-nav-item toc-nav-level-3"><a class="toc-nav-link" href="#windows-10-和-windows-8"><span class="toc-nav-number">1.1.</span> <span class="toc-nav-text">Windows 10 和 Windows 8</span></a></li><li class="toc-nav-item toc-nav-level-3"><a class="toc-nav-link" href="#windows-7"><span class="toc-nav-number">1.2.</span> <span class="toc-nav-text">Windows 7</span></a></li></ol></li><li class="toc-nav-item toc-nav-level-2"><a class="toc-nav-link" href="#在-linux-上清除刷新-dns-缓存"><span class="toc-nav-number">2.</span> <span class="toc-nav-text">在 Linux 上清除&#x2F;刷新 DNS 缓存</span></a><ol class="toc-nav-child"><li class="toc-nav-item toc-nav-level-3"><a class="toc-nav-link" href="#系统化解决"><span class="toc-nav-number">2.1.</span> <span class="toc-nav-text">系统化解决</span></a></li><li class="toc-nav-item toc-nav-level-3"><a class="toc-nav-link" href="#dnsmasq"><span class="toc-nav-number">2.2.</span> <span class="toc-nav-text">Dnsmasq</span></a></li><li class="toc-nav-item toc-nav-level-3"><a class="toc-nav-link" href="#nscd"><span class="toc-nav-number">2.3.</span> <span class="toc-nav-text">NSCD</span></a></li></ol></li><li class="toc-nav-item toc-nav-level-2"><a class="toc-nav-link" href="#在-macos-上清除刷新-dns-缓存"><span class="toc-nav-number">3.</span> <span class="toc-nav-text">在 MacOS 上清除&#x2F;刷新 DNS 缓存</span></a></li><li class="toc-nav-item toc-nav-level-2"><a class="toc-nav-link" href="#清除刷新浏览器-dns-缓存"><span class="toc-nav-number">4.</span> <span class="toc-nav-text">清除&#x2F;刷新浏览器 DNS 缓存</span></a><ol class="toc-nav-child"><li class="toc-nav-item toc-nav-level-3"><a class="toc-nav-link" href="#谷歌浏览器-chrome"><span class="toc-nav-number">4.1.</span> <span class="toc-nav-text">谷歌浏览器 Chrome</span></a></li><li class="toc-nav-item toc-nav-level-3"><a class="toc-nav-link" href="#火狐-firefox"><span class="toc-nav-number">4.2.</span> <span class="toc-nav-text">火狐 Firefox</span></a></li></ol></li><li class="toc-nav-item toc-nav-level-2"><a class="toc-nav-link" href="#结论"><span class="toc-nav-number">5.</span> <span class="toc-nav-text">结论</span></a></li></ol>
+        
+        </div>
+      </aside>
+    
+
+                
+            <!-- Sidebar Container -->
+            <div class="
+                col-lg-8 col-lg-offset-2
+                col-md-10 col-md-offset-1
+                sidebar-container">
+
+                <!-- Featured Tags -->
+                
+                <section>
+                    <!-- no hr -->
+                    <h5><a href="/tags/">FEATURED TAGS</a></h5>
+                    <div class="tags">
+                       
+                          <a class="tag" href="/tags/#Linux" title="Linux">Linux</a>
+                        
+                          <a class="tag" href="/tags/#技巧" title="技巧">技巧</a>
+                        
+                          <a class="tag" href="/tags/#DNS" title="DNS">DNS</a>
+                        
+                    </div>
+                </section>
+                
+
+                <!-- Friends Blog -->
+                
+                <hr>
+                <h5>FRIENDS</h5>
+                <ul class="list-inline">
+
+                    
+                        <li><a href="http://www.mike.org.cn/" target="_blank">简单.生活</a></li>
+                    
+                        <li><a href="http://shang.qq.com/wpa/qunwpa?idkey=ea4c43493c2269428ac6ef6141de4b6d78e5ab2d41380ca4099b833b62884ee9" target="_blank">技术交流群</a></li>
+                    
+                        <li><a href="" target="_blank"></a></li>
+                    
+                        <li><a href="" target="_blank"></a></li>
+                    
+                </ul>
+                
+            </div>
+        </div>
+    </div>
+</article>
+
+
+
+
+
+
+    <!-- 来必力City版公共JS代码 start (一个网页只需插入一次) -->
+    <script type="text/javascript">
+       (function(d, s) {
+           var j, e = d.getElementsByTagName(s)[0];
+    
+           if (typeof LivereTower === 'function') { return; }
+    
+           j = d.createElement(s);
+           j.src = 'https://cdn-city.livere.com/js/embed.dist.js';
+           j.async = true;
+    
+           e.parentNode.insertBefore(j, e);
+       })(document, 'script');
+    </script>
+    <noscript>为正常使用来必力评论功能请激活JavaScript</noscript>
+    <!-- 来必力City版 公共JS代码 end -->
+
+
+
+<!-- async load function -->
+<script>
+    function async(u, c) {
+      var d = document, t = 'script',
+          o = d.createElement(t),
+          s = d.getElementsByTagName(t)[0];
+      o.src = u;
+      if (c) { o.addEventListener('load', function (e) { c(null, e); }, false); }
+      s.parentNode.insertBefore(o, s);
+    }
+</script>
+<!-- anchor-js, Doc:http://bryanbraun.github.io/anchorjs/ -->
+<script>
+    async("https://cdn.bootcss.com/anchor-js/1.1.1/anchor.min.js",function(){
+        anchors.options = {
+          visible: 'hover',
+          placement: 'left',
+          icon: 'ℬ'
+        };
+        anchors.add().remove('.intro-header h1').remove('.subheading').remove('.sidebar-container h5');
+    })
+</script>
+<style>
+    /* place left on bigger screen */
+    @media all and (min-width: 800px) {
+        .anchorjs-link{
+            position: absolute;
+            left: -0.75em;
+            font-size: 1.1em;
+            margin-top : -0.1em;
+        }
+    }
+</style>
+
+
+
+    <!-- Footer -->
+    <!-- Footer -->
+<footer>
+    <div class="container">
+        <div class="row">
+            <div class="col-lg-8 col-lg-offset-2 col-md-10 col-md-offset-1">
+                <ul class="list-inline text-center">
+                
+                    <li>
+                        <a href="/atom.xml">
+                            <span class="fa-stack fa-lg">
+                                <i class="fa fa-circle fa-stack-2x"></i>
+                                <i class="fa fa-rss fa-stack-1x fa-inverse"></i>
+                            </span>
+                        </a>
+                    </li>
+                
+                
+                
+                    <li>
+                        <a target="_blank" href="https://www.zhihu.com/people/80imike">
+                            <span class="fa-stack fa-lg">
+                                <i class="fa fa-circle fa-stack-2x"></i>
+                                <i class="fa  fa-stack-1x fa-inverse">知</i>
+                            </span>
+                        </a>
+                    </li>
+                
+
+                
+                    <li>
+                        <a target="_blank" href="http://weibo.com/2093524665">
+                            <span class="fa-stack fa-lg">
+                                <i class="fa fa-circle fa-stack-2x"></i>
+                                <i class="fa fa-weibo fa-stack-1x fa-inverse"></i>
+                            </span>
+                        </a>
+                    </li>
+                
+
+                
+
+                
+
+                
+
+                </ul>
+                <p class="copyright text-muted">
+                    Copyright &copy; Mike 2020 | Hosted by <a href="https://pages.coding.me" target="_blank" rel="noopener" style="font-weight: bold">Coding Pages</a>
+                    <br>
+                    Theme by <a href="http://beantech.org" target="_blank" rel="noopener">BeanTech</a> 
+                    <span style="display: inline-block; margin: 0 5px;">
+                        <i class="fa fa-heart"></i>
+                    </span> 
+                    re-Ported by <a href="http://www.huweihuang.com" target="_blank" rel="noopener">胡伟煌</a> | 
+                    <iframe
+                        style="margin-left: 2px; margin-bottom:-5px;"
+                        frameborder="0" scrolling="0" width="91px" height="20px"
+                        src="https://ghbtns.com/github-btn.html?user=huweihuang&repo=hexo-theme-huweihuang&type=star&count=true" >
+                    </iframe>
+                </p>
+            </div>
+        </div>
+    </div>
+</footer>
+
+<!-- jQuery -->
+
+<script src="/js/jquery.min.js"></script>
+
+
+<!-- Bootstrap Core JavaScript -->
+
+<script src="/js/bootstrap.min.js"></script>
+
+
+<!-- Custom Theme JavaScript -->
+
+<script src="/js/hux-blog.min.js"></script>
+
+
+
+<!-- async load function -->
+<script>
+    function async(u, c) {
+      var d = document, t = 'script',
+          o = d.createElement(t),
+          s = d.getElementsByTagName(t)[0];
+      o.src = u;
+      if (c) { o.addEventListener('load', function (e) { c(null, e); }, false); }
+      s.parentNode.insertBefore(o, s);
+    }
+</script>
+
+<!-- 
+     Because of the native support for backtick-style fenced code blocks 
+     right within the Markdown is landed in Github Pages, 
+     From V1.6, There is no need for Highlight.js, 
+     so Huxblog drops it officially.
+
+     - https://github.com/blog/2100-github-pages-now-faster-and-simpler-with-jekyll-3-0  
+     - https://help.github.com/articles/creating-and-highlighting-code-blocks/    
+-->
+<!--
+    <script>
+        async("http://cdn.bootcss.com/highlight.js/8.6/highlight.min.js", function(){
+            hljs.initHighlightingOnLoad();
+        })
+    </script>
+    <link href="http://cdn.bootcss.com/highlight.js/8.6/styles/github.min.css" rel="stylesheet">
+-->
+
+
+<!-- jquery.tagcloud.js -->
+<script>
+    // only load tagcloud.js in tag.html
+    if($('#tag_cloud').length !== 0){
+        async("https://www.hi-linux.com/js/jquery.tagcloud.js",function(){
+            $.fn.tagcloud.defaults = {
+                //size: {start: 1, end: 1, unit: 'em'},
+                color: {start: '#bbbbee', end: '#0085a1'},
+            };
+            $('#tag_cloud a').tagcloud();
+        })
+    }
+</script>
+
+<!--fastClick.js -->
+<script>
+    async("https://cdn.bootcss.com/fastclick/1.0.6/fastclick.min.js", function(){
+        var $nav = document.querySelector("nav");
+        if($nav) FastClick.attach($nav);
+    })
+</script>
+
+
+<!-- Google Analytics -->
+
+
+
+
+<!-- Baidu Tongji -->
+
+
+
+
+
+
+	<a id="rocket" href="#top" class=""></a>
+	<script type="text/javascript" src="/js/totop.js?v=1.0.0" async=""></script>
+    <script type="text/javascript" src="/js/toc.js?v=1.0.0" async=""></script>
+<!-- Image to hack wechat -->
+<img src="https://www.hi-linux.com/img/icon_wechat.png" width="0" height="0" />
+<!-- Migrate from head to bottom, no longer block render and still work -->
+
+<script>(function(w,d, s, id) {w.webpushr=w.webpushr||function(){(w.webpushr.q=w.webpushr.q||[]).push(arguments)};var js, fjs = d.getElementsByTagName(s)[0];js = d.createElement(s); js.id = id;js.src = 'https://cdn.webpushr.com/app.min.js';fjs.parentNode.appendChild(js);}(window,document, 'script', 'webpushr-jssdk'));webpushr('init','BF9JK7xV9kjWTdMx2lr6RWaPfXV7wNuZaVAJ1bfIGoBNJavqLEBVFMKLubITnCA4bh2fI9iH9tMF95nXnPt7xxY');</script></body>
+
+</html>

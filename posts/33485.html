@@ -1,0 +1,829 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<!-- Head tag -->
+<head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="google-site-verification" content="xBT4GhYoi5qRD5tr338pgPM5OWHHIDR6mNg1a3euekI" />
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="description" content="">
+    <meta name="keyword"  content="Linux,运维,Nginx,Zabbix,Centos,Ansible,MySQL,Python,Docker,ELK,Haproxy,Git,Nodejs,安全,技术">
+    <link rel="shortcut icon" href="/img/ironman-draw.png">
+    <!-- Place this tag in your head or just before your close body tag. -->
+    <script async defer src="https://buttons.github.io/buttons.js"></script>
+    <title>
+        
+          如何平滑的变更单表超 100000000 条记录的数据库结构 - 运维之美
+        
+    </title>
+
+    <link rel="canonical" href="https://www.hi-linux.com/posts/33485.html">
+
+    <!-- Bootstrap Core CSS -->
+    
+<link rel="stylesheet" href="/css/bootstrap.min.css">
+
+
+    <!-- Custom CSS --> 
+    
+<link rel="stylesheet" href="/css/beantech.min.css">
+
+    
+    <!-- Pygments Highlight CSS -->
+    
+<link rel="stylesheet" href="/css/highlight.css">
+
+
+    
+<link rel="stylesheet" href="/css/widget.css">
+
+
+    
+<link rel="stylesheet" href="/css/rocket.css">
+
+
+    
+<link rel="stylesheet" href="/css/signature.css">
+
+
+    
+<link rel="stylesheet" href="/css/toc.css">
+
+
+    <!-- Custom Fonts -->
+    <!-- <link href="https://maxcdn.bootstrapcdn.com/font-awesome/4.3.0/css/font-awesome.min.css" rel="stylesheet" type="text/css"> -->
+    <!-- Hux change font-awesome CDN to qiniu -->
+    <link href="https://cdn.staticfile.org/font-awesome/4.5.0/css/font-awesome.min.css" rel="stylesheet" type="text/css">
+
+
+    <!-- Hux Delete, sad but pending in China
+    <link href='http://fonts.googleapis.com/css?family=Lora:400,700,400italic,700italic' rel='stylesheet' type='text/css'>
+    <link href='http://fonts.googleapis.com/css?family=Open+Sans:300italic,400italic,600italic,700italic,800italic,400,300,600,700,800' rel='stylesheet' type='text/
+    css'>
+    -->
+
+
+    <!-- HTML5 Shim and Respond.js IE8 support of HTML5 elements and media queries -->
+    <!-- WARNING: Respond.js doesn't work if you view the page via file:// -->
+    <!--[if lt IE 9]>
+        <script src="https://oss.maxcdn.com/libs/html5shiv/3.7.0/html5shiv.js"></script>
+        <script src="https://oss.maxcdn.com/libs/respond.js/1.4.2/respond.min.js"></script>
+    <![endif]-->
+
+    <!-- ga & ba script hoook -->
+    <script></script>
+<meta name="generator" content="Hexo 4.2.0"><link rel="alternate" href="/atom.xml" title="运维之美" type="application/atom+xml">
+</head>
+
+
+<!-- hack iOS CSS :active style -->
+<body ontouchstart="">
+	<!-- Modified by Yu-Hsuan Yen -->
+<!-- Post Header -->
+<style type="text/css">
+    header.intro-header{
+        
+            background-image: url('/img/header_img/building.jpg')
+            /*post*/
+        
+    }
+    
+</style>
+
+<header class="intro-header" >
+    <!-- Signature -->
+    <div id="signature">
+        <div class="container">
+            <div class="row">
+                <div class="col-lg-8 col-lg-offset-2 col-md-10 col-md-offset-1">
+                
+                    <div class="post-heading">
+                        <div class="tags">
+                            
+                              <a class="tag" href="/tags/#Linux" title="Linux">Linux</a>
+                            
+                              <a class="tag" href="/tags/#技巧" title="技巧">技巧</a>
+                            
+                              <a class="tag" href="/tags/#MySQL" title="MySQL">MySQL</a>
+                            
+                        </div>
+                        <h1>如何平滑的变更单表超 100000000 条记录的数据库结构</h1>
+                        <h2 class="subheading"></h2>
+                        <span class="meta">
+                            Posted by Mike on
+                            2020-05-23
+                        </span>
+                    </div>
+                
+
+
+                </div>
+            </div>
+        </div>
+    </div>
+</header>
+
+	
+    <!-- Navigation -->
+<nav class="navbar navbar-default navbar-custom navbar-fixed-top">
+    <div class="container-fluid">
+        <!-- Brand and toggle get grouped for better mobile display -->
+        <div class="navbar-header page-scroll">
+            <button type="button" class="navbar-toggle">
+                <span class="sr-only">Toggle navigation</span>
+                <span class="icon-bar"></span>
+                <span class="icon-bar"></span>
+                <span class="icon-bar"></span>
+            </button>
+            <a class="navbar-brand" href="/">运维之美</a>
+        </div>
+
+        <!-- Collect the nav links, forms, and other content for toggling -->
+        <!-- Known Issue, found by Hux:
+            <nav>'s height woule be hold on by its content.
+            so, when navbar scale out, the <nav> will cover tags.
+            also mask any touch event of tags, unfortunately.
+        -->
+        <div id="huxblog_navbar">
+            <div class="navbar-collapse">
+                <ul class="nav navbar-nav navbar-right">
+                    <li>
+                        <a href="/">Home</a>
+                    </li>
+
+                    
+
+                        
+                    
+
+                        
+                    
+
+                        
+                        <li>
+                            <a href="/about/">About</a>
+                        </li>
+                        
+                    
+
+                        
+                        <li>
+                            <a href="/archive/">Archives</a>
+                        </li>
+                        
+                    
+
+                        
+                        <li>
+                            <a href="/tags/">Tags</a>
+                        </li>
+                        
+                    
+                    
+                </ul>
+            </div>
+        </div>
+        <!-- /.navbar-collapse -->
+    </div>
+    <!-- /.container -->
+</nav>
+<script>
+    // Drop Bootstarp low-performance Navbar
+    // Use customize navbar with high-quality material design animation
+    // in high-perf jank-free CSS3 implementation
+    var $body   = document.body;
+    var $toggle = document.querySelector('.navbar-toggle');
+    var $navbar = document.querySelector('#huxblog_navbar');
+    var $collapse = document.querySelector('.navbar-collapse');
+
+    $toggle.addEventListener('click', handleMagic)
+    function handleMagic(e){
+        if ($navbar.className.indexOf('in') > 0) {
+        // CLOSE
+            $navbar.className = " ";
+            // wait until animation end.
+            setTimeout(function(){
+                // prevent frequently toggle
+                if($navbar.className.indexOf('in') < 0) {
+                    $collapse.style.height = "0px"
+                }
+            },400)
+        }else{
+        // OPEN
+            $collapse.style.height = "auto"
+            $navbar.className += " in";
+        }
+    }
+</script>
+
+
+    <!-- Main Content -->
+    <!-- Modify by Yu-Hsuan Yen -->
+
+<!-- Post Content -->
+<article>
+    <div class="container">
+        <div class="row">
+
+            <!-- Post Container -->
+            <div class="
+                col-lg-8 col-lg-offset-2
+                col-md-10 col-md-offset-1
+                post-container">
+
+                <div id="vip-container"><p>众所周知，很多互联网业务都面临着无法停机，需要在线变更数据库结构的情况。但是在线修改数据量较大的表，可能对线上业务产生较大影响，比如：</p>
+<ol>
+<li>
+<p>在线修改大表的表结构执行时间往往不可预估，一般时间较长。</p>
+</li>
+<li>
+<p>由于修改表结构是表级锁，因此在修改表结构时，影响表写入操作。</p>
+</li>
+<li>
+<p>如果长时间的修改表结构，中途修改失败，由于修改表结构是一个事务，因此失败后会还原表结构，在这个过程中表都是锁着不可写入。</p>
+</li>
+<li>
+<p>修改大表结构容易导致数据库 CPU、IO 等性能消耗，使 MySQL 服务器性能降低。</p>
+</li>
+<li>
+<p>在线修改大表结构容易导致主从延时，从而影响业务读取。</p>
+</li>
+</ol>
+<a id="more"></a>
+<p>Percona-Toolkit 源自 Maatkit 和 Aspersa 工具，这两个工具是管理 MySQL 的最有名的工具，但 Maatkit 已经不维护了，全部归并到 Percona-Toolkit。Percona Toolkit 是一组高级的命令行工具，用来管理 MySQL 和系统任务，主要包括以下功能：</p>
+<ol>
+<li>
+<p>验证主节点和复制数据的一致性</p>
+</li>
+<li>
+<p>有效的对记录行进行归档</p>
+</li>
+<li>
+<p>找出重复的索引</p>
+</li>
+<li>
+<p>总结 MySQL 服务器</p>
+</li>
+<li>
+<p>从日志和 tcpdump 中分析查询</p>
+</li>
+<li>
+<p>问题发生时收集重要的系统信息</p>
+</li>
+<li>
+<p>在线修改表结构</p>
+</li>
+</ol>
+<p>pt-online-schema-change 是 Percona-Toolkit 工具集中的一个组件，很多 DBA 在使用 Percona-Toolkit 时第一个使用的工具就是它，同时也是使用最频繁的一个工具。它可以做到在修改表结构的同时（即进行 DDL 操作）不阻塞数据库表 DML 的进行，这样降低了对生产环境数据库的影响。</p>
+<p>在 MySQL 5.6.7 之前是不支持 Online DDL 特性的，即使在添加二级索引的时候有 FIC 特性，但是在修改表字段的时候还是会有锁表并阻止表的 DML 操作。这样对于 DBA 来说是非常痛苦的，好在有 pt-online-schema-change 工具在没有 Online DDL 时解决了这一问题，pt-online-schema-change 其主要特点就是在数据库结构修改过程中不会造成读写阻塞。</p>
+<h2 id="pt-online-schema-change-安装">pt-online-schema-change 安装</h2>
+<p>pt-online-schema-change 安装非常简单，官方已经为我们准备好了各主流平台的安装包，只需下载对应版本安装即可。目前最新版本是 3.1.0，这里我们以 CentOS 7 为例：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"># 安装相关依赖包</span><br><span class="line">$ yum install perl-DBI perl-DBD-MySQL perl-Time-HiRes perl-IO-Socket-SSL</span><br><span class="line">$ wget https:&#x2F;&#x2F;www.percona.com&#x2F;downloads&#x2F;percona-toolkit&#x2F;3.1.0&#x2F;binary&#x2F;redhat&#x2F;7&#x2F;x86_64&#x2F;percona-toolkit-3.1.0-2.el7.x86_64.rpm</span><br><span class="line">$ rpm -ivh percona-toolkit-3.1.0-2.el7.x86_64.rpm</span><br></pre></td></tr></table></figure>
+<p>更多平台的安装包可以直接在官网地址下载：<a href="https://www.percona.com/downloads/percona-toolkit/LATEST/" target="_blank" rel="noopener">https://www.percona.com/downloads/percona-toolkit/LATEST/</a></p>
+<h2 id="pt-online-schema-change-语法说明">pt-online-schema-change 语法说明</h2>
+<ol>
+<li>常用选项说明</li>
+</ol>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br><span class="line">70</span><br><span class="line">71</span><br><span class="line">72</span><br><span class="line">73</span><br><span class="line">74</span><br><span class="line">75</span><br><span class="line">76</span><br><span class="line">77</span><br><span class="line">78</span><br><span class="line">79</span><br><span class="line">80</span><br><span class="line">81</span><br><span class="line">82</span><br><span class="line">83</span><br><span class="line">84</span><br><span class="line">85</span><br><span class="line">86</span><br><span class="line">87</span><br><span class="line">88</span><br><span class="line">89</span><br><span class="line">90</span><br><span class="line">91</span><br><span class="line">92</span><br><span class="line">93</span><br><span class="line">94</span><br><span class="line">95</span><br><span class="line">96</span><br><span class="line">97</span><br><span class="line">98</span><br><span class="line">99</span><br><span class="line">100</span><br><span class="line">101</span><br><span class="line">102</span><br><span class="line">103</span><br><span class="line">104</span><br><span class="line">105</span><br><span class="line">106</span><br><span class="line">107</span><br><span class="line">108</span><br><span class="line">109</span><br><span class="line">110</span><br><span class="line">111</span><br><span class="line">112</span><br><span class="line">113</span><br><span class="line">114</span><br><span class="line">115</span><br><span class="line">116</span><br><span class="line">117</span><br><span class="line">118</span><br><span class="line">119</span><br><span class="line">120</span><br><span class="line">121</span><br><span class="line">122</span><br><span class="line">123</span><br><span class="line">124</span><br><span class="line">125</span><br><span class="line">126</span><br><span class="line">127</span><br><span class="line">128</span><br><span class="line">129</span><br><span class="line">130</span><br><span class="line">131</span><br><span class="line">132</span><br><span class="line">133</span><br><span class="line">134</span><br><span class="line">135</span><br><span class="line">136</span><br><span class="line">137</span><br><span class="line">138</span><br><span class="line">139</span><br><span class="line">140</span><br><span class="line">141</span><br><span class="line">142</span><br><span class="line">143</span><br><span class="line">144</span><br><span class="line">145</span><br><span class="line">146</span><br><span class="line">147</span><br><span class="line">148</span><br><span class="line">149</span><br><span class="line">150</span><br><span class="line">151</span><br><span class="line">152</span><br><span class="line">153</span><br><span class="line">154</span><br><span class="line">155</span><br><span class="line">156</span><br><span class="line">157</span><br><span class="line">158</span><br><span class="line">159</span><br><span class="line">160</span><br><span class="line">161</span><br><span class="line">162</span><br><span class="line">163</span><br><span class="line">164</span><br><span class="line">165</span><br><span class="line">166</span><br><span class="line">167</span><br><span class="line">168</span><br><span class="line">169</span><br><span class="line">170</span><br><span class="line">171</span><br><span class="line">172</span><br><span class="line">173</span><br><span class="line">174</span><br><span class="line">175</span><br><span class="line">176</span><br><span class="line">177</span><br><span class="line">178</span><br><span class="line">179</span><br><span class="line">180</span><br><span class="line">181</span><br><span class="line">182</span><br><span class="line">183</span><br><span class="line">184</span><br><span class="line">185</span><br><span class="line">186</span><br><span class="line">187</span><br><span class="line">188</span><br><span class="line">189</span><br><span class="line">190</span><br><span class="line">191</span><br><span class="line">192</span><br><span class="line">193</span><br><span class="line">194</span><br><span class="line">195</span><br><span class="line">196</span><br><span class="line">197</span><br><span class="line">198</span><br><span class="line">199</span><br><span class="line">200</span><br><span class="line">201</span><br><span class="line">202</span><br><span class="line">203</span><br><span class="line">204</span><br><span class="line">205</span><br><span class="line">206</span><br></pre></td><td class="code"><pre><span class="line">$ pt-online-schema-change [OPTIONS] DSN</span><br><span class="line"></span><br><span class="line">--alter</span><br><span class="line">变更结构选项，不需要ALTER TABLE关键字，如果表有多个变更可以使用逗号分隔。</span><br><span class="line"></span><br><span class="line">限制：</span><br><span class="line"></span><br><span class="line">1.在绝大部分情况下表都需要有主键或者是唯一索引。因为这个工具会在运行的时候创建一个DELETE触发器，这是为了保证在变更中新表能够与旧表保持更新一致性。值得注意的是，如果在需要变更的列上创建主键或是唯一索引时，则会以这些列创建触发器；</span><br><span class="line">2.不能使用RENAME子句为表进行重命名；</span><br><span class="line">3.字段不能通过删除再重添加的方式进行重命名，这种方式是不会拷贝原字段的数到新字段上；</span><br><span class="line">4.如果新增 NOT NULL 的列并且没有指定 default 值，工具就会执行失败，它并不会指定默认值；</span><br><span class="line">5.涉及到删除外键时，需要指定 _constraint_name，工具会在新表上创建一个前面加了下划线的外键名称，这个外键名称与原致。如需要删除外键 fk_foo，则指定 &#39;--alter &quot;DROP FOREIGN KEY _fk_foo&quot;&#39;。</span><br><span class="line"></span><br><span class="line">--alter-foreign-keys-method</span><br><span class="line">采用何种方式修改外键以便关联到新表上。有外键约束的表需要被特殊处理，为了确保外键依然能够关联到正确的表上。当工具重命名外键关联的父表时，确保外键也必须关联到重命名后的父表。</span><br><span class="line"></span><br><span class="line">主要有以下几种方式：</span><br><span class="line"></span><br><span class="line">auto：让工具自动选择使用。优先选择 rebuild_constraints，如果不成功，则选择 drop_swap；</span><br><span class="line">rebuild_constraints：这种方式使用 ALTER TABLE 先删除然后重建外键关联到新父表。这是首选的方式，如果一张或多张子表过大会导致 ALTER 需要很长时间，子表会被阻塞；</span><br><span class="line">drop_swap：禁用外键约束 (FOREIGN_KEY_CHECKS&#x3D;0) ，在进行重命名新父表之前删除原父表，这与常规转换旧表与新表的方式不同，这个 RENAME 操作是原子性的并且对应用客户端无感知。</span><br><span class="line"></span><br><span class="line">这种方式更快速并且不会阻塞，但是也有隐患：</span><br><span class="line"></span><br><span class="line">1.删除原父表以及重命名新表这段时间很短，如果这段时间更改子表有可能会报错；</span><br><span class="line">2.如果重命名新表发生失败，而原父表已经永久删除了，这时就需要人工进行干预了。</span><br><span class="line"></span><br><span class="line">这种方式强制使用选项 &#39;--no-swap-tables&#39; 和 &#39;--no-drop-old-table&#39;。</span><br><span class="line"></span><br><span class="line">none：这种方式类似于 drop_swap，不同在于不进行 swap 原父表。子表有任何外键关联父表都将变成关联一张不存在的表，这会使得子表的外键约束失效，可以通过 SHOW ENGINE INNODB STATUS 查看。</span><br><span class="line"></span><br><span class="line">--[no]analyze-before-swap</span><br><span class="line">默认值：yes</span><br><span class="line">在新表与旧表完成转换之前对新表执行 ANALYZE TABLE 操作，默认会在 MySQL 5.6 及之后版本并且开启 innodb_stats_persistent 的情况下执行。</span><br><span class="line"></span><br><span class="line">--ask-pass</span><br><span class="line">命令行提示密码输入，保护密码安全，前提需安装模块 perl-TermReadKey。</span><br><span class="line"></span><br><span class="line">--[no]check-alter</span><br><span class="line">默认值：yes</span><br><span class="line"></span><br><span class="line">解析变更选项的内容，发出表变更警告，主要警告项为：</span><br><span class="line"></span><br><span class="line">1.字段重命名</span><br><span class="line"></span><br><span class="line">在工具的早期版本中，通过指定 CHANGE COLUMN name new_name 进行字段重命名会导致数据库的丢失，现在的版本已经通过代码解决了数据一致性问题。但这段代码并不能保证能够确保数据的不丢失。所以当涉及到字段名变更时应通过添加选项 &#39;--dry-run&#39; 和 &#39;--print&#39; 查看变更是否可以正确执行。</span><br><span class="line"></span><br><span class="line">2.删除主键</span><br><span class="line"></span><br><span class="line">如果 &#39;--alter&#39; 选项中包含 DROP PRIMARY KEY 删除主键的操作，除非指定选项 &#39;--dry-run&#39;，否则工具将退出。变更表的主键是十分危险的，工具变更时建立的触发器，尤其是 DELETE 触发器，是基于主键的，在做主键变更前先添加选项 &#39;--dry-run&#39; 和 &#39;--print&#39; 验证触发器是可用的。</span><br><span class="line"></span><br><span class="line">--[no]check-replication-filters</span><br><span class="line">默认值：yes</span><br><span class="line">如果服务器指定了任何主从复制过滤选项，该工具会查询是否有复制过滤选项，一旦发现，工具都会中止并报错。</span><br><span class="line"></span><br><span class="line">--check-slave-lag</span><br><span class="line">指定暂停旧表与新表的数据拷贝直到主从复制小于选项 &#39;--max-lag&#39; 指定的值。</span><br><span class="line"></span><br><span class="line">--skip-check-slave-lag</span><br><span class="line">DSN 类型，可重复使用</span><br><span class="line">指定 DSN 连接从库时跳过主从延迟检查，可以指定多个从库检查。</span><br><span class="line"></span><br><span class="line">--check-interval</span><br><span class="line">默认值：1s</span><br><span class="line">指定因为选项 &#39;--max-lag&#39; 检查之间休眠时间。</span><br><span class="line"></span><br><span class="line">--chunk-index</span><br><span class="line">指定使用哪个索引对表进行 chunk 分块操作。默认情况下会选择最优的索引，工具会在 SQL 语句中添加 FORCE INDEX 子句。</span><br><span class="line"></span><br><span class="line">--chunk-index-columns</span><br><span class="line">指定使用选项 &#39;--chunk-index&#39; 的索引使用最左前缀几个索引字段，只适用于复合索引。</span><br><span class="line"></span><br><span class="line">--chunk-size</span><br><span class="line">默认值：1000</span><br><span class="line">指定表分块的 chunk 大小，每个 chunk 需要拷贝的表行数，允许的后缀单位为 k、M、G。</span><br><span class="line">当指定了这个选项会覆盖工具默认动态调整 chunk 块大小以便在选项 &#39;--chunk-time&#39; 指定时间内完成行拷贝的行为。</span><br><span class="line"></span><br><span class="line">--chunk-time</span><br><span class="line">默认值：0.5</span><br><span class="line">动态调整每个 chunk 的大小使相应的表行数都在指定的时间内完成拷贝查询。如果该选项值设置为 0，则不会动态调整 chunk 的大小，就有可能造成每次拷贝查询的时间不同，但每个 chunk 大小还是一致的。</span><br><span class="line"></span><br><span class="line">--host，-h</span><br><span class="line">指定连接的数据库 IP 地址。</span><br><span class="line"></span><br><span class="line">--port，-P</span><br><span class="line">指定连接的数据库 Port 端口。</span><br><span class="line"></span><br><span class="line">--user，-u</span><br><span class="line">指定连接的数据库用户。</span><br><span class="line"></span><br><span class="line">--password，-p</span><br><span class="line">指定连接的数据库用户密码。</span><br><span class="line"></span><br><span class="line">--database，-D</span><br><span class="line">指定连接的数据库。</span><br><span class="line"></span><br><span class="line">--charset，-A</span><br><span class="line">指定连接字符集。</span><br><span class="line"></span><br><span class="line">--max-lag</span><br><span class="line">默认值：1s</span><br><span class="line">指定允许主从复制延迟时长的最大值，单位秒。如果在每次拷贝查询之后主从延迟超过指定的值，则操作将暂停执行，暂停休眠时间为选项 &#39;--check-interval&#39; 指定的值。待休眠时间结束之后再次检查主从延迟时长，检查方法是通过从库查询的 &#39;Seconds_Behind_Master&#39; 值来确定。如果主从复制延迟一直大于该参数指定值或者从库停止复制，则操作将一直等待直到从库重新启动并且延迟小于该参数指定值。</span><br><span class="line"></span><br><span class="line">--max-load</span><br><span class="line">数组类型，默认值：Threads_running &#x3D; 25</span><br><span class="line">在变更拷贝完每个 chunk 数据之后，运行 SHOW GLOBAL STATUS 检查所指定变量值高于该参数指定变量的阈值时将暂停操作。如果有多个变量阈值，可以用 &#39;,&#39;(逗号)进行分隔，参数指定型式可以为变量名 &#x3D;MAX_VALUE 或变量名 :MAX_VALUE。</span><br><span class="line">如果只是指定变量名，没有为其指定阈值，则检查当前值并增加 20% 作为阈值。如：</span><br><span class="line">    --max-load&#x3D;Threads_running：没有指定具体值，以当前查询值增加 20% 作为阈值，如当前为 100，阈值为 120；</span><br><span class="line">    --max-load&#x3D;Threads_running:10：以当前指定值为阈值。</span><br><span class="line"></span><br><span class="line">--critical-load</span><br><span class="line">数组类型，默认值：Threads_running &#x3D; 50</span><br><span class="line">指定需中止操作的状态变量阈值。用法可以参考选项 &#39;--max-load&#39;。</span><br><span class="line"></span><br><span class="line">--preserve-triggers 指定保留旧表的触发器。</span><br><span class="line"></span><br><span class="line">从 MySQL 5.7.2 起开始支持在同一张给定的表上定义具有相同触发事件和触发时间的多个触发器。这意味着如果表原来已有触发器，那么工具所需的触发器也可以创建成功。如果指定了该选项，则工具将旧表上所有的触发器复制到新表上，然后再进行表数据行的拷贝操作。</span><br><span class="line"></span><br><span class="line">限制：</span><br><span class="line"></span><br><span class="line">1.如果旧表上的触发器引用了将被工具删除的字段，则触发器失效；</span><br><span class="line">2.该选项不能与选项 &#39;--no-drop-triggers&#39;、&#39;--no-drop-old-table&#39; 和 &#39;--no-swap-tables&#39; 一起使用，因为该选项需要删除旧表的触发器并在新表上重新创建，因为表不可能有多个同名的触发器。</span><br><span class="line"></span><br><span class="line">--null-to-not-null</span><br><span class="line">指定可以将允许NULL的字段转换为 NOT NULL 字段。其中如有包含 NULL 行的字段值转换为字段默认值，如果没有字段值，则根字段类型来分配默认值。如：字符串类型为 &#39;&#39;(空字符串)，数值类型为 0。</span><br><span class="line"></span><br><span class="line">--new-table-name</span><br><span class="line">字符串类型，默认值：%T_new</span><br><span class="line">指定旧表和新表交换之前新表的名称。%T会替换为旧表名称。</span><br><span class="line"></span><br><span class="line">--[no]drop-new-table</span><br><span class="line">默认值：yes</span><br><span class="line">指定如果拷贝旧表数据到新表时失败，则删除新表。</span><br><span class="line">如果指定选项 &#39;--no-drop-new-table&#39; 以及 &#39;--no-swap-tables&#39; 将保留一份变更后的副本，但不会对旧表进行修改。</span><br><span class="line"></span><br><span class="line">限制：当选项 &#39;--alter-foreign-keys-method&#39; 指定的方式为 drop_swap 时，选项 &#39;--no-drop-new-table&#39; 不生效。</span><br><span class="line"></span><br><span class="line">--[no]drop-old-table</span><br><span class="line">默认值：yes</span><br><span class="line">指定在完成旧表与新表交换重命名之后删除旧表。如果之间发生了错误，则会保留旧表。指定选项 &#39;--no-swap-tables&#39; 同样不会删除旧表。</span><br><span class="line"></span><br><span class="line">--[no]drop-triggers</span><br><span class="line">默认值：yes</span><br><span class="line">指定旧表上删除触发器。如果指定了选项 &#39;--no-drop-triggers&#39; 就会强制指定 &#39;--no-drop-old-table&#39;。</span><br><span class="line"></span><br><span class="line">--[no]swap-tables</span><br><span class="line">默认值：yes</span><br><span class="line">指定变更交换旧表和新表。</span><br><span class="line">如果指定选项 &#39;--no-swap-tables&#39; 也会运行整个过程，只是最后不进行旧表与新表的交换，并且删除新表。</span><br><span class="line"></span><br><span class="line">--dry-run</span><br><span class="line">指定创建和变更新表，但是不创建触发器，也不拷贝数据和变更原始表。</span><br><span class="line"></span><br><span class="line">--execute</span><br><span class="line">指定需要执行真正的变更操作。当确定要执行变更操作时必须指定该选项，如果不指定该选项，则工具会进行安全检查之后退出。</span><br><span class="line"></span><br><span class="line">--[no]check-unique-key-change</span><br><span class="line">默认值：yes</span><br><span class="line">当工具要进行添加唯一索引的变更时停止运行。因为工具使用语句 INSERT IGNORE 从旧表进行数据拷贝插入新表，如果插入的值违返唯一性约束，数据插入不会明确提示失败但这样会造成数据丢失。</span><br><span class="line"></span><br><span class="line">--recursion-method</span><br><span class="line">默认值：processlist，hosts</span><br><span class="line">指定获取从库的方式。</span><br><span class="line">METHOD       USES</span><br><span class="line">&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;  &#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;</span><br><span class="line">processlist  SHOW PROCESSLIST   </span><br><span class="line">hosts        SHOW SLAVE HOSTS   </span><br><span class="line">dsn&#x3D;DSN      DSNs from a table</span><br><span class="line">none         Do not find slaves</span><br><span class="line">&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;</span><br><span class="line">processlist：通过SHOW PROCESSLIST方式找到 slave，为默认方式，当 SHOW SLAVE HOSTS 不可用时。一旦实例运行在非 3306 端口上时，hosts 方式就会变为默认方式；</span><br><span class="line">hosts：通过 SHOW SLAVE HOSTS 方式找到 slave，hosts 方式要求从库配置 &#39;--report_host&#39; 和 &#39;--report_port&#39; 这两个参数；</span><br><span class="line">dsn：通过读取表中从库的 DSN 信息进行连接。</span><br><span class="line"></span><br><span class="line">--recurse</span><br><span class="line">指定搜寻从库的层级，默认无限级。</span><br><span class="line"></span><br><span class="line">--set-vars</span><br><span class="line">默认：</span><br><span class="line">    wait_timeout&#x3D;10000</span><br><span class="line">    innodb_lock_wait_timeout&#x3D;1</span><br><span class="line">    lock_wait_timeout&#x3D;60</span><br><span class="line">运行检查时指定参数值，如有多个用&#39;,&#39;(逗号)分隔。如 &#96;--set-vars&#x3D;wait_timeout&#x3D;5000&#96;。</span><br><span class="line"></span><br><span class="line">--sleep</span><br><span class="line">默认值：0s</span><br><span class="line">指定表变更拷贝数据时的间隔时间。</span><br><span class="line"></span><br><span class="line">--print</span><br><span class="line">打印工具执行过程中的语句到 STDOUT。可以结合 &#39;--dry-run&#39;一起使用。</span><br><span class="line"> </span><br><span class="line">--progress</span><br><span class="line">打印工具执行过程的进度提示到 STDERR。选项值有两部分组成，用逗号进行分隔，第一部分为百分比，时间和迭代。第二部分为根据第一部分数据更新频率，也分为百分比，时间和迭代。</span><br><span class="line"></span><br><span class="line">--quiet，-q</span><br><span class="line">不打印工具执行过程的信息到 STDOUT (禁用&#39;--progress&#39;)。但错误和警告还是打印到 STDERR。</span><br><span class="line"></span><br><span class="line">--statistics</span><br><span class="line">打印内部计数的统计信息。</span><br><span class="line"></span><br><span class="line">--version</span><br><span class="line">显示工具的版本并退出。</span><br><span class="line"></span><br><span class="line">--[no]version-check</span><br><span class="line">默认值：yes</span><br><span class="line">检查 Percona Toolkit、MySQL 和其他程序的最新版本。</span><br></pre></td></tr></table></figure>
+<ol start="2">
+<li>DSN 选项(DSN)</li>
+</ol>
+<p>可以使用 DSN 方式来连接数据库，DSN 选项为 key=value 方式，在等号的两侧不能有空格出现，并且区分大小写，多个选项之前以’,’(逗号)隔开，主要选项如下：</p>
+<ul>
+<li>
+<p>A 指定字符集</p>
+</li>
+<li>
+<p>D 指定变更表所在数据库</p>
+</li>
+<li>
+<p>t 指定需要变更的表</p>
+</li>
+<li>
+<p>h 指定要连接的 HOST</p>
+</li>
+<li>
+<p>P 指定要连接的 PORT</p>
+</li>
+<li>
+<p>S 指定连接所使用的 SOCKET 文件(Unix systems)</p>
+</li>
+<li>
+<p>u 指定连接的用户名</p>
+</li>
+<li>
+<p>p 指定连接的用户名密码</p>
+</li>
+</ul>
+<p>示例：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">h&#x3D;192.168.58.3,P&#x3D;3306,D&#x3D;employees,t&#x3D;employees</span><br></pre></td></tr></table></figure>
+<h2 id="pt-online-schema-change-使用限制">pt-online-schema-change 使用限制</h2>
+<ol>
+<li>
+<p>要求需要执行变更的表有主键 (Primary key) 或唯一索引 (Unique index)，否则工具会执行失败，参考选项 --alter 说明；</p>
+</li>
+<li>
+<p>如果检测到表有外键约束 (Foreign key)，工具除非选项 --alter-foreign-keys-method，否则不会执行变更；</p>
+</li>
+<li>
+<p>如果检测到主从复制中存在过滤，则工具不会执行，参考选项 --[no]check-replication-filters 说明；</p>
+</li>
+<li>
+<p>如果检测到主从复制有延迟，则工具有可能会暂停数据拷贝，参考选项 --max-lag 说明；</p>
+</li>
+<li>
+<p>如果检测到连接当前服务器负载过高，则工具有可能暂停执行或中止退出，参考选项 --max-load 各 --critical-load 说明。</p>
+</li>
+</ol>
+<h2 id="pt-online-schema-change-使用实例">pt-online-schema-change 使用实例</h2>
+<ol>
+<li>测试数据准备</li>
+</ol>
+<p>本文基于 MySQL 官方示例数据库 employee：Example Databases 进行测试。</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br><span class="line">70</span><br><span class="line">71</span><br><span class="line">72</span><br></pre></td><td class="code"><pre><span class="line">-- employees：</span><br><span class="line">mysql root@localhost:employees&gt; show create table employees\G;</span><br><span class="line">***************************[ 1. row ]***************************</span><br><span class="line">Table        | employees</span><br><span class="line">Create Table | CREATE TABLE &#96;employees&#96; (</span><br><span class="line">  &#96;emp_no&#96; int(11) NOT NULL,</span><br><span class="line">  &#96;birth_date&#96; date NOT NULL,</span><br><span class="line">  &#96;first_name&#96; varchar(14) NOT NULL,</span><br><span class="line">  &#96;last_name&#96; varchar(16) NOT NULL,</span><br><span class="line">  &#96;gender&#96; enum(&#39;M&#39;,&#39;F&#39;) NOT NULL,</span><br><span class="line">  &#96;hire_date&#96; date NOT NULL,</span><br><span class="line">  PRIMARY KEY (&#96;emp_no&#96;),</span><br><span class="line">  KEY &#96;idx_first_last&#96; (&#96;first_name&#96;,&#96;last_name&#96;),</span><br><span class="line">  KEY &#96;idx_birth_hire&#96; (&#96;birth_date&#96;,&#96;hire_date&#96;)</span><br><span class="line">) ENGINE&#x3D;InnoDB DEFAULT CHARSET&#x3D;utf8</span><br><span class="line">1 row in set</span><br><span class="line">Time: 0.008s</span><br><span class="line"></span><br><span class="line">-- dept_emp：</span><br><span class="line">mysql root@localhost:employees&gt; show create table dept_emp\G;</span><br><span class="line">***************************[ 1. row ]***************************</span><br><span class="line">Table        | dept_emp</span><br><span class="line">Create Table | CREATE TABLE &#96;dept_emp&#96; (</span><br><span class="line">  &#96;emp_no&#96; int(11) NOT NULL,</span><br><span class="line">  &#96;dept_no&#96; char(4) NOT NULL,</span><br><span class="line">  &#96;from_date&#96; date NOT NULL,</span><br><span class="line">  &#96;to_date&#96; date NOT NULL,</span><br><span class="line">  PRIMARY KEY (&#96;emp_no&#96;,&#96;dept_no&#96;),</span><br><span class="line">  KEY &#96;dept_no&#96; (&#96;dept_no&#96;),</span><br><span class="line">  CONSTRAINT &#96;dept_emp_ibfk_1&#96; FOREIGN KEY (&#96;emp_no&#96;) REFERENCES &#96;employees&#96; (&#96;emp_no&#96;) ON DELETE CASCADE,</span><br><span class="line">  CONSTRAINT &#96;dept_emp_ibfk_2&#96; FOREIGN KEY (&#96;dept_no&#96;) REFERENCES &#96;departments&#96; (&#96;dept_no&#96;) ON DELETE CASCADE</span><br><span class="line">) ENGINE&#x3D;InnoDB DEFAULT CHARSET&#x3D;utf8</span><br><span class="line">1 row in set</span><br><span class="line">Time: 0.010s</span><br><span class="line"></span><br><span class="line">-- departments：</span><br><span class="line">mysql root@localhost:employees&gt; show create table departments\G;</span><br><span class="line">***************************[ 1. row ]***************************</span><br><span class="line">Table        | departments</span><br><span class="line">Create Table | CREATE TABLE &#96;departments&#96; (</span><br><span class="line">  &#96;dept_no&#96; char(4) NOT NULL,</span><br><span class="line">  &#96;dept_name&#96; varchar(40) NOT NULL,</span><br><span class="line">  PRIMARY KEY (&#96;dept_no&#96;),</span><br><span class="line">  UNIQUE KEY &#96;dept_name&#96; (&#96;dept_name&#96;)</span><br><span class="line">) ENGINE&#x3D;InnoDB DEFAULT CHARSET&#x3D;utf8</span><br><span class="line">1 row in set</span><br><span class="line">Time: 0.012s</span><br><span class="line"></span><br><span class="line">mysql root@localhost:employees&gt; select count(*) from employees;</span><br><span class="line">+----------+</span><br><span class="line">| count(*) |</span><br><span class="line">+----------+</span><br><span class="line">| 300024   |</span><br><span class="line">+----------+</span><br><span class="line">1 row in set</span><br><span class="line">Time: 0.342s</span><br><span class="line">mysql root@localhost:employees&gt; select count(*) from dept_emp;</span><br><span class="line">+----------+</span><br><span class="line">| count(*) |</span><br><span class="line">+----------+</span><br><span class="line">| 331603   |</span><br><span class="line">+----------+</span><br><span class="line">1 row in set</span><br><span class="line">Time: 0.306s</span><br><span class="line">mysql root@localhost:employees&gt; select count(*) from departments;</span><br><span class="line">+----------+</span><br><span class="line">| count(*) |</span><br><span class="line">+----------+</span><br><span class="line">| 9        |</span><br><span class="line">+----------+</span><br><span class="line">1 row in set</span><br><span class="line">Time: 0.050s</span><br></pre></td></tr></table></figure>
+<ol start="2">
+<li>添加一个字段</li>
+</ol>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"># pt-online-schema-change h&#x3D;192.168.58.3,P&#x3D;3306,D&#x3D;employees,t&#x3D;employees --user&#x3D;admin --ask-pass --alter &quot;add comment varchar(50) not null default &#39;pt-osc&#39;&quot; --charset&#x3D;utf8</span><br></pre></td></tr></table></figure>
+<p>因为 employees 表中的 emp_no 字段被其他表外建关联，以下命令执行时会报如下错误：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">You did not specify --alter-foreign-keys-method, but there are foreign keys that reference the table. Please read the tool&#39;s documentation carefully.</span><br></pre></td></tr></table></figure>
+<p>根据报错信息的提示，加入选项 <code>--alter-foreign-keys-method</code> 重新执行并通过选项 <code>--dry-run</code> 查看执行过程主要信息：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br></pre></td><td class="code"><pre><span class="line"># pt-online-schema-change h&#x3D;192.168.58.3,P&#x3D;3306,D&#x3D;employees,t&#x3D;employees --user&#x3D;admin --ask-pass --alter &quot;add comment varchar(50) not null default &#39;pt-osc&#39;&quot; --alter-foreign-keys-method&#x3D;auto --charset&#x3D;utf8 --dry-run</span><br><span class="line">Enter MySQL password:</span><br><span class="line"></span><br><span class="line">Operation, tries, wait:</span><br><span class="line">  analyze_table, 10, 1</span><br><span class="line">  copy_rows, 10, 0.25</span><br><span class="line">  create_triggers, 10, 1</span><br><span class="line">  drop_triggers, 10, 1</span><br><span class="line">  swap_tables, 10, 1</span><br><span class="line">  update_foreign_keys, 10, 1</span><br><span class="line">Child tables:</span><br><span class="line">  &#96;employees&#96;.&#96;dept_emp&#96; (approx. 331143 rows)</span><br><span class="line">  &#96;employees&#96;.&#96;dept_manager&#96; (approx. 24 rows)</span><br><span class="line">Will automatically choose the method to update foreign keys.</span><br><span class="line">Starting a dry run.  &#96;employees&#96;.&#96;employees&#96; will not be altered.  Specify --execute instead of --dry-run to alter the table.</span><br><span class="line">Creating new table...</span><br><span class="line">Created new table employees._employees_new OK.</span><br><span class="line">Altering new table...</span><br><span class="line">Altered &#96;employees&#96;.&#96;_employees_new&#96; OK.</span><br><span class="line">Not creating triggers because this is a dry run.</span><br><span class="line">Not copying rows because this is a dry run.</span><br><span class="line">Not determining the method to update foreign keys because this is a dry run.</span><br><span class="line">Not swapping tables because this is a dry run.</span><br><span class="line">Not updating foreign key constraints because this is a dry run.</span><br><span class="line">Not dropping old table because this is a dry run.</span><br><span class="line">Not dropping triggers because this is a dry run.</span><br><span class="line">2019-03-25T13:30:05 Dropping new table...</span><br><span class="line">2019-03-25T13:30:05 Dropped new table OK.</span><br><span class="line">Dry run complete.  &#96;employees&#96;.&#96;employees&#96; was not altered.</span><br><span class="line"></span><br><span class="line">-- 确保信息无误之后可以真正执行变更操作</span><br><span class="line"># pt-online-schema-change h&#x3D;192.168.58.3,P&#x3D;3306,D&#x3D;employees,t&#x3D;employees --user&#x3D;admin --ask-pass --alter &quot;add comment varchar(50) not null default &#39;pt-osc&#39;&quot; --alter-foreign-keys-method&#x3D;auto --charset&#x3D;utf8 --execute</span><br><span class="line"></span><br><span class="line">……省略……</span><br><span class="line">Will automatically choose the method to update foreign keys.</span><br><span class="line">Altering &#96;employees&#96;.&#96;employees&#96;...</span><br><span class="line">Creating new table...</span><br><span class="line">Created new table employees._employees_new OK.</span><br><span class="line">Altering new table...</span><br><span class="line">Altered &#96;employees&#96;.&#96;_employees_new&#96; OK.</span><br><span class="line">2019-03-25T13:35:25 Creating triggers...</span><br><span class="line">2019-03-25T13:35:25 Created triggers OK.</span><br><span class="line">2019-03-25T13:35:25 Copying approximately 299512 rows...</span><br><span class="line">2019-03-25T13:35:31 Copied rows OK.</span><br><span class="line">2019-03-25T13:35:31 Max rows for the rebuild_constraints method: 99266</span><br><span class="line">Determining the method to update foreign keys...</span><br><span class="line">2019-03-25T13:35:31   &#96;employees&#96;.&#96;dept_emp&#96;: too many rows: 331143; must use drop_swap</span><br><span class="line">2019-03-25T13:35:31 Drop-swapping tables...</span><br><span class="line">2019-03-25T13:35:31 Analyzing new table...</span><br><span class="line">2019-03-25T13:35:31 Dropped and swapped tables OK.</span><br><span class="line">Not dropping old table because --no-drop-old-table was specified.</span><br><span class="line">2019-03-25T13:35:31 Dropping triggers...</span><br><span class="line">2019-03-25T13:35:31 Dropped triggers OK.</span><br><span class="line">Successfully altered &#96;employees&#96;.&#96;employees&#96;.</span><br></pre></td></tr></table></figure>
+<ol start="3">
+<li>修改一个字段</li>
+</ol>
+<p>将表 employees 的 comment 字段的字符集修改为 utf8mb4。</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"># pt-online-schema-change h&#x3D;192.168.58.3,P&#x3D;3306,D&#x3D;employees,t&#x3D;employees --user&#x3D;admin --ask-pass --alter &quot;modify column comment varchar(50) character set utf8mb4&quot; --alter-foreign-keys-method&#x3D;auto --charset&#x3D;utf8 --execute</span><br></pre></td></tr></table></figure>
+<ol start="4">
+<li>删除字段</li>
+</ol>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"># pt-online-schema-change h&#x3D;192.168.58.3,P&#x3D;3306,D&#x3D;employees,t&#x3D;employees --user&#x3D;admin --ask-pass --alter &quot;drop column comment&quot; --alter-foreign-keys-method&#x3D;auto --charset&#x3D;utf8 --execute</span><br></pre></td></tr></table></figure>
+<ol start="5">
+<li>添加索引</li>
+</ol>
+<p>为表 dept_emp 的字段 from_date 和 to_date 创建复合索引 idx_fr_to_date。</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"># pt-online-schema-change h&#x3D;192.168.58.3,P&#x3D;3306,D&#x3D;employees,t&#x3D;dept_emp --user&#x3D;admin --ask-pass --alter &quot;add index idx_fr_to_date(from_date,to_date)&quot; --alter-foreign-keys-method&#x3D;auto --charset&#x3D;utf8 --execute</span><br></pre></td></tr></table></figure>
+<ol start="6">
+<li>删除索引</li>
+</ol>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"># pt-online-schema-change h&#x3D;192.168.58.3,P&#x3D;3306,D&#x3D;employees,t&#x3D;dept_emp --user&#x3D;admin --ask-pass --alter &quot;drop index idx_fr_to_date&quot; --alter-foreign-keys-method&#x3D;auto --charset&#x3D;utf8 --execute</span><br></pre></td></tr></table></figure>
+<ol start="7">
+<li>修改字段允许 NULL</li>
+</ol>
+<p>将表 dept_emp 的字段 to_date 指定为允许 NULL。</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"># pt-online-schema-change h&#x3D;192.168.58.3,P&#x3D;3306,D&#x3D;employees,t&#x3D;dept_emp --user&#x3D;admin --ask-pass --alter &quot;modify column to_date date null&quot; --alter-foreign-keys-method&#x3D;auto --charset&#x3D;utf8 --execute</span><br></pre></td></tr></table></figure>
+<ol start="8">
+<li>修改字段不允许 NULL (NOT NULL)</li>
+</ol>
+<p>为表 employees 添加字段 ptosc_num 并允许 NULL，字段类型为 int，没有指定默认值。</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"># pt-online-schema-change h&#x3D;192.168.58.3,P&#x3D;3306,D&#x3D;employees,t&#x3D;employees --user&#x3D;admin --ask-pass --alter &quot;add ptosc_num int null&quot; --alter-foreign-keys-method&#x3D;auto --charset&#x3D;utf8 --execute</span><br></pre></td></tr></table></figure>
+<p>修改字段 ptosc_num 为不允许 NULL (NOT NULL)，需要通过指定选项 <code>--null-to-not-null</code>，否则会报错。</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br></pre></td><td class="code"><pre><span class="line"># pt-online-schema-change h&#x3D;192.168.58.3,P&#x3D;3306,D&#x3D;employees,t&#x3D;employees --user&#x3D;admin --ask-pass --alter &quot;modify column ptosc_num int not null&quot; --alter-foreign-keys-method&#x3D;auto --null-to-not-null --charset&#x3D;utf8 --execute</span><br><span class="line"></span><br><span class="line">-- 因为字段ptosc_num没有指定默认值，字段类型为int，所以默认值为0</span><br><span class="line">mysql root@localhost:employees&gt; select * from employees limit 5;</span><br><span class="line">+--------+------------+------------+-----------+--------+------------+-----------+</span><br><span class="line">| emp_no | birth_date | first_name | last_name | gender | hire_date  | ptosc_num |</span><br><span class="line">+--------+------------+------------+-----------+--------+------------+-----------+</span><br><span class="line">| 10001  | 1953-09-02 | Georgi     | Facello   | M      | 1986-06-26 | 0         |</span><br><span class="line">| 10002  | 1964-06-02 | Bezalel    | Simmel    | F      | 1985-11-21 | 0         |</span><br><span class="line">| 10003  | 1959-12-03 | Parto      | Bamford   | M      | 1986-08-28 | 0         |</span><br><span class="line">| 10004  | 1954-05-01 | Chirstian  | Koblick   | M      | 1986-12-01 | 0         |</span><br><span class="line">| 10005  | 1955-01-21 | Kyoichi    | Maliniak  | M      | 1989-09-12 | 0         |</span><br><span class="line">+--------+------------+------------+-----------+--------+------------+-----------+</span><br><span class="line">5 rows in set</span><br><span class="line">Time: 0.022s</span><br></pre></td></tr></table></figure>
+<ol start="9">
+<li>删除外键</li>
+</ol>
+<p>需要为外键指定名称为 _forigen_key，因为在创建新表时候默认为新表上的外键创建这样的名称，如果没这样指定则无法删除。</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"># pt-online-schema-change h&#x3D;192.168.58.3,P&#x3D;3306,D&#x3D;employees,t&#x3D;dept_emp --user&#x3D;admin --ask-pass --alter &quot;drop foreign key _dept_emp_ibfk_1&quot; --alter-foreign-keys-method&#x3D;auto --charset&#x3D;utf8 --execute</span><br></pre></td></tr></table></figure>
+<ol start="10">
+<li>重建表</li>
+</ol>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"># pt-online-schema-change h&#x3D;192.168.58.3,P&#x3D;3306,D&#x3D;employees,t&#x3D;employees --user&#x3D;admin --ask-pass --alter &quot;engine&#x3D;InnoDB&quot; --alter-foreign-keys-method&#x3D;auto --charset&#x3D;utf8 --execute</span><br></pre></td></tr></table></figure>
+<ol start="11">
+<li>变更后保留旧表</li>
+</ol>
+<p>如果是涉及外键关联的父表进行变更，则建议选项 <code>--alter-foreign-keys-method=rebuild_constraints</code>，这样在子表中会重命名外键约束名，如果选项 <code>--alter-foreign-keys-method</code> 有可能取值 drop_swap 时，则会强制使用选项 <code>--no-swap-tables</code> 和<code>--no-drop-old-table</code>，其中 <code>--no-swap-tables</code> 并不会有旧表的产生，就不存在保留之说了。</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"># pt-online-schema-change h&#x3D;192.168.58.3,P&#x3D;3306,D&#x3D;employees,t&#x3D;dept_emp --user&#x3D;admin --ask-pass --alter &quot;add comment varchar(50) notnull default &#39;pt-osc&#39;&quot; --no-drop-old-table --charset&#x3D;utf8 --execute</span><br></pre></td></tr></table></figure>
+<p>以上语句执行完成后会在数据库中生成名为 _dept_emp_old 的表，即变更之前的旧表。</p>
+<ol start="12">
+<li>变更后保留新表</li>
+</ol>
+<p>顾名思义，就是先做一次完整的表变更操作，但是不进行旧表与新表的交换，也不删除变更之后的新表，通过指定选项 <code>--no-drop-new-table</code> 和 <code>--no-swap-tables</code> 实现，可以通过选项 <code>--new-table-name</code> 指定新表名，当选项 <code>--alter-foreign-keys-method=drop_swap</code> 时，<code>--no-drop-new-table</code> 不生效，与保留旧表的情形一致。</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"># pt-online-schema-change h&#x3D;192.168.58.3,P&#x3D;3306,D&#x3D;employees,t&#x3D;dept_emp --user&#x3D;admin --ask-pass --alter &quot;add comment varchar(50) notnull default &#39;pt-osc&#39;&quot; --no-drop-new-table --no-swap-tables --new-table-name&#x3D;&#39;dept_emp_bak&#39; --charset&#x3D;utf8 --execute</span><br></pre></td></tr></table></figure>
+<p>以上语句执行完成后会在数据库中生成名为 dept_emp_bak 的表，即变更之后的新表，但对旧表不会做任何修改。</p>
+<ol start="13">
+<li>添加主键</li>
+</ol>
+<p>如果是 <code>InnoDB</code> 表没有主键，真的不敢想像啊，但还是要进行测式下。这里测试基于 employees 表创建 employees_ptosc 表：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br></pre></td><td class="code"><pre><span class="line">mysql root@localhost:employees&gt; create table employees_ptosc as select * from employees;</span><br><span class="line">Query OK, 300024 rows affected</span><br><span class="line">Time: 2.010s</span><br><span class="line">mysql root@localhost:employees&gt; show create table employees_ptosc;</span><br><span class="line">+-----------------+--------------------------------------+</span><br><span class="line">| Table           | Create Table                         |</span><br><span class="line">+-----------------+--------------------------------------+</span><br><span class="line">| employees_ptosc | CREATE TABLE &#96;employees_ptosc&#96; (     |</span><br><span class="line">|                 |   &#96;emp_no&#96; int(11) NOT NULL,         |</span><br><span class="line">|                 |   &#96;birth_date&#96; date NOT NULL,        |</span><br><span class="line">|                 |   &#96;first_name&#96; varchar(14) NOT NULL, |</span><br><span class="line">|                 |   &#96;last_name&#96; varchar(16) NOT NULL,  |</span><br><span class="line">|                 |   &#96;gender&#96; enum(&#39;M&#39;,&#39;F&#39;) NOT NULL,   |</span><br><span class="line">|                 |   &#96;hire_date&#96; date NOT NULL          |</span><br><span class="line">|                 | ) ENGINE&#x3D;InnoDB DEFAULT CHARSET&#x3D;utf8 |</span><br><span class="line">+-----------------+--------------------------------------+</span><br><span class="line">1 row in set</span><br><span class="line">Time: 0.022s</span><br></pre></td></tr></table></figure>
+<p>对 employees_ptosc 表添加主键：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br></pre></td><td class="code"><pre><span class="line">-- 如果 employees_ptosc 表没有任何索引和约束会报如下信息，工具执行失败</span><br><span class="line">Cannot chunk the original table &#96;employees&#96;.&#96;employees_ptosc&#96;: There is no good index and the table is oversized. at &#x2F;usr&#x2F;bin&#x2F;pt-online-schema-change line 5882.</span><br><span class="line"></span><br><span class="line">-- 先为 employees_ptosc 表创建基于 first_name 的索引 idx_first_name，再次执行添加主键</span><br><span class="line">mysql root@localhost:employees&gt; create index idx_first_name on employees_ptosc(first_name);</span><br><span class="line">Query OK, 0 rows affected</span><br><span class="line">Time: 1.175s</span><br><span class="line"></span><br><span class="line">-- 如果没有加选项 --no-check-unique-key-change 会报如下信息</span><br><span class="line">……省略……</span><br><span class="line">Altering &#96;employees&#96;.&#96;employees_ptosc&#96;...</span><br><span class="line">&#96;employees&#96;.&#96;employees_ptosc&#96; was not altered.</span><br><span class="line">You are trying to add an unique key. This can result in data loss if the data is not unique.</span><br><span class="line">Please read the documentation for the --check-unique-key-change parameter.</span><br><span class="line">You can check if the column(s) contain duplicate content by running this&#x2F;these query&#x2F;queries:</span><br><span class="line"></span><br><span class="line">SELECT IF(COUNT(DISTINCT emp_no) &#x3D; COUNT(*),</span><br><span class="line">       &#39;Yes, the desired unique index currently contains only unique values&#39;,</span><br><span class="line">       &#39;No, the desired unique index contains duplicated values. There will be data loss&#39;</span><br><span class="line">) AS IsThereUniqueness FROM &#96;employees&#96;.&#96;employees_ptosc&#96;;</span><br><span class="line"></span><br><span class="line">Keep in mind that these queries could take a long time and consume a lot of resources</span><br><span class="line"></span><br><span class="line">大致意思就是工具无法确定需要创建主键基于的字段值是否唯一，一旦有重复值出现，在数据拷贝的时候容易出现数据丢失，并给出了检查的语句。</span><br><span class="line"></span><br><span class="line">mysql root@localhost:employees&gt; SELECT IF(COUNT(DISTINCT emp_no) &#x3D; COUNT(*),</span><br><span class="line">                                       &#39;Yes, the desired unique index currently contains only unique values&#39;,</span><br><span class="line">                                       &#39;No, the desired unique index contains duplicated values. There will be data loss&#39;</span><br><span class="line">                                ) AS IsThereUniqueness FROM &#96;employees&#96;.&#96;employees_ptosc&#96;;</span><br><span class="line"></span><br><span class="line">+---------------------------------------------------------------------+</span><br><span class="line">| IsThereUniqueness                                                   |</span><br><span class="line">+---------------------------------------------------------------------+</span><br><span class="line">| Yes, the desired unique index currently contains only unique values |</span><br><span class="line">+---------------------------------------------------------------------+</span><br><span class="line">1 row in set</span><br><span class="line">Time: 0.274s</span><br></pre></td></tr></table></figure>
+<p>使用选项 <code>--no-check-unique-key-change</code> 再次执行添加主键操作：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"># pt-online-schema-change h&#x3D;192.168.58.3,P&#x3D;3306,D&#x3D;employees,t&#x3D;employees_ptosc --user&#x3D;admin --ask-pass --alter &quot;add primary key(emp_no)&quot; --charset&#x3D;utf8 --no-check-unique-key-change --charset&#x3D;utf8 --execute</span><br></pre></td></tr></table></figure>
+<h2 id="pt-online-schema-change-工作流程">pt-online-schema-change 工作流程</h2>
+<p>为了了解 pt-online-schema-change 工具是如何做到不阻塞 DML 的，还是通过 General log 来了解。</p>
+<p>以添加字段的执行语句获得的 General log 为例说明：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br><span class="line">70</span><br><span class="line">71</span><br><span class="line">72</span><br><span class="line">73</span><br><span class="line">74</span><br><span class="line">75</span><br><span class="line">76</span><br><span class="line">77</span><br><span class="line">78</span><br><span class="line">79</span><br><span class="line">80</span><br><span class="line">81</span><br><span class="line">82</span><br><span class="line">83</span><br><span class="line">84</span><br><span class="line">85</span><br><span class="line">86</span><br><span class="line">87</span><br><span class="line">88</span><br><span class="line">89</span><br><span class="line">90</span><br><span class="line">91</span><br><span class="line">92</span><br><span class="line">93</span><br><span class="line">94</span><br><span class="line">95</span><br><span class="line">96</span><br><span class="line">97</span><br><span class="line">98</span><br><span class="line">99</span><br><span class="line">100</span><br><span class="line">101</span><br><span class="line">102</span><br><span class="line">103</span><br><span class="line">104</span><br><span class="line">105</span><br><span class="line">106</span><br><span class="line">107</span><br><span class="line">108</span><br><span class="line">109</span><br><span class="line">110</span><br><span class="line">111</span><br><span class="line">112</span><br><span class="line">113</span><br><span class="line">114</span><br><span class="line">115</span><br><span class="line">116</span><br><span class="line">117</span><br><span class="line">118</span><br><span class="line">119</span><br><span class="line">120</span><br><span class="line">121</span><br><span class="line">122</span><br><span class="line">123</span><br><span class="line">124</span><br><span class="line">125</span><br><span class="line">126</span><br><span class="line">127</span><br><span class="line">128</span><br><span class="line">129</span><br><span class="line">130</span><br><span class="line">131</span><br><span class="line">132</span><br><span class="line">133</span><br><span class="line">134</span><br><span class="line">135</span><br><span class="line">136</span><br><span class="line">137</span><br><span class="line">138</span><br><span class="line">139</span><br><span class="line">140</span><br><span class="line">141</span><br><span class="line">142</span><br></pre></td><td class="code"><pre><span class="line">-- 初始的一些检查数据库参数、负载信息这里不再细说。</span><br><span class="line">…………省略…………</span><br><span class="line"></span><br><span class="line">-- 查看需要执行变更的表状态</span><br><span class="line">200 Query   SHOW TABLES FROM &#96;employees&#96; LIKE &#39;employees&#39;</span><br><span class="line">200 Query   SELECT VERSION()</span><br><span class="line"></span><br><span class="line">-- 查看表是否存在触发器</span><br><span class="line">200 Query   SHOW TRIGGERS FROM &#96;employees&#96; LIKE &#39;employees&#39;</span><br><span class="line"></span><br><span class="line">-- 查看表的建表语句</span><br><span class="line">200 Query   &#x2F;*!40101 SET @OLD_SQL_MODE :&#x3D; @@SQL_MODE, @@SQL_MODE :&#x3D; &#39;&#39;, @OLD_QUOTE :&#x3D; @@SQL_QUOTE_SHOW_CREATE, @@SQL_QUOTE_SHOW_CREATE :&#x3D; 1 *&#x2F;</span><br><span class="line">200 Query   USE &#96;employees&#96;</span><br><span class="line">200 Query   SHOW CREATE TABLE &#96;employees&#96;.&#96;employees&#96;</span><br><span class="line">200 Query   &#x2F;*!40101 SET @@SQL_MODE :&#x3D; @OLD_SQL_MODE, @@SQL_QUOTE_SHOW_CREATE :&#x3D; @OLD_QUOTE *&#x2F;</span><br><span class="line"></span><br><span class="line">-- 查询表的执行计划，确定表是否有外键关联</span><br><span class="line">200 Query   EXPLAIN SELECT * FROM &#96;employees&#96;.&#96;employees&#96; WHERE 1&#x3D;1</span><br><span class="line">200 Query   SELECT table_schema, table_name FROM information_schema.key_column_usage WHERE referenced_table_schema&#x3D;&#39;employees&#39; AND referenced_table_name&#x3D;&#39;employees&#39;</span><br><span class="line">200 Query   EXPLAIN SELECT * FROM &#96;employees&#96;.&#96;dept_emp&#96; WHERE 1&#x3D;1</span><br><span class="line">200 Query   EXPLAIN SELECT * FROM &#96;employees&#96;.&#96;dept_manager&#96; WHERE 1&#x3D;1</span><br><span class="line">200 Query   SHOW VARIABLES LIKE &#39;wsrep_on&#39;</span><br><span class="line">200 Query   &#x2F;*!40101 SET @OLD_SQL_MODE :&#x3D; @@SQL_MODE, @@SQL_MODE :&#x3D; &#39;&#39;, @OLD_QUOTE :&#x3D; @@SQL_QUOTE_SHOW_CREATE, @@SQL_QUOTE_SHOW_CREATE :&#x3D; 1 *&#x2F;</span><br><span class="line"></span><br><span class="line">-- 创建&#39;_&#39;(下划线)开头相同表结构的新表，并先在新表上执行变更操作</span><br><span class="line">200 Query   USE &#96;employees&#96;</span><br><span class="line">200 Query   SHOW CREATE TABLE &#96;employees&#96;.&#96;employees&#96;</span><br><span class="line">200 Query   &#x2F;*!40101 SET @@SQL_MODE :&#x3D; @OLD_SQL_MODE, @@SQL_QUOTE_SHOW_CREATE :&#x3D; @OLD_QUOTE *&#x2F;</span><br><span class="line">200 Query   CREATE TABLE &#96;employees&#96;.&#96;_employees_new&#96; (</span><br><span class="line">  &#96;emp_no&#96; int(11) NOT NULL,</span><br><span class="line">  &#96;birth_date&#96; date NOT NULL,</span><br><span class="line">  &#96;first_name&#96; varchar(14) NOT NULL,</span><br><span class="line">  &#96;last_name&#96; varchar(16) NOT NULL,</span><br><span class="line">  &#96;gender&#96; enum(&#39;M&#39;,&#39;F&#39;) NOT NULL,</span><br><span class="line">  &#96;hire_date&#96; date NOT NULL,</span><br><span class="line">  PRIMARY KEY (&#96;emp_no&#96;),</span><br><span class="line">  KEY &#96;idx_first_last&#96; (&#96;first_name&#96;,&#96;last_name&#96;),</span><br><span class="line">  KEY &#96;idx_birth_hire&#96; (&#96;birth_date&#96;,&#96;hire_date&#96;)</span><br><span class="line">) ENGINE&#x3D;InnoDB DEFAULT CHARSET&#x3D;utf8</span><br><span class="line">200 Query   ALTER TABLE &#96;employees&#96;.&#96;_employees_new&#96; add comment varchar(50) not null default &#39;pt-osc&#39;</span><br><span class="line"></span><br><span class="line">-- 在原表上分别创建 DELETE、UPDATE、INSERT 三个触发器</span><br><span class="line">200 Query   &#x2F;*!40101 SET @OLD_SQL_MODE :&#x3D; @@SQL_MODE, @@SQL_MODE :&#x3D; &#39;&#39;, @OLD_QUOTE :&#x3D; @@SQL_QUOTE_SHOW_CREATE, @@SQL_QUOTE_SHOW_CREATE :&#x3D; 1 *&#x2F;</span><br><span class="line">200 Query   USE &#96;employees&#96;</span><br><span class="line">200 Query   SHOW CREATE TABLE &#96;employees&#96;.&#96;_employees_new&#96;</span><br><span class="line">200 Query   &#x2F;*!40101 SET @@SQL_MODE :&#x3D; @OLD_SQL_MODE, @@SQL_QUOTE_SHOW_CREATE :&#x3D; @OLD_QUOTE *&#x2F;</span><br><span class="line"></span><br><span class="line">……省略……</span><br><span class="line"></span><br><span class="line">200 Query   CREATE TRIGGER &#96;pt_osc_employees_employees_del&#96; AFTER DELETE ON &#96;employees&#96;.&#96;employees&#96; FOR EACH ROW DELETE IGNORE FROM &#96;employees&#96;.&#96;_employees_new&#96; WHERE &#96;employees&#96;.&#96;_employees_new&#96;.&#96;emp_no&#96; &lt;&#x3D;&gt; OLD.&#96;emp_no&#96;</span><br><span class="line">200 Query   CREATE TRIGGER &#96;pt_osc_employees_employees_upd&#96; AFTER UPDATE ON &#96;employees&#96;.&#96;employees&#96; FOR EACH ROW BEGIN DELETE IGNORE FROM &#96;employees&#96;.&#96;_employees_new&#96; WHERE !(OLD.&#96;emp_no&#96; &lt;&#x3D;&gt; NEW.&#96;emp_no&#96;) AND &#96;employees&#96;.&#96;_employees_new&#96;.&#96;emp_no&#96; &lt;&#x3D;&gt; OLD.&#96;emp_no&#96;;REPLACE INTO &#96;employees&#96;.&#96;_employees_new&#96; (&#96;emp_no&#96;, &#96;birth_date&#96;, &#96;first_name&#96;, &#96;last_name&#96;, &#96;gender&#96;, &#96;hire_date&#96;) VALUES (NEW.&#96;emp_no&#96;, NEW.&#96;birth_date&#96;, NEW.&#96;first_name&#96;, NEW.&#96;last_name&#96;, NEW.&#96;gender&#96;, NEW.&#96;hire_date&#96;);END</span><br><span class="line">200 Query   CREATE TRIGGER &#96;pt_osc_employees_employees_ins&#96; AFTER INSERT ON &#96;employees&#96;.&#96;employees&#96; FOR EACH ROW REPLACE INTO &#96;employees&#96;.&#96;_employees_new&#96; (&#96;emp_no&#96;, &#96;birth_date&#96;, &#96;first_name&#96;, &#96;last_name&#96;, &#96;gender&#96;, &#96;hire_date&#96;) VALUES (NEW.&#96;emp_no&#96;, NEW.&#96;birth_date&#96;, NEW.&#96;first_name&#96;, NEW.&#96;last_name&#96;, NEW.&#96;gender&#96;, NEW.&#96;hire_date&#96;)</span><br><span class="line"></span><br><span class="line">-- 根据执行计划判断 chunk 包含的行数，以 chunk 数为单位拷贝数据，为在拷贝过程中为这些行加共享读锁</span><br><span class="line">200 Query   EXPLAIN SELECT * FROM &#96;employees&#96;.&#96;employees&#96; WHERE 1&#x3D;1</span><br><span class="line">200 Query   SELECT &#x2F;*!40001 SQL_NO_CACHE *&#x2F; &#96;emp_no&#96; FROM &#96;employees&#96;.&#96;employees&#96; FORCE INDEX(&#96;PRIMARY&#96;) ORDER BY &#96;emp_no&#96; LIMIT 1 &#x2F;*first lower boundary*&#x2F;</span><br><span class="line">200 Query   SELECT &#x2F;*!40001 SQL_NO_CACHE *&#x2F; &#96;emp_no&#96; FROM &#96;employees&#96;.&#96;employees&#96; FORCE INDEX (&#96;PRIMARY&#96;) WHERE &#96;emp_no&#96; IS NOT NULL ORDER BY &#96;emp_no&#96; LIMIT 1 &#x2F;*key_len*&#x2F;</span><br><span class="line">200 Query   EXPLAIN SELECT &#x2F;*!40001 SQL_NO_CACHE *&#x2F; * FROM &#96;employees&#96;.&#96;employees&#96; FORCE INDEX (&#96;PRIMARY&#96;) WHERE &#96;emp_no&#96; &gt;&#x3D; &#39;10001&#39; &#x2F;*key_len*&#x2F;</span><br><span class="line">200 Query   EXPLAIN SELECT &#x2F;*!40001 SQL_NO_CACHE *&#x2F; &#96;emp_no&#96; FROM &#96;employees&#96;.&#96;employees&#96; FORCE INDEX(&#96;PRIMARY&#96;) WHERE ((&#96;emp_no&#96; &gt;&#x3D; &#39;10001&#39;)) ORDER BY &#96;emp_no&#96; LIMIT 999, 2 &#x2F;*next chunk boundary*&#x2F;</span><br><span class="line">200 Query   SELECT &#x2F;*!40001 SQL_NO_CACHE *&#x2F; &#96;emp_no&#96; FROM &#96;employees&#96;.&#96;employees&#96; FORCE INDEX(&#96;PRIMARY&#96;) WHERE ((&#96;emp_no&#96; &gt;&#x3D; &#39;10001&#39;)) ORDER BY &#96;emp_no&#96; LIMIT 999, 2 &#x2F;*next chunk boundary*&#x2F;</span><br><span class="line">200 Query   EXPLAIN SELECT &#96;emp_no&#96;, &#96;birth_date&#96;, &#96;first_name&#96;, &#96;last_name&#96;, &#96;gender&#96;, &#96;hire_date&#96; FROM &#96;employees&#96;.&#96;employees&#96; FORCE INDEX(&#96;PRIMARY&#96;) WHERE ((&#96;emp_no&#96; &gt;&#x3D; &#39;10001&#39;)) AND ((&#96;emp_no&#96; &lt;&#x3D; &#39;11000&#39;)) LOCK IN SHARE MODE &#x2F;*explain pt-online-schema-change 31797 copy nibble*&#x2F;</span><br><span class="line">200 Query   INSERT LOW_PRIORITY IGNORE INTO &#96;employees&#96;.&#96;_employees_new&#96; (&#96;emp_no&#96;, &#96;birth_date&#96;, &#96;first_name&#96;, &#96;last_name&#96;, &#96;gender&#96;, &#96;hire_date&#96;) SELECT &#96;emp_no&#96;, &#96;birth_date&#96;, &#96;first_name&#96;, &#96;last_name&#96;, &#96;gender&#96;, &#96;hire_date&#96; FROM &#96;employees&#96;.&#96;employees&#96; FORCE INDEX(&#96;PRIMARY&#96;) WHERE ((&#96;emp_no&#96; &gt;&#x3D; &#39;10001&#39;)) AND ((&#96;emp_no&#96; &lt;&#x3D; &#39;11000&#39;)) LOCK IN SHARE MODE &#x2F;*pt-online-schema-change 31797 copy nibble*&#x2F;</span><br><span class="line"></span><br><span class="line">-- 每次拷贝完 chunk 中数据后，查看是否有警告，查看服务器的负载情况，这是在每个 chunk 拷贝完成后进行的</span><br><span class="line">200 Query   SHOW WARNINGS</span><br><span class="line">200 Query   SHOW GLOBAL STATUS LIKE &#39;Threads_running&#39;</span><br><span class="line">200 Query   EXPLAIN SELECT &#x2F;*!40001 SQL_NO_CACHE *&#x2F; &#96;emp_no&#96; FROM &#96;employees&#96;.&#96;employees&#96; FORCE INDEX(&#96;PRIMARY&#96;) WHERE ((&#96;emp_no&#96; &gt;&#x3D; &#39;11001&#39;)) ORDER BY &#96;emp_no&#96; LIMIT 12909, 2 &#x2F;*next chunk boundary*&#x2F;</span><br><span class="line">200 Query   SELECT &#x2F;*!40001 SQL_NO_CACHE *&#x2F; &#96;emp_no&#96; FROM &#96;employees&#96;.&#96;employees&#96; FORCE INDEX(&#96;PRIMARY&#96;) WHERE ((&#96;emp_no&#96; &gt;&#x3D; &#39;11001&#39;)) ORDER BY &#96;emp_no&#96; LIMIT 12909, 2 &#x2F;*next chunk boundary*&#x2F;</span><br><span class="line">200 Query   EXPLAIN SELECT &#96;emp_no&#96;, &#96;birth_date&#96;, &#96;first_name&#96;, &#96;last_name&#96;, &#96;gender&#96;, &#96;hire_date&#96; FROM &#96;employees&#96;.&#96;employees&#96; FORCE INDEX(&#96;PRIMARY&#96;) WHERE ((&#96;emp_no&#96; &gt;&#x3D; &#39;11001&#39;)) AND ((&#96;emp_no&#96; &lt;&#x3D; &#39;23910&#39;)) LOCK IN SHARE MODE &#x2F;*explain pt-online-schema-change 31797 copy nibble*&#x2F;</span><br><span class="line">200 Query   INSERT LOW_PRIORITY IGNORE INTO &#96;employees&#96;.&#96;_employees_new&#96; (&#96;emp_no&#96;, &#96;birth_date&#96;, &#96;first_name&#96;, &#96;last_name&#96;, &#96;gender&#96;, &#96;hire_date&#96;) SELECT &#96;emp_no&#96;, &#96;birth_date&#96;, &#96;first_name&#96;, &#96;last_name&#96;, &#96;gender&#96;, &#96;hire_date&#96; FROM &#96;employees&#96;.&#96;employees&#96; FORCE INDEX(&#96;PRIMARY&#96;) WHERE ((&#96;emp_no&#96; &gt;&#x3D; &#39;11001&#39;)) AND ((&#96;emp_no&#96; &lt;&#x3D; &#39;23910&#39;)) LOCK IN SHARE MODE &#x2F;*pt-online-schema-change 31797 copy nibble*&#x2F;</span><br><span class="line">200 Query   SHOW WARNINGS</span><br><span class="line">200 Query   SHOW GLOBAL STATUS LIKE &#39;Threads_running&#39;</span><br><span class="line">200 Query   EXPLAIN SELECT &#x2F;*!40001 SQL_NO_CACHE *&#x2F; &#96;emp_no&#96; FROM &#96;employees&#96;.&#96;employees&#96; FORCE INDEX(&#96;PRIMARY&#96;) WHERE ((&#96;emp_no&#96; &gt;&#x3D; &#39;23911&#39;)) ORDER BY &#96;emp_no&#96; LIMIT 19857, 2 &#x2F;*next chunk boundary*&#x2F;</span><br><span class="line">200 Query   SELECT &#x2F;*!40001 SQL_NO_CACHE *&#x2F; &#96;emp_no&#96; FROM &#96;employees&#96;.&#96;employees&#96; FORCE INDEX(&#96;PRIMARY&#96;) WHERE ((&#96;emp_no&#96; &gt;&#x3D; &#39;23911&#39;)) ORDER BY &#96;emp_no&#96; LIMIT 19857, 2 &#x2F;*next chunk boundary*&#x2F;</span><br><span class="line">200 Query   EXPLAIN SELECT &#96;emp_no&#96;, &#96;birth_date&#96;, &#96;first_name&#96;, &#96;last_name&#96;, &#96;gender&#96;, &#96;hire_date&#96; FROM &#96;employees&#96;.&#96;employees&#96; FORCE INDEX(&#96;PRIMARY&#96;) WHERE ((&#96;emp_no&#96; &gt;&#x3D; &#39;23911&#39;)) AND ((&#96;emp_no&#96; &lt;&#x3D; &#39;43768&#39;)) LOCK IN SHARE MODE &#x2F;*explain pt-online-schema-change 31797 copy nibble*&#x2F;</span><br><span class="line">200 Query   INSERT LOW_PRIORITY IGNORE INTO &#96;employees&#96;.&#96;_employees_new&#96; (&#96;emp_no&#96;, &#96;birth_date&#96;, &#96;first_name&#96;, &#96;last_name&#96;, &#96;gender&#96;, &#96;hire_date&#96;) SELECT &#96;emp_no&#96;, &#96;birth_date&#96;, &#96;first_name&#96;, &#96;last_name&#96;, &#96;gender&#96;, &#96;hire_date&#96; FROM &#96;employees&#96;.&#96;employees&#96; FORCE INDEX(&#96;PRIMARY&#96;) WHERE ((&#96;emp_no&#96; &gt;&#x3D; &#39;23911&#39;)) AND ((&#96;emp_no&#96; &lt;&#x3D; &#39;43768&#39;)) LOCK IN SHARE MODE &#x2F;*pt-online-schema-change 31797 copy nibble*&#x2F;</span><br><span class="line">200 Query   SHOW WARNINGS</span><br><span class="line">200 Query   SHOW GLOBAL STATUS LIKE &#39;Threads_running&#39;</span><br><span class="line"></span><br><span class="line">……省略……</span><br><span class="line"></span><br><span class="line">200 Query   EXPLAIN SELECT &#x2F;*!40001 SQL_NO_CACHE *&#x2F; &#96;emp_no&#96; FROM &#96;employees&#96;.&#96;employees&#96; FORCE INDEX(&#96;PRIMARY&#96;) WHERE ((&#96;emp_no&#96; &gt;&#x3D; &#39;480121&#39;)) ORDER BY &#96;emp_no&#96; LIMIT 26664, 2 &#x2F;*next chunk boundary*&#x2F;</span><br><span class="line">200 Query   SELECT &#x2F;*!40001 SQL_NO_CACHE *&#x2F; &#96;emp_no&#96; FROM &#96;employees&#96;.&#96;employees&#96; FORCE INDEX(&#96;PRIMARY&#96;) WHERE ((&#96;emp_no&#96; &gt;&#x3D; &#39;480121&#39;)) ORDER BY &#96;emp_no&#96; LIMIT 26664, 2 &#x2F;*next chunk boundary*&#x2F;</span><br><span class="line">200 Query   SELECT &#x2F;*!40001 SQL_NO_CACHE *&#x2F; &#96;emp_no&#96; FROM &#96;employees&#96;.&#96;employees&#96; FORCE INDEX(&#96;PRIMARY&#96;) ORDER BY &#96;emp_no&#96; DESC LIMIT 1 &#x2F;*last upper boundary*&#x2F;</span><br><span class="line">200 Query   EXPLAIN SELECT &#96;emp_no&#96;, &#96;birth_date&#96;, &#96;first_name&#96;, &#96;last_name&#96;, &#96;gender&#96;, &#96;hire_date&#96; FROM &#96;employees&#96;.&#96;employees&#96; FORCE INDEX(&#96;PRIMARY&#96;) WHERE ((&#96;emp_no&#96; &gt;&#x3D; &#39;480121&#39;)) AND ((&#96;emp_no&#96; &lt;&#x3D; &#39;499999&#39;)) LOCK IN SHARE MODE &#x2F;*explain pt-online-schema-change 31797 copy nibble*&#x2F;</span><br><span class="line">200 Query   INSERT LOW_PRIORITY IGNORE INTO &#96;employees&#96;.&#96;_employees_new&#96; (&#96;emp_no&#96;, &#96;birth_date&#96;, &#96;first_name&#96;, &#96;last_name&#96;, &#96;gender&#96;, &#96;hire_date&#96;) SELECT &#96;emp_no&#96;, &#96;birth_date&#96;, &#96;first_name&#96;, &#96;last_name&#96;, &#96;gender&#96;, &#96;hire_date&#96; FROM &#96;employees&#96;.&#96;employees&#96; FORCE INDEX(&#96;PRIMARY&#96;) WHERE ((&#96;emp_no&#96; &gt;&#x3D; &#39;480121&#39;)) AND ((&#96;emp_no&#96; &lt;&#x3D; &#39;499999&#39;)) LOCK IN SHARE MODE &#x2F;*pt-online-schema-change 31797 copy nibble*&#x2F;</span><br><span class="line">200 Query   SHOW WARNINGS</span><br><span class="line">200 Query   SHOW GLOBAL STATUS LIKE &#39;Threads_running&#39;</span><br><span class="line"></span><br><span class="line">-- 当拷贝数据完成之后，及时分析表进行统计信息的收集</span><br><span class="line">200 Query   EXPLAIN SELECT * FROM &#96;employees&#96;.&#96;dept_emp&#96; WHERE 1&#x3D;1</span><br><span class="line">200 Query   SHOW VARIABLES LIKE &#39;version%&#39;</span><br><span class="line">200 Query   SHOW ENGINES</span><br><span class="line">200 Query   SHOW VARIABLES LIKE &#39;innodb_version&#39;</span><br><span class="line">200 Query   ANALYZE TABLE &#96;employees&#96;.&#96;_employees_new&#96; &#x2F;* pt-online-schema-change *&#x2F;</span><br><span class="line"></span><br><span class="line">-- 完成旧表与新表的交换，主要受选项 --alter-foreign-keys-method 取值不同来进行</span><br><span class="line">&#39;</span><br><span class="line">当 --alter-foreign-keys-method&#x3D;drop_swap 时，先禁用外键约束检查，删除旧表，将临时表重命名为原旧表名，完成变更</span><br><span class="line">&#39;</span><br><span class="line">200 Query   SET foreign_key_checks&#x3D;0</span><br><span class="line">200 Query   DROP TABLE IF EXISTS &#96;employees&#96;.&#96;employees&#96;</span><br><span class="line">200 Query   RENAME TABLE &#96;employees&#96;.&#96;_employees_new&#96; TO &#96;employees&#96;.&#96;employees&#96;</span><br><span class="line"></span><br><span class="line">&#39;</span><br><span class="line">当 --alter-foreign-keys-method&#x3D;rebuild_constraints 时，做一个原子性的交换重命名表的操作，删除旧表的操作在删除触发器时一并操作</span><br><span class="line">&#39;</span><br><span class="line">203 Query     ANALYZE TABLE &#96;employees&#96;.&#96;_employees_new&#96; &#x2F;* pt-online-schema-change *&#x2F;</span><br><span class="line">203 Query     RENAME TABLE &#96;employees&#96;.&#96;employees&#96; TO &#96;employees&#96;.&#96;_employees_old&#96;, &#96;employees&#96;.&#96;_employees_new&#96; TO &#96;employees&#96;.&#96;employees&#96;</span><br><span class="line"></span><br><span class="line">-- 删除 3 个触发器</span><br><span class="line">&#39;</span><br><span class="line">当 --alter-foreign-keys-method&#x3D;drop_swap 时，直接删除。</span><br><span class="line">&#39;</span><br><span class="line">200 Query   DROP TRIGGER IF EXISTS &#96;employees&#96;.&#96;pt_osc_employees_employees_del&#96;</span><br><span class="line">200 Query   DROP TRIGGER IF EXISTS &#96;employees&#96;.&#96;pt_osc_employees_employees_upd&#96;</span><br><span class="line">200 Query   DROP TRIGGER IF EXISTS &#96;employees&#96;.&#96;pt_osc_employees_employees_ins&#96;</span><br><span class="line">200 Query   SHOW TABLES FROM &#96;employees&#96; LIKE &#39;\_employees\_new&#39;</span><br><span class="line">201 Quit    </span><br><span class="line">200 Quit</span><br><span class="line"></span><br><span class="line">&#39;</span><br><span class="line">当 --alter-foreign-keys-method&#x3D;rebuild_constraints 时，对于关联的外键表执行重建外键操作，删除旧表，完成变更。</span><br><span class="line">&#39;</span><br><span class="line">203 Query     USE &#96;employees&#96;</span><br><span class="line">203 Query     SHOW CREATE TABLE &#96;employees&#96;.&#96;dept_emp&#96;</span><br><span class="line">203 Query     &#x2F;*!40101 SET @@SQL_MODE :&#x3D; @OLD_SQL_MODE, @@SQL_QUOTE_SHOW_CREATE :&#x3D; @OLD_QUOTE *&#x2F;</span><br><span class="line">203 Query     ALTER TABLE &#96;employees&#96;.&#96;dept_emp&#96; DROP FOREIGN KEY &#96;_dept_emp_ibfk_1&#96;, ADD CONSTRAINT &#96;__dept_emp_ibfk_1&#96; FOREIGN KEY (&#96;emp_no&#96;) REFERENCES &#96;employees&#96;.&#96;employees&#96; (&#96;emp_no&#96;) ON DELETE CASCADE</span><br><span class="line">203 Query     &#x2F;*!40101 SET @OLD_SQL_MODE :&#x3D; @@SQL_MODE, @@SQL_MODE :&#x3D; &#39;&#39;, @OLD_QUOTE :&#x3D; @@SQL_QUOTE_SHOW_CREATE, @@SQL_QUOTE_SHOW_CREATE :&#x3D; 1 *&#x2F;</span><br><span class="line"></span><br><span class="line">203 Query     USE &#96;employees&#96;</span><br><span class="line">203 Query     SHOW CREATE TABLE &#96;employees&#96;.&#96;dept_manager&#96;</span><br><span class="line">203 Query     &#x2F;*!40101 SET @@SQL_MODE :&#x3D; @OLD_SQL_MODE, @@SQL_QUOTE_SHOW_CREATE :&#x3D; @OLD_QUOTE *&#x2F;</span><br><span class="line">203 Query     ALTER TABLE &#96;employees&#96;.&#96;dept_manager&#96; DROP FOREIGN KEY &#96;__dept_manager_ibfk_1&#96;, ADD CONSTRAINT &#96;dept_manager_ibfk_1&#96; FOREIGN KEY (&#96;emp_no&#96;) REFERENCES &#96;employees&#96;.&#96;employees&#96; (&#96;emp_no&#96;) ON DELETE CASCADE</span><br><span class="line"></span><br><span class="line">203 Query     DROP TABLE IF EXISTS &#96;employees&#96;.&#96;_employees_old&#96;</span><br><span class="line">203 Query     DROP TRIGGER IF EXISTS &#96;employees&#96;.&#96;pt_osc_employees_employees_del&#96;</span><br><span class="line">203 Query     DROP TRIGGER IF EXISTS &#96;employees&#96;.&#96;pt_osc_employees_employees_upd&#96;</span><br><span class="line">203 Query     DROP TRIGGER IF EXISTS &#96;employees&#96;.&#96;pt_osc_employees_employees_ins&#96;</span><br><span class="line">203 Query     SHOW TABLES FROM &#96;employees&#96; LIKE &#39;\_employees\_new&#39;</span><br><span class="line">204 Quit</span><br><span class="line">203 Quit</span><br></pre></td></tr></table></figure>
+<p>整个工作流程总结如下：</p>
+<ol>
+<li>
+<p>查询当前数据库服务器信息，包括参数设置，负载信息等，判断表是否有存在触发器，是否有外键关联；</p>
+</li>
+<li>
+<p>创建一张与旧表结构相同的新表，表名为_旧表名；</p>
+</li>
+<li>
+<p>在新创建的表上做变更操作；</p>
+</li>
+<li>
+<p>旧表上创建 DELETE、UPDATE、INSERT 3 个触发器；</p>
+</li>
+<li>
+<p>拷贝旧表数据到新表上，以 chunk 为单位进行，拷贝期间涉及的行会持有共享读锁；</p>
+</li>
+<li>
+<p>拷贝期间如果旧表如有 DML 操作，则通过触发器更新同步到新表上；</p>
+</li>
+<li>
+<p>当拷贝数据完成之后旧表与新表进行重命名；</p>
+</li>
+<li>
+<p>如果有涉及到外键，根据工具指定选项进行外键处理；</p>
+</li>
+<li>
+<p>删除旧表；</p>
+</li>
+<li>
+<p>删除旧表上触发器。</p>
+</li>
+</ol>
+<h2 id="总结">总结</h2>
+<p>当业务量较大时，修改操作会等待没有数据修改后，执行最后的 rename 操作。因此，在修改表结构时，应该尽量选择在业务相对空闲时，至少修改表上的数据操作较低时，执行较为妥当。由于可能存在一定的风险，在操作之前，建议对数据表进行备份，可以使得操作更安全、可靠。</p>
+<p>pt-online-schema-change 工具对于任意的 DDL 语句都是通过创新表拷贝数据来进行，期间都支持 DML，而 Online DDL 根据 DDL 类型的来区分是否需要对表进行 COPY TABLE 操作，有点类似于工具的创建临时表进行变更，而不需要 COPY TABLE 操作的 DDL 语句在执行期间支持DML。</p>
+<p>关于在对表进行 DDL 时使用 MySQL 原生的 Online DDL 特性还是使用 pt-online-schema-change 工具，通过以上对工具使用的说明与用法测试可以总结如下：</p>
+<ol>
+<li>
+<p>如果 MySQL 版本不支持 Online DDL 特性，比如早于 5.6 版本的 MySQL，则使用 pt-online-schema-change 工具；</p>
+</li>
+<li>
+<p>如果 MySQL 版本支持 Online DDL 特性，则优先考虑使用 Online DDL，因为毕竟原生的支持较好，同时不容易产生不可预知的错误；</p>
+</li>
+<li>
+<p>如果 DDL 语句在使用 Online DDL 时需要进行 COPY TABLE 操作，建议使用 pt-online-schema-change 工具，因为期间支持 DML 操作。</p>
+</li>
+<li>
+<p>如果表存在触发器的情况下，优先使用 Online DDL，对于 MySQL 5.7.2 之后版本则可以 pt-online-schema-change 工具并通过指定选项 --preserve-triggers；</p>
+</li>
+<li>
+<p>如果涉及外键关联的表，优先考虑使用 Online DDL。</p>
+</li>
+</ol>
+<h2 id="参考文档">参考文档</h2>
+<ol>
+<li>
+<p><a href="https://www.google.com" target="_blank" rel="noopener">https://www.google.com</a></p>
+</li>
+<li>
+<p><a href="http://einverne.github.io/post/2018/03/pt-online-schema-change-mysql-alter-table.html" target="_blank" rel="noopener">http://einverne.github.io/post/2018/03/pt-online-schema-change-mysql-alter-table.html</a></p>
+</li>
+<li>
+<p><a href="https://www.cnblogs.com/dbabd/p/10605629.html" target="_blank" rel="noopener">https://www.cnblogs.com/dbabd/p/10605629.html</a></p>
+</li>
+<li>
+<p><a href="https://www.cnblogs.com/xinysu/p/6758170.html" target="_blank" rel="noopener">https://www.cnblogs.com/xinysu/p/6758170.html</a></p>
+</li>
+<li>
+<p><a href="https://sanyuesha.com/2017/10/19/mysql-online-migration-program-and-tool-compare/" target="_blank" rel="noopener">https://sanyuesha.com/2017/10/19/mysql-online-migration-program-and-tool-compare/</a></p>
+</li>
+</ol>
+</div>
+
+			<script src="https://my.openwrite.cn/js/readmore.js" type="text/javascript"></script>
+			<script>
+			var isMobile = navigator.userAgent.match(/(phone|pad|pod|iPhone|iPod|ios|iPad|Android|Mobile|BlackBerry|IEMobile|MQQBrowser|JUC|Fennec|wOSBrowser|BrowserNG|WebOS|Symbian|Windows Phone)/i);
+			if (!isMobile) {
+			    var btw = new BTWPlugin();
+			    btw.init({
+			        "id": "vip-container",
+			        "blogId": "10135-1588830050631-449",
+			        "name": "「奇妙的 Linux 世界」",
+			        "qrcode": "https://www.hi-linux.com/img/wechat/mp_qrcode_12.jpg",
+			        "keyword": "VIP"
+			    });
+			}
+			</script>
+		
+                
+
+                <hr>
+                <!-- Pager -->
+                <ul class="pager">
+                    
+                        <li class="previous">
+                            <a href="/posts/22481.html" data-toggle="tooltip" data-placement="top" title="浅谈边缘计算">&larr; Previous Post</a>
+                        </li>
+                    
+                    
+                        <li class="next">
+                            <a href="/posts/29770.html" data-toggle="tooltip" data-placement="top" title="初识 Knative">Next Post &rarr;</a>
+                        </li>
+                    
+                </ul>
+
+                <!-- duoshuo Share start -->
+                
+                <!-- 多说 Share end-->
+
+                <!-- 多说评论框 start -->
+                
+                <!-- 多说评论框 end -->
+
+                <!-- disqus comment start -->
+                
+                <!-- disqus comment end -->
+
+                
+                    <!-- disqus 评论框 start -->
+                    <div class="comment">
+                        <div id="lv-container" data-id="city" data-uid="MTAyMC8yNzg2My80NDQw"></div>
+                    </div>
+                    <!-- disqus 评论框 end -->
+                
+
+            </div>
+            
+            <!-- Tabe of Content -->
+            <!-- Table of Contents -->
+
+  
+    <style>
+      span.toc-nav-number{
+        display: none
+      }
+    </style>
+  
+    
+      <aside id="sidebar">
+        <div id="toc" class="toc-article">
+        <strong class="toc-title">Contents</strong>
+        
+          <ol class="toc-nav"><li class="toc-nav-item toc-nav-level-2"><a class="toc-nav-link" href="#pt-online-schema-change-安装"><span class="toc-nav-number">1.</span> <span class="toc-nav-text">pt-online-schema-change 安装</span></a></li><li class="toc-nav-item toc-nav-level-2"><a class="toc-nav-link" href="#pt-online-schema-change-语法说明"><span class="toc-nav-number">2.</span> <span class="toc-nav-text">pt-online-schema-change 语法说明</span></a></li><li class="toc-nav-item toc-nav-level-2"><a class="toc-nav-link" href="#pt-online-schema-change-使用限制"><span class="toc-nav-number">3.</span> <span class="toc-nav-text">pt-online-schema-change 使用限制</span></a></li><li class="toc-nav-item toc-nav-level-2"><a class="toc-nav-link" href="#pt-online-schema-change-使用实例"><span class="toc-nav-number">4.</span> <span class="toc-nav-text">pt-online-schema-change 使用实例</span></a></li><li class="toc-nav-item toc-nav-level-2"><a class="toc-nav-link" href="#pt-online-schema-change-工作流程"><span class="toc-nav-number">5.</span> <span class="toc-nav-text">pt-online-schema-change 工作流程</span></a></li><li class="toc-nav-item toc-nav-level-2"><a class="toc-nav-link" href="#总结"><span class="toc-nav-number">6.</span> <span class="toc-nav-text">总结</span></a></li><li class="toc-nav-item toc-nav-level-2"><a class="toc-nav-link" href="#参考文档"><span class="toc-nav-number">7.</span> <span class="toc-nav-text">参考文档</span></a></li></ol>
+        
+        </div>
+      </aside>
+    
+
+                
+            <!-- Sidebar Container -->
+            <div class="
+                col-lg-8 col-lg-offset-2
+                col-md-10 col-md-offset-1
+                sidebar-container">
+
+                <!-- Featured Tags -->
+                
+                <section>
+                    <!-- no hr -->
+                    <h5><a href="/tags/">FEATURED TAGS</a></h5>
+                    <div class="tags">
+                       
+                          <a class="tag" href="/tags/#Linux" title="Linux">Linux</a>
+                        
+                          <a class="tag" href="/tags/#技巧" title="技巧">技巧</a>
+                        
+                          <a class="tag" href="/tags/#MySQL" title="MySQL">MySQL</a>
+                        
+                    </div>
+                </section>
+                
+
+                <!-- Friends Blog -->
+                
+                <hr>
+                <h5>FRIENDS</h5>
+                <ul class="list-inline">
+
+                    
+                        <li><a href="http://www.mike.org.cn/" target="_blank">简单.生活</a></li>
+                    
+                        <li><a href="http://shang.qq.com/wpa/qunwpa?idkey=ea4c43493c2269428ac6ef6141de4b6d78e5ab2d41380ca4099b833b62884ee9" target="_blank">技术交流群</a></li>
+                    
+                        <li><a href="" target="_blank"></a></li>
+                    
+                        <li><a href="" target="_blank"></a></li>
+                    
+                </ul>
+                
+            </div>
+        </div>
+    </div>
+</article>
+
+
+
+
+
+
+    <!-- 来必力City版公共JS代码 start (一个网页只需插入一次) -->
+    <script type="text/javascript">
+       (function(d, s) {
+           var j, e = d.getElementsByTagName(s)[0];
+    
+           if (typeof LivereTower === 'function') { return; }
+    
+           j = d.createElement(s);
+           j.src = 'https://cdn-city.livere.com/js/embed.dist.js';
+           j.async = true;
+    
+           e.parentNode.insertBefore(j, e);
+       })(document, 'script');
+    </script>
+    <noscript>为正常使用来必力评论功能请激活JavaScript</noscript>
+    <!-- 来必力City版 公共JS代码 end -->
+
+
+
+<!-- async load function -->
+<script>
+    function async(u, c) {
+      var d = document, t = 'script',
+          o = d.createElement(t),
+          s = d.getElementsByTagName(t)[0];
+      o.src = u;
+      if (c) { o.addEventListener('load', function (e) { c(null, e); }, false); }
+      s.parentNode.insertBefore(o, s);
+    }
+</script>
+<!-- anchor-js, Doc:http://bryanbraun.github.io/anchorjs/ -->
+<script>
+    async("https://cdn.bootcss.com/anchor-js/1.1.1/anchor.min.js",function(){
+        anchors.options = {
+          visible: 'hover',
+          placement: 'left',
+          icon: 'ℬ'
+        };
+        anchors.add().remove('.intro-header h1').remove('.subheading').remove('.sidebar-container h5');
+    })
+</script>
+<style>
+    /* place left on bigger screen */
+    @media all and (min-width: 800px) {
+        .anchorjs-link{
+            position: absolute;
+            left: -0.75em;
+            font-size: 1.1em;
+            margin-top : -0.1em;
+        }
+    }
+</style>
+
+
+
+    <!-- Footer -->
+    <!-- Footer -->
+<footer>
+    <div class="container">
+        <div class="row">
+            <div class="col-lg-8 col-lg-offset-2 col-md-10 col-md-offset-1">
+                <ul class="list-inline text-center">
+                
+                    <li>
+                        <a href="/atom.xml">
+                            <span class="fa-stack fa-lg">
+                                <i class="fa fa-circle fa-stack-2x"></i>
+                                <i class="fa fa-rss fa-stack-1x fa-inverse"></i>
+                            </span>
+                        </a>
+                    </li>
+                
+                
+                
+                    <li>
+                        <a target="_blank" href="https://www.zhihu.com/people/80imike">
+                            <span class="fa-stack fa-lg">
+                                <i class="fa fa-circle fa-stack-2x"></i>
+                                <i class="fa  fa-stack-1x fa-inverse">知</i>
+                            </span>
+                        </a>
+                    </li>
+                
+
+                
+                    <li>
+                        <a target="_blank" href="http://weibo.com/2093524665">
+                            <span class="fa-stack fa-lg">
+                                <i class="fa fa-circle fa-stack-2x"></i>
+                                <i class="fa fa-weibo fa-stack-1x fa-inverse"></i>
+                            </span>
+                        </a>
+                    </li>
+                
+
+                
+
+                
+
+                
+
+                </ul>
+                <p class="copyright text-muted">
+                    Copyright &copy; Mike 2020 | Hosted by <a href="https://pages.coding.me" target="_blank" rel="noopener" style="font-weight: bold">Coding Pages</a>
+                    <br>
+                    Theme by <a href="http://beantech.org" target="_blank" rel="noopener">BeanTech</a> 
+                    <span style="display: inline-block; margin: 0 5px;">
+                        <i class="fa fa-heart"></i>
+                    </span> 
+                    re-Ported by <a href="http://www.huweihuang.com" target="_blank" rel="noopener">胡伟煌</a> | 
+                    <iframe
+                        style="margin-left: 2px; margin-bottom:-5px;"
+                        frameborder="0" scrolling="0" width="91px" height="20px"
+                        src="https://ghbtns.com/github-btn.html?user=huweihuang&repo=hexo-theme-huweihuang&type=star&count=true" >
+                    </iframe>
+                </p>
+            </div>
+        </div>
+    </div>
+</footer>
+
+<!-- jQuery -->
+
+<script src="/js/jquery.min.js"></script>
+
+
+<!-- Bootstrap Core JavaScript -->
+
+<script src="/js/bootstrap.min.js"></script>
+
+
+<!-- Custom Theme JavaScript -->
+
+<script src="/js/hux-blog.min.js"></script>
+
+
+
+<!-- async load function -->
+<script>
+    function async(u, c) {
+      var d = document, t = 'script',
+          o = d.createElement(t),
+          s = d.getElementsByTagName(t)[0];
+      o.src = u;
+      if (c) { o.addEventListener('load', function (e) { c(null, e); }, false); }
+      s.parentNode.insertBefore(o, s);
+    }
+</script>
+
+<!-- 
+     Because of the native support for backtick-style fenced code blocks 
+     right within the Markdown is landed in Github Pages, 
+     From V1.6, There is no need for Highlight.js, 
+     so Huxblog drops it officially.
+
+     - https://github.com/blog/2100-github-pages-now-faster-and-simpler-with-jekyll-3-0  
+     - https://help.github.com/articles/creating-and-highlighting-code-blocks/    
+-->
+<!--
+    <script>
+        async("http://cdn.bootcss.com/highlight.js/8.6/highlight.min.js", function(){
+            hljs.initHighlightingOnLoad();
+        })
+    </script>
+    <link href="http://cdn.bootcss.com/highlight.js/8.6/styles/github.min.css" rel="stylesheet">
+-->
+
+
+<!-- jquery.tagcloud.js -->
+<script>
+    // only load tagcloud.js in tag.html
+    if($('#tag_cloud').length !== 0){
+        async("https://www.hi-linux.com/js/jquery.tagcloud.js",function(){
+            $.fn.tagcloud.defaults = {
+                //size: {start: 1, end: 1, unit: 'em'},
+                color: {start: '#bbbbee', end: '#0085a1'},
+            };
+            $('#tag_cloud a').tagcloud();
+        })
+    }
+</script>
+
+<!--fastClick.js -->
+<script>
+    async("https://cdn.bootcss.com/fastclick/1.0.6/fastclick.min.js", function(){
+        var $nav = document.querySelector("nav");
+        if($nav) FastClick.attach($nav);
+    })
+</script>
+
+
+<!-- Google Analytics -->
+
+
+
+
+<!-- Baidu Tongji -->
+
+
+
+
+
+
+	<a id="rocket" href="#top" class=""></a>
+	<script type="text/javascript" src="/js/totop.js?v=1.0.0" async=""></script>
+    <script type="text/javascript" src="/js/toc.js?v=1.0.0" async=""></script>
+<!-- Image to hack wechat -->
+<img src="https://www.hi-linux.com/img/icon_wechat.png" width="0" height="0" />
+<!-- Migrate from head to bottom, no longer block render and still work -->
+
+<script>(function(w,d, s, id) {w.webpushr=w.webpushr||function(){(w.webpushr.q=w.webpushr.q||[]).push(arguments)};var js, fjs = d.getElementsByTagName(s)[0];js = d.createElement(s); js.id = id;js.src = 'https://cdn.webpushr.com/app.min.js';fjs.parentNode.appendChild(js);}(window,document, 'script', 'webpushr-jssdk'));webpushr('init','BF9JK7xV9kjWTdMx2lr6RWaPfXV7wNuZaVAJ1bfIGoBNJavqLEBVFMKLubITnCA4bh2fI9iH9tMF95nXnPt7xxY');</script></body>
+
+</html>

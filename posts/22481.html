@@ -1,0 +1,679 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<!-- Head tag -->
+<head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="google-site-verification" content="xBT4GhYoi5qRD5tr338pgPM5OWHHIDR6mNg1a3euekI" />
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="description" content="">
+    <meta name="keyword"  content="Linux,运维,Nginx,Zabbix,Centos,Ansible,MySQL,Python,Docker,ELK,Haproxy,Git,Nodejs,安全,技术">
+    <link rel="shortcut icon" href="/img/ironman-draw.png">
+    <!-- Place this tag in your head or just before your close body tag. -->
+    <script async defer src="https://buttons.github.io/buttons.js"></script>
+    <title>
+        
+          浅谈边缘计算 - 运维之美
+        
+    </title>
+
+    <link rel="canonical" href="https://www.hi-linux.com/posts/22481.html">
+
+    <!-- Bootstrap Core CSS -->
+    
+<link rel="stylesheet" href="/css/bootstrap.min.css">
+
+
+    <!-- Custom CSS --> 
+    
+<link rel="stylesheet" href="/css/beantech.min.css">
+
+    
+    <!-- Pygments Highlight CSS -->
+    
+<link rel="stylesheet" href="/css/highlight.css">
+
+
+    
+<link rel="stylesheet" href="/css/widget.css">
+
+
+    
+<link rel="stylesheet" href="/css/rocket.css">
+
+
+    
+<link rel="stylesheet" href="/css/signature.css">
+
+
+    
+<link rel="stylesheet" href="/css/toc.css">
+
+
+    <!-- Custom Fonts -->
+    <!-- <link href="https://maxcdn.bootstrapcdn.com/font-awesome/4.3.0/css/font-awesome.min.css" rel="stylesheet" type="text/css"> -->
+    <!-- Hux change font-awesome CDN to qiniu -->
+    <link href="https://cdn.staticfile.org/font-awesome/4.5.0/css/font-awesome.min.css" rel="stylesheet" type="text/css">
+
+
+    <!-- Hux Delete, sad but pending in China
+    <link href='http://fonts.googleapis.com/css?family=Lora:400,700,400italic,700italic' rel='stylesheet' type='text/css'>
+    <link href='http://fonts.googleapis.com/css?family=Open+Sans:300italic,400italic,600italic,700italic,800italic,400,300,600,700,800' rel='stylesheet' type='text/
+    css'>
+    -->
+
+
+    <!-- HTML5 Shim and Respond.js IE8 support of HTML5 elements and media queries -->
+    <!-- WARNING: Respond.js doesn't work if you view the page via file:// -->
+    <!--[if lt IE 9]>
+        <script src="https://oss.maxcdn.com/libs/html5shiv/3.7.0/html5shiv.js"></script>
+        <script src="https://oss.maxcdn.com/libs/respond.js/1.4.2/respond.min.js"></script>
+    <![endif]-->
+
+    <!-- ga & ba script hoook -->
+    <script></script>
+<meta name="generator" content="Hexo 4.2.0"><link rel="alternate" href="/atom.xml" title="运维之美" type="application/atom+xml">
+</head>
+
+
+<!-- hack iOS CSS :active style -->
+<body ontouchstart="">
+	<!-- Modified by Yu-Hsuan Yen -->
+<!-- Post Header -->
+<style type="text/css">
+    header.intro-header{
+        
+            background-image: url('/img/header_img/building.jpg')
+            /*post*/
+        
+    }
+    
+</style>
+
+<header class="intro-header" >
+    <!-- Signature -->
+    <div id="signature">
+        <div class="container">
+            <div class="row">
+                <div class="col-lg-8 col-lg-offset-2 col-md-10 col-md-offset-1">
+                
+                    <div class="post-heading">
+                        <div class="tags">
+                            
+                              <a class="tag" href="/tags/#Linux" title="Linux">Linux</a>
+                            
+                              <a class="tag" href="/tags/#技巧" title="技巧">技巧</a>
+                            
+                              <a class="tag" href="/tags/#边缘计算" title="边缘计算">边缘计算</a>
+                            
+                        </div>
+                        <h1>浅谈边缘计算</h1>
+                        <h2 class="subheading"></h2>
+                        <span class="meta">
+                            Posted by Mike on
+                            2020-05-23
+                        </span>
+                    </div>
+                
+
+
+                </div>
+            </div>
+        </div>
+    </div>
+</header>
+
+	
+    <!-- Navigation -->
+<nav class="navbar navbar-default navbar-custom navbar-fixed-top">
+    <div class="container-fluid">
+        <!-- Brand and toggle get grouped for better mobile display -->
+        <div class="navbar-header page-scroll">
+            <button type="button" class="navbar-toggle">
+                <span class="sr-only">Toggle navigation</span>
+                <span class="icon-bar"></span>
+                <span class="icon-bar"></span>
+                <span class="icon-bar"></span>
+            </button>
+            <a class="navbar-brand" href="/">运维之美</a>
+        </div>
+
+        <!-- Collect the nav links, forms, and other content for toggling -->
+        <!-- Known Issue, found by Hux:
+            <nav>'s height woule be hold on by its content.
+            so, when navbar scale out, the <nav> will cover tags.
+            also mask any touch event of tags, unfortunately.
+        -->
+        <div id="huxblog_navbar">
+            <div class="navbar-collapse">
+                <ul class="nav navbar-nav navbar-right">
+                    <li>
+                        <a href="/">Home</a>
+                    </li>
+
+                    
+
+                        
+                    
+
+                        
+                    
+
+                        
+                        <li>
+                            <a href="/about/">About</a>
+                        </li>
+                        
+                    
+
+                        
+                        <li>
+                            <a href="/archive/">Archives</a>
+                        </li>
+                        
+                    
+
+                        
+                        <li>
+                            <a href="/tags/">Tags</a>
+                        </li>
+                        
+                    
+                    
+                </ul>
+            </div>
+        </div>
+        <!-- /.navbar-collapse -->
+    </div>
+    <!-- /.container -->
+</nav>
+<script>
+    // Drop Bootstarp low-performance Navbar
+    // Use customize navbar with high-quality material design animation
+    // in high-perf jank-free CSS3 implementation
+    var $body   = document.body;
+    var $toggle = document.querySelector('.navbar-toggle');
+    var $navbar = document.querySelector('#huxblog_navbar');
+    var $collapse = document.querySelector('.navbar-collapse');
+
+    $toggle.addEventListener('click', handleMagic)
+    function handleMagic(e){
+        if ($navbar.className.indexOf('in') > 0) {
+        // CLOSE
+            $navbar.className = " ";
+            // wait until animation end.
+            setTimeout(function(){
+                // prevent frequently toggle
+                if($navbar.className.indexOf('in') < 0) {
+                    $collapse.style.height = "0px"
+                }
+            },400)
+        }else{
+        // OPEN
+            $collapse.style.height = "auto"
+            $navbar.className += " in";
+        }
+    }
+</script>
+
+
+    <!-- Main Content -->
+    <!-- Modify by Yu-Hsuan Yen -->
+
+<!-- Post Content -->
+<article>
+    <div class="container">
+        <div class="row">
+
+            <!-- Post Container -->
+            <div class="
+                col-lg-8 col-lg-offset-2
+                col-md-10 col-md-offset-1
+                post-container">
+
+                <div id="vip-container"><h2 id="什么是边缘计算">什么是边缘计算？</h2>
+<p>云计算（Cloud Computing）从 2005 年进入我们的视线至今已经发展了 14 年，商业应用取得了巨大的成功，边缘计算（Edge Computing）则是云计算继续发酵的产物，目前还处于概念阶段。</p>
+<p>那么到底什么是边缘计算呢？ 引用 Wikipedia 对 Edge Computing 的定义，边缘计算是指：</p>
+<blockquote>
+<p>Edge computing is a method of optimising cloud computing systems by performing data processing at the edge of the network, near the source of the data.</p>
+</blockquote>
+<p>与将数据传到远程的云端进行处理相对，边缘计算是一种分布式计算概念。边缘计算在靠近数据源头的网络边缘提供计算和存储资源，允许在数据收集源附近实时处理和分析数据。</p>
+<p>通俗的说，边缘计算是去中心化或分布式的云计算，原始数据不传回云端，而是在本地完成分析。看好边缘计算的人认为计算能力正在从云端向边缘移动，因此边缘计算会成为下一个像云计算这样成功的技术爆发点。另一方面，边缘计算是驱动物联网的关键技术，因此边缘计算的推动者往往是从事物联网的人。</p>
+<p>有了定义还不足以理解边缘计算，你可能会问到底什么是边缘呢？</p>
+<p>边缘是一个很笼统的概念，它是指接近数据源的计算基础设施，不同的边缘计算提供商往往有不同的边缘。比如美国电信公司 AT&amp;T 的边缘就是离客户几英里的蜂窝网络基站；对于世界最大的 CDN 厂商阿卡麦，边缘则是指遍布全球的 CDN 设备；对于机场的监控设备，边缘就是覆盖整个机场无死角的高清摄像头。</p>
+<p><img src="https://img.alicdn.com/tfs/TB1cJS2KhjaK1RjSZKzXXXVwXXa-3197-1854.png" alt=""></p>
+<h2 id="云计算-边缘计算-雾计算">云计算、边缘计算、雾计算</h2>
+<p>云计算发展至今还未到达顶峰，在一些营销的推波助澜下又冒出了个边缘计算，甚至雾计算（Fog Computing）。下面谈一谈他们的区别和联系。</p>
+<a id="more"></a>
+<h3 id="云计算与边缘计算">云计算与边缘计算</h3>
+<p>云计算的概念应该是比较明确的了——一种按使用量付费、通过网络提供的虚拟资源，这些资源包括服务器、运行环境和软件，它们分别对应 IaaS、Paas 和 SaaS。</p>
+<p>下面引用 IIOT EDGE COMPUTING VS. CLOUD COMPUTING 的观点来解释云计算和边缘计算的区别。</p>
+<p>传统的云计算架构要求客户端将数据推送到中心服务器然后再拉回来，比如我们每天都在使用的 ICloud 帮助我们备份照片、短信等。然后这种集中式的云架构对时间敏感、带宽稀缺的工业物联网就不再适用，因此某些关键数据的处理任务最好是在数据源而不是云端，边缘计算应用而生。</p>
+<p>云计算和边缘计算共同参与的物联网解决方案</p>
+<p><img src="https://www.yanxurui.cc/posts/misc/2017-08-08-a-survey-of-edge-computing/edge-v-cloud-computing-graphic.png" alt=""></p>
+<p>边缘计算并不会替代云计算，他们是相辅相成的，简单的说就是大量的计算任务在离用户最近的边缘计算节点上完成，只有少量的数据需要传到云计算中心。它们扮演的角色如下所示：</p>
+<p><strong>CLOUD COMPUTING</strong></p>
+<ul>
+<li>Complex analytics</li>
+<li>Big Data mining</li>
+<li>Sources of business logic</li>
+<li>Machine learning rules</li>
+<li>Advanced visualizations</li>
+<li>Long term data storage/warehousing</li>
+</ul>
+<p><strong>EDGE COMPUTING</strong></p>
+<ul>
+<li>Basic data visualization</li>
+<li>Basic data analytics and short term data historian features</li>
+<li>Data caching, buffering and streaming</li>
+<li>Data pre-processing, cleansing, filtering and optimization</li>
+<li>Some data aggregation</li>
+<li>Device to Device communications/M2M</li>
+</ul>
+<h3 id="边缘计算与雾计算">边缘计算与雾计算</h3>
+<p>思科最早使用雾计算这个术语来描述网络边缘的计算层，可以对数据进行预处理，使数据快速，安全地传输到云端。雾计算与边缘计算非常接近，但也是有区别的。</p>
+<p>以下观点来自 Fog Computing vs. Edge Computing: What’s the Difference?，这篇文章采访了该行业内两位比较权威的从业人士：</p>
+<ul>
+<li>David King 是一家为工业和商业物联网开发边缘智能软件的公司 FogHorn Systems 的 CEO；</li>
+<li>Matt Newton 是一家生产控制器、I/O 设备、中继器和连接边缘设备到网络的软件制造商 Opto 22 的技术市场主管；</li>
+</ul>
+<p>雾计算与边缘计算都是将智能和计算能力推向靠近数据来源的位置，因此他们常常被混用。他们的区别也正是计算能力（大脑）所处的位置：</p>
+<ul>
+<li>雾计算将计算能力推向局域网，在雾节点或物联网的网关处完成数据处理</li>
+<li>边缘计算将边缘网关的智能，处理能力和通信能力直接推送到诸如可编程自动化控制器的设备</li>
+</ul>
+<p>三者的关系如下所示（图片来自Fog vs Edge Computing）：</p>
+<p><img src="https://www.yanxurui.cc/posts/misc/2017-08-08-a-survey-of-edge-computing/cloud-edge-fog-computing.png" alt=""></p>
+<h2 id="边缘计算的优势与问题">边缘计算的优势与问题</h2>
+<h3 id="云计算面临的问题">云计算面临的问题</h3>
+<p>现在的云计算都是集中式的，即把服务器集中在某一个地方，为了使用云计算的计算资源，数据需要先被传输到距离用户很远的数据中心然后集中处理。但是很多设备都无法接入云端，大致是以下两个原因：</p>
+<ol>
+<li>
+<p>数据量大：对于巨大的数据量，这种传输带宽成本难以接受；比如通用电气很早就意识到工业机床上的传感器产生的大量的数据需要在设备边缘进行处理，只将有最有价值的数据移到云端进行机器学习并且在不同设备之间共享（Edge computing could push the cloud to the fringe）</p>
+</li>
+<li>
+<p>速度：对于要求低延迟、密集型计算的智能设备，比如头戴式 VR，机器人，无人机等，受限于网络传输延迟而无法享受云计算的强大计算资源，这些设备还面临一个共同的问题，就是电池续航时间短；</p>
+</li>
+</ol>
+<p>边缘计算概念的提出就是为了解决这样的问题。 在边缘计算中，传感器，控制器和其他连接的设备本身收集和分析物联网数据，或将其传输到附近的计算设备（如服务器或笔记本电脑）进行分析。当数据处理和分析发生在网络边缘（与数据中心或云相对）时，数据可以立即分析并投入运行。</p>
+<h3 id="边缘计算的优势">边缘计算的优势</h3>
+<p>Sprint 公司的物联网事业部经理 Mohamad Nasser 在 Four advantages of edge computing 一文中给出了边缘计算的应用实例，并阐述了边缘计算的四个优势。</p>
+<p><a href="http://openedgecomputing.org" target="_blank" rel="noopener">openedgecomputing.org</a> 的首页上言简意赅的列出了边缘计算的两条优势。</p>
+<p>结合维基百科的观点，将以上内容整理后总结如下：</p>
+<ol>
+<li>接近实时的数据处理：因为数据是在边缘结点进行分析，降低了延迟，提升应用的响应速度</li>
+<li>减少数据传输：数据不需要推送到遥远的云端，减少智能设备和数据中心传输的数据量，节省带宽成本，同时还能减小核心网络的拥堵。比如 Facebook 等社交软件的用户上传的照片在边缘调整到合适的分辨率再上传到云端</li>
+<li>数据安全：一些比较敏感的数据直接在边缘进行分析，不用当心数据泄漏</li>
+<li>提高可用性：分担（offload）了中心服务器的计算任务，一定程度上消除了主要的瓶颈，并且降低了出现单点故障的可能，</li>
+</ol>
+<h3 id="边缘计算的问题">边缘计算的问题</h3>
+<p>任何东西都是有缺点的，如果只看到优点说明理解的不够深入。边缘计算还处于概念阶段，同样存在很多问题，比如：</p>
+<ol>
+<li>使边缘设备具有处理能力意味着更高的成本和更容易被入侵的危险；</li>
+<li>在大量的边缘设备上进行应用部署和服务监控会成为一个棘手的问题；</li>
+<li>在边缘进行分布式计算并与云端协调任务会让应用编程变得更加复杂；</li>
+</ol>
+<h2 id="边缘计算与-cdn">边缘计算与 CDN</h2>
+<p>CDN 的作用简单的说就是通过将图片、视频等静态文件缓存到接近用户的节点上，降低直接访问源站的延迟，从而实现加速。</p>
+<p>CDN 公司拥有遍布各地、接近用户的庞大服务器集群自然成为了优势明显的边缘计算资源，因此结合 CDN 技术的优势，向客户提供边缘计算服务成为了传统 CDN 公司向创新型服务商转变的一个新的突破点。</p>
+<p>以下是边缘计算在 CDN 的探索性应用：</p>
+<ol>
+<li>
+<p>国内 CDN 行业的龙头老大网宿认为未来 CDN 的演进方向之一是形成边缘计算系统。因此，网宿科技对 MEC 有着清晰的规划。网宿科技将通过布局集中式数据中心+边缘计算节点，用中心云+边缘云的方式承载未来。此外，公司正在升级现有 CDN 节点为具备存储、计算、传输、安全功能的边缘计算节点，部署数量更多的边缘计算节点到距离用户更近的城域网（出处：深度报告：移动边缘计算，站在5G “中央”）。此外网宿基于边缘计算的方式，成功研发出边缘弹幕分发技术，所有的弹幕在网宿平台上直接进行分发，不用再回源，解救了直播平台弹幕压力大的一大痛点。（出处：CDN 掀起二次变革：从传输服务到边缘计算）</p>
+</li>
+<li>
+<p>阿卡迈在全球节点上除了做传统 CDN 分发之外，还利用自身分布式运算的能力，帮助用户解决业务逻辑问题。举个简单例子，阿卡迈在云端部署方面，可以精确识别用户所在的位置和用户所使用的浏览器类型。还能精确识别这个客户所在的运营商所属的组织机构等。利用这些信息，我们就可以在云端帮助客户做一些逻辑判断，帮助用户完成在云端的一些通用型逻辑处理，例如把来自手机的访问自动重定向到M站（手机站），以及将浏览器语言自动定向到所属国家和地区。通过云端的逻辑智能处理，就大大节省客户在应用编码上的时间，上述的这些技术都已经产品化，并已经是经过很多客户验证过的解决方案，让客户通过简单的配置在几小时之内在云端实现，降低操作的难度以及缩短部署推向市场的时间（出处：阿卡迈梁世鹏：云计算与 CDN 是一对天生的孪生兄弟）。阿卡麦通过与 IBM 合作，使客户可以直接将 Java 应用部署到分布在全球的边缘设备上，实现就近计算，提升用户体验（出处：Akamai, IBM team for edge computing）。</p>
+</li>
+<li>
+<p>英特尔提出了利用 CDN 节点直接进行视频转码、分发和存储的视频直播解决方案，数据不用回流到源站，大大节省了带宽资源，并且获得更好的用户体验（出处：边缘计算揽洪荒之力挺直播大潮 GPU 携深度学习助智能 CDN）。</p>
+</li>
+</ol>
+<blockquote>
+<p>来源：Xurui Yan Blog<br>
+原文：<a href="http://t.cn/AiWYM1f2" target="_blank" rel="noopener">http://t.cn/AiWYM1f2</a><br>
+题图：来自谷歌图片搜索<br>
+版权：本文版权归原作者所有<br>
+投稿：欢迎投稿，投稿邮箱: <a href="mailto:editor@hi-linux.com">editor@hi-linux.com</a></p>
+</blockquote>
+</div>
+
+			<script src="https://my.openwrite.cn/js/readmore.js" type="text/javascript"></script>
+			<script>
+			var isMobile = navigator.userAgent.match(/(phone|pad|pod|iPhone|iPod|ios|iPad|Android|Mobile|BlackBerry|IEMobile|MQQBrowser|JUC|Fennec|wOSBrowser|BrowserNG|WebOS|Symbian|Windows Phone)/i);
+			if (!isMobile) {
+			    var btw = new BTWPlugin();
+			    btw.init({
+			        "id": "vip-container",
+			        "blogId": "10135-1588830050631-449",
+			        "name": "「奇妙的 Linux 世界」",
+			        "qrcode": "https://www.hi-linux.com/img/wechat/mp_qrcode_12.jpg",
+			        "keyword": "VIP"
+			    });
+			}
+			</script>
+		
+                
+
+                <hr>
+                <!-- Pager -->
+                <ul class="pager">
+                    
+                        <li class="previous">
+                            <a href="/posts/56208.html" data-toggle="tooltip" data-placement="top" title="如何有效的清除 DNS 缓存">&larr; Previous Post</a>
+                        </li>
+                    
+                    
+                        <li class="next">
+                            <a href="/posts/33485.html" data-toggle="tooltip" data-placement="top" title="如何平滑的变更单表超 100000000 条记录的数据库结构">Next Post &rarr;</a>
+                        </li>
+                    
+                </ul>
+
+                <!-- duoshuo Share start -->
+                
+                <!-- 多说 Share end-->
+
+                <!-- 多说评论框 start -->
+                
+                <!-- 多说评论框 end -->
+
+                <!-- disqus comment start -->
+                
+                <!-- disqus comment end -->
+
+                
+                    <!-- disqus 评论框 start -->
+                    <div class="comment">
+                        <div id="lv-container" data-id="city" data-uid="MTAyMC8yNzg2My80NDQw"></div>
+                    </div>
+                    <!-- disqus 评论框 end -->
+                
+
+            </div>
+            
+            <!-- Tabe of Content -->
+            <!-- Table of Contents -->
+
+  
+    <style>
+      span.toc-nav-number{
+        display: none
+      }
+    </style>
+  
+    
+      <aside id="sidebar">
+        <div id="toc" class="toc-article">
+        <strong class="toc-title">Contents</strong>
+        
+          <ol class="toc-nav"><li class="toc-nav-item toc-nav-level-2"><a class="toc-nav-link" href="#什么是边缘计算"><span class="toc-nav-number">1.</span> <span class="toc-nav-text">什么是边缘计算？</span></a></li><li class="toc-nav-item toc-nav-level-2"><a class="toc-nav-link" href="#云计算-边缘计算-雾计算"><span class="toc-nav-number">2.</span> <span class="toc-nav-text">云计算、边缘计算、雾计算</span></a><ol class="toc-nav-child"><li class="toc-nav-item toc-nav-level-3"><a class="toc-nav-link" href="#云计算与边缘计算"><span class="toc-nav-number">2.1.</span> <span class="toc-nav-text">云计算与边缘计算</span></a></li><li class="toc-nav-item toc-nav-level-3"><a class="toc-nav-link" href="#边缘计算与雾计算"><span class="toc-nav-number">2.2.</span> <span class="toc-nav-text">边缘计算与雾计算</span></a></li></ol></li><li class="toc-nav-item toc-nav-level-2"><a class="toc-nav-link" href="#边缘计算的优势与问题"><span class="toc-nav-number">3.</span> <span class="toc-nav-text">边缘计算的优势与问题</span></a><ol class="toc-nav-child"><li class="toc-nav-item toc-nav-level-3"><a class="toc-nav-link" href="#云计算面临的问题"><span class="toc-nav-number">3.1.</span> <span class="toc-nav-text">云计算面临的问题</span></a></li><li class="toc-nav-item toc-nav-level-3"><a class="toc-nav-link" href="#边缘计算的优势"><span class="toc-nav-number">3.2.</span> <span class="toc-nav-text">边缘计算的优势</span></a></li><li class="toc-nav-item toc-nav-level-3"><a class="toc-nav-link" href="#边缘计算的问题"><span class="toc-nav-number">3.3.</span> <span class="toc-nav-text">边缘计算的问题</span></a></li></ol></li><li class="toc-nav-item toc-nav-level-2"><a class="toc-nav-link" href="#边缘计算与-cdn"><span class="toc-nav-number">4.</span> <span class="toc-nav-text">边缘计算与 CDN</span></a></li></ol>
+        
+        </div>
+      </aside>
+    
+
+                
+            <!-- Sidebar Container -->
+            <div class="
+                col-lg-8 col-lg-offset-2
+                col-md-10 col-md-offset-1
+                sidebar-container">
+
+                <!-- Featured Tags -->
+                
+                <section>
+                    <!-- no hr -->
+                    <h5><a href="/tags/">FEATURED TAGS</a></h5>
+                    <div class="tags">
+                       
+                          <a class="tag" href="/tags/#Linux" title="Linux">Linux</a>
+                        
+                          <a class="tag" href="/tags/#技巧" title="技巧">技巧</a>
+                        
+                          <a class="tag" href="/tags/#边缘计算" title="边缘计算">边缘计算</a>
+                        
+                    </div>
+                </section>
+                
+
+                <!-- Friends Blog -->
+                
+                <hr>
+                <h5>FRIENDS</h5>
+                <ul class="list-inline">
+
+                    
+                        <li><a href="http://www.mike.org.cn/" target="_blank">简单.生活</a></li>
+                    
+                        <li><a href="http://shang.qq.com/wpa/qunwpa?idkey=ea4c43493c2269428ac6ef6141de4b6d78e5ab2d41380ca4099b833b62884ee9" target="_blank">技术交流群</a></li>
+                    
+                        <li><a href="" target="_blank"></a></li>
+                    
+                        <li><a href="" target="_blank"></a></li>
+                    
+                </ul>
+                
+            </div>
+        </div>
+    </div>
+</article>
+
+
+
+
+
+
+    <!-- 来必力City版公共JS代码 start (一个网页只需插入一次) -->
+    <script type="text/javascript">
+       (function(d, s) {
+           var j, e = d.getElementsByTagName(s)[0];
+    
+           if (typeof LivereTower === 'function') { return; }
+    
+           j = d.createElement(s);
+           j.src = 'https://cdn-city.livere.com/js/embed.dist.js';
+           j.async = true;
+    
+           e.parentNode.insertBefore(j, e);
+       })(document, 'script');
+    </script>
+    <noscript>为正常使用来必力评论功能请激活JavaScript</noscript>
+    <!-- 来必力City版 公共JS代码 end -->
+
+
+
+<!-- async load function -->
+<script>
+    function async(u, c) {
+      var d = document, t = 'script',
+          o = d.createElement(t),
+          s = d.getElementsByTagName(t)[0];
+      o.src = u;
+      if (c) { o.addEventListener('load', function (e) { c(null, e); }, false); }
+      s.parentNode.insertBefore(o, s);
+    }
+</script>
+<!-- anchor-js, Doc:http://bryanbraun.github.io/anchorjs/ -->
+<script>
+    async("https://cdn.bootcss.com/anchor-js/1.1.1/anchor.min.js",function(){
+        anchors.options = {
+          visible: 'hover',
+          placement: 'left',
+          icon: 'ℬ'
+        };
+        anchors.add().remove('.intro-header h1').remove('.subheading').remove('.sidebar-container h5');
+    })
+</script>
+<style>
+    /* place left on bigger screen */
+    @media all and (min-width: 800px) {
+        .anchorjs-link{
+            position: absolute;
+            left: -0.75em;
+            font-size: 1.1em;
+            margin-top : -0.1em;
+        }
+    }
+</style>
+
+
+
+    <!-- Footer -->
+    <!-- Footer -->
+<footer>
+    <div class="container">
+        <div class="row">
+            <div class="col-lg-8 col-lg-offset-2 col-md-10 col-md-offset-1">
+                <ul class="list-inline text-center">
+                
+                    <li>
+                        <a href="/atom.xml">
+                            <span class="fa-stack fa-lg">
+                                <i class="fa fa-circle fa-stack-2x"></i>
+                                <i class="fa fa-rss fa-stack-1x fa-inverse"></i>
+                            </span>
+                        </a>
+                    </li>
+                
+                
+                
+                    <li>
+                        <a target="_blank" href="https://www.zhihu.com/people/80imike">
+                            <span class="fa-stack fa-lg">
+                                <i class="fa fa-circle fa-stack-2x"></i>
+                                <i class="fa  fa-stack-1x fa-inverse">知</i>
+                            </span>
+                        </a>
+                    </li>
+                
+
+                
+                    <li>
+                        <a target="_blank" href="http://weibo.com/2093524665">
+                            <span class="fa-stack fa-lg">
+                                <i class="fa fa-circle fa-stack-2x"></i>
+                                <i class="fa fa-weibo fa-stack-1x fa-inverse"></i>
+                            </span>
+                        </a>
+                    </li>
+                
+
+                
+
+                
+
+                
+
+                </ul>
+                <p class="copyright text-muted">
+                    Copyright &copy; Mike 2020 | Hosted by <a href="https://pages.coding.me" target="_blank" rel="noopener" style="font-weight: bold">Coding Pages</a>
+                    <br>
+                    Theme by <a href="http://beantech.org" target="_blank" rel="noopener">BeanTech</a> 
+                    <span style="display: inline-block; margin: 0 5px;">
+                        <i class="fa fa-heart"></i>
+                    </span> 
+                    re-Ported by <a href="http://www.huweihuang.com" target="_blank" rel="noopener">胡伟煌</a> | 
+                    <iframe
+                        style="margin-left: 2px; margin-bottom:-5px;"
+                        frameborder="0" scrolling="0" width="91px" height="20px"
+                        src="https://ghbtns.com/github-btn.html?user=huweihuang&repo=hexo-theme-huweihuang&type=star&count=true" >
+                    </iframe>
+                </p>
+            </div>
+        </div>
+    </div>
+</footer>
+
+<!-- jQuery -->
+
+<script src="/js/jquery.min.js"></script>
+
+
+<!-- Bootstrap Core JavaScript -->
+
+<script src="/js/bootstrap.min.js"></script>
+
+
+<!-- Custom Theme JavaScript -->
+
+<script src="/js/hux-blog.min.js"></script>
+
+
+
+<!-- async load function -->
+<script>
+    function async(u, c) {
+      var d = document, t = 'script',
+          o = d.createElement(t),
+          s = d.getElementsByTagName(t)[0];
+      o.src = u;
+      if (c) { o.addEventListener('load', function (e) { c(null, e); }, false); }
+      s.parentNode.insertBefore(o, s);
+    }
+</script>
+
+<!-- 
+     Because of the native support for backtick-style fenced code blocks 
+     right within the Markdown is landed in Github Pages, 
+     From V1.6, There is no need for Highlight.js, 
+     so Huxblog drops it officially.
+
+     - https://github.com/blog/2100-github-pages-now-faster-and-simpler-with-jekyll-3-0  
+     - https://help.github.com/articles/creating-and-highlighting-code-blocks/    
+-->
+<!--
+    <script>
+        async("http://cdn.bootcss.com/highlight.js/8.6/highlight.min.js", function(){
+            hljs.initHighlightingOnLoad();
+        })
+    </script>
+    <link href="http://cdn.bootcss.com/highlight.js/8.6/styles/github.min.css" rel="stylesheet">
+-->
+
+
+<!-- jquery.tagcloud.js -->
+<script>
+    // only load tagcloud.js in tag.html
+    if($('#tag_cloud').length !== 0){
+        async("https://www.hi-linux.com/js/jquery.tagcloud.js",function(){
+            $.fn.tagcloud.defaults = {
+                //size: {start: 1, end: 1, unit: 'em'},
+                color: {start: '#bbbbee', end: '#0085a1'},
+            };
+            $('#tag_cloud a').tagcloud();
+        })
+    }
+</script>
+
+<!--fastClick.js -->
+<script>
+    async("https://cdn.bootcss.com/fastclick/1.0.6/fastclick.min.js", function(){
+        var $nav = document.querySelector("nav");
+        if($nav) FastClick.attach($nav);
+    })
+</script>
+
+
+<!-- Google Analytics -->
+
+
+
+
+<!-- Baidu Tongji -->
+
+
+
+
+
+
+	<a id="rocket" href="#top" class=""></a>
+	<script type="text/javascript" src="/js/totop.js?v=1.0.0" async=""></script>
+    <script type="text/javascript" src="/js/toc.js?v=1.0.0" async=""></script>
+<!-- Image to hack wechat -->
+<img src="https://www.hi-linux.com/img/icon_wechat.png" width="0" height="0" />
+<!-- Migrate from head to bottom, no longer block render and still work -->
+
+<script>(function(w,d, s, id) {w.webpushr=w.webpushr||function(){(w.webpushr.q=w.webpushr.q||[]).push(arguments)};var js, fjs = d.getElementsByTagName(s)[0];js = d.createElement(s); js.id = id;js.src = 'https://cdn.webpushr.com/app.min.js';fjs.parentNode.appendChild(js);}(window,document, 'script', 'webpushr-jssdk'));webpushr('init','BF9JK7xV9kjWTdMx2lr6RWaPfXV7wNuZaVAJ1bfIGoBNJavqLEBVFMKLubITnCA4bh2fI9iH9tMF95nXnPt7xxY');</script></body>
+
+</html>

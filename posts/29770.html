@@ -1,0 +1,833 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<!-- Head tag -->
+<head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="google-site-verification" content="xBT4GhYoi5qRD5tr338pgPM5OWHHIDR6mNg1a3euekI" />
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="description" content="">
+    <meta name="keyword"  content="Linux,运维,Nginx,Zabbix,Centos,Ansible,MySQL,Python,Docker,ELK,Haproxy,Git,Nodejs,安全,技术">
+    <link rel="shortcut icon" href="/img/ironman-draw.png">
+    <!-- Place this tag in your head or just before your close body tag. -->
+    <script async defer src="https://buttons.github.io/buttons.js"></script>
+    <title>
+        
+          初识 Knative - 运维之美
+        
+    </title>
+
+    <link rel="canonical" href="https://www.hi-linux.com/posts/29770.html">
+
+    <!-- Bootstrap Core CSS -->
+    
+<link rel="stylesheet" href="/css/bootstrap.min.css">
+
+
+    <!-- Custom CSS --> 
+    
+<link rel="stylesheet" href="/css/beantech.min.css">
+
+    
+    <!-- Pygments Highlight CSS -->
+    
+<link rel="stylesheet" href="/css/highlight.css">
+
+
+    
+<link rel="stylesheet" href="/css/widget.css">
+
+
+    
+<link rel="stylesheet" href="/css/rocket.css">
+
+
+    
+<link rel="stylesheet" href="/css/signature.css">
+
+
+    
+<link rel="stylesheet" href="/css/toc.css">
+
+
+    <!-- Custom Fonts -->
+    <!-- <link href="https://maxcdn.bootstrapcdn.com/font-awesome/4.3.0/css/font-awesome.min.css" rel="stylesheet" type="text/css"> -->
+    <!-- Hux change font-awesome CDN to qiniu -->
+    <link href="https://cdn.staticfile.org/font-awesome/4.5.0/css/font-awesome.min.css" rel="stylesheet" type="text/css">
+
+
+    <!-- Hux Delete, sad but pending in China
+    <link href='http://fonts.googleapis.com/css?family=Lora:400,700,400italic,700italic' rel='stylesheet' type='text/css'>
+    <link href='http://fonts.googleapis.com/css?family=Open+Sans:300italic,400italic,600italic,700italic,800italic,400,300,600,700,800' rel='stylesheet' type='text/
+    css'>
+    -->
+
+
+    <!-- HTML5 Shim and Respond.js IE8 support of HTML5 elements and media queries -->
+    <!-- WARNING: Respond.js doesn't work if you view the page via file:// -->
+    <!--[if lt IE 9]>
+        <script src="https://oss.maxcdn.com/libs/html5shiv/3.7.0/html5shiv.js"></script>
+        <script src="https://oss.maxcdn.com/libs/respond.js/1.4.2/respond.min.js"></script>
+    <![endif]-->
+
+    <!-- ga & ba script hoook -->
+    <script></script>
+<meta name="generator" content="Hexo 4.2.0"><link rel="alternate" href="/atom.xml" title="运维之美" type="application/atom+xml">
+</head>
+
+
+<!-- hack iOS CSS :active style -->
+<body ontouchstart="">
+	<!-- Modified by Yu-Hsuan Yen -->
+<!-- Post Header -->
+<style type="text/css">
+    header.intro-header{
+        
+            background-image: url('/img/header_img/building.jpg')
+            /*post*/
+        
+    }
+    
+</style>
+
+<header class="intro-header" >
+    <!-- Signature -->
+    <div id="signature">
+        <div class="container">
+            <div class="row">
+                <div class="col-lg-8 col-lg-offset-2 col-md-10 col-md-offset-1">
+                
+                    <div class="post-heading">
+                        <div class="tags">
+                            
+                              <a class="tag" href="/tags/#Linux" title="Linux">Linux</a>
+                            
+                              <a class="tag" href="/tags/#技巧" title="技巧">技巧</a>
+                            
+                              <a class="tag" href="/tags/#Knative" title="Knative">Knative</a>
+                            
+                        </div>
+                        <h1>初识 Knative</h1>
+                        <h2 class="subheading"></h2>
+                        <span class="meta">
+                            Posted by Mike on
+                            2020-05-23
+                        </span>
+                    </div>
+                
+
+
+                </div>
+            </div>
+        </div>
+    </div>
+</header>
+
+	
+    <!-- Navigation -->
+<nav class="navbar navbar-default navbar-custom navbar-fixed-top">
+    <div class="container-fluid">
+        <!-- Brand and toggle get grouped for better mobile display -->
+        <div class="navbar-header page-scroll">
+            <button type="button" class="navbar-toggle">
+                <span class="sr-only">Toggle navigation</span>
+                <span class="icon-bar"></span>
+                <span class="icon-bar"></span>
+                <span class="icon-bar"></span>
+            </button>
+            <a class="navbar-brand" href="/">运维之美</a>
+        </div>
+
+        <!-- Collect the nav links, forms, and other content for toggling -->
+        <!-- Known Issue, found by Hux:
+            <nav>'s height woule be hold on by its content.
+            so, when navbar scale out, the <nav> will cover tags.
+            also mask any touch event of tags, unfortunately.
+        -->
+        <div id="huxblog_navbar">
+            <div class="navbar-collapse">
+                <ul class="nav navbar-nav navbar-right">
+                    <li>
+                        <a href="/">Home</a>
+                    </li>
+
+                    
+
+                        
+                    
+
+                        
+                    
+
+                        
+                        <li>
+                            <a href="/about/">About</a>
+                        </li>
+                        
+                    
+
+                        
+                        <li>
+                            <a href="/archive/">Archives</a>
+                        </li>
+                        
+                    
+
+                        
+                        <li>
+                            <a href="/tags/">Tags</a>
+                        </li>
+                        
+                    
+                    
+                </ul>
+            </div>
+        </div>
+        <!-- /.navbar-collapse -->
+    </div>
+    <!-- /.container -->
+</nav>
+<script>
+    // Drop Bootstarp low-performance Navbar
+    // Use customize navbar with high-quality material design animation
+    // in high-perf jank-free CSS3 implementation
+    var $body   = document.body;
+    var $toggle = document.querySelector('.navbar-toggle');
+    var $navbar = document.querySelector('#huxblog_navbar');
+    var $collapse = document.querySelector('.navbar-collapse');
+
+    $toggle.addEventListener('click', handleMagic)
+    function handleMagic(e){
+        if ($navbar.className.indexOf('in') > 0) {
+        // CLOSE
+            $navbar.className = " ";
+            // wait until animation end.
+            setTimeout(function(){
+                // prevent frequently toggle
+                if($navbar.className.indexOf('in') < 0) {
+                    $collapse.style.height = "0px"
+                }
+            },400)
+        }else{
+        // OPEN
+            $collapse.style.height = "auto"
+            $navbar.className += " in";
+        }
+    }
+</script>
+
+
+    <!-- Main Content -->
+    <!-- Modify by Yu-Hsuan Yen -->
+
+<!-- Post Content -->
+<article>
+    <div class="container">
+        <div class="row">
+
+            <!-- Post Container -->
+            <div class="
+                col-lg-8 col-lg-offset-2
+                col-md-10 col-md-offset-1
+                post-container">
+
+                <div id="vip-container"><h2 id="什么是-knative">什么是 Knative？</h2>
+<p>Knative 是谷歌开源的 Serverless 架构方案，旨在提供一套简单易用的 Serverless 方案，把 Serverless 标准化。目前参与的公司主要是 Google、Pivotal、IBM、Red Hat，2018 年 7 月 24 日对外发布，当前还处于快速发展的阶段。</p>
+<p>这是 Google Cloud Platform 宣布 knative 时给出的介绍：</p>
+<blockquote>
+<p>Developed in close partnership with Pivotal, IBM, Red Hat, and SAP, Knative pushes Kubernetes-based computing forward by providing the building blocks you need to build and deploy modern, container-based serverless applications.</p>
+</blockquote>
+<p>可以看出，Knative 是为了解决容器为核心的 Serverless 应用的构建、部署和运行的问题。</p>
+<blockquote>
+<p>项目地址：<a href="https://github.com/knative" target="_blank" rel="noopener">https://github.com/knative</a></p>
+</blockquote>
+<p>Serverless 的概念已经出现蛮久了，为了理解 Serverless, 可以从应用开发者的角度来看，使用 Serverless 框架之后，应用开发者的整个操作流程就变成了：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">~ # 编写 code 和 configuration 文件</span><br><span class="line"></span><br><span class="line">~ # faascli build</span><br><span class="line">~ # faascli deploy</span><br><span class="line">~ # curl http:&#x2F;&#x2F;myapp.com&#x2F;hello</span><br><span class="line">hello, world from Awesome FaaS App!</span><br></pre></td></tr></table></figure>
+<p>可以看到用户只需要编写代码（或者函数），以及配置文件（如何 Build、运行以及访问等声明式信息），然后运行 Build 和 Deploy 就能把应用自动部署到集群（可以是公有云，也可以是私有的集群）。</p>
+<p>其他事情都是 Serverless 平台（比如: 这里的 Knative）自动处理的，这些事情包括：</p>
+<ul>
+<li>
+<p>自动完成代码到容器的构建</p>
+</li>
+<li>
+<p>把应用（或者函数）和特定的事件进行绑定：当事件发生时，自动触发应用（或者函数）</p>
+</li>
+<li>
+<p>网络的路由和流量控制</p>
+</li>
+<li>
+<p>应用的自动伸缩</p>
+</li>
+<li>
+<p>和标准化的 FaaS 不同（只运行特定标准的 Function 代码），Knative 期望能够运行所有的 Workload : Traditional Application、Function、Container。</p>
+</li>
+</ul>
+<p>Knative 建立在 Kubernetes 和 Istio 平台之上，使用 Kubernetes 提供的容器管理能力（Deployment、Replicaset、和 Pods 等），以及 Istio 提供的网络管理功能（Ingress、LB、Dynamic Route 等）。</p>
+<p><img src="https://tva1.sinaimg.cn/large/006tNc79ly1g1qxs8g0vej30qt09smxr.jpg" alt=""></p>
+<a id="more"></a>
+<h2 id="knative-核心概念和原理">Knative 核心概念和原理</h2>
+<p>为了实现 Serverless 应用的管理，Knative 把整个系统分成了三个部分：</p>
+<ul>
+<li>
+<p>Build：构建系统，把用户定义的函数和应用 Build 成容器镜像</p>
+</li>
+<li>
+<p>Serving：服务系统，用来配置应用的路由、升级策略、自动扩缩容等功能</p>
+</li>
+<li>
+<p>Eventing：事件系统，用来自动完成事件的绑定和触发</p>
+</li>
+</ul>
+<h3 id="build-构建系统">Build 构建系统</h3>
+<p>Build 的功能是把用户的代码自动化构建成容器镜像，初次听起来很奇怪，有了 Docker 之后有一个 Dockerfile 不就能构建容器了吗？为什么还需要一个新的 Build 系统？</p>
+<p>Knative 的特别之处在于两点：一是它的构建完全是在 Kubernetes 中进行的，和整个 Kubernetes 生态结合更紧密；另外，它旨在提供一个通用的标准化的构建组件，可以作为其他更大系统中的一部分。</p>
+<p>正如官方文档中的说的那样，是为了定义标准化、可移植、可重用、性能高效的构建方法：</p>
+<blockquote>
+<p>The goal of a Knative build is to provide a standard, portable, reusable, and performance optimized method for defining and running on-cluster container image builds.</p>
+</blockquote>
+<p>Knative 提供了 Build CRD 对象，让用户可以通过 YAML 文件定义构建过程。一个典型的 Build 配置文件如下：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br></pre></td><td class="code"><pre><span class="line">apiVersion: build.knative.dev&#x2F;v1alpha1</span><br><span class="line">kind: Build</span><br><span class="line">metadata:</span><br><span class="line">  name: example-build</span><br><span class="line">spec:</span><br><span class="line">  serviceAccountName: build-auth-example</span><br><span class="line">  source:</span><br><span class="line">    git:</span><br><span class="line">      url: https:&#x2F;&#x2F;github.com&#x2F;example&#x2F;build-example.git</span><br><span class="line">      revision: master</span><br><span class="line">  steps:</span><br><span class="line">  - name: ubuntu-example</span><br><span class="line">    image: ubuntu</span><br><span class="line">    args: [&quot;ubuntu-build-example&quot;, &quot;SECRETS-example.md&quot;]</span><br><span class="line">  steps:</span><br><span class="line">  - image: gcr.io&#x2F;example-builders&#x2F;build-example</span><br><span class="line">    args: [&#39;echo&#39;, &#39;hello-example&#39;, &#39;build&#39;]</span><br></pre></td></tr></table></figure>
+<p>其中，<code>serviceAccountName</code> 是构建过程中需要用到的密码和认证信息（比如连接到 <code>Git Repo</code> 的 <code>SSH Keys</code>、Push 镜像到 Registry 的用户名和密码等）；</p>
+<p>source 是代码信息，比如这里的 <code>Git</code> 地址和分支；steps 是真正运行过程中的各个步骤。</p>
+<p>这个示例中的步骤只是作为 Demo，真正的构建过程一般是 Pull 代码、 Build 镜像和 Push 镜像到 Registry 等逻辑。</p>
+<p>因为大部分的构建过程都是一致的，因此 Knative 还提供了 <code>Build Template</code> 的概念，<code>Build Template</code> 封装了预先定义好的构建过程（就是封装了上面的 steps 过程），并提供了非常简单的配置参数来使用。</p>
+<p>使用 <code>Build Template</code> 构建容器镜像就更简单了，只需要提供代码的地址和镜像名字即可。比如：下面是使用 <code>Google Kaniko</code> 模板构建 Github 源码的 YAML 文件（需要在代码根目录存在 Dockerfile 文件）。</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br></pre></td><td class="code"><pre><span class="line">apiVersion: build.knative.dev&#x2F;v1alpha1</span><br><span class="line">kind: Build</span><br><span class="line">metadata:</span><br><span class="line">  name: kaniko-build</span><br><span class="line">spec:</span><br><span class="line">  serviceAccountName: build-bot</span><br><span class="line">  source:</span><br><span class="line">    git:</span><br><span class="line">      url: https:&#x2F;&#x2F;github.com&#x2F;my-user&#x2F;my-repo</span><br><span class="line">      revision: master</span><br><span class="line">  template:</span><br><span class="line">    name: kaniko</span><br><span class="line">    arguments:</span><br><span class="line">    - name: IMAGE</span><br><span class="line">      value: us.gcr.io&#x2F;my-project&#x2F;my-app</span><br></pre></td></tr></table></figure>
+<h3 id="serving服务系统">Serving：服务系统</h3>
+<p>Serving 的核心功能是让应用运行起来提供服务。</p>
+<p>虽然听起来很简单，但这里包括了很多的事情：</p>
+<ul>
+<li>
+<p>自动化启动和销毁容器</p>
+</li>
+<li>
+<p>根据名字生成网络访问相关的 service、ingress 等对象</p>
+</li>
+<li>
+<p>监控应用的请求，并自动扩缩容</p>
+</li>
+<li>
+<p>支持蓝绿发布、回滚功能，方便应用发布流程</p>
+</li>
+</ul>
+<p>Knative Serving 功能是基于 <code>Kubernetes</code> 和 <code>Istio</code> 开发的，它使用 <code>Kubernetes</code> 来管理容器（Deployment、Pod），<code>Istio</code> 来管理网络路由（VirtualService、DestinationRule）。</p>
+<p>因为 Kubernetes 和 Istio 本身的概念非常多，理解和管理起来比较困难，Knative 在此之上提供了更高一层的抽象（这些对应是基于 Kubernetes 的 CRD 实现的）。这些抽象出来的概念对应的关系如下图：</p>
+<p><img src="https://tva1.sinaimg.cn/large/006tNc79ly1g1qxu9218oj31ck0qmwgu.jpg" alt=""></p>
+<ul>
+<li>
+<p>Configuration：应用的最新配置，也就是应用目前期望的状态，对应了 Kubernetes 的容器管理（Deployment）。每次应用升级都会更新 Configuration，而 Knative 也会保留历史版本的记录（图中的 Revision），结合流量管理，Knative 可以让多个不同的版本共同提供服务，方便蓝绿发布和滚动升级</p>
+</li>
+<li>
+<p>Route：应用的路由规则，也就是进来的流量如何访问应用，对应了 Istio 的流量管理（VirtualService）</p>
+</li>
+<li>
+<p>Service：注意这里不是 Kubernetes 中提供服务发现的那个 Service，而是 Knative 自定义的 CRD，它的全称目前是 Services.Serving.Knative.Dev 。单独控制 Route 和 Configuration 就能实现 Serving 的所有功能，但 Knative 更推荐使用 Service 来管理，因为它会自动帮你管理 Route 和 Configuration</p>
+</li>
+</ul>
+<p>一个 hello world 的 Serving 配置如下所示：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br></pre></td><td class="code"><pre><span class="line">apiVersion: serving.knative.dev&#x2F;v1alpha1</span><br><span class="line">kind: Service</span><br><span class="line">metadata:</span><br><span class="line">  name: helloworld-go</span><br><span class="line">  namespace: default</span><br><span class="line">spec:</span><br><span class="line">  runLatest:</span><br><span class="line">    configuration:</span><br><span class="line">      revisionTemplate:</span><br><span class="line">        spec:</span><br><span class="line">          container:</span><br><span class="line">            image: docker.io&#x2F;&#123;username&#125;&#x2F;helloworld-go</span><br><span class="line">            env:</span><br><span class="line">            - name: TARGET</span><br><span class="line">              value: &quot;Go Sample v1&quot;</span><br></pre></td></tr></table></figure>
+<p>看起来和 Kubernetes 的 Pod 定义非常类似，但是它会帮你管理 Deployment、Ingress、Service Discovery、Auto Scaling…… 从这个角度来看，可以认为 Knative 提供了更高的抽象，自动帮你封装掉了 Kubernetes 和 Istio 的实现细节。</p>
+<p>下面这张图介绍了 Knative Serving 各组件之间的关系：</p>
+<p><img src="https://tva1.sinaimg.cn/large/006tNbRwgy1fum2swzqebj31j00to41f.jpg" alt=""></p>
+<ul>
+<li>
+<p>可以看到，每个 Revision 对应了一组 Deployment 管理的 Pod</p>
+</li>
+<li>
+<p>Pod 会自动汇报 Metrics 数据到 Autoscaler，Autoscaler 会根据请求量和资源使用情况修改 Deployment 的 Replicas 数量，从而实现自动扩缩容。Serverless 一个重要的特定是它会 Scale to 0 的，也就是当应用没有流量访问时，它会自动销毁所有的 Pod</p>
+</li>
+<li>
+<p>Activator 比较有趣，它是为了处理 Scale to 0 而出现的。当某个 Revision 后面的 Pod 缩容到 0 时，Route 的流量会指向 Activator，Activator 接收到请求之后会自动拉起 Pod，然后把流量转发过去</p>
+</li>
+<li>
+<p>Route 对象对应了 Istio 的 DestinationRoute 和 VirtualService，决定了访问应用的流量如何路由</p>
+</li>
+</ul>
+<h3 id="eventing事件系统">Eventing：事件系统</h3>
+<p>Serving 系统实现的功能是让应用/函数能够运行起来，并且自动伸缩，那什么时候才会调用应用呢？除了我们熟悉的正常应用调用之外，Serverless 最重要的是基于事件的触发机制，也就是说当某件事发生时，就触发某个特定的函数。</p>
+<p>事件概念的出现，让函数和具体的调用方能够解耦。函数部署出来不用关心谁会调用它，而事件源触发也不用关心谁会处理它。</p>
+<blockquote>
+<p>Note：目前 Serverless 的产品和平台很多，每个地方支持的事件来源以及对事件的定义都是不同的（比如 AWS Lambda 支持很多自己产品的事件源）。Knative 自然也会定义自己的事件类型，除此之外，Knative 还联合 CNCF 在做事件标准化的工作，目前的产出是 CloudEvents 这个项目。</p>
+</blockquote>
+<p>为了让整个事件系统更有扩展性和通用性，Knative 定义了很多事件相关的概念。我们先来介绍一下：</p>
+<ul>
+<li>
+<p>EventSource：事件源，能够产生事件的外部系统</p>
+</li>
+<li>
+<p>Feed：把某种类型的 EventType 和 EventSource 和对应的 Channel 绑定到一起</p>
+</li>
+<li>
+<p>Channel：对消息实现的一层抽象，后端可以使用 <code>Kafka</code>、<code>RabbitMQ</code>、<code>Google PubSub</code> 作为具体的实现。<code>Channel Name</code> 类似于消息集群中的 <code>Topic</code>，可以用来解耦事件源和函数。事件发生后 <code>Sink</code> 到某个 <code>Channel</code> 中，然后 <code>Channel</code> 中的数据会被后端的函数消费</p>
+</li>
+<li>
+<p>Subscription：把 <code>Channel</code> 和后端的函数绑定的一起，一个 <code>Channel</code> 可以绑定到多个 <code>Knative Service</code></p>
+</li>
+</ul>
+<p>它们之间的关系流程图如下：</p>
+<p><img src="https://tva1.sinaimg.cn/large/006tNbRwgy1fum30a10ynj31jm0v2dkq.jpg" alt=""></p>
+<p>Bus 是 Knative 内部的事件存储层，用户可以选择自己感兴趣的实现，目前支持的方式有：Stub（在内存中实现的简单消息系统）、<code>Kafka</code>、<code>Google PubSub</code>。如果想要事件能够正常运行，必须在 Knative 集群中安装其中一个 Bus 实现方式。</p>
+<p>有了 Bus 之后，我们就可以监听外部的事件了。目前支持的事件源有三个：<code>Github</code>（比如 Merge 事件，Push 事件等），Kubernetes（Events），Google PubSub（消息系统），后面还会不断接入更多的事件源。</p>
+<p>如果要想监听对应的事件源，需要在 Knative 中部署一个 Source Adaptor 的 Pod，它负责从外部的系统中读取事件。</p>
+<p>读取后的事件，会根据用户配置的 Feed 对象（里面包括了事件源和 Channel 的对应关系），找到对应的 Channel，然后把消息发送到这个 Channel 中（Channel 的消息最终是存储在后端的 Bus 系统里的）。</p>
+<p>然后，Knative 会根据 Subscription 的配置，不断从 Channel 中读取事件，然后把事件作为参数调用对应的函数，从而完成了整个事件的流程。</p>
+<h2 id="knative-项目进展">Knative 项目进展</h2>
+<p>Knative 是 2018 年 7 月对外开放，虽然内部已经开发一段时间，但是目前还处于非常早前的阶段，各个版本间的变化也比较大。</p>
+<p>Knative 也是脱产于 Google 和 CNCF，因此整个社区运行方式和目标与之前的 Kubernetes 以及 Istio 非常相似。社区根据组件分成多个 Working Group，每个 Group 独立负责自己的功能，所有的开源活动（文档、视频、代码）都是开放的。另外，CloudEvents 作为 Knative 依赖的标准，目标也是成为 CRI、CNI、CSI 这种类似的标准。</p>
+<p>Knative 社区目前非常活跃，从下面发行版本的速度也可以看得出来，而且入门的文档和教程都已经非常全面。Knative 各版本具体发行时间节点如下：</p>
+<ul>
+<li>
+<p>2018-07-19 v0.1.0 版本发布</p>
+</li>
+<li>
+<p>2018-10-31 v0.2.0 版本发布</p>
+</li>
+<li>
+<p>2018-01-09 v0.3.0 版本发布</p>
+</li>
+<li>
+<p>2019-02-20 v0.4.0 版本发布</p>
+</li>
+<li>
+<p>2019-04-03 v0.5.0 版本发布</p>
+</li>
+<li>
+<p>2019-05-14 v0.6.0 版本发布</p>
+</li>
+<li>
+<p>2019-06-25 v0.7.0 版本发布</p>
+</li>
+<li>
+<p>2019-08-07 v0.8.0 版本发布</p>
+</li>
+<li>
+<p>2019-09-17 v0.9.0 版本发布</p>
+</li>
+</ul>
+<h2 id="knative-应用场景和思考">Knative 应用场景和思考</h2>
+<p>Knative 基于 Kubernetes 和 Istio 的 Serverless 开源实现，目标是提供更高层次的抽象，让开发者无需关注基础设施（虚拟机或者容器，网络配置，容量规划），而专注于业务代码即可。更多关于 Knative 的使用场景可以参考 AWS Lambda 或者其他相关的文档，这里不再赘述，主要讲讲 Knative 目前的局限性或者问题：</p>
+<h3 id="1-性能问题">1. 性能问题</h3>
+<p>性能问题一直是 Serverless 被人诟病的一点，也是目前它不能广泛用于应用服务上的决定性原因。互联网的应用大多数有高并发、高性能的要求，Serverless 整个网络链路很长，容器启停需要额外的时间，还无法满足互联网应用的要求。</p>
+<p>针对这一点，很多 Serverless 框架也在不断地做改进，比如不断精简容器的启动时间、容器启动之后会做缓存等，比如 Nuclio 就宣称自己的平台比 AWS Lambda 要快 10 倍以上。</p>
+<p>相信随着 Serverless 的不断演进，性能问题会不断优化，至于能不能达到互联网应用的要求，还要时间给我们答案。</p>
+<h3 id="2-是否需要-istio-这一层">2. 是否需要 Istio 这一层？</h3>
+<p>基于 Kubernetes 的 Serverless 组件非常多，比如 Kubeless。但是基于 Kubernetes 同时又基于 Istio，目前 Knative 还是第一个这么做的。</p>
+<p>有些人的疑问在于，Knative 真的有必要基于 Istio 来做吗？对于这个问题，我个人的看法是必要的。</p>
+<p>Istio 作为集群基础设施通用网络层的地位已经开始显露，相信在未来的发展中接受度会越来越大，并逐渐巩固自己的地位。虽然现阶段来说，很多人并不非常熟悉 Istio 的情况，但是从长远角度来看，这一点将是 Knative 的一个优势所在。</p>
+<p>另外，基于 Istio 构建自己的 Serverless 服务，也符合目前软件行业不要重复造轮子的思路。Istio 在集群的网络管理方面非常优秀（智能路由、负载均衡、蓝绿发布等），基于 Istio 来做可以让 Knative 不用重复工作就能直接使用 Istio 提供的网络通用功能。</p>
+<h3 id="3-系统复杂度">3. 系统复杂度</h3>
+<p>这一点和上面类似，Knative 下面已经有两个非常复杂的平台：<code>Kubernetes</code> 和 <code>Istio</code>。这两个平台的理解、构建、运维本身就很复杂，如今又加上 <code>Knative</code> 整个平台，需要了解的概念都要几十个，更不要提落地过程中会遇到的各种问题。</p>
+<p>对于公有云来说，<code>Kubernetes</code> 和 <code>Istio</code> 这些底层平台可以交给云供应商来维护（比如 Google Function），但是对于内部构建来说，这无疑提高了整个技术门槛，对系统管理人员的要求更高。</p>
+<p>如何安装部署整个集群？如何对集群做升级？出现问题怎么调试和追踪？怎么更好地和内部的系统对接？这些系统的最佳实践是什么？怎么做性能优化？所有这些问题都需要集群管理人员思考并落实。</p>
+<h3 id="4-函数的可运维性">4. 函数的可运维性？</h3>
+<p>相对于编写微服务来说，单个函数的复杂度已经非常低，但是当非常多的函数需要共同工作的时候，如何管理这些函数就成了一个必须解决的问题。</p>
+<ul>
+<li>
+<p>如何快速找到某个函数？</p>
+</li>
+<li>
+<p>如何知道一个函数的功能是什么？接受的参数是什么？</p>
+</li>
+<li>
+<p>怎么保证函数的升级不会破坏原有的功能？升级之后如何回滚？怎么记录函数的历史版本方面追溯？</p>
+</li>
+<li>
+<p>当有多个函数需要同时工作的时候，怎么定义它们之间的关系？</p>
+</li>
+<li>
+<p>函数出现问题的时候如何调试？</p>
+</li>
+<li>
+<p>对于函数的运维，一般的 Serverless 平台（包括 Knative）都提供了 <code>Logging</code>、<code>Metrics</code>、<code>Tracing</code> 三个方面的功能。默认情况下，Knative 使用 EFK（<code>Elasticsearch</code>、<code>Fluent</code>、<code>Kibana</code>）来收集、查找和分析日志；使用 <code>Prometheus</code> + <code>Grafana</code> 来收集和索引、展示 <code>Metrics</code> 数据；使用 <code>Jaeger</code> 来进行调用关系的 <code>Tracing</code>。</p>
+</li>
+</ul>
+<p>针对 <code>Serverless</code> 衍生出来的运维工具和平台还不够多，如何调试线上问题还没有看到非常好的解决方案。</p>
+<h3 id="5-knative-成熟度">5. Knative 成熟度</h3>
+<ul>
+<li>
+<p>最后一点是关于 Knative 成熟度的，前面已经提到，Knative 目前刚出现不久。虽然整个框架和设计都已经搭好了，但是很多实现都比较初级。这里提几点来说：</p>
+</li>
+<li>
+<p>为了实现 Autoscaling，Knative 在每个 Pod 中添加一个叫做 <code>Queue Proxy</code> 的代理，它会自动把请求的 <code>Metrics</code> 发送给 <code>Autoscaler</code> 组件作为参考。这样一来，整个网络链路上又多了一层，对整个性能势必会有影响，未来的打算是直接使用 <code>Envoy Sidecar</code> 来替换掉 <code>Queue Proxy</code></p>
+</li>
+<li>
+<p>支持的事件源和消息系统还很有限，外部事件只支持 <code>Github</code>、<code>Kubernetes</code> 和 <code>Google PubSub</code>。 这个问题可以慢慢扩展，Knative 本身会实现很常用的事件类型，自定义的事件源用户可以自己实现</p>
+</li>
+<li>
+<p>目前还没有函数的 <code>Pipeline</code> 管理（类似 <code>AWS Lambda Step Functions</code>），多个函数如何协作并没有自己处理。虽然没有在官方文档中看到这方面的 <code>Roadmap</code>，但是以后一定会有这方面的功能（不管是 Knative 本身来做，还是社区作为工具补充来实现）</p>
+</li>
+</ul>
+<p>这方面的问题都不是大事情，随着 Knative 版本的迭代，在很快的时间都能够解决。</p>
+<h1 id="参考资料">参考资料</h1>
+<ol>
+<li>
+<p>Google Cloud Platform 宣布 Knative 发布的博客文章： Google Cloud Platform Blog: Bringing the best of serverless to you</p>
+</li>
+<li>
+<p>the Newstack 上非常好的科普文章： Knative Enables Portable Serverless Platforms on Kubernetes, for Any Cloud - The New Stack</p>
+</li>
+<li>
+<p>Serving 的设计理念：<a href="https://docs.google.com/presentation/d/1CbwVC7W2JaSxRyltU8CS1bIsrIXu1RrZqvnlMlDaaJE/edit#slide=id.g32c674a9d1_0_5" target="_blank" rel="noopener">https://docs.google.com/presentation/d/1CbwVC7W2JaSxRyltU8CS1bIsrIXu1RrZqvnlMlDaaJE/edit#slide=id.g32c674a9d1_0_5</a></p>
+</li>
+<li>
+<p>knative 官方文档：GitHub - knative/docs: Documentation for users of Knative components</p>
+</li>
+<li>
+<p>Google Cloud Next 2018 大会上宣布 knative 的视频 presentation： Kubernetes, Serverless, and You (Cloud Next ’18) - YouTube</p>
+</li>
+<li>
+<p>Google Cloud Knative 产品页面，目前只有最简单的介绍和文档链接</p>
+</li>
+<li>
+<p>什么是 istio</p>
+</li>
+</ol>
+<blockquote>
+<p>来源：Cizixs Blog</p>
+<p>原文：<a href="https://url.cn/5vuvX3Z" target="_blank" rel="noopener">https://url.cn/5vuvX3Z</a></p>
+<p>题图：来自谷歌图片搜索</p>
+<p>版权：本文版权归原作者所有</p>
+<p>投稿：欢迎投稿，邮箱: <a href="mailto:editor@hi-linux.com">editor@hi-linux.com</a></p>
+</blockquote>
+</div>
+
+			<script src="https://my.openwrite.cn/js/readmore.js" type="text/javascript"></script>
+			<script>
+			var isMobile = navigator.userAgent.match(/(phone|pad|pod|iPhone|iPod|ios|iPad|Android|Mobile|BlackBerry|IEMobile|MQQBrowser|JUC|Fennec|wOSBrowser|BrowserNG|WebOS|Symbian|Windows Phone)/i);
+			if (!isMobile) {
+			    var btw = new BTWPlugin();
+			    btw.init({
+			        "id": "vip-container",
+			        "blogId": "10135-1588830050631-449",
+			        "name": "「奇妙的 Linux 世界」",
+			        "qrcode": "https://www.hi-linux.com/img/wechat/mp_qrcode_12.jpg",
+			        "keyword": "VIP"
+			    });
+			}
+			</script>
+		
+                
+
+                <hr>
+                <!-- Pager -->
+                <ul class="pager">
+                    
+                        <li class="previous">
+                            <a href="/posts/33485.html" data-toggle="tooltip" data-placement="top" title="如何平滑的变更单表超 100000000 条记录的数据库结构">&larr; Previous Post</a>
+                        </li>
+                    
+                    
+                        <li class="next">
+                            <a href="/posts/54495.html" data-toggle="tooltip" data-placement="top" title="初识 GitOps">Next Post &rarr;</a>
+                        </li>
+                    
+                </ul>
+
+                <!-- duoshuo Share start -->
+                
+                <!-- 多说 Share end-->
+
+                <!-- 多说评论框 start -->
+                
+                <!-- 多说评论框 end -->
+
+                <!-- disqus comment start -->
+                
+                <!-- disqus comment end -->
+
+                
+                    <!-- disqus 评论框 start -->
+                    <div class="comment">
+                        <div id="lv-container" data-id="city" data-uid="MTAyMC8yNzg2My80NDQw"></div>
+                    </div>
+                    <!-- disqus 评论框 end -->
+                
+
+            </div>
+            
+            <!-- Tabe of Content -->
+            <!-- Table of Contents -->
+
+  
+    <style>
+      span.toc-nav-number{
+        display: none
+      }
+    </style>
+  
+    
+      <aside id="sidebar">
+        <div id="toc" class="toc-article">
+        <strong class="toc-title">Contents</strong>
+        
+          <ol class="toc-nav"><li class="toc-nav-item toc-nav-level-2"><a class="toc-nav-link" href="#什么是-knative"><span class="toc-nav-number">1.</span> <span class="toc-nav-text">什么是 Knative？</span></a></li><li class="toc-nav-item toc-nav-level-2"><a class="toc-nav-link" href="#knative-核心概念和原理"><span class="toc-nav-number">2.</span> <span class="toc-nav-text">Knative 核心概念和原理</span></a><ol class="toc-nav-child"><li class="toc-nav-item toc-nav-level-3"><a class="toc-nav-link" href="#build-构建系统"><span class="toc-nav-number">2.1.</span> <span class="toc-nav-text">Build 构建系统</span></a></li><li class="toc-nav-item toc-nav-level-3"><a class="toc-nav-link" href="#serving服务系统"><span class="toc-nav-number">2.2.</span> <span class="toc-nav-text">Serving：服务系统</span></a></li><li class="toc-nav-item toc-nav-level-3"><a class="toc-nav-link" href="#eventing事件系统"><span class="toc-nav-number">2.3.</span> <span class="toc-nav-text">Eventing：事件系统</span></a></li></ol></li><li class="toc-nav-item toc-nav-level-2"><a class="toc-nav-link" href="#knative-项目进展"><span class="toc-nav-number">3.</span> <span class="toc-nav-text">Knative 项目进展</span></a></li><li class="toc-nav-item toc-nav-level-2"><a class="toc-nav-link" href="#knative-应用场景和思考"><span class="toc-nav-number">4.</span> <span class="toc-nav-text">Knative 应用场景和思考</span></a><ol class="toc-nav-child"><li class="toc-nav-item toc-nav-level-3"><a class="toc-nav-link" href="#1-性能问题"><span class="toc-nav-number">4.1.</span> <span class="toc-nav-text">1. 性能问题</span></a></li><li class="toc-nav-item toc-nav-level-3"><a class="toc-nav-link" href="#2-是否需要-istio-这一层"><span class="toc-nav-number">4.2.</span> <span class="toc-nav-text">2. 是否需要 Istio 这一层？</span></a></li><li class="toc-nav-item toc-nav-level-3"><a class="toc-nav-link" href="#3-系统复杂度"><span class="toc-nav-number">4.3.</span> <span class="toc-nav-text">3. 系统复杂度</span></a></li><li class="toc-nav-item toc-nav-level-3"><a class="toc-nav-link" href="#4-函数的可运维性"><span class="toc-nav-number">4.4.</span> <span class="toc-nav-text">4. 函数的可运维性？</span></a></li><li class="toc-nav-item toc-nav-level-3"><a class="toc-nav-link" href="#5-knative-成熟度"><span class="toc-nav-number">4.5.</span> <span class="toc-nav-text">5. Knative 成熟度</span></a></li></ol></li></ol></li><li class="toc-nav-item toc-nav-level-1"><a class="toc-nav-link" href="#参考资料"><span class="toc-nav-number"></span> <span class="toc-nav-text">参考资料</span></a>
+        
+        </div>
+      </aside>
+    
+
+                
+            <!-- Sidebar Container -->
+            <div class="
+                col-lg-8 col-lg-offset-2
+                col-md-10 col-md-offset-1
+                sidebar-container">
+
+                <!-- Featured Tags -->
+                
+                <section>
+                    <!-- no hr -->
+                    <h5><a href="/tags/">FEATURED TAGS</a></h5>
+                    <div class="tags">
+                       
+                          <a class="tag" href="/tags/#Linux" title="Linux">Linux</a>
+                        
+                          <a class="tag" href="/tags/#技巧" title="技巧">技巧</a>
+                        
+                          <a class="tag" href="/tags/#Knative" title="Knative">Knative</a>
+                        
+                    </div>
+                </section>
+                
+
+                <!-- Friends Blog -->
+                
+                <hr>
+                <h5>FRIENDS</h5>
+                <ul class="list-inline">
+
+                    
+                        <li><a href="http://www.mike.org.cn/" target="_blank">简单.生活</a></li>
+                    
+                        <li><a href="http://shang.qq.com/wpa/qunwpa?idkey=ea4c43493c2269428ac6ef6141de4b6d78e5ab2d41380ca4099b833b62884ee9" target="_blank">技术交流群</a></li>
+                    
+                        <li><a href="" target="_blank"></a></li>
+                    
+                        <li><a href="" target="_blank"></a></li>
+                    
+                </ul>
+                
+            </div>
+        </div>
+    </div>
+</article>
+
+
+
+
+
+
+    <!-- 来必力City版公共JS代码 start (一个网页只需插入一次) -->
+    <script type="text/javascript">
+       (function(d, s) {
+           var j, e = d.getElementsByTagName(s)[0];
+    
+           if (typeof LivereTower === 'function') { return; }
+    
+           j = d.createElement(s);
+           j.src = 'https://cdn-city.livere.com/js/embed.dist.js';
+           j.async = true;
+    
+           e.parentNode.insertBefore(j, e);
+       })(document, 'script');
+    </script>
+    <noscript>为正常使用来必力评论功能请激活JavaScript</noscript>
+    <!-- 来必力City版 公共JS代码 end -->
+
+
+
+<!-- async load function -->
+<script>
+    function async(u, c) {
+      var d = document, t = 'script',
+          o = d.createElement(t),
+          s = d.getElementsByTagName(t)[0];
+      o.src = u;
+      if (c) { o.addEventListener('load', function (e) { c(null, e); }, false); }
+      s.parentNode.insertBefore(o, s);
+    }
+</script>
+<!-- anchor-js, Doc:http://bryanbraun.github.io/anchorjs/ -->
+<script>
+    async("https://cdn.bootcss.com/anchor-js/1.1.1/anchor.min.js",function(){
+        anchors.options = {
+          visible: 'hover',
+          placement: 'left',
+          icon: 'ℬ'
+        };
+        anchors.add().remove('.intro-header h1').remove('.subheading').remove('.sidebar-container h5');
+    })
+</script>
+<style>
+    /* place left on bigger screen */
+    @media all and (min-width: 800px) {
+        .anchorjs-link{
+            position: absolute;
+            left: -0.75em;
+            font-size: 1.1em;
+            margin-top : -0.1em;
+        }
+    }
+</style>
+
+
+
+    <!-- Footer -->
+    <!-- Footer -->
+<footer>
+    <div class="container">
+        <div class="row">
+            <div class="col-lg-8 col-lg-offset-2 col-md-10 col-md-offset-1">
+                <ul class="list-inline text-center">
+                
+                    <li>
+                        <a href="/atom.xml">
+                            <span class="fa-stack fa-lg">
+                                <i class="fa fa-circle fa-stack-2x"></i>
+                                <i class="fa fa-rss fa-stack-1x fa-inverse"></i>
+                            </span>
+                        </a>
+                    </li>
+                
+                
+                
+                    <li>
+                        <a target="_blank" href="https://www.zhihu.com/people/80imike">
+                            <span class="fa-stack fa-lg">
+                                <i class="fa fa-circle fa-stack-2x"></i>
+                                <i class="fa  fa-stack-1x fa-inverse">知</i>
+                            </span>
+                        </a>
+                    </li>
+                
+
+                
+                    <li>
+                        <a target="_blank" href="http://weibo.com/2093524665">
+                            <span class="fa-stack fa-lg">
+                                <i class="fa fa-circle fa-stack-2x"></i>
+                                <i class="fa fa-weibo fa-stack-1x fa-inverse"></i>
+                            </span>
+                        </a>
+                    </li>
+                
+
+                
+
+                
+
+                
+
+                </ul>
+                <p class="copyright text-muted">
+                    Copyright &copy; Mike 2020 | Hosted by <a href="https://pages.coding.me" target="_blank" rel="noopener" style="font-weight: bold">Coding Pages</a>
+                    <br>
+                    Theme by <a href="http://beantech.org" target="_blank" rel="noopener">BeanTech</a> 
+                    <span style="display: inline-block; margin: 0 5px;">
+                        <i class="fa fa-heart"></i>
+                    </span> 
+                    re-Ported by <a href="http://www.huweihuang.com" target="_blank" rel="noopener">胡伟煌</a> | 
+                    <iframe
+                        style="margin-left: 2px; margin-bottom:-5px;"
+                        frameborder="0" scrolling="0" width="91px" height="20px"
+                        src="https://ghbtns.com/github-btn.html?user=huweihuang&repo=hexo-theme-huweihuang&type=star&count=true" >
+                    </iframe>
+                </p>
+            </div>
+        </div>
+    </div>
+</footer>
+
+<!-- jQuery -->
+
+<script src="/js/jquery.min.js"></script>
+
+
+<!-- Bootstrap Core JavaScript -->
+
+<script src="/js/bootstrap.min.js"></script>
+
+
+<!-- Custom Theme JavaScript -->
+
+<script src="/js/hux-blog.min.js"></script>
+
+
+
+<!-- async load function -->
+<script>
+    function async(u, c) {
+      var d = document, t = 'script',
+          o = d.createElement(t),
+          s = d.getElementsByTagName(t)[0];
+      o.src = u;
+      if (c) { o.addEventListener('load', function (e) { c(null, e); }, false); }
+      s.parentNode.insertBefore(o, s);
+    }
+</script>
+
+<!-- 
+     Because of the native support for backtick-style fenced code blocks 
+     right within the Markdown is landed in Github Pages, 
+     From V1.6, There is no need for Highlight.js, 
+     so Huxblog drops it officially.
+
+     - https://github.com/blog/2100-github-pages-now-faster-and-simpler-with-jekyll-3-0  
+     - https://help.github.com/articles/creating-and-highlighting-code-blocks/    
+-->
+<!--
+    <script>
+        async("http://cdn.bootcss.com/highlight.js/8.6/highlight.min.js", function(){
+            hljs.initHighlightingOnLoad();
+        })
+    </script>
+    <link href="http://cdn.bootcss.com/highlight.js/8.6/styles/github.min.css" rel="stylesheet">
+-->
+
+
+<!-- jquery.tagcloud.js -->
+<script>
+    // only load tagcloud.js in tag.html
+    if($('#tag_cloud').length !== 0){
+        async("https://www.hi-linux.com/js/jquery.tagcloud.js",function(){
+            $.fn.tagcloud.defaults = {
+                //size: {start: 1, end: 1, unit: 'em'},
+                color: {start: '#bbbbee', end: '#0085a1'},
+            };
+            $('#tag_cloud a').tagcloud();
+        })
+    }
+</script>
+
+<!--fastClick.js -->
+<script>
+    async("https://cdn.bootcss.com/fastclick/1.0.6/fastclick.min.js", function(){
+        var $nav = document.querySelector("nav");
+        if($nav) FastClick.attach($nav);
+    })
+</script>
+
+
+<!-- Google Analytics -->
+
+
+
+
+<!-- Baidu Tongji -->
+
+
+
+
+
+
+	<a id="rocket" href="#top" class=""></a>
+	<script type="text/javascript" src="/js/totop.js?v=1.0.0" async=""></script>
+    <script type="text/javascript" src="/js/toc.js?v=1.0.0" async=""></script>
+<!-- Image to hack wechat -->
+<img src="https://www.hi-linux.com/img/icon_wechat.png" width="0" height="0" />
+<!-- Migrate from head to bottom, no longer block render and still work -->
+
+<script>(function(w,d, s, id) {w.webpushr=w.webpushr||function(){(w.webpushr.q=w.webpushr.q||[]).push(arguments)};var js, fjs = d.getElementsByTagName(s)[0];js = d.createElement(s); js.id = id;js.src = 'https://cdn.webpushr.com/app.min.js';fjs.parentNode.appendChild(js);}(window,document, 'script', 'webpushr-jssdk'));webpushr('init','BF9JK7xV9kjWTdMx2lr6RWaPfXV7wNuZaVAJ1bfIGoBNJavqLEBVFMKLubITnCA4bh2fI9iH9tMF95nXnPt7xxY');</script></body>
+
+</html>
