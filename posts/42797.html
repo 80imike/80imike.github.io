@@ -1,0 +1,639 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<!-- Head tag -->
+<head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="google-site-verification" content="xBT4GhYoi5qRD5tr338pgPM5OWHHIDR6mNg1a3euekI" />
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="description" content="">
+    <meta name="keyword"  content="Linux,运维,Nginx,Zabbix,Centos,Ansible,MySQL,Python,Docker,ELK,Haproxy,Git,Nodejs,安全,技术">
+    <link rel="shortcut icon" href="/img/ironman-draw.png">
+    <!-- Place this tag in your head or just before your close body tag. -->
+    <script async defer src="https://buttons.github.io/buttons.js"></script>
+    <title>
+        
+          推荐几个 Linux 下快速分析内存占用的工具 - 运维之美
+        
+    </title>
+
+    <link rel="canonical" href="https://www.hi-linux.com/posts/42797.html">
+
+    <!-- Bootstrap Core CSS -->
+    
+<link rel="stylesheet" href="/css/bootstrap.min.css">
+
+
+    <!-- Custom CSS --> 
+    
+<link rel="stylesheet" href="/css/beantech.min.css">
+
+    
+    <!-- Pygments Highlight CSS -->
+    
+<link rel="stylesheet" href="/css/highlight.css">
+
+
+    
+<link rel="stylesheet" href="/css/widget.css">
+
+
+    
+<link rel="stylesheet" href="/css/rocket.css">
+
+
+    
+<link rel="stylesheet" href="/css/signature.css">
+
+
+    
+<link rel="stylesheet" href="/css/toc.css">
+
+
+    <!-- Custom Fonts -->
+    <!-- <link href="https://maxcdn.bootstrapcdn.com/font-awesome/4.3.0/css/font-awesome.min.css" rel="stylesheet" type="text/css"> -->
+    <!-- Hux change font-awesome CDN to qiniu -->
+    <link href="https://cdn.staticfile.org/font-awesome/4.5.0/css/font-awesome.min.css" rel="stylesheet" type="text/css">
+
+
+    <!-- Hux Delete, sad but pending in China
+    <link href='http://fonts.googleapis.com/css?family=Lora:400,700,400italic,700italic' rel='stylesheet' type='text/css'>
+    <link href='http://fonts.googleapis.com/css?family=Open+Sans:300italic,400italic,600italic,700italic,800italic,400,300,600,700,800' rel='stylesheet' type='text/
+    css'>
+    -->
+
+
+    <!-- HTML5 Shim and Respond.js IE8 support of HTML5 elements and media queries -->
+    <!-- WARNING: Respond.js doesn't work if you view the page via file:// -->
+    <!--[if lt IE 9]>
+        <script src="https://oss.maxcdn.com/libs/html5shiv/3.7.0/html5shiv.js"></script>
+        <script src="https://oss.maxcdn.com/libs/respond.js/1.4.2/respond.min.js"></script>
+    <![endif]-->
+
+    <!-- ga & ba script hoook -->
+    <script></script>
+<meta name="generator" content="Hexo 4.2.0"><link rel="alternate" href="/atom.xml" title="运维之美" type="application/atom+xml">
+</head>
+
+
+<!-- hack iOS CSS :active style -->
+<body ontouchstart="">
+	<!-- Modified by Yu-Hsuan Yen -->
+<!-- Post Header -->
+<style type="text/css">
+    header.intro-header{
+        
+            background-image: url('/img/header_img/building.jpg')
+            /*post*/
+        
+    }
+    
+</style>
+
+<header class="intro-header" >
+    <!-- Signature -->
+    <div id="signature">
+        <div class="container">
+            <div class="row">
+                <div class="col-lg-8 col-lg-offset-2 col-md-10 col-md-offset-1">
+                
+                    <div class="post-heading">
+                        <div class="tags">
+                            
+                              <a class="tag" href="/tags/#Linux" title="Linux">Linux</a>
+                            
+                              <a class="tag" href="/tags/#技巧" title="技巧">技巧</a>
+                            
+                              <a class="tag" href="/tags/#工具" title="工具">工具</a>
+                            
+                        </div>
+                        <h1>推荐几个 Linux 下快速分析内存占用的工具</h1>
+                        <h2 class="subheading"></h2>
+                        <span class="meta">
+                            Posted by Mike on
+                            2020-05-23
+                        </span>
+                    </div>
+                
+
+
+                </div>
+            </div>
+        </div>
+    </div>
+</header>
+
+	
+    <!-- Navigation -->
+<nav class="navbar navbar-default navbar-custom navbar-fixed-top">
+    <div class="container-fluid">
+        <!-- Brand and toggle get grouped for better mobile display -->
+        <div class="navbar-header page-scroll">
+            <button type="button" class="navbar-toggle">
+                <span class="sr-only">Toggle navigation</span>
+                <span class="icon-bar"></span>
+                <span class="icon-bar"></span>
+                <span class="icon-bar"></span>
+            </button>
+            <a class="navbar-brand" href="/">运维之美</a>
+        </div>
+
+        <!-- Collect the nav links, forms, and other content for toggling -->
+        <!-- Known Issue, found by Hux:
+            <nav>'s height woule be hold on by its content.
+            so, when navbar scale out, the <nav> will cover tags.
+            also mask any touch event of tags, unfortunately.
+        -->
+        <div id="huxblog_navbar">
+            <div class="navbar-collapse">
+                <ul class="nav navbar-nav navbar-right">
+                    <li>
+                        <a href="/">Home</a>
+                    </li>
+
+                    
+
+                        
+                    
+
+                        
+                    
+
+                        
+                        <li>
+                            <a href="/about/">About</a>
+                        </li>
+                        
+                    
+
+                        
+                        <li>
+                            <a href="/archive/">Archives</a>
+                        </li>
+                        
+                    
+
+                        
+                        <li>
+                            <a href="/tags/">Tags</a>
+                        </li>
+                        
+                    
+                    
+                </ul>
+            </div>
+        </div>
+        <!-- /.navbar-collapse -->
+    </div>
+    <!-- /.container -->
+</nav>
+<script>
+    // Drop Bootstarp low-performance Navbar
+    // Use customize navbar with high-quality material design animation
+    // in high-perf jank-free CSS3 implementation
+    var $body   = document.body;
+    var $toggle = document.querySelector('.navbar-toggle');
+    var $navbar = document.querySelector('#huxblog_navbar');
+    var $collapse = document.querySelector('.navbar-collapse');
+
+    $toggle.addEventListener('click', handleMagic)
+    function handleMagic(e){
+        if ($navbar.className.indexOf('in') > 0) {
+        // CLOSE
+            $navbar.className = " ";
+            // wait until animation end.
+            setTimeout(function(){
+                // prevent frequently toggle
+                if($navbar.className.indexOf('in') < 0) {
+                    $collapse.style.height = "0px"
+                }
+            },400)
+        }else{
+        // OPEN
+            $collapse.style.height = "auto"
+            $navbar.className += " in";
+        }
+    }
+</script>
+
+
+    <!-- Main Content -->
+    <!-- Modify by Yu-Hsuan Yen -->
+
+<!-- Post Content -->
+<article>
+    <div class="container">
+        <div class="row">
+
+            <!-- Post Container -->
+            <div class="
+                col-lg-8 col-lg-offset-2
+                col-md-10 col-md-offset-1
+                post-container">
+
+                <div id="vip-container"><p>一个经常被问到的 <code>Linux</code> 问题：为啥 <code>Linux</code> 系统没运行多少程序，显示的可用内存这么少？</p>
+<p>其实 <code>Linux</code> 与 <code>Windows</code> 的内存管理不同，会尽量缓存内存以提高读写性能，通常叫做 <code>Cache Memory</code>。</p>
+<p>比较老的资料都会介绍 <code>Linux</code> 的 <code>Cache</code> 占用很多并没有关系，因为 <code>Linux</code> 会尽可能利用内存进行缓存。但是缓存的回收也是需要资源的，比较好的一篇文章是 Poor Zorro 写的 <code>Linux</code> 内存中的 Cache 真的能被回收么？。</p>
+<p>虽然大部分情况下我们看到 <code>Cache</code> 占用很高时是没有问题的，但是我们还是想弄清楚到底是哪个程序把 <code>Cache</code> 弄的那么高，这居然不是一件容易的事。</p>
+<p>内核的模块在分配资源的时候，为了提高效率和资源的利用率，都是透过 <code>Slab</code> 来分配的。<code>Slab</code> 为结构性缓存占用内存，该项也经常占用很大的内存。不过借助 <code>slabtop</code> 工具，我们可以很方便的显示内核片缓存信息，该工具可以更直观的显示 <code>/proc/slabinfo</code> 下的内容。</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br></pre></td><td class="code"><pre><span class="line"># 显示了一台机器缓存中占用对象的情况</span><br><span class="line">$ slabtop -s c </span><br><span class="line">Active &#x2F; Total Objects (% used)    : 856448 &#x2F; 873737 (98.0%)</span><br><span class="line"> Active &#x2F; Total Slabs (% used)      : 19737 &#x2F; 19737 (100.0%)</span><br><span class="line"> Active &#x2F; Total Caches (% used)     : 67 &#x2F; 89 (75.3%)</span><br><span class="line"> Active &#x2F; Total Size (% used)       : 141806.80K &#x2F; 145931.33K (97.2%)</span><br><span class="line"> Minimum &#x2F; Average &#x2F; Maximum Object : 0.01K &#x2F; 0.17K &#x2F; 8.00K</span><br><span class="line">  OBJS ACTIVE  USE OBJ SIZE  SLABS OBJ&#x2F;SLAB CACHE SIZE NAME</span><br><span class="line">416949 416949 100%    0.10K  10691	 39     42764K buffer_head</span><br><span class="line">  5616   5545  98%    2.00K    351	 16     11232K kmalloc-2048</span><br><span class="line">  9114   8990  98%    1.02K    294	 31	 9408K ext4_inode_cache</span><br><span class="line"> 12404  12404 100%    0.57K    443	 28	 7088K radix_tree_node</span><br><span class="line"> 10800  10731  99%    0.58K    400	 27	 6400K inode_cache</span><br><span class="line"> 31290  29649  94%    0.19K    745	 42	 5960K dentry</span><br><span class="line">  3552   3362  94%    1.00K    111	 32	 3552K kmalloc-1024</span><br><span class="line">  1100   1055  95%    2.84K    100	 11	 3200K task_struct</span><br><span class="line">  1649   1481  89%    1.88K     97	 17	 3104K TCP</span><br><span class="line"> 27000  27000 100%    0.11K    750	 36	 3000K sysfs_dir_cache</span><br><span class="line">  1380   1269  91%    2.06K     92	 15	 2944K sighand_cache</span><br></pre></td></tr></table></figure>
+<p>虽然上面的命令显示了 <code>Cache</code> 中 <code>Slab</code> 的情况，但是还是没有显示什么程序占用的 <code>Cache</code>。</p>
+<a id="more"></a>
+<h2 id="方案一使用-pcstat-来实现">方案一：使用 Pcstat 来实现</h2>
+<p>经过搜索，发现 <code>linux-ftools</code> 这个工具可以显示某个文件占用的 <code>Cache</code> 的情况, <code>fincore</code> 只是它其中的一个工具。</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br></pre></td><td class="code"><pre><span class="line">$ fincore [options] files...</span><br><span class="line">  --pages&#x3D;false      Do not print pages</span><br><span class="line">  --summarize        When comparing multiple files, print a summary report</span><br><span class="line">  --only-cached      Only print stats for files that are actually in cache.</span><br><span class="line">https:&#x2F;&#x2F;colobu.com&#x2F;2017&#x2F;03&#x2F;07&#x2F;what-is-in-linux-cached&#x2F;root@xxxxxx:&#x2F;var&#x2F;lib&#x2F;mysql&#x2F;blogindex# fincore --pages&#x3D;false --summarize --only-cached * </span><br><span class="line">stats for CLUSTER_LOG_2010_05_21.MYI: file size&#x3D;93840384 , total pages&#x3D;22910 , cached pages&#x3D;1 , cached size&#x3D;4096, cached perc&#x3D;0.004365 </span><br><span class="line">stats for CLUSTER_LOG_2010_05_22.MYI: file size&#x3D;417792 , total pages&#x3D;102 , cached pages&#x3D;1 , cached size&#x3D;4096, cached perc&#x3D;0.980392 </span><br><span class="line">stats for CLUSTER_LOG_2010_05_23.MYI: file size&#x3D;826368 , total pages&#x3D;201 , cached pages&#x3D;1 , cached size&#x3D;4096, cached perc&#x3D;0.497512 </span><br><span class="line">stats for CLUSTER_LOG_2010_05_24.MYI: file size&#x3D;192512 , total pages&#x3D;47 , cached pages&#x3D;1 , cached size&#x3D;4096, cached perc&#x3D;2.127660 </span><br><span class="line">stats for CLUSTER_LOG_2010_06_03.MYI: file size&#x3D;345088 , total pages&#x3D;84 , cached pages&#x3D;43 , cached size&#x3D;176128, cached perc&#x3D;51.190476 </span><br><span class="line">stats for CLUSTER_LOG_2010_06_04.MYD: file size&#x3D;1478552 , total pages&#x3D;360 , cached pages&#x3D;97 , cached size&#x3D;397312, cached perc&#x3D;26.944444 </span><br><span class="line">stats for CLUSTER_LOG_2010_06_04.MYI: file size&#x3D;205824 , total pages&#x3D;50 , cached pages&#x3D;29 , cached size&#x3D;118784, cached perc&#x3D;58.000000 </span><br><span class="line">stats for COMMENT_CONTENT_2010_06_03.MYI: file size&#x3D;100051968 , total pages&#x3D;24426 , cached pages&#x3D;10253 , cached size&#x3D;41996288, cached perc&#x3D;41.975764 </span><br><span class="line">stats for COMMENT_CONTENT_2010_06_04.MYD: file size&#x3D;716369644 , total pages&#x3D;174894 , cached pages&#x3D;79821 , cached size&#x3D;326946816, cached perc&#x3D;45.639645 </span><br><span class="line">stats for COMMENT_CONTENT_2010_06_04.MYI: file size&#x3D;56832000 , total pages&#x3D;13875 , cached pages&#x3D;5365 , cached size&#x3D;21975040, cached perc&#x3D;38.666667 </span><br><span class="line">stats for FEED_CONTENT_2010_06_03.MYI: file size&#x3D;1001518080 , total pages&#x3D;244511 , cached pages&#x3D;98975 , cached size&#x3D;405401600, cached perc&#x3D;40.478751 </span><br><span class="line">stats for FEED_CONTENT_2010_06_04.MYD: file size&#x3D;9206385684 , total pages&#x3D;2247652 , cached pages&#x3D;1018661 , cached size&#x3D;4172435456, cached perc&#x3D;45.321117 </span><br><span class="line">stats for FEED_CONTENT_2010_06_04.MYI: file size&#x3D;638005248 , total pages&#x3D;155763 , cached pages&#x3D;52912 , cached size&#x3D;216727552, cached perc&#x3D;33.969556 </span><br><span class="line">stats for FEED_CONTENT_2010_06_04.frm: file size&#x3D;9840 , total pages&#x3D;2 , cached pages&#x3D;3 , cached size&#x3D;12288, cached perc&#x3D;150.000000 </span><br><span class="line">stats for PERMALINK_CONTENT_2010_06_03.MYI: file size&#x3D;1035290624 , total pages&#x3D;252756 , cached pages&#x3D;108563 , cached size&#x3D;444674048, cached perc&#x3D;42.951700 </span><br><span class="line">stats for PERMALINK_CONTENT_2010_06_04.MYD: file size&#x3D;55619712720 , total pages&#x3D;13579031 , cached pages&#x3D;6590322 , cached size&#x3D;26993958912, cached perc&#x3D;48.533080 </span><br><span class="line">stats for PERMALINK_CONTENT_2010_06_04.MYI: file size&#x3D;659397632 , total pages&#x3D;160985 , cached pages&#x3D;54304 , cached size&#x3D;222429184, cached perc&#x3D;33.732335 </span><br><span class="line">stats for PERMALINK_CONTENT_2010_06_04.frm: file size&#x3D;10156 , total pages&#x3D;2 , cached pages&#x3D;3 , cached size&#x3D;12288, cached perc&#x3D;150.000000 </span><br><span class="line">---</span><br><span class="line">total cached size: 32847278080</span><br></pre></td></tr></table></figure>
+<p><code>fincore</code> 的工作原理是将指定文件的相应 <code>Inode Data</code> 与 <code>Kernel</code> 的 <code>Page Cache Table</code> 做对比，如果 <code>Page Cache Table</code> 有这个 <code>Inode</code> 信息，就找到该 <code>Inode</code> 对应的 <code>Data Block</code> 的大小。</p>
+<p>因为 <code>Kernel</code> 的 <code>Page Cache Table</code> 只存储 <code>Data Block</code> 的引用而不是文件名，即文件的 <code>Inode</code> 信息。所以并没有任何一个工具运行一次就可以找出所有的文件使用缓存的情况。所以使用 <code>linux-fincore</code> 这个工具也只能加文件名来判断该文件是否被缓存，如果缓存，大小是多少。问题是你不能随便猜哪个文件是否被缓存吧。</p>
+<p><code>Shanker</code> 提供了一个脚本来解决此问题，那就是查看哪些进程使用的物理内存最多，就找到该进程打开的文件，然后用 <code>fincore</code> 来查看这些文件的缓存使用率。</p>
+<p>这个办法在大部分情况下都可以找到占用 <code>Cache</code> 较多的程序和进程。脚本内容如下：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br></pre></td><td class="code"><pre><span class="line">#!&#x2F;bin&#x2F;bash</span><br><span class="line">#Author: Shanker</span><br><span class="line">#Time: 2016&#x2F;06&#x2F;08</span><br><span class="line">#set -e</span><br><span class="line">#set -u</span><br><span class="line"></span><br><span class="line">#you have to install linux-fincore</span><br><span class="line">if [ ! -f &#x2F;usr&#x2F;local&#x2F;bin&#x2F;linux-fincore ]</span><br><span class="line">then</span><br><span class="line">    echo &quot;You haven&#39;t installed linux-fincore yet&quot;</span><br><span class="line">    exit</span><br><span class="line">fi</span><br><span class="line"></span><br><span class="line">#find the top 10 processs&#39; cache file</span><br><span class="line">ps -e -o pid,rss|sort -nk2 -r|head -10 |awk &#39;&#123;print $1&#125;&#39;&gt;&#x2F;tmp&#x2F;cache.pids</span><br><span class="line"></span><br><span class="line">#find all the processs&#39; cache file</span><br><span class="line">#ps -e -o pid&gt;&#x2F;tmp&#x2F;cache.pids</span><br><span class="line">if [ -f &#x2F;tmp&#x2F;cache.files ]</span><br><span class="line">then</span><br><span class="line">    echo &quot;the cache.files is exist, removing now &quot;</span><br><span class="line">    rm -f &#x2F;tmp&#x2F;cache.files</span><br><span class="line">fi</span><br><span class="line"></span><br><span class="line">while read line</span><br><span class="line">do</span><br><span class="line">    lsof -p $line 2&gt;&#x2F;dev&#x2F;null|awk &#39;&#123;print $9&#125;&#39; &gt;&gt;&#x2F;tmp&#x2F;cache.files </span><br><span class="line">done&lt;&#x2F;tmp&#x2F;cache.pids</span><br><span class="line"></span><br><span class="line">if [ -f &#x2F;tmp&#x2F;cache.fincore ]</span><br><span class="line">then</span><br><span class="line">    echo &quot;the cache.fincore is exist, removing now&quot;</span><br><span class="line">    rm -f &#x2F;tmp&#x2F;cache.fincore</span><br><span class="line">fi</span><br><span class="line"></span><br><span class="line">for i in &#96;cat &#x2F;tmp&#x2F;cache.files&#96;</span><br><span class="line">do</span><br><span class="line">    if [ -f $i ]</span><br><span class="line">    then</span><br><span class="line">        echo $i &gt;&gt;&#x2F;tmp&#x2F;cache.fincore</span><br><span class="line">    fi</span><br><span class="line">done</span><br><span class="line"></span><br><span class="line">linux-fincore -s  &#96;cat &#x2F;tmp&#x2F;cache.fincore&#96;</span><br><span class="line">rm -f &#x2F;tmp&#x2F;cache.&#123;pids,files,fincore&#125;</span><br></pre></td></tr></table></figure>
+<p>比较遗憾的是，<code>linux-ftools</code> 目前已经不再维护了。在新版本的操作系统上没法编译好这个程序，所以这个方法失效了。</p>
+<p>再次通过万能的 <code>Google</code> 搜索，后来我找到了 <code>pcstat</code> 这个工具，<code>pcstat</code> 使用 Go 语言开发，功能基本和 <code>linux-ftools</code> 一样 。</p>
+<blockquote>
+<p>项目地址：<a href="https://github.com/tobert/pcstat" target="_blank" rel="noopener">https://github.com/tobert/pcstat</a></p>
+</blockquote>
+<p>然后我修改了 <code>Shanker</code> 的脚本，让它使用 <code>pcstat</code> 来进行处理，这样就可以很好的找到 <code>Cache</code> 所占用的情况。修改后的脚本如下：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br></pre></td><td class="code"><pre><span class="line">#!&#x2F;bin&#x2F;bash</span><br><span class="line"></span><br><span class="line">#you have to install pcstat</span><br><span class="line">if [ ! -f &#x2F;data0&#x2F;brokerproxy&#x2F;pcstat ]</span><br><span class="line">then</span><br><span class="line">    echo &quot;You haven&#39;t installed pcstat yet&quot;</span><br><span class="line">    echo &quot;run \&quot;go get github.com&#x2F;tobert&#x2F;pcstat\&quot; to install&quot;</span><br><span class="line">    exit</span><br><span class="line">fi</span><br><span class="line"></span><br><span class="line">#find the top 10 processs&#39; cache file</span><br><span class="line">ps -e -o pid,rss|sort -nk2 -r|head -10 |awk &#39;&#123;print $1&#125;&#39;&gt;&#x2F;tmp&#x2F;cache.pids</span><br><span class="line"></span><br><span class="line">#find all the processs&#39; cache file</span><br><span class="line">#ps -e -o pid&gt;&#x2F;tmp&#x2F;cache.pids</span><br><span class="line">if [ -f &#x2F;tmp&#x2F;cache.files ]</span><br><span class="line">then</span><br><span class="line">    echo &quot;the cache.files is exist, removing now &quot;</span><br><span class="line">    rm -f &#x2F;tmp&#x2F;cache.files</span><br><span class="line">fi</span><br><span class="line"></span><br><span class="line">while read line</span><br><span class="line">do</span><br><span class="line">    lsof -p $line 2&gt;&#x2F;dev&#x2F;null|awk &#39;&#123;print $9&#125;&#39; &gt;&gt;&#x2F;tmp&#x2F;cache.files </span><br><span class="line">done&lt;&#x2F;tmp&#x2F;cache.pids</span><br><span class="line"></span><br><span class="line">if [ -f &#x2F;tmp&#x2F;cache.pcstat ]</span><br><span class="line">then</span><br><span class="line">    echo &quot;the cache.pcstat is exist, removing now&quot;</span><br><span class="line">    rm -f &#x2F;tmp&#x2F;cache.pcstat</span><br><span class="line">fi</span><br><span class="line"></span><br><span class="line">for i in &#96;cat &#x2F;tmp&#x2F;cache.files&#96;</span><br><span class="line">do</span><br><span class="line">    if [ -f $i ]</span><br><span class="line">    then</span><br><span class="line">        echo $i &gt;&gt;&#x2F;tmp&#x2F;cache.pcstat</span><br><span class="line">    fi</span><br><span class="line">done</span><br><span class="line"></span><br><span class="line">&#x2F;data0&#x2F;brokerproxy&#x2F;pcstat  &#96;cat &#x2F;tmp&#x2F;cache.pcstat&#96;</span><br><span class="line">rm -f &#x2F;tmp&#x2F;cache.&#123;pids,files,pcstat&#125;</span><br></pre></td></tr></table></figure>
+<p>脚本运行成功后的显示结果如下：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br></pre></td><td class="code"><pre><span class="line">+------------------------------------------+----------------+------------+-----------+---------+</span><br><span class="line">| Name                                     | Size (bytes)   | Pages      | Cached    | Percent |</span><br><span class="line">|------------------------------------------+----------------+------------+-----------+---------|</span><br><span class="line">| &#x2F;data0&#x2F;abcasyouknow&#x2F;0307&#x2F;abc             | 10060771       | 2457       | 2457      | 100.000 |</span><br><span class="line">| &#x2F;data0&#x2F;abcasyouknow&#x2F;0307&#x2F;logs&#x2F;abc.log    | 1860           | 1          | 1         | 100.000 |</span><br><span class="line">| &#x2F;data0&#x2F;abcasyouknow&#x2F;0307&#x2F;logs&#x2F;uuid.log   | 326326364      | 79670      | 79670     | 100.000 |</span><br><span class="line">| &#x2F;usr&#x2F;bin&#x2F;bash                            | 960384         | 235        | 194       | 082.553 |</span><br><span class="line">| &#x2F;usr&#x2F;lib&#x2F;locale&#x2F;locale-archive           | 106065056      | 25895      | 211       | 000.815 |</span><br><span class="line">| &#x2F;usr&#x2F;lib64&#x2F;libnss_files-2.17.so          | 58288          | 15         | 15        | 100.000 |</span><br><span class="line">| &#x2F;usr&#x2F;lib64&#x2F;libc-2.17.so                  | 2107760        | 515        | 336       | 065.243 |</span><br><span class="line">| &#x2F;usr&#x2F;lib64&#x2F;libdl-2.17.so                 | 19512          | 5          | 5         | 100.000 |</span><br><span class="line">| &#x2F;usr&#x2F;lib64&#x2F;libtinfo.so.5.9               | 174520         | 43         | 42        | 097.674 |</span><br><span class="line">| &#x2F;usr&#x2F;lib64&#x2F;ld-2.17.so                    | 164336         | 41         | 41        | 100.000 |</span><br><span class="line">| &#x2F;usr&#x2F;lib64&#x2F;gconv&#x2F;gconv-modules.cache     | 26254          | 7          | 7         | 100.000 |</span><br><span class="line">+------------------------------------------+----------------+------------+-----------+---------+</span><br></pre></td></tr></table></figure>
+<p>从结果我们可以看到 <code>uuid.log</code> 占用 <code>Cache</code> 比较多。这个文件是打开的，程序一直在往里面写日志，Linux 应该是把它缓存了。</p>
+<h2 id="方案二使用-vmtouch-来实现">方案二：使用 Vmtouch 来实现</h2>
+<p>除了上面提到的 <code>pcstat</code> 工具外，你还可以使用 <code>vmtouch</code> 来实现同样的目的。<code>vmtouch</code> 是一个可以查询到缓存的文件和目录，并且能把文件推入缓存或者驱逐出缓存的工具。</p>
+<blockquote>
+<p>项目地址：<a href="https://github.com/hoytech/vmtouch" target="_blank" rel="noopener">https://github.com/hoytech/vmtouch</a></p>
+</blockquote>
+<h3 id="安装-vmtouch">安装 Vmtouch</h3>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">$ git clone https:&#x2F;&#x2F;github.com&#x2F;hoytech&#x2F;vmtouch</span><br><span class="line">$ cd vmtouch</span><br><span class="line">$ make</span><br><span class="line">$ sudo make install</span><br></pre></td></tr></table></figure>
+<h3 id="使用-vmtouch">使用 Vmtouch</h3>
+<ol>
+<li>vmtouch 命令语法</li>
+</ol>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br></pre></td><td class="code"><pre><span class="line">$ vmtouch</span><br><span class="line">vmtouch: no files or directories specified</span><br><span class="line"></span><br><span class="line">vmtouch v1.0.2 - the Virtual Memory Toucher by Doug Hoyte</span><br><span class="line">Portable file system cache diagnostics and control</span><br><span class="line"></span><br><span class="line">Usage: vmtouch [OPTIONS] ... FILES OR DIRECTORIES ...</span><br><span class="line"></span><br><span class="line">Options:</span><br><span class="line">  -t touch pages into memory</span><br><span class="line">  -e evict pages from memory</span><br><span class="line">  -l lock pages in physical memory with mlock(2)</span><br><span class="line">  -L lock pages in physical memory with mlockall(2)</span><br><span class="line">  -d daemon mode</span><br><span class="line">  -m max file size to touch</span><br><span class="line">  -p use the specified portion instead of the entire file</span><br><span class="line">  -f follow symbolic links</span><br><span class="line">  -h also count hardlinked copies</span><br><span class="line">  -w wait until all pages are locked (only useful together with -d)</span><br><span class="line">  -v verbose</span><br><span class="line">  -q quiet</span><br></pre></td></tr></table></figure>
+<ol start="2">
+<li>一些使用的例子</li>
+</ol>
+<p>由于 <code>vmtouch</code> 直接支持目录级查询，所以使用起来简单得多了。</p>
+<ul>
+<li>查看 /tmp 目录在内存中的缓存</li>
+</ul>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line">$ vmtouch &#x2F;tmp&#x2F;</span><br><span class="line">vmtouch: WARNING: skipping non-regular file: &#x2F;tmp&#x2F;ssh-GgJnCEkWMQC2&#x2F;agent.1068</span><br><span class="line"></span><br><span class="line">           Files: 17</span><br><span class="line">     Directories: 7</span><br><span class="line">  Resident Pages: 4780&#x2F;4780  18M&#x2F;18M  100%</span><br><span class="line">         Elapsed: 0.001006 seconds</span><br></pre></td></tr></table></figure>
+<p>如果需要查看更详细信息，可以使用 <code>-v</code> 参数。</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">$ vmtouch -v &#x2F;tmp&#x2F;</span><br></pre></td></tr></table></figure>
+<ul>
+<li>查看一个文件被缓存了多少</li>
+</ul>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line">$ vmtouch -v ~&#x2F;Downloads&#x2F;phoronix-test-suite_6.0.1_all.deb </span><br><span class="line">&#x2F;home&#x2F;neo&#x2F;Downloads&#x2F;phoronix-test-suite_6.0.1_all.deb</span><br><span class="line">[                                            ] 0&#x2F;132</span><br><span class="line"></span><br><span class="line">           Files: 1</span><br><span class="line">     Directories: 0</span><br><span class="line">  Resident Pages: 0&#x2F;132  0&#x2F;528K  0%</span><br><span class="line">         Elapsed: 0.000117 seconds</span><br></pre></td></tr></table></figure>
+<ul>
+<li>把指定的文件缓存起来</li>
+</ul>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line">$ vmtouch -vt ~&#x2F;Downloads&#x2F;phoronix-test-suite_6.0.1_all.deb </span><br><span class="line">&#x2F;home&#x2F;neo&#x2F;Downloads&#x2F;phoronix-test-suite_6.0.1_all.deb</span><br><span class="line">[OOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOO] 132&#x2F;132</span><br><span class="line"></span><br><span class="line">           Files: 1</span><br><span class="line">     Directories: 0</span><br><span class="line">   Touched Pages: 132 (528K)</span><br><span class="line">         Elapsed: 0.007935 seconds</span><br></pre></td></tr></table></figure>
+<ul>
+<li>把缓存中指定的数据驱逐出去</li>
+</ul>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line">$ vmtouch -ve ~&#x2F;Downloads&#x2F;phoronix-test-suite_6.0.1_all.deb </span><br><span class="line">Evicting &#x2F;home&#x2F;neo&#x2F;Downloads&#x2F;phoronix-test-suite_6.0.1_all.deb</span><br><span class="line"></span><br><span class="line">           Files: 1</span><br><span class="line">     Directories: 0</span><br><span class="line">   Evicted Pages: 132 (528K)</span><br><span class="line">         Elapsed: 0.000109 seconds</span><br></pre></td></tr></table></figure>
+<p>更多关于 <code>vmtouch</code> 使用的具体信息，你可以参考官网：<a href="https://hoytech.com/vmtouch/" target="_blank" rel="noopener">https://hoytech.com/vmtouch/</a> 。</p>
+<p>如果你还有更多 <code>Linux</code> 下查看 <code>Cache</code> 或 <code>Buffer</code> 占用的方法，请直接留言告诉我们哟！</p>
+<h2 id="参考文档">参考文档</h2>
+<ol>
+<li><a href="https://www.google.com" target="_blank" rel="noopener">https://www.google.com</a></li>
+<li><a href="https://colobu.com/2017/03/07/what-is-in-linux-cached/" target="_blank" rel="noopener">https://colobu.com/2017/03/07/what-is-in-linux-cached/</a></li>
+<li><a href="https://www.cnblogs.com/langdashu/p/5953222.html" target="_blank" rel="noopener">https://www.cnblogs.com/langdashu/p/5953222.html</a></li>
+</ol>
+</div>
+
+			<script src="https://my.openwrite.cn/js/readmore.js" type="text/javascript"></script>
+			<script>
+			var isMobile = navigator.userAgent.match(/(phone|pad|pod|iPhone|iPod|ios|iPad|Android|Mobile|BlackBerry|IEMobile|MQQBrowser|JUC|Fennec|wOSBrowser|BrowserNG|WebOS|Symbian|Windows Phone)/i);
+			if (!isMobile) {
+			    var btw = new BTWPlugin();
+			    btw.init({
+			        "id": "vip-container",
+			        "blogId": "10135-1588830050631-449",
+			        "name": "「奇妙的 Linux 世界」",
+			        "qrcode": "https://www.hi-linux.com/img/wechat/mp_qrcode_12.jpg",
+			        "keyword": "VIP"
+			    });
+			}
+			</script>
+		
+                
+
+                <hr>
+                <!-- Pager -->
+                <ul class="pager">
+                    
+                    
+                        <li class="next">
+                            <a href="/posts/62581.html" data-toggle="tooltip" data-placement="top" title="分享几种终端下快速获取公网 IP 地址的技巧">Next Post &rarr;</a>
+                        </li>
+                    
+                </ul>
+
+                <!-- duoshuo Share start -->
+                
+                <!-- 多说 Share end-->
+
+                <!-- 多说评论框 start -->
+                
+                <!-- 多说评论框 end -->
+
+                <!-- disqus comment start -->
+                
+                <!-- disqus comment end -->
+
+                
+                    <!-- disqus 评论框 start -->
+                    <div class="comment">
+                        <div id="lv-container" data-id="city" data-uid="MTAyMC8yNzg2My80NDQw"></div>
+                    </div>
+                    <!-- disqus 评论框 end -->
+                
+
+            </div>
+            
+            <!-- Tabe of Content -->
+            <!-- Table of Contents -->
+
+  
+    <style>
+      span.toc-nav-number{
+        display: none
+      }
+    </style>
+  
+    
+      <aside id="sidebar">
+        <div id="toc" class="toc-article">
+        <strong class="toc-title">Contents</strong>
+        
+          <ol class="toc-nav"><li class="toc-nav-item toc-nav-level-2"><a class="toc-nav-link" href="#方案一使用-pcstat-来实现"><span class="toc-nav-number">1.</span> <span class="toc-nav-text">方案一：使用 Pcstat 来实现</span></a></li><li class="toc-nav-item toc-nav-level-2"><a class="toc-nav-link" href="#方案二使用-vmtouch-来实现"><span class="toc-nav-number">2.</span> <span class="toc-nav-text">方案二：使用 Vmtouch 来实现</span></a><ol class="toc-nav-child"><li class="toc-nav-item toc-nav-level-3"><a class="toc-nav-link" href="#安装-vmtouch"><span class="toc-nav-number">2.1.</span> <span class="toc-nav-text">安装 Vmtouch</span></a></li><li class="toc-nav-item toc-nav-level-3"><a class="toc-nav-link" href="#使用-vmtouch"><span class="toc-nav-number">2.2.</span> <span class="toc-nav-text">使用 Vmtouch</span></a></li></ol></li><li class="toc-nav-item toc-nav-level-2"><a class="toc-nav-link" href="#参考文档"><span class="toc-nav-number">3.</span> <span class="toc-nav-text">参考文档</span></a></li></ol>
+        
+        </div>
+      </aside>
+    
+
+                
+            <!-- Sidebar Container -->
+            <div class="
+                col-lg-8 col-lg-offset-2
+                col-md-10 col-md-offset-1
+                sidebar-container">
+
+                <!-- Featured Tags -->
+                
+                <section>
+                    <!-- no hr -->
+                    <h5><a href="/tags/">FEATURED TAGS</a></h5>
+                    <div class="tags">
+                       
+                          <a class="tag" href="/tags/#Linux" title="Linux">Linux</a>
+                        
+                          <a class="tag" href="/tags/#技巧" title="技巧">技巧</a>
+                        
+                          <a class="tag" href="/tags/#工具" title="工具">工具</a>
+                        
+                    </div>
+                </section>
+                
+
+                <!-- Friends Blog -->
+                
+                <hr>
+                <h5>FRIENDS</h5>
+                <ul class="list-inline">
+
+                    
+                        <li><a href="http://www.mike.org.cn/" target="_blank">简单.生活</a></li>
+                    
+                        <li><a href="http://shang.qq.com/wpa/qunwpa?idkey=ea4c43493c2269428ac6ef6141de4b6d78e5ab2d41380ca4099b833b62884ee9" target="_blank">技术交流群</a></li>
+                    
+                        <li><a href="" target="_blank"></a></li>
+                    
+                        <li><a href="" target="_blank"></a></li>
+                    
+                </ul>
+                
+            </div>
+        </div>
+    </div>
+</article>
+
+
+
+
+
+
+    <!-- 来必力City版公共JS代码 start (一个网页只需插入一次) -->
+    <script type="text/javascript">
+       (function(d, s) {
+           var j, e = d.getElementsByTagName(s)[0];
+    
+           if (typeof LivereTower === 'function') { return; }
+    
+           j = d.createElement(s);
+           j.src = 'https://cdn-city.livere.com/js/embed.dist.js';
+           j.async = true;
+    
+           e.parentNode.insertBefore(j, e);
+       })(document, 'script');
+    </script>
+    <noscript>为正常使用来必力评论功能请激活JavaScript</noscript>
+    <!-- 来必力City版 公共JS代码 end -->
+
+
+
+<!-- async load function -->
+<script>
+    function async(u, c) {
+      var d = document, t = 'script',
+          o = d.createElement(t),
+          s = d.getElementsByTagName(t)[0];
+      o.src = u;
+      if (c) { o.addEventListener('load', function (e) { c(null, e); }, false); }
+      s.parentNode.insertBefore(o, s);
+    }
+</script>
+<!-- anchor-js, Doc:http://bryanbraun.github.io/anchorjs/ -->
+<script>
+    async("https://cdn.bootcss.com/anchor-js/1.1.1/anchor.min.js",function(){
+        anchors.options = {
+          visible: 'hover',
+          placement: 'left',
+          icon: 'ℬ'
+        };
+        anchors.add().remove('.intro-header h1').remove('.subheading').remove('.sidebar-container h5');
+    })
+</script>
+<style>
+    /* place left on bigger screen */
+    @media all and (min-width: 800px) {
+        .anchorjs-link{
+            position: absolute;
+            left: -0.75em;
+            font-size: 1.1em;
+            margin-top : -0.1em;
+        }
+    }
+</style>
+
+
+
+    <!-- Footer -->
+    <!-- Footer -->
+<footer>
+    <div class="container">
+        <div class="row">
+            <div class="col-lg-8 col-lg-offset-2 col-md-10 col-md-offset-1">
+                <ul class="list-inline text-center">
+                
+                    <li>
+                        <a href="/atom.xml">
+                            <span class="fa-stack fa-lg">
+                                <i class="fa fa-circle fa-stack-2x"></i>
+                                <i class="fa fa-rss fa-stack-1x fa-inverse"></i>
+                            </span>
+                        </a>
+                    </li>
+                
+                
+                
+                    <li>
+                        <a target="_blank" href="https://www.zhihu.com/people/80imike">
+                            <span class="fa-stack fa-lg">
+                                <i class="fa fa-circle fa-stack-2x"></i>
+                                <i class="fa  fa-stack-1x fa-inverse">知</i>
+                            </span>
+                        </a>
+                    </li>
+                
+
+                
+                    <li>
+                        <a target="_blank" href="http://weibo.com/2093524665">
+                            <span class="fa-stack fa-lg">
+                                <i class="fa fa-circle fa-stack-2x"></i>
+                                <i class="fa fa-weibo fa-stack-1x fa-inverse"></i>
+                            </span>
+                        </a>
+                    </li>
+                
+
+                
+
+                
+
+                
+
+                </ul>
+                <p class="copyright text-muted">
+                    Copyright &copy; Mike 2020 | Hosted by <a href="https://pages.coding.me" target="_blank" rel="noopener" style="font-weight: bold">Coding Pages</a>
+                    <br>
+                    Theme by <a href="http://beantech.org" target="_blank" rel="noopener">BeanTech</a> 
+                    <span style="display: inline-block; margin: 0 5px;">
+                        <i class="fa fa-heart"></i>
+                    </span> 
+                    re-Ported by <a href="http://www.huweihuang.com" target="_blank" rel="noopener">胡伟煌</a> | 
+                    <iframe
+                        style="margin-left: 2px; margin-bottom:-5px;"
+                        frameborder="0" scrolling="0" width="91px" height="20px"
+                        src="https://ghbtns.com/github-btn.html?user=huweihuang&repo=hexo-theme-huweihuang&type=star&count=true" >
+                    </iframe>
+                </p>
+            </div>
+        </div>
+    </div>
+</footer>
+
+<!-- jQuery -->
+
+<script src="/js/jquery.min.js"></script>
+
+
+<!-- Bootstrap Core JavaScript -->
+
+<script src="/js/bootstrap.min.js"></script>
+
+
+<!-- Custom Theme JavaScript -->
+
+<script src="/js/hux-blog.min.js"></script>
+
+
+
+<!-- async load function -->
+<script>
+    function async(u, c) {
+      var d = document, t = 'script',
+          o = d.createElement(t),
+          s = d.getElementsByTagName(t)[0];
+      o.src = u;
+      if (c) { o.addEventListener('load', function (e) { c(null, e); }, false); }
+      s.parentNode.insertBefore(o, s);
+    }
+</script>
+
+<!-- 
+     Because of the native support for backtick-style fenced code blocks 
+     right within the Markdown is landed in Github Pages, 
+     From V1.6, There is no need for Highlight.js, 
+     so Huxblog drops it officially.
+
+     - https://github.com/blog/2100-github-pages-now-faster-and-simpler-with-jekyll-3-0  
+     - https://help.github.com/articles/creating-and-highlighting-code-blocks/    
+-->
+<!--
+    <script>
+        async("http://cdn.bootcss.com/highlight.js/8.6/highlight.min.js", function(){
+            hljs.initHighlightingOnLoad();
+        })
+    </script>
+    <link href="http://cdn.bootcss.com/highlight.js/8.6/styles/github.min.css" rel="stylesheet">
+-->
+
+
+<!-- jquery.tagcloud.js -->
+<script>
+    // only load tagcloud.js in tag.html
+    if($('#tag_cloud').length !== 0){
+        async("https://www.hi-linux.com/js/jquery.tagcloud.js",function(){
+            $.fn.tagcloud.defaults = {
+                //size: {start: 1, end: 1, unit: 'em'},
+                color: {start: '#bbbbee', end: '#0085a1'},
+            };
+            $('#tag_cloud a').tagcloud();
+        })
+    }
+</script>
+
+<!--fastClick.js -->
+<script>
+    async("https://cdn.bootcss.com/fastclick/1.0.6/fastclick.min.js", function(){
+        var $nav = document.querySelector("nav");
+        if($nav) FastClick.attach($nav);
+    })
+</script>
+
+
+<!-- Google Analytics -->
+
+
+
+
+<!-- Baidu Tongji -->
+
+
+
+
+
+
+	<a id="rocket" href="#top" class=""></a>
+	<script type="text/javascript" src="/js/totop.js?v=1.0.0" async=""></script>
+    <script type="text/javascript" src="/js/toc.js?v=1.0.0" async=""></script>
+<!-- Image to hack wechat -->
+<img src="https://www.hi-linux.com/img/icon_wechat.png" width="0" height="0" />
+<!-- Migrate from head to bottom, no longer block render and still work -->
+
+<script>(function(w,d, s, id) {w.webpushr=w.webpushr||function(){(w.webpushr.q=w.webpushr.q||[]).push(arguments)};var js, fjs = d.getElementsByTagName(s)[0];js = d.createElement(s); js.id = id;js.src = 'https://cdn.webpushr.com/app.min.js';fjs.parentNode.appendChild(js);}(window,document, 'script', 'webpushr-jssdk'));webpushr('init','BF9JK7xV9kjWTdMx2lr6RWaPfXV7wNuZaVAJ1bfIGoBNJavqLEBVFMKLubITnCA4bh2fI9iH9tMF95nXnPt7xxY');</script></body>
+
+</html>
