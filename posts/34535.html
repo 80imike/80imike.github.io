@@ -1,0 +1,796 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<!-- Head tag -->
+<head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="google-site-verification" content="xBT4GhYoi5qRD5tr338pgPM5OWHHIDR6mNg1a3euekI" />
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="description" content="">
+    <meta name="keyword"  content="Linux,运维,Nginx,Zabbix,Centos,Ansible,MySQL,Python,Docker,ELK,Haproxy,Git,Nodejs,安全,技术">
+    <link rel="shortcut icon" href="/img/ironman-draw.png">
+    <!-- Place this tag in your head or just before your close body tag. -->
+    <script async defer src="https://buttons.github.io/buttons.js"></script>
+    <title>
+        
+          浅谈 MySQL 优化实施方案 - 运维之美
+        
+    </title>
+
+    <link rel="canonical" href="https://www.hi-linux.com/posts/34535.html">
+
+    <!-- Bootstrap Core CSS -->
+    
+<link rel="stylesheet" href="/css/bootstrap.min.css">
+
+
+    <!-- Custom CSS --> 
+    
+<link rel="stylesheet" href="/css/beantech.min.css">
+
+    
+    <!-- Pygments Highlight CSS -->
+    
+<link rel="stylesheet" href="/css/highlight.css">
+
+
+    
+<link rel="stylesheet" href="/css/widget.css">
+
+
+    
+<link rel="stylesheet" href="/css/rocket.css">
+
+
+    
+<link rel="stylesheet" href="/css/signature.css">
+
+
+    
+<link rel="stylesheet" href="/css/toc.css">
+
+
+    <!-- Custom Fonts -->
+    <!-- <link href="https://maxcdn.bootstrapcdn.com/font-awesome/4.3.0/css/font-awesome.min.css" rel="stylesheet" type="text/css"> -->
+    <!-- Hux change font-awesome CDN to qiniu -->
+    <link href="https://cdn.staticfile.org/font-awesome/4.5.0/css/font-awesome.min.css" rel="stylesheet" type="text/css">
+
+
+    <!-- Hux Delete, sad but pending in China
+    <link href='http://fonts.googleapis.com/css?family=Lora:400,700,400italic,700italic' rel='stylesheet' type='text/css'>
+    <link href='http://fonts.googleapis.com/css?family=Open+Sans:300italic,400italic,600italic,700italic,800italic,400,300,600,700,800' rel='stylesheet' type='text/
+    css'>
+    -->
+
+
+    <!-- HTML5 Shim and Respond.js IE8 support of HTML5 elements and media queries -->
+    <!-- WARNING: Respond.js doesn't work if you view the page via file:// -->
+    <!--[if lt IE 9]>
+        <script src="https://oss.maxcdn.com/libs/html5shiv/3.7.0/html5shiv.js"></script>
+        <script src="https://oss.maxcdn.com/libs/respond.js/1.4.2/respond.min.js"></script>
+    <![endif]-->
+
+    <!-- ga & ba script hoook -->
+    <script></script>
+<meta name="generator" content="Hexo 4.2.0"><link rel="alternate" href="/atom.xml" title="运维之美" type="application/atom+xml">
+</head>
+
+
+<!-- hack iOS CSS :active style -->
+<body ontouchstart="">
+	<!-- Modified by Yu-Hsuan Yen -->
+<!-- Post Header -->
+<style type="text/css">
+    header.intro-header{
+        
+            background-image: url('/img/header_img/building.jpg')
+            /*post*/
+        
+    }
+    
+</style>
+
+<header class="intro-header" >
+    <!-- Signature -->
+    <div id="signature">
+        <div class="container">
+            <div class="row">
+                <div class="col-lg-8 col-lg-offset-2 col-md-10 col-md-offset-1">
+                
+                    <div class="post-heading">
+                        <div class="tags">
+                            
+                              <a class="tag" href="/tags/#Linux" title="Linux">Linux</a>
+                            
+                              <a class="tag" href="/tags/#技巧" title="技巧">技巧</a>
+                            
+                              <a class="tag" href="/tags/#MySQL" title="MySQL">MySQL</a>
+                            
+                        </div>
+                        <h1>浅谈 MySQL 优化实施方案</h1>
+                        <h2 class="subheading"></h2>
+                        <span class="meta">
+                            Posted by Mike on
+                            2020-05-24
+                        </span>
+                    </div>
+                
+
+
+                </div>
+            </div>
+        </div>
+    </div>
+</header>
+
+	
+    <!-- Navigation -->
+<nav class="navbar navbar-default navbar-custom navbar-fixed-top">
+    <div class="container-fluid">
+        <!-- Brand and toggle get grouped for better mobile display -->
+        <div class="navbar-header page-scroll">
+            <button type="button" class="navbar-toggle">
+                <span class="sr-only">Toggle navigation</span>
+                <span class="icon-bar"></span>
+                <span class="icon-bar"></span>
+                <span class="icon-bar"></span>
+            </button>
+            <a class="navbar-brand" href="/">运维之美</a>
+        </div>
+
+        <!-- Collect the nav links, forms, and other content for toggling -->
+        <!-- Known Issue, found by Hux:
+            <nav>'s height woule be hold on by its content.
+            so, when navbar scale out, the <nav> will cover tags.
+            also mask any touch event of tags, unfortunately.
+        -->
+        <div id="huxblog_navbar">
+            <div class="navbar-collapse">
+                <ul class="nav navbar-nav navbar-right">
+                    <li>
+                        <a href="/">Home</a>
+                    </li>
+
+                    
+
+                        
+                    
+
+                        
+                    
+
+                        
+                        <li>
+                            <a href="/about/">About</a>
+                        </li>
+                        
+                    
+
+                        
+                        <li>
+                            <a href="/archive/">Archives</a>
+                        </li>
+                        
+                    
+
+                        
+                        <li>
+                            <a href="/tags/">Tags</a>
+                        </li>
+                        
+                    
+                    
+                </ul>
+            </div>
+        </div>
+        <!-- /.navbar-collapse -->
+    </div>
+    <!-- /.container -->
+</nav>
+<script>
+    // Drop Bootstarp low-performance Navbar
+    // Use customize navbar with high-quality material design animation
+    // in high-perf jank-free CSS3 implementation
+    var $body   = document.body;
+    var $toggle = document.querySelector('.navbar-toggle');
+    var $navbar = document.querySelector('#huxblog_navbar');
+    var $collapse = document.querySelector('.navbar-collapse');
+
+    $toggle.addEventListener('click', handleMagic)
+    function handleMagic(e){
+        if ($navbar.className.indexOf('in') > 0) {
+        // CLOSE
+            $navbar.className = " ";
+            // wait until animation end.
+            setTimeout(function(){
+                // prevent frequently toggle
+                if($navbar.className.indexOf('in') < 0) {
+                    $collapse.style.height = "0px"
+                }
+            },400)
+        }else{
+        // OPEN
+            $collapse.style.height = "auto"
+            $navbar.className += " in";
+        }
+    }
+</script>
+
+
+    <!-- Main Content -->
+    <!-- Modify by Yu-Hsuan Yen -->
+
+<!-- Post Content -->
+<article>
+    <div class="container">
+        <div class="row">
+
+            <!-- Post Container -->
+            <div class="
+                col-lg-8 col-lg-offset-2
+                col-md-10 col-md-offset-1
+                post-container">
+
+                <div id="vip-container"><p>在进行 MySQL 的优化之前必须要了解的就是 MySQL 的查询过程，很多的查询优化工作实际上就是遵循一些原则让 MySQL 的优化器能够按照预想的合理方式运行而已。</p>
+<p><img src="https://images2017.cnblogs.com/blog/1190037/201801/1190037-20180106134347674-1416660436.png" alt=""></p>
+<p>图 - MySQL查询过程</p>
+<h3 id="优化的哲学">优化的哲学</h3>
+<p>优化有风险，涉足需谨慎</p>
+<h4 id="优化可能带来的问题">优化可能带来的问题</h4>
+<ul>
+<li>优化不总是对一个单纯的环境进行，还很可能是一个复杂的已投产的系统。</li>
+<li>优化手段本来就有很大的风险，只不过你没能力意识到和预见到！</li>
+<li>任何的技术可以解决一个问题，但必然存在带来一个问题的风险！</li>
+<li>对于优化来说解决问题而带来的问题,控制在可接受的范围内才是有成果。</li>
+<li>保持现状或出现更差的情况都是失败！</li>
+</ul>
+<h4 id="优化的需求">优化的需求</h4>
+<ul>
+<li>稳定性和业务可持续性,通常比性能更重要！</li>
+<li>优化不可避免涉及到变更，变更就有风险！</li>
+<li>优化使性能变好，维持和变差是等概率事件！</li>
+<li>切记优化,应该是各部门协同，共同参与的工作，任何单一部门都不能对数据库进行优化！</li>
+<li>所以优化工作,是由业务需要驱使的！！！</li>
+</ul>
+<h4 id="优化由谁参与">优化由谁参与</h4>
+<p>在进行数据库优化时，应由数据库管理员、业务部门代表、应用程序架构师、应用程序设计人员、应用程序开发人员、硬件及系统管理员、存储管理员等，业务相关人员共同参与。</p>
+<h3 id="优化思路">优化思路</h3>
+<h4 id="优化什么">优化什么</h4>
+<p>在数据库优化上有两个主要方面：即安全与性能。</p>
+<ul>
+<li>安全 —&gt; 数据可持续性</li>
+<li>性能 —&gt; 数据的高性能访问</li>
+</ul>
+<h4 id="优化的范围有哪些">优化的范围有哪些</h4>
+<p><em>存储、主机和操作系统方面:</em></p>
+<ul>
+<li>主机架构稳定性</li>
+<li>I/O 规划及配置</li>
+<li>Swap 交换分区</li>
+<li>OS 内核参数和网络问题</li>
+</ul>
+<p><em>应用程序方面:</em></p>
+<ul>
+<li>应用程序稳定性</li>
+<li>SQL语句性能</li>
+<li>串行访问资源</li>
+<li>性能欠佳会话管理</li>
+<li>这个应用适不适合用 MySQL</li>
+</ul>
+<p><em>数据库优化方面:</em></p>
+<ul>
+<li>内存</li>
+<li>数据库结构(物理&amp;逻辑)</li>
+<li>实例配置</li>
+</ul>
+<blockquote>
+<p>说明：不管是在，设计系统，定位问题还是优化，都可以按照这个顺序执行。</p>
+</blockquote>
+<h4 id="优化维度">优化维度</h4>
+<p><em>数据库优化维度有四个:</em></p>
+<p>硬件、系统配置、数据库表结构、SQL及索引</p>
+<p><img src="https://images2017.cnblogs.com/blog/1190037/201801/1190037-20180108160315254-1073768194.png" alt=""></p>
+<p><em>优化选择</em></p>
+<ul>
+<li>优化成本:硬件&gt;系统配置&gt;数据库表结构&gt;SQL及索引</li>
+<li>优化效果:硬件&lt;系统配置&lt;数据库表结构&lt;SQL及索引</li>
+</ul>
+<h3 id="优化工具有啥">优化工具有啥？</h3>
+<h4 id="数据库层面">数据库层面</h4>
+<p>检查问题常用工具</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line">mysql</span><br><span class="line">msyqladmin                                 mysql客户端，可进行管理操作</span><br><span class="line">mysqlshow                                  功能强大的查看shell命令</span><br><span class="line">show [SESSION | GLOBAL] variables          查看数据库参数信息</span><br><span class="line">SHOW [SESSION | GLOBAL] STATUS             查看数据库的状态信息</span><br><span class="line">information_schema                         获取元数据的方法</span><br><span class="line">SHOW ENGINE INNODB STATUS                  Innodb引擎的所有状态</span><br><span class="line">SHOW PROCESSLIST                           查看当前所有连接session状态</span><br><span class="line">explain                                    获取查询语句的执行计划</span><br><span class="line">show index                                 查看表的索引信息</span><br><span class="line">slow-log                                   记录慢查询语句</span><br><span class="line">mysqldumpslow                              分析slowlog文件的</span><br></pre></td></tr></table></figure>
+<p>不常用但好用的工具</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line">zabbix                  监控主机、系统、数据库（部署zabbix监控平台）</span><br><span class="line">pt-query-digest         分析慢日志</span><br><span class="line">mysqlslap               分析慢日志</span><br><span class="line">sysbench                压力测试工具</span><br><span class="line">mysql profiling         统计数据库整体状态工具    </span><br><span class="line">Performance Schema      mysql性能状态统计的数据</span><br><span class="line">workbench               管理、备份、监控、分析、优化工具（比较费资源）</span><br></pre></td></tr></table></figure>
+<h4 id="数据库层面问题解决思路">数据库层面问题解决思路</h4>
+<p><em>一般应急调优的思路：</em></p>
+<p>针对突然的业务办理卡顿，无法进行正常的业务处理！需要立马解决的场景！</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line">1、show processlist</span><br><span class="line">2、explain  select id ,name from stu where name&#x3D;&#39;clsn&#39;; # ALL  id name age  sex</span><br><span class="line"></span><br><span class="line">            select id,name from stu  where id&#x3D;2-1 函数 结果集&gt;30;</span><br><span class="line"></span><br><span class="line">　　　 show index from table;</span><br><span class="line"></span><br><span class="line">3、通过执行计划判断，索引问题（有没有、合不合理）或者语句本身问题</span><br><span class="line">4、show status  like &#39;%lock%&#39;;    # 查询锁状态</span><br><span class="line">kill SESSION_ID;   # 杀掉有问题的session</span><br></pre></td></tr></table></figure>
+<p><em>常规调优思路：</em></p>
+<p>针对业务周期性的卡顿，例如:在每天 10-11 点业务特别慢，但是还能够使用，过了这段时间就好了。</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">1、查看 slowlog，分析 slowlog，分析出查询慢的语句。</span><br><span class="line">2、按照一定优先级，进行一个一个的排查所有慢语句。</span><br><span class="line">3、分析 top sql，进行 explain 调试，查看语句执行时间。</span><br><span class="line">4、调整索引或语句本身。</span><br></pre></td></tr></table></figure>
+<h4 id="系统层面">系统层面</h4>
+<p><em>CPU 方面</em></p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">vmstat、sar top、htop、nmon、mpstat</span><br></pre></td></tr></table></figure>
+<p><em>内存</em></p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">free 、ps -aux</span><br></pre></td></tr></table></figure>
+<p><em>IO设备（磁盘、网络）</em></p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">iostat 、 ss  、 netstat 、 iptraf、iftop、lsof</span><br></pre></td></tr></table></figure>
+<p>vmstat 命令说明：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">Procs：r 显示有多少进程正在等待 CPU 时间。b 显示处于不可中断的休眠的进程数量。在等待 I&#x2F;O。</span><br><span class="line">Memory：swpd 显示被交换到磁盘的数据块的数量。未被使用的数据块，用户缓冲数据块，用于操作系统的数据块的数量。</span><br><span class="line">Swap：操作系统每秒从磁盘上交换到内存和从内存交换到磁盘的数据块的数量。s1 和 s0 最好是 0。</span><br><span class="line">Io：每秒从设备中读入 b1 的写入到设备 b0 的数据块的数量。反映了磁盘 I&#x2F;O。</span><br><span class="line">System：显示了每秒发生中断的数量 (in) 和上下文交换 (cs) 的数量。</span><br><span class="line">Cpu：显示用于运行用户代码，系统代码，空闲，等待 I&#x2F;O 的 CPU 时间。</span><br></pre></td></tr></table></figure>
+<p>iostat 命令说明:</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line">实例命令：  iostat -dk 1 5</span><br><span class="line">　　　　    iostat -d -k -x 5 （查看设备使用率（%util）和响应时间（await））</span><br><span class="line"></span><br><span class="line">tps：该设备每秒的传输次数。“一次传输”意思是“一次I&#x2F;O请求”。多个逻辑请求可能会被合并为“一次I&#x2F;O请求”。</span><br><span class="line">iops ：硬件出厂的时候，厂家定义的一个每秒最大的 IO 次数。</span><br><span class="line">&quot;一次传输&quot;请求的大小是未知的。</span><br><span class="line">kB_read&#x2F;s：每秒从设备（drive expressed）读取的数据量。</span><br><span class="line">KB_wrtn&#x2F;s：每秒向设备（drive expressed）写入的数据量。</span><br><span class="line">kB_read：读取的总数据量。</span><br><span class="line">kB_wrtn：写入的总数量数据量，这些单位都为Kilobytes。</span><br></pre></td></tr></table></figure>
+<h4 id="系统层面问题解决办法">系统层面问题解决办法</h4>
+<p>你认为到底负载高好，还是低好呢？</p>
+<p>在实际的生产中，一般认为 Cpu 只要不超过 90% 都没什么问题 。</p>
+<p>当然不排除下面这些特殊情况：</p>
+<ul>
+<li>问题一：Cpu 负载高，IO 负载低</li>
+</ul>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line">内存不够</span><br><span class="line"></span><br><span class="line">磁盘性能差</span><br><span class="line"></span><br><span class="line">1. SQL 问题 ------&gt; 去数据库层，进一步排查 SQL 问题</span><br><span class="line">2. IO 出问题了（磁盘到临界了、Raid 设计不好、Raid 降级、锁、在单位时间内 TPS 过高）</span><br><span class="line">3. TPS 过高: 大量的小数据 IO、大量的全表扫描</span><br></pre></td></tr></table></figure>
+<ul>
+<li>问题二：IO 负载高，Cpu 负载低</li>
+</ul>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line">大量小的 IO 写操作：</span><br><span class="line"></span><br><span class="line">1. autocommit   ，产生大量小 IO</span><br><span class="line">2. IO&#x2F;PS,磁盘的一个定值，硬件出厂的时候，厂家定义的一个每秒最大的 IO 次数。</span><br><span class="line"></span><br><span class="line">大量大的IO 写操作</span><br><span class="line"></span><br><span class="line">1. SQL问题的几率比较大</span><br></pre></td></tr></table></figure>
+<ul>
+<li>问题三：IO 和 Cpu 负载都很高</li>
+</ul>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">1. 硬件不够了或 SQL 存在问题</span><br></pre></td></tr></table></figure>
+<h3 id="基础优化">基础优化</h3>
+<h4 id="优化思路">优化思路</h4>
+<p><em>定位问题点吮吸</em></p>
+<p>硬件 --&gt; 系统 --&gt; 应用 --&gt; 数据库 --&gt; 架构（高可用、读写分离、分库分表）</p>
+<p><em>处理方向</em></p>
+<p>明确优化目标、性能和安全的折中、防患未然。</p>
+<h4 id="硬件优化">硬件优化</h4>
+<ul>
+<li>主机方面：</li>
+</ul>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">根据数据库类型，主机 CPU 选择、内存容量选择、磁盘选择：</span><br><span class="line"></span><br><span class="line">1. 平衡内存和磁盘资源。</span><br><span class="line">2. 随机的 I&#x2F;O 和顺序的 I&#x2F;O。</span><br><span class="line">3. 主机 RAID卡的 BBU (Battery Backup Unit) 关闭。</span><br></pre></td></tr></table></figure>
+<ul>
+<li>Cpu 的选择：</li>
+</ul>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">Cpu 的两个关键因素：核数、主频，根据不同的业务类型进行选择：</span><br><span class="line"></span><br><span class="line">1. Cpu 密集型：计算比较多，OLTP--&gt;主频很高的 Cpu、核数还要多。</span><br><span class="line">2. IO 密集型：查询比较多，OLAP--&gt;核数要多，主频不一定高的。</span><br></pre></td></tr></table></figure>
+<ul>
+<li>内存的选择：</li>
+</ul>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">1. OLAP 类型数据库，需要更多内存，和数据获取量级有关。</span><br><span class="line">2. OLTP 类型数据一般内存是 Cpu 核心数量的 2 倍到 4 倍，没有最佳实践。</span><br></pre></td></tr></table></figure>
+<ul>
+<li>存储方面：</li>
+</ul>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line">1. 根据存储数据种类的不同，选择不同的存储设备。</span><br><span class="line">2. 配置合理的 RAID 级别(Raid5、Raid10、热备盘)。</span><br><span class="line">3. 对于操作系统来讲，不需要太特殊的选择，最好做好冗余（Raid 1）（SSD、SAS 、SATA）</span><br><span class="line">4. Raid卡：主机 Raid 卡选择：</span><br><span class="line">  4.1 实现操作系统磁盘的冗余（Raid 1）。</span><br><span class="line">  4.2 平衡内存和磁盘资源。</span><br><span class="line">  4.3  随机的 I&#x2F;O 和顺序的 I&#x2F;O。</span><br><span class="line">  4.4 主机 Raid卡的 BBU (Battery Backup Unit) 要关闭。</span><br></pre></td></tr></table></figure>
+<ul>
+<li>网络设备方面：</li>
+</ul>
+<p>使用流量支持更高的网络设备（交换机、路由器、网线、网卡、HBA卡）。</p>
+<blockquote>
+<p>注意：以上这些规划应该在初始设计系统时就应该考虑好。</p>
+</blockquote>
+<h4 id="服务器硬件优化">服务器硬件优化</h4>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">1、物理状态灯。</span><br><span class="line">2、自带管理设备：远程控制卡（FENCE 设备：IPMI、ILO、IDARC），开关机、硬件监控。</span><br><span class="line">3、第三方的监控软件、设备（Snmp、Agent）对物理设施进行监控。</span><br><span class="line">4、存储设备：自带的监控平台。EMC2（HP 收购了）、日立（hds）、IBM低端 OEM hds，高端存储是自己技术，华为存储。</span><br></pre></td></tr></table></figure>
+<h4 id="系统优化">系统优化</h4>
+<ul>
+<li>Cpu：</li>
+</ul>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">1. 基本不需要调整，在硬件选择方面下功夫即可。</span><br></pre></td></tr></table></figure>
+<ul>
+<li>内存：</li>
+</ul>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">1. 基本不需要调整，在硬件选择方面下功夫即可。</span><br></pre></td></tr></table></figure>
+<ul>
+<li>Swap：</li>
+</ul>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">1. MySQL 尽量避免使用 Swap。</span><br><span class="line">2. 阿里云的服务器中默认swap为0</span><br></pre></td></tr></table></figure>
+<ul>
+<li>IO ：</li>
+</ul>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">1. Raid、No LVM、 Ext 4或 XFS、SSD、IO 调度策略。</span><br></pre></td></tr></table></figure>
+<ul>
+<li>Swap 调整方法</li>
+</ul>
+<p>要关闭 Swap 分区，可使用以下方法</p>
+<ol>
+<li>临时关闭方法</li>
+</ol>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">修改 /proc/sys/vm/swappiness 的内容改成 0 。</span><br></pre></td></tr></table></figure>
+<ol start="2">
+<li>永久关闭方法</li>
+</ol>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">/etc/sysctl.conf 文件中添加 vm.swappiness=0 。</span><br></pre></td></tr></table></figure>
+<p>这个参数决定了 Linux 是倾向于使用 Swap，还是倾向于释放文件系统 Cache。在内存紧张的情况下，数值越低越倾向于释放文件系统Cache。</p>
+<p>当然，这个参数只能减少使用 Swap 的概率，并不能避免 Linux 使用 Swap。</p>
+<ul>
+<li>开启 O_DIRECT 模式</li>
+</ul>
+<p>修改 MySQL 的配置参数 innodb_flush_method，这种情况下，InnoDB 的 Buffer Pool 会直接绕过文件系统 Cache 来访问磁盘，但是 Redo log 依旧会使用文件系统 Cache。</p>
+<p>值得注意的是，Redo log 是覆写模式的，即使使用了文件系统的 Cache，也不会占用太多。</p>
+<ul>
+<li>IO 调度策略</li>
+</ul>
+<ol>
+<li>临时修改为 deadline</li>
+</ol>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">$ echo deadline&gt;&#x2F;sys&#x2F;block&#x2F;sda&#x2F;queue&#x2F;scheduler</span><br></pre></td></tr></table></figure>
+<ol start="2">
+<li>永久修改</li>
+</ol>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">$ vi /boot/grub/grub.conf</span><br><span class="line"></span><br><span class="line">更改到如下内容:</span><br><span class="line"></span><br><span class="line">kernel /boot/vmlinuz-2.6.18-8.el5 ro root=LABEL=/ elevator=deadline rhgb quiet</span><br></pre></td></tr></table></figure>
+<h4 id="系统参数调整">系统参数调整</h4>
+<p><em>Linux 系统内核参数优化</em></p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line">$ vim /etc/sysctl.conf</span><br><span class="line"><span class="comment"># 用户端口范围</span></span><br><span class="line">net.ipv4.ip_local_port_range = 1024 65535  </span><br><span class="line">net.ipv4.tcp_max_syn_backlog = 4096 </span><br><span class="line">net.ipv4.tcp_fin_timeout = 30 </span><br><span class="line"><span class="comment"># 系统最大文件句柄，控制的是能打开文件最大数量</span></span><br><span class="line">fs.file-max=65535</span><br></pre></td></tr></table></figure>
+<p><em>用户限制参数</em></p>
+<p>（MySQL 可以不设置以下配置）</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">$ vim    &#x2F;etc&#x2F;security&#x2F;limits.conf </span><br><span class="line">    * soft nproc 65535</span><br><span class="line">    * hard nproc 65535</span><br><span class="line">    * soft nofile 65535</span><br><span class="line">    * hard nofile 65535</span><br></pre></td></tr></table></figure>
+<h4 id="应用优化">应用优化</h4>
+<ol>
+<li>业务应用和数据库应用独立。</li>
+<li>安装图形界面的服务器不要启动图形界面  runlevel 3 。</li>
+<li>防火墙：Iptables、Selinux 等其他无用服务(关闭)。</li>
+</ol>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br></pre></td><td class="code"><pre><span class="line">chkconfig --level 23456 acpid off</span><br><span class="line">chkconfig --level 23456 anacron off</span><br><span class="line">chkconfig --level 23456 autofs off</span><br><span class="line">chkconfig --level 23456 avahi-daemon off</span><br><span class="line">chkconfig --level 23456 bluetooth off</span><br><span class="line">chkconfig --level 23456 cups off</span><br><span class="line">chkconfig --level 23456 firstboot off</span><br><span class="line">chkconfig --level 23456 haldaemon off</span><br><span class="line">chkconfig --level 23456 hplip off</span><br><span class="line">chkconfig --level 23456 ip6tables off</span><br><span class="line">chkconfig --level 23456 iptables  off</span><br><span class="line">chkconfig --level 23456 isdn off</span><br><span class="line">chkconfig --level 23456 pcscd off</span><br><span class="line">chkconfig --level 23456 sendmail  off</span><br><span class="line">chkconfig --level 23456 yum-updatesd  off</span><br></pre></td></tr></table></figure>
+<p>另外，思考将来我们的业务是否真的需要 MySQL，还是使用其他种类的数据库。用数据库的最高境界就是不用数据库。</p>
+<h3 id="数据库优化">数据库优化</h3>
+<p>SQL优化方向：执行计划、索引、SQL 改写。</p>
+<p>架构优化方向：高可用架构、高性能架构、分库分表。</p>
+<h4 id="数据库参数优化">数据库参数优化</h4>
+<ol>
+<li>实例整体（高级优化，扩展）</li>
+</ol>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">thread_concurrency       # 并发线程数量个数</span><br><span class="line">sort_buffer_size         # 排序缓存</span><br><span class="line">read_buffer_size         # 顺序读取缓存</span><br><span class="line">read_rnd_buffer_size     # 随机读取缓存</span><br><span class="line">key_buffer_size          # 索引缓存</span><br><span class="line">thread_cache_size        # (1G—&gt;8, 2G—&gt;16, 3G—&gt;32, &gt;3G—&gt;64)</span><br></pre></td></tr></table></figure>
+<ol start="2">
+<li>
+<p>连接层（基础优化）</p>
+<p>设置合理的连接客户和连接方式</p>
+</li>
+</ol>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line">max_connections           # 最大连接数，看交易笔数设置    </span><br><span class="line">max_connect_errors        # 最大错误连接数，能大则大</span><br><span class="line">connect_timeout           # 连接超时</span><br><span class="line">max_user_connections      # 最大用户连接数</span><br><span class="line">skip-name-resolve         # 跳过域名解析</span><br><span class="line">wait_timeout              # 等待超时</span><br><span class="line">back_log                  # 可以在堆栈中的连接数量</span><br></pre></td></tr></table></figure>
+<ol start="3">
+<li>SQL层（基础优化）</li>
+</ol>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">query_cache_size： 查询缓存   &gt;&gt;&gt;  OLAP类型数据库,需要重点加大此内存缓存，但是一般不会超过GB。对于经常被修改的数据，缓存会立马失效。我们可以使用内存数据库（Redis、Memecache），替代它的相应功能。</span><br></pre></td></tr></table></figure>
+<h4 id="存储引擎层-innodb-基础优化参数">存储引擎层（ Innodb 基础优化参数）</h4>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br></pre></td><td class="code"><pre><span class="line">default-storage-engine</span><br><span class="line">innodb_buffer_pool_size       # 没有固定大小，50% 测试值，看看情况再微调。但是尽量设置不要超过物理内存 70%。</span><br><span class="line">innodb_file_per_table&#x3D;(1,0)</span><br><span class="line">innodb_flush_log_at_trx_commit&#x3D;(0,1,2) # 1 是最安全的，0 是性能最高，2折中。</span><br><span class="line">binlog_sync</span><br><span class="line">Innodb_flush_method&#x3D;(O_DIRECT, fdatasync)</span><br><span class="line">innodb_log_buffer_size        # 100M 以下。</span><br><span class="line">innodb_log_file_size          # 100M 以下。</span><br><span class="line">innodb_log_files_in_group     # 5个成员以下,一般 2-3 个够用（iblogfile 0-N）。</span><br><span class="line">innodb_max_dirty_pages_pct   # 达到百分之 75 的时候刷写内存脏页到磁盘。</span><br><span class="line">log_bin</span><br><span class="line">max_binlog_cache_size         # 可以不设置。</span><br><span class="line">max_binlog_size               # 可以不设置。</span><br><span class="line">innodb_additional_mem_pool_size    #小于2G内存的机器，推荐值是 20 M。32G 内存以上 100M。</span><br></pre></td></tr></table></figure>
+<h3 id="参考文献">参考文献</h3>
+<p>[1]  <a href="https://www.cnblogs.com/zishengY/p/6892345.html" target="_blank" rel="noopener">https://www.cnblogs.com/zishengY/p/6892345.html</a><br>
+[2]  <a href="https://www.jianshu.com/p/d7665192aaaf" target="_blank" rel="noopener">https://www.jianshu.com/p/d7665192aaaf</a></p>
+</div>
+
+			<script src="https://my.openwrite.cn/js/readmore.js" type="text/javascript"></script>
+			<script>
+			var isMobile = navigator.userAgent.match(/(phone|pad|pod|iPhone|iPod|ios|iPad|Android|Mobile|BlackBerry|IEMobile|MQQBrowser|JUC|Fennec|wOSBrowser|BrowserNG|WebOS|Symbian|Windows Phone)/i);
+			if (!isMobile) {
+			    var btw = new BTWPlugin();
+			    btw.init({
+			        "id": "vip-container",
+			        "blogId": "10135-1588830050631-449",
+			        "name": "「奇妙的 Linux 世界」",
+			        "qrcode": "https://www.hi-linux.com/img/wechat/mp_qrcode_12.jpg",
+			        "keyword": "VIP"
+			    });
+			}
+			</script>
+		
+                
+
+                <hr>
+                <!-- Pager -->
+                <ul class="pager">
+                    
+                        <li class="previous">
+                            <a href="/posts/1788.html" data-toggle="tooltip" data-placement="top" title="谈谈技术人的发展生存之道">&larr; Previous Post</a>
+                        </li>
+                    
+                    
+                        <li class="next">
+                            <a href="/posts/22676.html" data-toggle="tooltip" data-placement="top" title="浅谈中台">Next Post &rarr;</a>
+                        </li>
+                    
+                </ul>
+
+                <!-- duoshuo Share start -->
+                
+                <!-- 多说 Share end-->
+
+                <!-- 多说评论框 start -->
+                
+                <!-- 多说评论框 end -->
+
+                <!-- disqus comment start -->
+                
+                <!-- disqus comment end -->
+
+                
+                    <!-- disqus 评论框 start -->
+                    <div class="comment">
+                        <div id="lv-container" data-id="city" data-uid="MTAyMC8yNzg2My80NDQw"></div>
+                    </div>
+                    <!-- disqus 评论框 end -->
+                
+
+            </div>
+            
+            <!-- Tabe of Content -->
+            <!-- Table of Contents -->
+
+  
+    <style>
+      span.toc-nav-number{
+        display: none
+      }
+    </style>
+  
+    
+      <aside id="sidebar">
+        <div id="toc" class="toc-article">
+        <strong class="toc-title">Contents</strong>
+        
+          <ol class="toc-nav"><li class="toc-nav-item toc-nav-level-3"><a class="toc-nav-link" href="#优化的哲学"><span class="toc-nav-number">1.</span> <span class="toc-nav-text">优化的哲学</span></a><ol class="toc-nav-child"><li class="toc-nav-item toc-nav-level-4"><a class="toc-nav-link" href="#优化可能带来的问题"><span class="toc-nav-number">1.1.</span> <span class="toc-nav-text">优化可能带来的问题</span></a></li><li class="toc-nav-item toc-nav-level-4"><a class="toc-nav-link" href="#优化的需求"><span class="toc-nav-number">1.2.</span> <span class="toc-nav-text">优化的需求</span></a></li><li class="toc-nav-item toc-nav-level-4"><a class="toc-nav-link" href="#优化由谁参与"><span class="toc-nav-number">1.3.</span> <span class="toc-nav-text">优化由谁参与</span></a></li></ol></li><li class="toc-nav-item toc-nav-level-3"><a class="toc-nav-link" href="#优化思路"><span class="toc-nav-number">2.</span> <span class="toc-nav-text">优化思路</span></a><ol class="toc-nav-child"><li class="toc-nav-item toc-nav-level-4"><a class="toc-nav-link" href="#优化什么"><span class="toc-nav-number">2.1.</span> <span class="toc-nav-text">优化什么</span></a></li><li class="toc-nav-item toc-nav-level-4"><a class="toc-nav-link" href="#优化的范围有哪些"><span class="toc-nav-number">2.2.</span> <span class="toc-nav-text">优化的范围有哪些</span></a></li><li class="toc-nav-item toc-nav-level-4"><a class="toc-nav-link" href="#优化维度"><span class="toc-nav-number">2.3.</span> <span class="toc-nav-text">优化维度</span></a></li></ol></li><li class="toc-nav-item toc-nav-level-3"><a class="toc-nav-link" href="#优化工具有啥"><span class="toc-nav-number">3.</span> <span class="toc-nav-text">优化工具有啥？</span></a><ol class="toc-nav-child"><li class="toc-nav-item toc-nav-level-4"><a class="toc-nav-link" href="#数据库层面"><span class="toc-nav-number">3.1.</span> <span class="toc-nav-text">数据库层面</span></a></li><li class="toc-nav-item toc-nav-level-4"><a class="toc-nav-link" href="#数据库层面问题解决思路"><span class="toc-nav-number">3.2.</span> <span class="toc-nav-text">数据库层面问题解决思路</span></a></li><li class="toc-nav-item toc-nav-level-4"><a class="toc-nav-link" href="#系统层面"><span class="toc-nav-number">3.3.</span> <span class="toc-nav-text">系统层面</span></a></li><li class="toc-nav-item toc-nav-level-4"><a class="toc-nav-link" href="#系统层面问题解决办法"><span class="toc-nav-number">3.4.</span> <span class="toc-nav-text">系统层面问题解决办法</span></a></li></ol></li><li class="toc-nav-item toc-nav-level-3"><a class="toc-nav-link" href="#基础优化"><span class="toc-nav-number">4.</span> <span class="toc-nav-text">基础优化</span></a><ol class="toc-nav-child"><li class="toc-nav-item toc-nav-level-4"><a class="toc-nav-link" href="#优化思路"><span class="toc-nav-number">4.1.</span> <span class="toc-nav-text">优化思路</span></a></li><li class="toc-nav-item toc-nav-level-4"><a class="toc-nav-link" href="#硬件优化"><span class="toc-nav-number">4.2.</span> <span class="toc-nav-text">硬件优化</span></a></li><li class="toc-nav-item toc-nav-level-4"><a class="toc-nav-link" href="#服务器硬件优化"><span class="toc-nav-number">4.3.</span> <span class="toc-nav-text">服务器硬件优化</span></a></li><li class="toc-nav-item toc-nav-level-4"><a class="toc-nav-link" href="#系统优化"><span class="toc-nav-number">4.4.</span> <span class="toc-nav-text">系统优化</span></a></li><li class="toc-nav-item toc-nav-level-4"><a class="toc-nav-link" href="#系统参数调整"><span class="toc-nav-number">4.5.</span> <span class="toc-nav-text">系统参数调整</span></a></li><li class="toc-nav-item toc-nav-level-4"><a class="toc-nav-link" href="#应用优化"><span class="toc-nav-number">4.6.</span> <span class="toc-nav-text">应用优化</span></a></li></ol></li><li class="toc-nav-item toc-nav-level-3"><a class="toc-nav-link" href="#数据库优化"><span class="toc-nav-number">5.</span> <span class="toc-nav-text">数据库优化</span></a><ol class="toc-nav-child"><li class="toc-nav-item toc-nav-level-4"><a class="toc-nav-link" href="#数据库参数优化"><span class="toc-nav-number">5.1.</span> <span class="toc-nav-text">数据库参数优化</span></a></li><li class="toc-nav-item toc-nav-level-4"><a class="toc-nav-link" href="#存储引擎层-innodb-基础优化参数"><span class="toc-nav-number">5.2.</span> <span class="toc-nav-text">存储引擎层（ Innodb 基础优化参数）</span></a></li></ol></li><li class="toc-nav-item toc-nav-level-3"><a class="toc-nav-link" href="#参考文献"><span class="toc-nav-number">6.</span> <span class="toc-nav-text">参考文献</span></a></li></ol>
+        
+        </div>
+      </aside>
+    
+
+                
+            <!-- Sidebar Container -->
+            <div class="
+                col-lg-8 col-lg-offset-2
+                col-md-10 col-md-offset-1
+                sidebar-container">
+
+                <!-- Featured Tags -->
+                
+                <section>
+                    <!-- no hr -->
+                    <h5><a href="/tags/">FEATURED TAGS</a></h5>
+                    <div class="tags">
+                       
+                          <a class="tag" href="/tags/#Linux" title="Linux">Linux</a>
+                        
+                          <a class="tag" href="/tags/#技巧" title="技巧">技巧</a>
+                        
+                          <a class="tag" href="/tags/#MySQL" title="MySQL">MySQL</a>
+                        
+                    </div>
+                </section>
+                
+
+                <!-- Friends Blog -->
+                
+                <hr>
+                <h5>FRIENDS</h5>
+                <ul class="list-inline">
+
+                    
+                        <li><a href="http://www.mike.org.cn/" target="_blank">简单.生活</a></li>
+                    
+                        <li><a href="http://shang.qq.com/wpa/qunwpa?idkey=ea4c43493c2269428ac6ef6141de4b6d78e5ab2d41380ca4099b833b62884ee9" target="_blank">技术交流群</a></li>
+                    
+                        <li><a href="" target="_blank"></a></li>
+                    
+                        <li><a href="" target="_blank"></a></li>
+                    
+                </ul>
+                
+            </div>
+        </div>
+    </div>
+</article>
+
+
+
+
+
+
+    <!-- 来必力City版公共JS代码 start (一个网页只需插入一次) -->
+    <script type="text/javascript">
+       (function(d, s) {
+           var j, e = d.getElementsByTagName(s)[0];
+    
+           if (typeof LivereTower === 'function') { return; }
+    
+           j = d.createElement(s);
+           j.src = 'https://cdn-city.livere.com/js/embed.dist.js';
+           j.async = true;
+    
+           e.parentNode.insertBefore(j, e);
+       })(document, 'script');
+    </script>
+    <noscript>为正常使用来必力评论功能请激活JavaScript</noscript>
+    <!-- 来必力City版 公共JS代码 end -->
+
+
+
+<!-- async load function -->
+<script>
+    function async(u, c) {
+      var d = document, t = 'script',
+          o = d.createElement(t),
+          s = d.getElementsByTagName(t)[0];
+      o.src = u;
+      if (c) { o.addEventListener('load', function (e) { c(null, e); }, false); }
+      s.parentNode.insertBefore(o, s);
+    }
+</script>
+<!-- anchor-js, Doc:http://bryanbraun.github.io/anchorjs/ -->
+<script>
+    async("https://cdn.bootcss.com/anchor-js/1.1.1/anchor.min.js",function(){
+        anchors.options = {
+          visible: 'hover',
+          placement: 'left',
+          icon: 'ℬ'
+        };
+        anchors.add().remove('.intro-header h1').remove('.subheading').remove('.sidebar-container h5');
+    })
+</script>
+<style>
+    /* place left on bigger screen */
+    @media all and (min-width: 800px) {
+        .anchorjs-link{
+            position: absolute;
+            left: -0.75em;
+            font-size: 1.1em;
+            margin-top : -0.1em;
+        }
+    }
+</style>
+
+
+
+    <!-- Footer -->
+    <!-- Footer -->
+<footer>
+    <div class="container">
+        <div class="row">
+            <div class="col-lg-8 col-lg-offset-2 col-md-10 col-md-offset-1">
+                <ul class="list-inline text-center">
+                
+                    <li>
+                        <a href="/atom.xml">
+                            <span class="fa-stack fa-lg">
+                                <i class="fa fa-circle fa-stack-2x"></i>
+                                <i class="fa fa-rss fa-stack-1x fa-inverse"></i>
+                            </span>
+                        </a>
+                    </li>
+                
+                
+                
+                    <li>
+                        <a target="_blank" href="https://www.zhihu.com/people/80imike">
+                            <span class="fa-stack fa-lg">
+                                <i class="fa fa-circle fa-stack-2x"></i>
+                                <i class="fa  fa-stack-1x fa-inverse">知</i>
+                            </span>
+                        </a>
+                    </li>
+                
+
+                
+                    <li>
+                        <a target="_blank" href="http://weibo.com/2093524665">
+                            <span class="fa-stack fa-lg">
+                                <i class="fa fa-circle fa-stack-2x"></i>
+                                <i class="fa fa-weibo fa-stack-1x fa-inverse"></i>
+                            </span>
+                        </a>
+                    </li>
+                
+
+                
+
+                
+
+                
+
+                </ul>
+                <p class="copyright text-muted">
+                    Copyright &copy; Mike 2020 | Hosted by <a href="https://pages.coding.me" target="_blank" rel="noopener" style="font-weight: bold">Coding Pages</a>
+                    <br>
+                    Theme by <a href="http://beantech.org" target="_blank" rel="noopener">BeanTech</a> 
+                    <span style="display: inline-block; margin: 0 5px;">
+                        <i class="fa fa-heart"></i>
+                    </span> 
+                    re-Ported by <a href="http://www.huweihuang.com" target="_blank" rel="noopener">胡伟煌</a> | 
+                    <iframe
+                        style="margin-left: 2px; margin-bottom:-5px;"
+                        frameborder="0" scrolling="0" width="91px" height="20px"
+                        src="https://ghbtns.com/github-btn.html?user=huweihuang&repo=hexo-theme-huweihuang&type=star&count=true" >
+                    </iframe>
+                </p>
+            </div>
+        </div>
+    </div>
+</footer>
+
+<!-- jQuery -->
+
+<script src="/js/jquery.min.js"></script>
+
+
+<!-- Bootstrap Core JavaScript -->
+
+<script src="/js/bootstrap.min.js"></script>
+
+
+<!-- Custom Theme JavaScript -->
+
+<script src="/js/hux-blog.min.js"></script>
+
+
+
+<!-- async load function -->
+<script>
+    function async(u, c) {
+      var d = document, t = 'script',
+          o = d.createElement(t),
+          s = d.getElementsByTagName(t)[0];
+      o.src = u;
+      if (c) { o.addEventListener('load', function (e) { c(null, e); }, false); }
+      s.parentNode.insertBefore(o, s);
+    }
+</script>
+
+<!-- 
+     Because of the native support for backtick-style fenced code blocks 
+     right within the Markdown is landed in Github Pages, 
+     From V1.6, There is no need for Highlight.js, 
+     so Huxblog drops it officially.
+
+     - https://github.com/blog/2100-github-pages-now-faster-and-simpler-with-jekyll-3-0  
+     - https://help.github.com/articles/creating-and-highlighting-code-blocks/    
+-->
+<!--
+    <script>
+        async("http://cdn.bootcss.com/highlight.js/8.6/highlight.min.js", function(){
+            hljs.initHighlightingOnLoad();
+        })
+    </script>
+    <link href="http://cdn.bootcss.com/highlight.js/8.6/styles/github.min.css" rel="stylesheet">
+-->
+
+
+<!-- jquery.tagcloud.js -->
+<script>
+    // only load tagcloud.js in tag.html
+    if($('#tag_cloud').length !== 0){
+        async("https://www.hi-linux.com/js/jquery.tagcloud.js",function(){
+            $.fn.tagcloud.defaults = {
+                //size: {start: 1, end: 1, unit: 'em'},
+                color: {start: '#bbbbee', end: '#0085a1'},
+            };
+            $('#tag_cloud a').tagcloud();
+        })
+    }
+</script>
+
+<!--fastClick.js -->
+<script>
+    async("https://cdn.bootcss.com/fastclick/1.0.6/fastclick.min.js", function(){
+        var $nav = document.querySelector("nav");
+        if($nav) FastClick.attach($nav);
+    })
+</script>
+
+
+<!-- Google Analytics -->
+
+
+
+
+<!-- Baidu Tongji -->
+
+
+
+
+
+
+	<a id="rocket" href="#top" class=""></a>
+	<script type="text/javascript" src="/js/totop.js?v=1.0.0" async=""></script>
+    <script type="text/javascript" src="/js/toc.js?v=1.0.0" async=""></script>
+<!-- Image to hack wechat -->
+<img src="https://www.hi-linux.com/img/icon_wechat.png" width="0" height="0" />
+<!-- Migrate from head to bottom, no longer block render and still work -->
+
+<script>(function(w,d, s, id) {w.webpushr=w.webpushr||function(){(w.webpushr.q=w.webpushr.q||[]).push(arguments)};var js, fjs = d.getElementsByTagName(s)[0];js = d.createElement(s); js.id = id;js.src = 'https://cdn.webpushr.com/app.min.js';fjs.parentNode.appendChild(js);}(window,document, 'script', 'webpushr-jssdk'));webpushr('init','BF9JK7xV9kjWTdMx2lr6RWaPfXV7wNuZaVAJ1bfIGoBNJavqLEBVFMKLubITnCA4bh2fI9iH9tMF95nXnPt7xxY');</script></body>
+
+</html>
