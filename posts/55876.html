@@ -1,0 +1,628 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<!-- Head tag -->
+<head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="google-site-verification" content="xBT4GhYoi5qRD5tr338pgPM5OWHHIDR6mNg1a3euekI" />
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="description" content="">
+    <meta name="keyword"  content="Linux,运维,Nginx,Zabbix,Centos,Ansible,MySQL,Python,Docker,ELK,Haproxy,Git,Nodejs,安全,技术">
+    <link rel="shortcut icon" href="/img/ironman-draw.png">
+    <!-- Place this tag in your head or just before your close body tag. -->
+    <script async defer src="https://buttons.github.io/buttons.js"></script>
+    <title>
+        
+          办公环境下实现 Kubernetes 网络互通方案 - 运维之美
+        
+    </title>
+
+    <link rel="canonical" href="https://www.hi-linux.com/posts/55876.html">
+
+    <!-- Bootstrap Core CSS -->
+    
+<link rel="stylesheet" href="/css/bootstrap.min.css">
+
+
+    <!-- Custom CSS --> 
+    
+<link rel="stylesheet" href="/css/beantech.min.css">
+
+    
+    <!-- Pygments Highlight CSS -->
+    
+<link rel="stylesheet" href="/css/highlight.css">
+
+
+    
+<link rel="stylesheet" href="/css/widget.css">
+
+
+    
+<link rel="stylesheet" href="/css/rocket.css">
+
+
+    
+<link rel="stylesheet" href="/css/signature.css">
+
+
+    
+<link rel="stylesheet" href="/css/toc.css">
+
+
+    <!-- Custom Fonts -->
+    <!-- <link href="https://maxcdn.bootstrapcdn.com/font-awesome/4.3.0/css/font-awesome.min.css" rel="stylesheet" type="text/css"> -->
+    <!-- Hux change font-awesome CDN to qiniu -->
+    <link href="https://cdn.staticfile.org/font-awesome/4.5.0/css/font-awesome.min.css" rel="stylesheet" type="text/css">
+
+
+    <!-- Hux Delete, sad but pending in China
+    <link href='http://fonts.googleapis.com/css?family=Lora:400,700,400italic,700italic' rel='stylesheet' type='text/css'>
+    <link href='http://fonts.googleapis.com/css?family=Open+Sans:300italic,400italic,600italic,700italic,800italic,400,300,600,700,800' rel='stylesheet' type='text/
+    css'>
+    -->
+
+
+    <!-- HTML5 Shim and Respond.js IE8 support of HTML5 elements and media queries -->
+    <!-- WARNING: Respond.js doesn't work if you view the page via file:// -->
+    <!--[if lt IE 9]>
+        <script src="https://oss.maxcdn.com/libs/html5shiv/3.7.0/html5shiv.js"></script>
+        <script src="https://oss.maxcdn.com/libs/respond.js/1.4.2/respond.min.js"></script>
+    <![endif]-->
+
+    <!-- ga & ba script hoook -->
+    <script></script>
+<meta name="generator" content="Hexo 4.2.0"><link rel="alternate" href="/atom.xml" title="运维之美" type="application/atom+xml">
+</head>
+
+
+<!-- hack iOS CSS :active style -->
+<body ontouchstart="">
+	<!-- Modified by Yu-Hsuan Yen -->
+<!-- Post Header -->
+<style type="text/css">
+    header.intro-header{
+        
+            background-image: url('/img/header_img/building.jpg')
+            /*post*/
+        
+    }
+    
+</style>
+
+<header class="intro-header" >
+    <!-- Signature -->
+    <div id="signature">
+        <div class="container">
+            <div class="row">
+                <div class="col-lg-8 col-lg-offset-2 col-md-10 col-md-offset-1">
+                
+                    <div class="post-heading">
+                        <div class="tags">
+                            
+                              <a class="tag" href="/tags/#Linux" title="Linux">Linux</a>
+                            
+                              <a class="tag" href="/tags/#技巧" title="技巧">技巧</a>
+                            
+                              <a class="tag" href="/tags/#Kubernetes" title="Kubernetes">Kubernetes</a>
+                            
+                        </div>
+                        <h1>办公环境下实现 Kubernetes 网络互通方案</h1>
+                        <h2 class="subheading"></h2>
+                        <span class="meta">
+                            Posted by Mike on
+                            2020-05-24
+                        </span>
+                    </div>
+                
+
+
+                </div>
+            </div>
+        </div>
+    </div>
+</header>
+
+	
+    <!-- Navigation -->
+<nav class="navbar navbar-default navbar-custom navbar-fixed-top">
+    <div class="container-fluid">
+        <!-- Brand and toggle get grouped for better mobile display -->
+        <div class="navbar-header page-scroll">
+            <button type="button" class="navbar-toggle">
+                <span class="sr-only">Toggle navigation</span>
+                <span class="icon-bar"></span>
+                <span class="icon-bar"></span>
+                <span class="icon-bar"></span>
+            </button>
+            <a class="navbar-brand" href="/">运维之美</a>
+        </div>
+
+        <!-- Collect the nav links, forms, and other content for toggling -->
+        <!-- Known Issue, found by Hux:
+            <nav>'s height woule be hold on by its content.
+            so, when navbar scale out, the <nav> will cover tags.
+            also mask any touch event of tags, unfortunately.
+        -->
+        <div id="huxblog_navbar">
+            <div class="navbar-collapse">
+                <ul class="nav navbar-nav navbar-right">
+                    <li>
+                        <a href="/">Home</a>
+                    </li>
+
+                    
+
+                        
+                    
+
+                        
+                    
+
+                        
+                        <li>
+                            <a href="/about/">About</a>
+                        </li>
+                        
+                    
+
+                        
+                        <li>
+                            <a href="/archive/">Archives</a>
+                        </li>
+                        
+                    
+
+                        
+                        <li>
+                            <a href="/tags/">Tags</a>
+                        </li>
+                        
+                    
+                    
+                </ul>
+            </div>
+        </div>
+        <!-- /.navbar-collapse -->
+    </div>
+    <!-- /.container -->
+</nav>
+<script>
+    // Drop Bootstarp low-performance Navbar
+    // Use customize navbar with high-quality material design animation
+    // in high-perf jank-free CSS3 implementation
+    var $body   = document.body;
+    var $toggle = document.querySelector('.navbar-toggle');
+    var $navbar = document.querySelector('#huxblog_navbar');
+    var $collapse = document.querySelector('.navbar-collapse');
+
+    $toggle.addEventListener('click', handleMagic)
+    function handleMagic(e){
+        if ($navbar.className.indexOf('in') > 0) {
+        // CLOSE
+            $navbar.className = " ";
+            // wait until animation end.
+            setTimeout(function(){
+                // prevent frequently toggle
+                if($navbar.className.indexOf('in') < 0) {
+                    $collapse.style.height = "0px"
+                }
+            },400)
+        }else{
+        // OPEN
+            $collapse.style.height = "auto"
+            $navbar.className += " in";
+        }
+    }
+</script>
+
+
+    <!-- Main Content -->
+    <!-- Modify by Yu-Hsuan Yen -->
+
+<!-- Post Content -->
+<article>
+    <div class="container">
+        <div class="row">
+
+            <!-- Post Container -->
+            <div class="
+                col-lg-8 col-lg-offset-2
+                col-md-10 col-md-offset-1
+                post-container">
+
+                <div id="vip-container"><p>在 <code>Kubernetes</code> 的网络模型中，基于官方默认的 <code>CNI</code> 网络插件 <code>Flannel</code>，这种 <code>Overlay Network</code>（覆盖网络）可以轻松的实现 <code>Pod</code> 间网络的互通。当我们把基于 <code>Spring Cloud</code> 的微服务迁移到 <code>K8S</code> 中后，无须任何改动，微服务 <code>Pod</code> 可以通过 <code>Eureka</code> 注册后可以互相轻松访问。除此之外，我们可以通过 <code>Ingress</code> + <code>Ingress Controller</code> ，在每个节点上，把基于 HTTP 80 端口、HTTPS 443 端口的用户请求流量引入到集群服务中。</p>
+<p>但是实际使用中，我们出现了以下需求：</p>
+<ul>
+<li>办公室网络 和 <code>K8s Pod</code> 网络不通。开发在电脑完成某个微服务模块开发后，希望本地启动后，能注册到 <code>K8S</code> 中开发环境的服务中心进行调试，而不是本地起一堆依赖的服务。</li>
+<li>办公室网络 和 <code>K8s Svc</code> 网络不通。在 <code>K8S</code> 中运行的 <code>Mysql</code>、<code>Redis</code> 等，无法通过 <code>Ingress</code> 7 层暴露，开发电脑无法通过客户端工具直接访问；如果我们通过 <code>Service</code> 的 <code>NodePort</code> 模式，会导致维护量工作量巨大。</li>
+</ul>
+<h3 id="网络互通配置">网络互通配置</h3>
+<p><code>K8S</code> 集群中新加一台配置不高（2 核 4G）的 <code>Node</code> 节点（node-30）专门做路由转发，连接办公室网络和 <code>K8S</code> 集群 <code>Pod</code>、<code>Svc</code>。</p>
+<ul>
+<li>node-30 IP 地址 10.60.20.30</li>
+<li>内网 DNS IP 地址 10.60.20.1</li>
+<li>Pod 网段 10.244.0.0/24，Svc 网段 10.96.0.0/12</li>
+<li>办公 网段 192.168.0.0/22</li>
+</ul>
+<p>给 node-30 节点打上污点标签（Taints），不让 <code>K8S</code> 调度 <code>Pod</code> 来占用资源：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">$ kubectl taint nodes node-30 forward&#x3D;node-30:NoSchedule</span><br></pre></td></tr></table></figure>
+<a id="more"></a>
+<p>node-30 节点，做 <code>SNAT</code>：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line"># 开启转发</span><br><span class="line">$ vim &#x2F;etc&#x2F;sysctl.d&#x2F;k8s.conf</span><br><span class="line">net.ipv4.ip_forward &#x3D; 1</span><br><span class="line">$ sysctl -p</span><br><span class="line"></span><br><span class="line"># 来自办公室访问pod、service snat</span><br><span class="line">$ iptables -t nat -A POSTROUTING -s 192.168.0.0&#x2F;22 -d 10.244.0.0&#x2F;24 -j MASQUERADE</span><br><span class="line">$ iptables -t nat -A POSTROUTING -s 192.168.0.0&#x2F;22 -d 10.96.0.0&#x2F;12 -j  MASQUERADE</span><br></pre></td></tr></table></figure>
+<p>在办公室的出口路由器上，设置静态路由，将 <code>K8S Pod</code> 和 <code>Service</code> 的网段，路由到 node-30 节点上</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">$ ip route 10.244.0.0 255.255.255.0 10.60.20.30</span><br><span class="line">$ ip route 10.96.0.0  255.240.0.0   10.60.20.30</span><br></pre></td></tr></table></figure>
+<p><img src="https://www.hi-linux.com/img/linux/Kubernetes-office-1.jpeg" alt=""></p>
+<h3 id="dns-解析配置">DNS 解析配置</h3>
+<p>以上步骤操作后，我们就可以在本地电脑通过访问 <code>Pod IP</code> 和 <code>Service IP</code> 去访问服务。但是在 <code>K8S</code> 中，由于 <code>Pod IP</code> 随时都可能在变化，<code>Service IP</code> 也不是开发、测试能轻松获取到的。我们希望内网 <code>DNS</code> 在解析 <code>*.cluster.local</code>， <code>CoreDNS</code> 寻找解析结果。</p>
+<p>例如，我们约定将（项目A 、开发环境一 、数据库 <code>MySQL</code>）部署到 ProjectA-dev1 这个 <code>Namespace</code> 下，由于本地到 <code>K8S</code> 集群 <code>Service</code> 网络已经打通，我们在本地电脑使用 <code>MySQL</code> 客户端连接时，只需要填写 <code>mysql.ProjectA-dev1.svc.cluster.local</code> 即可，<code>DNS</code> 查询请求到了内网 <code>DNS</code> 后，走向 <code>CoreDNS</code>，从而解析出 <code>Service IP</code>。</p>
+<p>由于内网 <code>DNS</code> 在解析 <code>*.cluster.local</code>，需要访问 <code>CoreDNS</code> 寻找解析结果。这就需要保证网络可达：</p>
+<ul>
+<li>方案一， 最简单的做法，我们把内网 <code>DNS</code> 架设在 node-30 这台节点上，那么他肯定访问到 <code>Kube-DNS</code> 10.96.0.10</li>
+</ul>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">$ kubectl  get svc  -n kube-system |grep kube-dns</span><br><span class="line">kube-dns   ClusterIP   10.96.0.10   &lt;none&gt;        53&#x2F;UDP,53&#x2F;TCP   20d</span><br></pre></td></tr></table></figure>
+<ul>
+<li>方案二，由于我们实验场景内网 <code>DNS IP</code> 地址 10.60.20.1 ，并不在 node-30 上，我们需要打通 10.60.20.1 访问 <code>SVC</code> 网段 10.96.0.0/12 即可</li>
+</ul>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"># 内网DNS（IP 10.60.20.1） 添加静态路由</span><br><span class="line">$ route add -net 10.96.0.0&#x2F;12 gw 10.60.20.30</span><br><span class="line"></span><br><span class="line"># node-30（IP 10.60.20.30） 做 SNAT</span><br><span class="line">$ iptables -t nat -A POSTROUTING -s 10.60.20.1&#x2F;32 -d 10.96.0.0&#x2F;12 -j MASQUERADE</span><br></pre></td></tr></table></figure>
+<ul>
+<li>方案三（实验选择），由于我们实验场景内网 <code>DNS IP</code> 10.60.20.1 并不在 node-30 上，我们可以用 <code>nodeSelector</code> 在 node-30 部署一个 <code>Nginx Ingress Controller</code>， 用 4 层暴露出来 <code>CoreDNS</code> 的 TCP/UDP 53 端口。</li>
+</ul>
+<p>给 node-30 打上标签：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">$ kubectl label nodes node-30 node&#x3D;dns-l4</span><br></pre></td></tr></table></figure>
+<p>创建一个 <code>Namespace</code>：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">$ kubectl create ns dns-l4</span><br></pre></td></tr></table></figure>
+<p>在 <code>Namespace</code> dns-l4 下部署 <code>Nginx Ingress Controller</code>，选择节点 node-30，并 Tolerate (容忍）其污点：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br><span class="line">70</span><br><span class="line">71</span><br><span class="line">72</span><br><span class="line">73</span><br><span class="line">74</span><br><span class="line">75</span><br><span class="line">76</span><br><span class="line">77</span><br><span class="line">78</span><br><span class="line">79</span><br><span class="line">80</span><br><span class="line">81</span><br><span class="line">82</span><br><span class="line">83</span><br><span class="line">84</span><br><span class="line">85</span><br><span class="line">86</span><br><span class="line">87</span><br><span class="line">88</span><br><span class="line">89</span><br><span class="line">90</span><br><span class="line">91</span><br><span class="line">92</span><br><span class="line">93</span><br><span class="line">94</span><br><span class="line">95</span><br><span class="line">96</span><br><span class="line">97</span><br><span class="line">98</span><br><span class="line">99</span><br><span class="line">100</span><br><span class="line">101</span><br><span class="line">102</span><br><span class="line">103</span><br><span class="line">104</span><br><span class="line">105</span><br><span class="line">106</span><br><span class="line">107</span><br><span class="line">108</span><br><span class="line">109</span><br><span class="line">110</span><br><span class="line">111</span><br><span class="line">112</span><br><span class="line">113</span><br><span class="line">114</span><br><span class="line">115</span><br><span class="line">116</span><br><span class="line">117</span><br><span class="line">118</span><br><span class="line">119</span><br><span class="line">120</span><br><span class="line">121</span><br><span class="line">122</span><br><span class="line">123</span><br><span class="line">124</span><br><span class="line">125</span><br><span class="line">126</span><br><span class="line">127</span><br><span class="line">128</span><br><span class="line">129</span><br><span class="line">130</span><br><span class="line">131</span><br><span class="line">132</span><br><span class="line">133</span><br><span class="line">134</span><br><span class="line">135</span><br><span class="line">136</span><br><span class="line">137</span><br><span class="line">138</span><br><span class="line">139</span><br><span class="line">140</span><br><span class="line">141</span><br><span class="line">142</span><br><span class="line">143</span><br><span class="line">144</span><br><span class="line">145</span><br><span class="line">146</span><br><span class="line">147</span><br><span class="line">148</span><br><span class="line">149</span><br><span class="line">150</span><br><span class="line">151</span><br><span class="line">152</span><br><span class="line">153</span><br><span class="line">154</span><br><span class="line">155</span><br><span class="line">156</span><br><span class="line">157</span><br><span class="line">158</span><br><span class="line">159</span><br><span class="line">160</span><br><span class="line">161</span><br><span class="line">162</span><br><span class="line">163</span><br><span class="line">164</span><br><span class="line">165</span><br><span class="line">166</span><br><span class="line">167</span><br><span class="line">168</span><br><span class="line">169</span><br><span class="line">170</span><br><span class="line">171</span><br><span class="line">172</span><br><span class="line">173</span><br><span class="line">174</span><br><span class="line">175</span><br><span class="line">176</span><br><span class="line">177</span><br><span class="line">178</span><br><span class="line">179</span><br><span class="line">180</span><br><span class="line">181</span><br><span class="line">182</span><br><span class="line">183</span><br><span class="line">184</span><br><span class="line">185</span><br><span class="line">186</span><br><span class="line">187</span><br><span class="line">188</span><br><span class="line">189</span><br><span class="line">190</span><br><span class="line">191</span><br><span class="line">192</span><br><span class="line">193</span><br><span class="line">194</span><br><span class="line">195</span><br><span class="line">196</span><br><span class="line">197</span><br><span class="line">198</span><br><span class="line">199</span><br><span class="line">200</span><br><span class="line">201</span><br><span class="line">202</span><br><span class="line">203</span><br><span class="line">204</span><br><span class="line">205</span><br><span class="line">206</span><br><span class="line">207</span><br><span class="line">208</span><br><span class="line">209</span><br><span class="line">210</span><br><span class="line">211</span><br><span class="line">212</span><br><span class="line">213</span><br><span class="line">214</span><br><span class="line">215</span><br><span class="line">216</span><br><span class="line">217</span><br><span class="line">218</span><br><span class="line">219</span><br><span class="line">220</span><br><span class="line">221</span><br><span class="line">222</span><br><span class="line">223</span><br><span class="line">224</span><br><span class="line">225</span><br><span class="line">226</span><br><span class="line">227</span><br><span class="line">228</span><br><span class="line">229</span><br><span class="line">230</span><br><span class="line">231</span><br><span class="line">232</span><br><span class="line">233</span><br><span class="line">234</span><br><span class="line">235</span><br><span class="line">236</span><br><span class="line">237</span><br><span class="line">238</span><br><span class="line">239</span><br><span class="line">240</span><br><span class="line">241</span><br><span class="line">242</span><br><span class="line">243</span><br><span class="line">244</span><br><span class="line">245</span><br><span class="line">246</span><br><span class="line">247</span><br><span class="line">248</span><br><span class="line">249</span><br><span class="line">250</span><br><span class="line">251</span><br><span class="line">252</span><br><span class="line">253</span><br><span class="line">254</span><br><span class="line">255</span><br><span class="line">256</span><br><span class="line">257</span><br><span class="line">258</span><br><span class="line">259</span><br><span class="line">260</span><br></pre></td><td class="code"><pre><span class="line">kind: ConfigMap</span><br><span class="line">apiVersion: v1</span><br><span class="line">metadata:</span><br><span class="line">  name: nginx-configuration</span><br><span class="line">  namespace: dns-l4</span><br><span class="line">  labels:</span><br><span class="line">    app.kubernetes.io&#x2F;name: ingress-nginx</span><br><span class="line">    app.kubernetes.io&#x2F;part-of: ingress-nginx</span><br><span class="line"></span><br><span class="line">---</span><br><span class="line">kind: ConfigMap</span><br><span class="line">apiVersion: v1</span><br><span class="line">metadata:</span><br><span class="line">  name: tcp-services</span><br><span class="line">  namespace: dns-l4</span><br><span class="line">  labels:</span><br><span class="line">    app.kubernetes.io&#x2F;name: ingress-nginx</span><br><span class="line">    app.kubernetes.io&#x2F;part-of: ingress-nginx</span><br><span class="line">data:</span><br><span class="line">  53: &quot;kube-system&#x2F;kube-dns:53&quot;</span><br><span class="line"></span><br><span class="line">---</span><br><span class="line">kind: ConfigMap</span><br><span class="line">apiVersion: v1</span><br><span class="line">metadata:</span><br><span class="line">  name: udp-services</span><br><span class="line">  namespace: dns-l4</span><br><span class="line">  labels:</span><br><span class="line">    app.kubernetes.io&#x2F;name: ingress-nginx</span><br><span class="line">    app.kubernetes.io&#x2F;part-of: ingress-nginx</span><br><span class="line">data:</span><br><span class="line">  53: &quot;kube-system&#x2F;kube-dns:53&quot;</span><br><span class="line">---</span><br><span class="line">apiVersion: v1</span><br><span class="line">kind: ServiceAccount</span><br><span class="line">metadata:</span><br><span class="line">  name: nginx-ingress-serviceaccount</span><br><span class="line">  namespace: dns-l4</span><br><span class="line">  labels:</span><br><span class="line">    app.kubernetes.io&#x2F;name: ingress-nginx</span><br><span class="line">    app.kubernetes.io&#x2F;part-of: ingress-nginx</span><br><span class="line"></span><br><span class="line">---</span><br><span class="line">apiVersion: rbac.authorization.k8s.io&#x2F;v1beta1</span><br><span class="line">kind: ClusterRole</span><br><span class="line">metadata:</span><br><span class="line">  name: nginx-ingress-clusterrole</span><br><span class="line">  labels:</span><br><span class="line">    app.kubernetes.io&#x2F;name: ingress-nginx</span><br><span class="line">    app.kubernetes.io&#x2F;part-of: ingress-nginx</span><br><span class="line">rules:</span><br><span class="line">  - apiGroups:</span><br><span class="line">      - &quot;&quot;</span><br><span class="line">    resources:</span><br><span class="line">      - configmaps</span><br><span class="line">      - endpoints</span><br><span class="line">      - nodes</span><br><span class="line">      - pods</span><br><span class="line">      - secrets</span><br><span class="line">    verbs:</span><br><span class="line">      - list</span><br><span class="line">      - watch</span><br><span class="line">  - apiGroups:</span><br><span class="line">      - &quot;&quot;</span><br><span class="line">    resources:</span><br><span class="line">      - nodes</span><br><span class="line">    verbs:</span><br><span class="line">      - get</span><br><span class="line">  - apiGroups:</span><br><span class="line">      - &quot;&quot;</span><br><span class="line">    resources:</span><br><span class="line">      - services</span><br><span class="line">    verbs:</span><br><span class="line">      - get</span><br><span class="line">      - list</span><br><span class="line">      - watch</span><br><span class="line">  - apiGroups:</span><br><span class="line">      - &quot;extensions&quot;</span><br><span class="line">    resources:</span><br><span class="line">      - ingresses</span><br><span class="line">    verbs:</span><br><span class="line">      - get</span><br><span class="line">      - list</span><br><span class="line">      - watch</span><br><span class="line">  - apiGroups:</span><br><span class="line">      - &quot;&quot;</span><br><span class="line">    resources:</span><br><span class="line">      - events</span><br><span class="line">    verbs:</span><br><span class="line">      - create</span><br><span class="line">      - patch</span><br><span class="line">  - apiGroups:</span><br><span class="line">      - &quot;extensions&quot;</span><br><span class="line">    resources:</span><br><span class="line">      - ingresses&#x2F;status</span><br><span class="line">    verbs:</span><br><span class="line">      - update</span><br><span class="line"></span><br><span class="line">---</span><br><span class="line">apiVersion: rbac.authorization.k8s.io&#x2F;v1beta1</span><br><span class="line">kind: Role</span><br><span class="line">metadata:</span><br><span class="line">  name: nginx-ingress-role</span><br><span class="line">  namespace: dns-l4</span><br><span class="line">  labels:</span><br><span class="line">    app.kubernetes.io&#x2F;name: ingress-nginx</span><br><span class="line">    app.kubernetes.io&#x2F;part-of: ingress-nginx</span><br><span class="line">rules:</span><br><span class="line">  - apiGroups:</span><br><span class="line">      - &quot;&quot;</span><br><span class="line">    resources:</span><br><span class="line">      - configmaps</span><br><span class="line">      - pods</span><br><span class="line">      - secrets</span><br><span class="line">      - namespaces</span><br><span class="line">    verbs:</span><br><span class="line">      - get</span><br><span class="line">  - apiGroups:</span><br><span class="line">      - &quot;&quot;</span><br><span class="line">    resources:</span><br><span class="line">      - configmaps</span><br><span class="line">    resourceNames:</span><br><span class="line">      # Defaults to &quot;&lt;election-id&gt;-&lt;ingress-class&gt;&quot;</span><br><span class="line">      # Here: &quot;&lt;ingress-controller-leader&gt;-&lt;nginx&gt;&quot;</span><br><span class="line">      # This has to be adapted if you change either parameter</span><br><span class="line">      # when launching the nginx-ingress-controller.</span><br><span class="line">      - &quot;ingress-controller-leader-nginx&quot;</span><br><span class="line">    verbs:</span><br><span class="line">      - get</span><br><span class="line">      - update</span><br><span class="line">  - apiGroups:</span><br><span class="line">      - &quot;&quot;</span><br><span class="line">    resources:</span><br><span class="line">      - configmaps</span><br><span class="line">    verbs:</span><br><span class="line">      - create</span><br><span class="line">  - apiGroups:</span><br><span class="line">      - &quot;&quot;</span><br><span class="line">    resources:</span><br><span class="line">      - endpoints</span><br><span class="line">    verbs:</span><br><span class="line">      - get</span><br><span class="line"></span><br><span class="line">---</span><br><span class="line">apiVersion: rbac.authorization.k8s.io&#x2F;v1beta1</span><br><span class="line">kind: RoleBinding</span><br><span class="line">metadata:</span><br><span class="line">  name: nginx-ingress-role-nisa-binding</span><br><span class="line">  namespace: dns-l4</span><br><span class="line">  labels:</span><br><span class="line">    app.kubernetes.io&#x2F;name: ingress-nginx</span><br><span class="line">    app.kubernetes.io&#x2F;part-of: ingress-nginx</span><br><span class="line">roleRef:</span><br><span class="line">  apiGroup: rbac.authorization.k8s.io</span><br><span class="line">  kind: Role</span><br><span class="line">  name: nginx-ingress-role</span><br><span class="line">subjects:</span><br><span class="line">  - kind: ServiceAccount</span><br><span class="line">    name: nginx-ingress-serviceaccount</span><br><span class="line">    namespace: dns-l4</span><br><span class="line"></span><br><span class="line">---</span><br><span class="line">apiVersion: rbac.authorization.k8s.io&#x2F;v1beta1</span><br><span class="line">kind: ClusterRoleBinding</span><br><span class="line">metadata:</span><br><span class="line">  name: nginx-ingress-clusterrole-nisa-binding</span><br><span class="line">  labels:</span><br><span class="line">    app.kubernetes.io&#x2F;name: ingress-nginx</span><br><span class="line">    app.kubernetes.io&#x2F;part-of: ingress-nginx</span><br><span class="line">roleRef:</span><br><span class="line">  apiGroup: rbac.authorization.k8s.io</span><br><span class="line">  kind: ClusterRole</span><br><span class="line">  name: nginx-ingress-clusterrole</span><br><span class="line">subjects:</span><br><span class="line">  - kind: ServiceAccount</span><br><span class="line">    name: nginx-ingress-serviceaccount</span><br><span class="line">    namespace: dns-l4</span><br><span class="line"></span><br><span class="line">---</span><br><span class="line">apiVersion: extensions&#x2F;v1beta1</span><br><span class="line">kind: Deployment</span><br><span class="line">metadata:</span><br><span class="line">  name: nginx-ingress-controller</span><br><span class="line">  namespace: dns-l4</span><br><span class="line">  labels:</span><br><span class="line">    app.kubernetes.io&#x2F;name: ingress-nginx</span><br><span class="line">    app.kubernetes.io&#x2F;part-of: ingress-nginx</span><br><span class="line">spec:</span><br><span class="line">  replicas: 1</span><br><span class="line">  selector:</span><br><span class="line">    matchLabels:</span><br><span class="line">      app.kubernetes.io&#x2F;name: ingress-nginx</span><br><span class="line">      app.kubernetes.io&#x2F;part-of: ingress-nginx</span><br><span class="line">  template:</span><br><span class="line">    metadata:</span><br><span class="line">      labels:</span><br><span class="line">        app.kubernetes.io&#x2F;name: ingress-nginx</span><br><span class="line">        app.kubernetes.io&#x2F;part-of: ingress-nginx</span><br><span class="line">      annotations:</span><br><span class="line">        prometheus.io&#x2F;port: &quot;10254&quot;</span><br><span class="line">        prometheus.io&#x2F;scrape: &quot;true&quot;</span><br><span class="line">    spec:</span><br><span class="line">      nodeSelector:</span><br><span class="line">        node: dns-l4</span><br><span class="line">      hostNetwork: true</span><br><span class="line">      serviceAccountName: nginx-ingress-serviceaccount</span><br><span class="line">      tolerations:</span><br><span class="line">      - key: &quot;node-30&quot;</span><br><span class="line">        operator: &quot;Exists&quot;</span><br><span class="line">        effect: &quot;NoSchedule&quot;</span><br><span class="line">      containers:</span><br><span class="line">        - name: nginx-ingress-controller</span><br><span class="line">          image: quay.io&#x2F;kubernetes-ingress-controller&#x2F;nginx-ingress-controller:0.21.0</span><br><span class="line">          args:</span><br><span class="line">            - &#x2F;nginx-ingress-controller</span><br><span class="line">            - --configmap&#x3D;$(POD_NAMESPACE)&#x2F;nginx-configuration</span><br><span class="line">            - --tcp-services-configmap&#x3D;$(POD_NAMESPACE)&#x2F;tcp-services</span><br><span class="line">            - --udp-services-configmap&#x3D;$(POD_NAMESPACE)&#x2F;udp-services</span><br><span class="line">            - --publish-service&#x3D;$(POD_NAMESPACE)&#x2F;ingress-nginx</span><br><span class="line">            - --annotations-prefix&#x3D;nginx.ingress.kubernetes.io</span><br><span class="line">          securityContext:</span><br><span class="line">            capabilities:</span><br><span class="line">              drop:</span><br><span class="line">                - ALL</span><br><span class="line">              add:</span><br><span class="line">                - NET_BIND_SERVICE</span><br><span class="line">            runAsUser: 33</span><br><span class="line">          env:</span><br><span class="line">            - name: POD_NAME</span><br><span class="line">              valueFrom:</span><br><span class="line">                fieldRef:</span><br><span class="line">                  fieldPath: metadata.name</span><br><span class="line">            - name: POD_NAMESPACE</span><br><span class="line">              valueFrom:</span><br><span class="line">                fieldRef:</span><br><span class="line">                  fieldPath: metadata.namespace</span><br><span class="line">          ports:</span><br><span class="line">            - name: http</span><br><span class="line">              containerPort: 80</span><br><span class="line">            - name: https</span><br><span class="line">              containerPort: 443</span><br><span class="line">          livenessProbe:</span><br><span class="line">            failureThreshold: 3</span><br><span class="line">            httpGet:</span><br><span class="line">              path: &#x2F;healthz</span><br><span class="line">              port: 10254</span><br><span class="line">              scheme: HTTP</span><br><span class="line">            initialDelaySeconds: 10</span><br><span class="line">            periodSeconds: 10</span><br><span class="line">            successThreshold: 1</span><br><span class="line">            timeoutSeconds: 1</span><br><span class="line">          readinessProbe:</span><br><span class="line">            failureThreshold: 3</span><br><span class="line">            httpGet:</span><br><span class="line">              path: &#x2F;healthz</span><br><span class="line">              port: 10254</span><br><span class="line">              scheme: HTTP</span><br><span class="line">            periodSeconds: 10</span><br><span class="line">            successThreshold: 1</span><br><span class="line">            timeoutSeconds: 1</span><br></pre></td></tr></table></figure>
+<p>部署完成后，电脑验证，是否生效：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">$ nslookup -q&#x3D;A kube-dns.kube-system.svc.cluster.local  10.60.20.30</span><br></pre></td></tr></table></figure>
+<p><img src="https://www.hi-linux.com/img/linux/Kubernetes-office-2.jpeg" alt=""></p>
+<p>这里我们用轻量级的 <code>Dnsmasq</code> 来作为内网 <code>DNS</code> 配置案例，将来自内网的 <code>*.cluster.local</code> 解析请求，走 <code>KubeDNS</code> 10.60.20.30。</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">$ vim &#x2F;etc&#x2F;dnsmasq.conf</span><br><span class="line">strict-order</span><br><span class="line">listen-address&#x3D;10.60.20.1</span><br><span class="line">bogus-nxdomain&#x3D;61.139.2.69</span><br><span class="line">server&#x3D;&#x2F;cluster.local&#x2F;10.60.20.30</span><br></pre></td></tr></table></figure>
+<p>完成以上步骤后，我们办公网络与 <code>Kubernetes</code> 网络互通的需求也就实现了，同时我们可以直接用 <code>K8S Service</code> 的域名规则去访问到 <code>K8S</code> 中的服务。</p>
+<p><img src="https://www.hi-linux.com/img/linux/Kubernetes-office-3.jpeg" alt=""></p>
+<blockquote>
+<p>本文转载自：「阳明的博客」，原文：<a href="http://t.cn/EJNfDJY%EF%BC%8C%E7%89%88%E6%9D%83%E5%BD%92%E5%8E%9F%E4%BD%9C%E8%80%85%E6%89%80%E6%9C%89%E3%80%82%E6%AC%A2%E8%BF%8E%E6%8A%95%E7%A8%BF%EF%BC%8C%E6%8A%95%E7%A8%BF%E9%82%AE%E7%AE%B1:" target="_blank" rel="noopener">http://t.cn/EJNfDJY，版权归原作者所有。欢迎投稿，投稿邮箱:</a> <code>editor@hi-linux.com</code> 。</p>
+</blockquote>
+</div>
+
+			<script src="https://my.openwrite.cn/js/readmore.js" type="text/javascript"></script>
+			<script>
+			var isMobile = navigator.userAgent.match(/(phone|pad|pod|iPhone|iPod|ios|iPad|Android|Mobile|BlackBerry|IEMobile|MQQBrowser|JUC|Fennec|wOSBrowser|BrowserNG|WebOS|Symbian|Windows Phone)/i);
+			if (!isMobile) {
+			    var btw = new BTWPlugin();
+			    btw.init({
+			        "id": "vip-container",
+			        "blogId": "10135-1588830050631-449",
+			        "name": "「奇妙的 Linux 世界」",
+			        "qrcode": "https://www.hi-linux.com/img/wechat/mp_qrcode_12.jpg",
+			        "keyword": "VIP"
+			    });
+			}
+			</script>
+		
+                
+
+                <hr>
+                <!-- Pager -->
+                <ul class="pager">
+                    
+                        <li class="previous">
+                            <a href="/posts/39305.html" data-toggle="tooltip" data-placement="top" title="谈谈支付宝架构">&larr; Previous Post</a>
+                        </li>
+                    
+                    
+                        <li class="next">
+                            <a href="/posts/30618.html" data-toggle="tooltip" data-placement="top" title="利用 Katacoda 免费同步 Docker 镜像到 Docker Hub">Next Post &rarr;</a>
+                        </li>
+                    
+                </ul>
+
+                <!-- duoshuo Share start -->
+                
+                <!-- 多说 Share end-->
+
+                <!-- 多说评论框 start -->
+                
+                <!-- 多说评论框 end -->
+
+                <!-- disqus comment start -->
+                
+                <!-- disqus comment end -->
+
+                
+                    <!-- disqus 评论框 start -->
+                    <div class="comment">
+                        <div id="lv-container" data-id="city" data-uid="MTAyMC8yNzg2My80NDQw"></div>
+                    </div>
+                    <!-- disqus 评论框 end -->
+                
+
+            </div>
+            
+            <!-- Tabe of Content -->
+            <!-- Table of Contents -->
+
+  
+    <style>
+      span.toc-nav-number{
+        display: none
+      }
+    </style>
+  
+    
+      <aside id="sidebar">
+        <div id="toc" class="toc-article">
+        <strong class="toc-title">Contents</strong>
+        
+          <ol class="toc-nav"><li class="toc-nav-item toc-nav-level-3"><a class="toc-nav-link" href="#网络互通配置"><span class="toc-nav-number">1.</span> <span class="toc-nav-text">网络互通配置</span></a></li><li class="toc-nav-item toc-nav-level-3"><a class="toc-nav-link" href="#dns-解析配置"><span class="toc-nav-number">2.</span> <span class="toc-nav-text">DNS 解析配置</span></a></li></ol>
+        
+        </div>
+      </aside>
+    
+
+                
+            <!-- Sidebar Container -->
+            <div class="
+                col-lg-8 col-lg-offset-2
+                col-md-10 col-md-offset-1
+                sidebar-container">
+
+                <!-- Featured Tags -->
+                
+                <section>
+                    <!-- no hr -->
+                    <h5><a href="/tags/">FEATURED TAGS</a></h5>
+                    <div class="tags">
+                       
+                          <a class="tag" href="/tags/#Linux" title="Linux">Linux</a>
+                        
+                          <a class="tag" href="/tags/#技巧" title="技巧">技巧</a>
+                        
+                          <a class="tag" href="/tags/#Kubernetes" title="Kubernetes">Kubernetes</a>
+                        
+                    </div>
+                </section>
+                
+
+                <!-- Friends Blog -->
+                
+                <hr>
+                <h5>FRIENDS</h5>
+                <ul class="list-inline">
+
+                    
+                        <li><a href="http://www.mike.org.cn/" target="_blank">简单.生活</a></li>
+                    
+                        <li><a href="http://shang.qq.com/wpa/qunwpa?idkey=ea4c43493c2269428ac6ef6141de4b6d78e5ab2d41380ca4099b833b62884ee9" target="_blank">技术交流群</a></li>
+                    
+                        <li><a href="" target="_blank"></a></li>
+                    
+                        <li><a href="" target="_blank"></a></li>
+                    
+                </ul>
+                
+            </div>
+        </div>
+    </div>
+</article>
+
+
+
+
+
+
+    <!-- 来必力City版公共JS代码 start (一个网页只需插入一次) -->
+    <script type="text/javascript">
+       (function(d, s) {
+           var j, e = d.getElementsByTagName(s)[0];
+    
+           if (typeof LivereTower === 'function') { return; }
+    
+           j = d.createElement(s);
+           j.src = 'https://cdn-city.livere.com/js/embed.dist.js';
+           j.async = true;
+    
+           e.parentNode.insertBefore(j, e);
+       })(document, 'script');
+    </script>
+    <noscript>为正常使用来必力评论功能请激活JavaScript</noscript>
+    <!-- 来必力City版 公共JS代码 end -->
+
+
+
+<!-- async load function -->
+<script>
+    function async(u, c) {
+      var d = document, t = 'script',
+          o = d.createElement(t),
+          s = d.getElementsByTagName(t)[0];
+      o.src = u;
+      if (c) { o.addEventListener('load', function (e) { c(null, e); }, false); }
+      s.parentNode.insertBefore(o, s);
+    }
+</script>
+<!-- anchor-js, Doc:http://bryanbraun.github.io/anchorjs/ -->
+<script>
+    async("https://cdn.bootcss.com/anchor-js/1.1.1/anchor.min.js",function(){
+        anchors.options = {
+          visible: 'hover',
+          placement: 'left',
+          icon: 'ℬ'
+        };
+        anchors.add().remove('.intro-header h1').remove('.subheading').remove('.sidebar-container h5');
+    })
+</script>
+<style>
+    /* place left on bigger screen */
+    @media all and (min-width: 800px) {
+        .anchorjs-link{
+            position: absolute;
+            left: -0.75em;
+            font-size: 1.1em;
+            margin-top : -0.1em;
+        }
+    }
+</style>
+
+
+
+    <!-- Footer -->
+    <!-- Footer -->
+<footer>
+    <div class="container">
+        <div class="row">
+            <div class="col-lg-8 col-lg-offset-2 col-md-10 col-md-offset-1">
+                <ul class="list-inline text-center">
+                
+                    <li>
+                        <a href="/atom.xml">
+                            <span class="fa-stack fa-lg">
+                                <i class="fa fa-circle fa-stack-2x"></i>
+                                <i class="fa fa-rss fa-stack-1x fa-inverse"></i>
+                            </span>
+                        </a>
+                    </li>
+                
+                
+                
+                    <li>
+                        <a target="_blank" href="https://www.zhihu.com/people/80imike">
+                            <span class="fa-stack fa-lg">
+                                <i class="fa fa-circle fa-stack-2x"></i>
+                                <i class="fa  fa-stack-1x fa-inverse">知</i>
+                            </span>
+                        </a>
+                    </li>
+                
+
+                
+                    <li>
+                        <a target="_blank" href="http://weibo.com/2093524665">
+                            <span class="fa-stack fa-lg">
+                                <i class="fa fa-circle fa-stack-2x"></i>
+                                <i class="fa fa-weibo fa-stack-1x fa-inverse"></i>
+                            </span>
+                        </a>
+                    </li>
+                
+
+                
+
+                
+
+                
+
+                </ul>
+                <p class="copyright text-muted">
+                    Copyright &copy; Mike 2020 | Hosted by <a href="https://pages.coding.me" target="_blank" rel="noopener" style="font-weight: bold">Coding Pages</a>
+                    <br>
+                    Theme by <a href="http://beantech.org" target="_blank" rel="noopener">BeanTech</a> 
+                    <span style="display: inline-block; margin: 0 5px;">
+                        <i class="fa fa-heart"></i>
+                    </span> 
+                    re-Ported by <a href="http://www.huweihuang.com" target="_blank" rel="noopener">胡伟煌</a> | 
+                    <iframe
+                        style="margin-left: 2px; margin-bottom:-5px;"
+                        frameborder="0" scrolling="0" width="91px" height="20px"
+                        src="https://ghbtns.com/github-btn.html?user=huweihuang&repo=hexo-theme-huweihuang&type=star&count=true" >
+                    </iframe>
+                </p>
+            </div>
+        </div>
+    </div>
+</footer>
+
+<!-- jQuery -->
+
+<script src="/js/jquery.min.js"></script>
+
+
+<!-- Bootstrap Core JavaScript -->
+
+<script src="/js/bootstrap.min.js"></script>
+
+
+<!-- Custom Theme JavaScript -->
+
+<script src="/js/hux-blog.min.js"></script>
+
+
+
+<!-- async load function -->
+<script>
+    function async(u, c) {
+      var d = document, t = 'script',
+          o = d.createElement(t),
+          s = d.getElementsByTagName(t)[0];
+      o.src = u;
+      if (c) { o.addEventListener('load', function (e) { c(null, e); }, false); }
+      s.parentNode.insertBefore(o, s);
+    }
+</script>
+
+<!-- 
+     Because of the native support for backtick-style fenced code blocks 
+     right within the Markdown is landed in Github Pages, 
+     From V1.6, There is no need for Highlight.js, 
+     so Huxblog drops it officially.
+
+     - https://github.com/blog/2100-github-pages-now-faster-and-simpler-with-jekyll-3-0  
+     - https://help.github.com/articles/creating-and-highlighting-code-blocks/    
+-->
+<!--
+    <script>
+        async("http://cdn.bootcss.com/highlight.js/8.6/highlight.min.js", function(){
+            hljs.initHighlightingOnLoad();
+        })
+    </script>
+    <link href="http://cdn.bootcss.com/highlight.js/8.6/styles/github.min.css" rel="stylesheet">
+-->
+
+
+<!-- jquery.tagcloud.js -->
+<script>
+    // only load tagcloud.js in tag.html
+    if($('#tag_cloud').length !== 0){
+        async("https://www.hi-linux.com/js/jquery.tagcloud.js",function(){
+            $.fn.tagcloud.defaults = {
+                //size: {start: 1, end: 1, unit: 'em'},
+                color: {start: '#bbbbee', end: '#0085a1'},
+            };
+            $('#tag_cloud a').tagcloud();
+        })
+    }
+</script>
+
+<!--fastClick.js -->
+<script>
+    async("https://cdn.bootcss.com/fastclick/1.0.6/fastclick.min.js", function(){
+        var $nav = document.querySelector("nav");
+        if($nav) FastClick.attach($nav);
+    })
+</script>
+
+
+<!-- Google Analytics -->
+
+
+
+
+<!-- Baidu Tongji -->
+
+
+
+
+
+
+	<a id="rocket" href="#top" class=""></a>
+	<script type="text/javascript" src="/js/totop.js?v=1.0.0" async=""></script>
+    <script type="text/javascript" src="/js/toc.js?v=1.0.0" async=""></script>
+<!-- Image to hack wechat -->
+<img src="https://www.hi-linux.com/img/icon_wechat.png" width="0" height="0" />
+<!-- Migrate from head to bottom, no longer block render and still work -->
+
+<script>(function(w,d, s, id) {w.webpushr=w.webpushr||function(){(w.webpushr.q=w.webpushr.q||[]).push(arguments)};var js, fjs = d.getElementsByTagName(s)[0];js = d.createElement(s); js.id = id;js.src = 'https://cdn.webpushr.com/app.min.js';fjs.parentNode.appendChild(js);}(window,document, 'script', 'webpushr-jssdk'));webpushr('init','BF9JK7xV9kjWTdMx2lr6RWaPfXV7wNuZaVAJ1bfIGoBNJavqLEBVFMKLubITnCA4bh2fI9iH9tMF95nXnPt7xxY');</script></body>
+
+</html>
