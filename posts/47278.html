@@ -1,0 +1,690 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<!-- Head tag -->
+<head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="google-site-verification" content="xBT4GhYoi5qRD5tr338pgPM5OWHHIDR6mNg1a3euekI" />
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="description" content="">
+    <meta name="keyword"  content="Linux,运维,Nginx,Zabbix,Centos,Ansible,MySQL,Python,Docker,ELK,Haproxy,Git,Nodejs,安全,技术">
+    <link rel="shortcut icon" href="/img/ironman-draw.png">
+    <!-- Place this tag in your head or just before your close body tag. -->
+    <script async defer src="https://buttons.github.io/buttons.js"></script>
+    <title>
+        
+          手把手教你用 Tiny Tiny RSS 部署一个私有 RSS 服务器 - 运维之美
+        
+    </title>
+
+    <link rel="canonical" href="https://www.hi-linux.com/posts/47278.html">
+
+    <!-- Bootstrap Core CSS -->
+    
+<link rel="stylesheet" href="/css/bootstrap.min.css">
+
+
+    <!-- Custom CSS --> 
+    
+<link rel="stylesheet" href="/css/beantech.min.css">
+
+    
+    <!-- Pygments Highlight CSS -->
+    
+<link rel="stylesheet" href="/css/highlight.css">
+
+
+    
+<link rel="stylesheet" href="/css/widget.css">
+
+
+    
+<link rel="stylesheet" href="/css/rocket.css">
+
+
+    
+<link rel="stylesheet" href="/css/signature.css">
+
+
+    
+<link rel="stylesheet" href="/css/toc.css">
+
+
+    <!-- Custom Fonts -->
+    <!-- <link href="https://maxcdn.bootstrapcdn.com/font-awesome/4.3.0/css/font-awesome.min.css" rel="stylesheet" type="text/css"> -->
+    <!-- Hux change font-awesome CDN to qiniu -->
+    <link href="https://cdn.staticfile.org/font-awesome/4.5.0/css/font-awesome.min.css" rel="stylesheet" type="text/css">
+
+
+    <!-- Hux Delete, sad but pending in China
+    <link href='http://fonts.googleapis.com/css?family=Lora:400,700,400italic,700italic' rel='stylesheet' type='text/css'>
+    <link href='http://fonts.googleapis.com/css?family=Open+Sans:300italic,400italic,600italic,700italic,800italic,400,300,600,700,800' rel='stylesheet' type='text/
+    css'>
+    -->
+
+
+    <!-- HTML5 Shim and Respond.js IE8 support of HTML5 elements and media queries -->
+    <!-- WARNING: Respond.js doesn't work if you view the page via file:// -->
+    <!--[if lt IE 9]>
+        <script src="https://oss.maxcdn.com/libs/html5shiv/3.7.0/html5shiv.js"></script>
+        <script src="https://oss.maxcdn.com/libs/respond.js/1.4.2/respond.min.js"></script>
+    <![endif]-->
+
+    <!-- ga & ba script hoook -->
+    <script></script>
+<meta name="generator" content="Hexo 4.2.0"><link rel="alternate" href="/atom.xml" title="运维之美" type="application/atom+xml">
+</head>
+
+
+<!-- hack iOS CSS :active style -->
+<body ontouchstart="">
+	<!-- Modified by Yu-Hsuan Yen -->
+<!-- Post Header -->
+<style type="text/css">
+    header.intro-header{
+        
+            background-image: url('/img/header_img/building.jpg')
+            /*post*/
+        
+    }
+    
+</style>
+
+<header class="intro-header" >
+    <!-- Signature -->
+    <div id="signature">
+        <div class="container">
+            <div class="row">
+                <div class="col-lg-8 col-lg-offset-2 col-md-10 col-md-offset-1">
+                
+                    <div class="post-heading">
+                        <div class="tags">
+                            
+                              <a class="tag" href="/tags/#Linux" title="Linux">Linux</a>
+                            
+                              <a class="tag" href="/tags/#技巧" title="技巧">技巧</a>
+                            
+                              <a class="tag" href="/tags/#RSS" title="RSS">RSS</a>
+                            
+                        </div>
+                        <h1>手把手教你用 Tiny Tiny RSS 部署一个私有 RSS 服务器</h1>
+                        <h2 class="subheading"></h2>
+                        <span class="meta">
+                            Posted by Mike on
+                            2020-05-24
+                        </span>
+                    </div>
+                
+
+
+                </div>
+            </div>
+        </div>
+    </div>
+</header>
+
+	
+    <!-- Navigation -->
+<nav class="navbar navbar-default navbar-custom navbar-fixed-top">
+    <div class="container-fluid">
+        <!-- Brand and toggle get grouped for better mobile display -->
+        <div class="navbar-header page-scroll">
+            <button type="button" class="navbar-toggle">
+                <span class="sr-only">Toggle navigation</span>
+                <span class="icon-bar"></span>
+                <span class="icon-bar"></span>
+                <span class="icon-bar"></span>
+            </button>
+            <a class="navbar-brand" href="/">运维之美</a>
+        </div>
+
+        <!-- Collect the nav links, forms, and other content for toggling -->
+        <!-- Known Issue, found by Hux:
+            <nav>'s height woule be hold on by its content.
+            so, when navbar scale out, the <nav> will cover tags.
+            also mask any touch event of tags, unfortunately.
+        -->
+        <div id="huxblog_navbar">
+            <div class="navbar-collapse">
+                <ul class="nav navbar-nav navbar-right">
+                    <li>
+                        <a href="/">Home</a>
+                    </li>
+
+                    
+
+                        
+                    
+
+                        
+                    
+
+                        
+                        <li>
+                            <a href="/about/">About</a>
+                        </li>
+                        
+                    
+
+                        
+                        <li>
+                            <a href="/archive/">Archives</a>
+                        </li>
+                        
+                    
+
+                        
+                        <li>
+                            <a href="/tags/">Tags</a>
+                        </li>
+                        
+                    
+                    
+                </ul>
+            </div>
+        </div>
+        <!-- /.navbar-collapse -->
+    </div>
+    <!-- /.container -->
+</nav>
+<script>
+    // Drop Bootstarp low-performance Navbar
+    // Use customize navbar with high-quality material design animation
+    // in high-perf jank-free CSS3 implementation
+    var $body   = document.body;
+    var $toggle = document.querySelector('.navbar-toggle');
+    var $navbar = document.querySelector('#huxblog_navbar');
+    var $collapse = document.querySelector('.navbar-collapse');
+
+    $toggle.addEventListener('click', handleMagic)
+    function handleMagic(e){
+        if ($navbar.className.indexOf('in') > 0) {
+        // CLOSE
+            $navbar.className = " ";
+            // wait until animation end.
+            setTimeout(function(){
+                // prevent frequently toggle
+                if($navbar.className.indexOf('in') < 0) {
+                    $collapse.style.height = "0px"
+                }
+            },400)
+        }else{
+        // OPEN
+            $collapse.style.height = "auto"
+            $navbar.className += " in";
+        }
+    }
+</script>
+
+
+    <!-- Main Content -->
+    <!-- Modify by Yu-Hsuan Yen -->
+
+<!-- Post Content -->
+<article>
+    <div class="container">
+        <div class="row">
+
+            <!-- Post Container -->
+            <div class="
+                col-lg-8 col-lg-offset-2
+                col-md-10 col-md-offset-1
+                post-container">
+
+                <div id="vip-container"><p>9012 年了，别的小朋友们服务器上面跑着各式各样的东西：博客、云盘、监控脚本……再看看我们那台闲（bai）置（piao）很久的阿里云 Server，里面的 Git 竟然还是 1.8 的上古版本。🤦‍♂️ 不如把那台服务器拿出来，部署一个属于自己的 RSS 服务器，甚至可以跟同学们一起用呢～</p>
+<h2 id="rss">RSS</h2>
+<p>首先我们来说一说 RSS。RSS 的全称是 Really Simple Syndication（简易信息聚合），它是一种消息来源的格式规范，网站可以按照这种格式规范提供文章的标题、摘要、全文等信息给订阅用户，用户可以通过订阅不同网站 RSS 链接的方式将不同的信息源进行聚合，在一个工具里阅读这些内容。</p>
+<p>对于第一次接触 RSS 的同学，推荐大家阅读：<a href="https://sspai.com/post/56391" target="_blank" rel="noopener">高效获取信息，你需要这份 RSS 入门指南</a>，进行扫盲。</p>
+<p>市面上有非常多的 RSS 聚合服务，来帮助我们统一管理、订阅、更新、筛选 RSS 源推送给我们的更新信息，避免我们被海量的文章淹没，也能保证我们多个设备上 RSS 的阅读进度一致。Feedly、Inoreader 等等都是非常不错的 RSS 服务，但是它们的免费版本都有着一定的限制，有时候无法满足我们的全部功能需求，而动辄一个月数十刀的订阅费用又让人望而却步。不慌，开源的 RSS 服务：Tiny Tiny RSS 可以满足我们 RSS 订阅的全部需求！</p>
+<h2 id="tiny-tiny-rss-的搭建">Tiny Tiny RSS 的搭建</h2>
+<p><img src="https://i.loli.net/2019/11/19/aCty2KspU5f1gHr.jpg" alt="使用 Feedly 主题的 Tiny Tiny RSS 服务端"></p>
+<p>Tiny Tiny RSS 是一个非常优秀的开源免费 RSS 服务引擎，可以直接部署在我们自己的服务器上面，借助于 Docker 优秀方便的容器技术和 Let’s Encrypt 异常简单的 SSL 证书签署机器人 <code>certbot</code>，我们几分钟之内就可以部署上线属于我们自己的 RSS 服务，运行在我们可控的服务器上，环境稳定，刷新及时，并且完全免费。👍（当然，除了服务器需要一定的费用。）</p>
+<p>在容器、HTTPS 证书自动签署和虚拟化技术极度发达的今天，整个部署过程非常方便简单。我接下来只利用 iPad 进行讲解演示我们的部署过程。请大家坐好，我们立刻开始。</p>
+<a id="more"></a>
+<h2 id="准备工作">准备工作</h2>
+<p>在开始之前，首先我们需要准备一个位于公网的服务器，以及一个可以通过 SSH 连接到服务器上的本地设备。这里我使用我同（bai）学（piao）的已经备案的阿里云服务器作为运行 Tiny Tiny RSS 的服务器，并使用 iPad 和 Blink Shell（一个支持 SSH 协议的 iOS 终端 App）作为我的操作设备。Blink Shell 是 iPad 上面最好用的 SSH/Mosh 工具，推荐大家使用。我们在 Blink Shell 中配置好服务器私钥，通过 SSH 登录服务器。</p>
+<p><img src="https://i.loli.net/2019/11/19/iyk8KrUBYzodPqS.jpg" alt="利用 Blink Shell 登录至服务器"></p>
+<h2 id="利用-docker-部署-tiny-tiny-rss">利用 Docker 部署 Tiny Tiny RSS</h2>
+<h3 id="安装-docker">安装 Docker</h3>
+<p>Docker 是非常优秀的虚拟化容器，借助于 Docker 我们可以方便的部署 Tiny Tiny RSS，首先我们在服务器上安装 Docker 本体。在服务器上面执行下面命令来安装 Docker：</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">curl -fsSL https://get.docker.com/ | sh</span><br></pre></td></tr></table></figure>
+<p>然后启动 Docker 服务：</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">sudo systemctl start docker</span><br></pre></td></tr></table></figure>
+<p>然后，我们检查一下 Docker 是否启动成功。我们执行命令：<code>sudo systemctl status docker</code>：</p>
+<p><img src="https://i.loli.net/2019/11/20/L6VicoJy8OCBpxq.jpg" alt="检查 Docker 服务状态"></p>
+<p>看到如上的输出，说明我们 Docker 服务启动成功。</p>
+<p><em>参考资料：<a href="https://docs.docker.com/install/linux/docker-ce/centos/" target="_blank" rel="noopener">Get Docker Engine - Community for CentOS | Docker Documentation</a></em></p>
+<h3 id="安装-docker-compose">安装 docker-compose</h3>
+<p>接下来我们安装 <code>docker-compose</code>：一个管理和启动多个 Docker 容器的工具。由于 Tiny Tiny RSS 依赖有 PostgreSQL 的数据库服务以及 <a href="https://github.com/HenryQW/mercury_fulltext" target="_blank" rel="noopener">mercury_fulltext</a> 的全文抓取服务等等，这些服务我们都借助于 Docker 部署，因此利用 <code>docker-compose</code> 就会大大降低我们的部署难度。</p>
+<p>我们继续，在服务器上面执行下面的命令来安装 <code>docker-compose</code>：</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">curl -L https://github.com/docker/compose/releases/download/1.25.0/docker-compose-`uname -s`-`uname -m` -o /usr/<span class="built_in">local</span>/bin/docker-compose</span><br></pre></td></tr></table></figure>
+<p>之后给予安装好的 <code>docker-compose</code> 可执行权限：</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">chmod +x /usr/<span class="built_in">local</span>/bin/docker-compose</span><br></pre></td></tr></table></figure>
+<p><em>参考资料：<a href="https://docs.docker.com/compose/install/" target="_blank" rel="noopener">Install Docker Compose | Docker Documentation</a></em></p>
+<p>最后我们运行 <code>docker-compose --version</code> 来检查安装是否成功。如果有如下输出，说明我们的 <code>docker-compose</code> 安装成功：</p>
+<p><img src="https://i.loli.net/2019/11/20/6j3QgG1FszTPp5Y.jpg" alt="检查 docker-compose 安装情况"></p>
+<h3 id="安装-tiny-tiny-rss-及其周边服务">安装 Tiny Tiny RSS 及其周边服务</h3>
+<p>准备工作已经全部完成，接下来我们下载由 Awesome-TTRSS 配置的 Tiny Tiny RSS 服务的 docker-compose 配置文件：</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># 创建 ttrss 目录并进入</span></span><br><span class="line">mkdir ttrss &amp;&amp; <span class="built_in">cd</span> ttrss</span><br><span class="line"></span><br><span class="line"><span class="comment"># 利用 curl 下载 ttrss 的 docker-compose 配置文件至服务器</span></span><br><span class="line">curl -fLo docker-compose.yml https://github.com/HenryQW/Awesome-TTRSS/raw/master/docker-compose.yml</span><br></pre></td></tr></table></figure>
+<p>修改 docker-compose.yml 里面的内容：</p>
+<p><img src="https://i.loli.net/2019/11/20/sn4MP8uvb3WIzDt.png" alt="修改 docker-compose 配置文件"></p>
+<ul>
+<li>在配置文件的第 7 行和第 23 行，将 PostgreSQL 数据库的默认密码进行修改。暴露在公网的数据库使用默认密码非常危险。</li>
+<li>在配置文件的第 18 行，将 Tiny Tiny RSS 服务的部署网址修改。比如我的部署网址是 <code>https://ttrss.tenkeyseven.com/</code>
+<ul>
+<li>注意，如果你的部署 URL 包含端口（比如默认部署端口为 181 端口），那么这里的 URL 也需要加上端口号，格式为 <code>{网址}:{端口}</code></li>
+<li>不过不必担心，如果你这里的 URL 配置不正确，那么访问 Tiny Tiny RSS 的时候，Tiny Tiny RSS 会提醒你修改这里的值为正确的 URL，按照提醒进行配置即可</li>
+</ul>
+</li>
+</ul>
+<p>之后，我们保存配置文件，启动 Tiny Tiny RSS 服务。在刚刚的 <code>ttrss</code> 目录下执行：</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">docker-compose up -d</span><br></pre></td></tr></table></figure>
+<p>等待脚本执行完成，如果一切没有问题，那么接下来输入 <code>docker ps</code>，我们应该看到类似下面的结果：</p>
+<p><img src="https://i.loli.net/2019/11/20/AxTdoa7YJCgI5i4.jpg" alt="查看正在运行的 Docker 容器"></p>
+<p>上面内容表示我们开启了四个 Docker 容器，分别是：</p>
+<ul>
+<li>Tiny Tiny RSS 本身，监听端口为 <code>0.0.0.0:181 -&gt; 80</code>，同时暴露给外网</li>
+<li>PostgreSQL 数据库，仅供内部使用</li>
+<li>Mercury 全文抓取服务，仅供内部使用</li>
+<li>OpenCC 简体、繁体中文转换服务，仅供内部使用</li>
+</ul>
+<p>如果发现问题，修改 docker-compose 配置文件后，需要执行下面的命令重启 Docker 容器们：</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># 关闭 Docker 容器们</span></span><br><span class="line">docker-compose down</span><br><span class="line"></span><br><span class="line"><span class="comment"># 删除已停止的 Docker 容器</span></span><br><span class="line">docker-compose rm</span><br><span class="line"></span><br><span class="line"><span class="comment"># ……</span></span><br><span class="line"><span class="comment"># 修改 docker-compose 配置文件</span></span><br><span class="line"><span class="comment"># ……</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># 再次开启 Docker 服务</span></span><br><span class="line">docker-compose up -d</span><br></pre></td></tr></table></figure>
+<h2 id="安装-nginx-作为-docker-容器的反向代理">安装 Nginx 作为 Docker 容器的反向代理</h2>
+<p>事实上，到上一步，如果我们访问 <code>{服务器 IP}:181</code>，应该可以直接看到 Tiny Tiny RSS 的 Web 前端，但是 Tiny Tiny RSS 并不能直接配置 SSL 证书，也就没法添加 HTTPS 支持。我们利用 Nginx 作为反向代理服务器，即可方便的给 Tiny Tiny RSS 单独绑定一个我们希望的域名，并利用 Let’s Encrypt 来部署 HTTPS。</p>
+<h3 id="安装-nginx">安装 Nginx</h3>
+<p>首先我们来安装 Nginx，以 CentOS 为例，我们直接执行下面命令即可：</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">sudo yum install nginx</span><br></pre></td></tr></table></figure>
+<p>之后开启 Nginx 服务：</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">sudo systemctl start nginx</span><br></pre></td></tr></table></figure>
+<p>检查 Nginx 是否启动成功：</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">sudo systemctl status nginx</span><br></pre></td></tr></table></figure>
+<p><img src="https://i.loli.net/2019/11/20/gakiyznx5NhXT16.jpg" alt="检查 Nginx 运行状态"></p>
+<h3 id="签署-ssl-证书部署-https">签署 SSL 证书，部署 HTTPS</h3>
+<p>之后，我们利用 Let’s Encrypt 提供的 <code>certbot</code> 直接为 Nginx 配置 SSL 证书。首先，我们执行下面的命令安装 <code>certbot</code>：</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">sudo yum install certbot python2-certbot-nginx</span><br></pre></td></tr></table></figure>
+<p>然后运行 <code>certbot</code> 来签署 SSL 证书并自动配置 Nginx 服务：</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">sudo certbot --nginx</span><br></pre></td></tr></table></figure>
+<p><em>参考资料：<a href="https://certbot.eff.org/lets-encrypt/centosrhel7-nginx" target="_blank" rel="noopener">Certbot | Nginx on CentOS/RHEL 7</a></em></p>
+<p>在这里，certbot 会要求我们输入我们希望签署 SSL 证书的域名，我们选择为 Tiny Tiny RSS 分配的域名（比如我的就是 <code>ttrss.tenkeyseven.com</code>）即可。另外，如果 certbot 询问是否需要将访问该网址的全部流量重定向至 HTTPS，那么选择「是」即可。我们等待脚本执行签署任务完毕，然后重启 Nginx 服务：</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">sudo systemctl restart nginx</span><br></pre></td></tr></table></figure>
+<p>此时我们如果直接访问这一域名，应该就可以看到带有 HTTPS 的 Nginx 默认网站：</p>
+<p><img src="https://i.loli.net/2019/11/20/jWwRplvBD8oOczJ.jpg" alt="HTTPS 配置成功的 Nginx 默认网站"></p>
+<p>接下来，我们修改 Nginx 的配置文件，配置 Nginx 反向代理，将访问 <code>https://ttrss.tenkeyseven.com</code> 的请求指向我们刚刚部署好的 Tiny Tiny RSS 服务，对服务器来说，也就是 <code>127.0.0.1:181</code> 这一地址。（如果你没有更改 Tiny Tiny RSS 的端口号的话。）</p>
+<p>Nginx 的配置文件位于 <code>/etc/nginx/nginx.conf</code>，我们打开这一文件：</p>
+<p><img src="https://i.loli.net/2019/11/20/J9yaSejPN1iLnkO.png" alt="Nginx 配置文件"></p>
+<ul>
+<li>
+<p>在 <code>http</code> 项下，<code>server</code> 项前定义 <code>upstream</code> 服务：</p>
+  <figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">upstream ttrssdev &#123;</span><br><span class="line">	server 127.0.0.1:181;</span><br><span class="line">	keepalive 64;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p><img src="https://i.loli.net/2019/11/20/XLAlTsegadr5cPE.jpg" alt="Nginx upstream 服务声明"></p>
+</li>
+<li>
+<p>在刚刚 <code>certbot</code> 为我们生成好的响应域名 <code>server</code> 项下，注释掉第一行定义 <code>root</code> 的内容，并将 <code>location /</code> 项修改为：</p>
+  <figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br></pre></td><td class="code"><pre><span class="line">location &#x2F; &#123;</span><br><span class="line">	proxy_redirect off;</span><br><span class="line">	proxy_pass http:&#x2F;&#x2F;ttrssdev;</span><br><span class="line">	</span><br><span class="line">	proxy_set_header  Host                $http_host;</span><br><span class="line">	proxy_set_header  X-Real-IP           $remote_addr;</span><br><span class="line">	proxy_set_header  X-Forwarded-Ssl     on;</span><br><span class="line">	proxy_set_header  X-Forwarded-For     $proxy_add_x_forwarded_for;</span><br><span class="line">	proxy_set_header  X-Forwarded-Proto   $scheme;</span><br><span class="line">	proxy_set_header  X-Frame-Options     SAMEORIGIN;</span><br><span class="line">	</span><br><span class="line">	client_max_body_size        100m;</span><br><span class="line">	client_body_buffer_size     128k;</span><br><span class="line">	</span><br><span class="line">	proxy_buffer_size           4k;</span><br><span class="line">	proxy_buffers               4 32k;</span><br><span class="line">	proxy_busy_buffers_size     64k;</span><br><span class="line">	proxy_temp_file_write_size  64k;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p><img src="https://i.loli.net/2019/11/20/LVXAFOfywRB2inr.jpg" alt="Nginx 配置文件：反向代理配置"></p>
+</li>
+</ul>
+<p>这样，我们再次执行 <code>sudo systemctl restart nginx</code> 重启 Nginx 服务，一切顺利的话，我们就可以通过我们刚刚签署 SSL 证书的域名访问我们部署好的 Tiny Tiny RSS 服务了！鼓掌 👏</p>
+<p>Tiny Tiny RSS 的默认管理员账户密码是 admin 和 password，请在第一时间进行修改。</p>
+<h2 id="配置-tiny-tiny-rss">配置 Tiny Tiny RSS</h2>
+<p><img src="https://i.loli.net/2019/11/20/cis6yUboY2KStEn.jpg" alt="Tiny Tiny RSS 配置、主题"></p>
+<p>如果上面步骤没有问题的话，我们在服务器上面所部署的 Tiny Tiny RSS 本身就已经包含了：</p>
+<ul>
+<li>Mercury 全文提取服务（默认未开启）</li>
+<li>OpenCC 繁简自动转换服务（默认未开启）</li>
+<li>Fever 格式输出插件（默认已开启，用来和 Reeder 等客户端进行连接）</li>
+<li>包括 Feedly、RSSHub 在内的多款主题</li>
+<li>等等……</li>
+</ul>
+<p>我们不需要多余的配置，开箱即可使用上面的主题和插件，根本不需要操心其他服务的部署和安装。我们登录自己的 Tiny Tiny RSS，在右上角「设置→ 插件」中即可启用上述插件，在「设置 → 主题」处就可以更改我们部署的 Tiny Tiny RSS 所用的主题。这些插件和主题在 <a href="https://sspai.com/post/41302" target="_blank" rel="noopener">如何搭建属于自己的 RSS 服务，高效精准获取信息</a> 中已经介绍了使用方法，这里我就不再赘述了。</p>
+<p>如果有同学对上面的配置还有问题，请直接参考 <a href="https://ttrss.henry.wang/zh/#%E6%8F%92%E4%BB%B6" target="_blank" rel="noopener">Awesome TTRSS 的官方文档：🐋 Awesome TTRSS | 插件</a></p>
+<h2 id="小结">小结</h2>
+<p>Tiny Tiny RSS 的配置到这里就基本结束了，我相信你通过上面的配置一定已经在自己的服务器上部署成功了 Tiny Tiny RSS 服务，并为它添加了域名和 HTTPS 的支持。另外，Tiny Tiny RSS 还自带了账号系统，可以邀请其他志同道合的朋友们一起使用我们自己部署的 Tiny Tiny RSS。感谢阅读。</p>
+<p>📖 关联阅读：</p>
+<ul>
+<li><a href="https://ttrss.henry.wang/zh/#%E5%85%B3%E4%BA%8E" target="_blank" rel="noopener">🐋 Awesome TTRSS</a></li>
+<li><a href="https://sspai.com/post/56893" target="_blank" rel="noopener">Docker 的入门「指北」</a></li>
+<li><a href="https://sspai.com/post/41302" target="_blank" rel="noopener">如何搭建属于自己的 RSS 服务，高效精准获取信息</a></li>
+</ul>
+<blockquote>
+<p>本文转载自：「Spencer’s Blog」，原文：<a href="https://url.cn/5oFe33h%EF%BC%8C%E7%89%88%E6%9D%83%E5%BD%92%E5%8E%9F%E4%BD%9C%E8%80%85%E6%89%80%E6%9C%89%E3%80%82%E6%AC%A2%E8%BF%8E%E6%8A%95%E7%A8%BF%EF%BC%8C%E6%8A%95%E7%A8%BF%E9%82%AE%E7%AE%B1:" target="_blank" rel="noopener">https://url.cn/5oFe33h，版权归原作者所有。欢迎投稿，投稿邮箱:</a> <code>editor@hi-linux.com</code> 。</p>
+</blockquote>
+</div>
+
+			<script src="https://my.openwrite.cn/js/readmore.js" type="text/javascript"></script>
+			<script>
+			var isMobile = navigator.userAgent.match(/(phone|pad|pod|iPhone|iPod|ios|iPad|Android|Mobile|BlackBerry|IEMobile|MQQBrowser|JUC|Fennec|wOSBrowser|BrowserNG|WebOS|Symbian|Windows Phone)/i);
+			if (!isMobile) {
+			    var btw = new BTWPlugin();
+			    btw.init({
+			        "id": "vip-container",
+			        "blogId": "10135-1588830050631-449",
+			        "name": "「奇妙的 Linux 世界」",
+			        "qrcode": "https://www.hi-linux.com/img/wechat/mp_qrcode_12.jpg",
+			        "keyword": "VIP"
+			    });
+			}
+			</script>
+		
+                
+
+                <hr>
+                <!-- Pager -->
+                <ul class="pager">
+                    
+                    
+                        <li class="next">
+                            <a href="/posts/32690.html" data-toggle="tooltip" data-placement="top" title="推荐一款英语学习神器 Rosetta Stone">Next Post &rarr;</a>
+                        </li>
+                    
+                </ul>
+
+                <!-- duoshuo Share start -->
+                
+                <!-- 多说 Share end-->
+
+                <!-- 多说评论框 start -->
+                
+                <!-- 多说评论框 end -->
+
+                <!-- disqus comment start -->
+                
+                <!-- disqus comment end -->
+
+                
+                    <!-- disqus 评论框 start -->
+                    <div class="comment">
+                        <div id="lv-container" data-id="city" data-uid="MTAyMC8yNzg2My80NDQw"></div>
+                    </div>
+                    <!-- disqus 评论框 end -->
+                
+
+            </div>
+            
+            <!-- Tabe of Content -->
+            <!-- Table of Contents -->
+
+  
+    <style>
+      span.toc-nav-number{
+        display: none
+      }
+    </style>
+  
+    
+      <aside id="sidebar">
+        <div id="toc" class="toc-article">
+        <strong class="toc-title">Contents</strong>
+        
+          <ol class="toc-nav"><li class="toc-nav-item toc-nav-level-2"><a class="toc-nav-link" href="#rss"><span class="toc-nav-number">1.</span> <span class="toc-nav-text">RSS</span></a></li><li class="toc-nav-item toc-nav-level-2"><a class="toc-nav-link" href="#tiny-tiny-rss-的搭建"><span class="toc-nav-number">2.</span> <span class="toc-nav-text">Tiny Tiny RSS 的搭建</span></a></li><li class="toc-nav-item toc-nav-level-2"><a class="toc-nav-link" href="#准备工作"><span class="toc-nav-number">3.</span> <span class="toc-nav-text">准备工作</span></a></li><li class="toc-nav-item toc-nav-level-2"><a class="toc-nav-link" href="#利用-docker-部署-tiny-tiny-rss"><span class="toc-nav-number">4.</span> <span class="toc-nav-text">利用 Docker 部署 Tiny Tiny RSS</span></a><ol class="toc-nav-child"><li class="toc-nav-item toc-nav-level-3"><a class="toc-nav-link" href="#安装-docker"><span class="toc-nav-number">4.1.</span> <span class="toc-nav-text">安装 Docker</span></a></li><li class="toc-nav-item toc-nav-level-3"><a class="toc-nav-link" href="#安装-docker-compose"><span class="toc-nav-number">4.2.</span> <span class="toc-nav-text">安装 docker-compose</span></a></li><li class="toc-nav-item toc-nav-level-3"><a class="toc-nav-link" href="#安装-tiny-tiny-rss-及其周边服务"><span class="toc-nav-number">4.3.</span> <span class="toc-nav-text">安装 Tiny Tiny RSS 及其周边服务</span></a></li></ol></li><li class="toc-nav-item toc-nav-level-2"><a class="toc-nav-link" href="#安装-nginx-作为-docker-容器的反向代理"><span class="toc-nav-number">5.</span> <span class="toc-nav-text">安装 Nginx 作为 Docker 容器的反向代理</span></a><ol class="toc-nav-child"><li class="toc-nav-item toc-nav-level-3"><a class="toc-nav-link" href="#安装-nginx"><span class="toc-nav-number">5.1.</span> <span class="toc-nav-text">安装 Nginx</span></a></li><li class="toc-nav-item toc-nav-level-3"><a class="toc-nav-link" href="#签署-ssl-证书部署-https"><span class="toc-nav-number">5.2.</span> <span class="toc-nav-text">签署 SSL 证书，部署 HTTPS</span></a></li></ol></li><li class="toc-nav-item toc-nav-level-2"><a class="toc-nav-link" href="#配置-tiny-tiny-rss"><span class="toc-nav-number">6.</span> <span class="toc-nav-text">配置 Tiny Tiny RSS</span></a></li><li class="toc-nav-item toc-nav-level-2"><a class="toc-nav-link" href="#小结"><span class="toc-nav-number">7.</span> <span class="toc-nav-text">小结</span></a></li></ol>
+        
+        </div>
+      </aside>
+    
+
+                
+            <!-- Sidebar Container -->
+            <div class="
+                col-lg-8 col-lg-offset-2
+                col-md-10 col-md-offset-1
+                sidebar-container">
+
+                <!-- Featured Tags -->
+                
+                <section>
+                    <!-- no hr -->
+                    <h5><a href="/tags/">FEATURED TAGS</a></h5>
+                    <div class="tags">
+                       
+                          <a class="tag" href="/tags/#Linux" title="Linux">Linux</a>
+                        
+                          <a class="tag" href="/tags/#技巧" title="技巧">技巧</a>
+                        
+                          <a class="tag" href="/tags/#RSS" title="RSS">RSS</a>
+                        
+                    </div>
+                </section>
+                
+
+                <!-- Friends Blog -->
+                
+                <hr>
+                <h5>FRIENDS</h5>
+                <ul class="list-inline">
+
+                    
+                        <li><a href="http://www.mike.org.cn/" target="_blank">简单.生活</a></li>
+                    
+                        <li><a href="http://shang.qq.com/wpa/qunwpa?idkey=ea4c43493c2269428ac6ef6141de4b6d78e5ab2d41380ca4099b833b62884ee9" target="_blank">技术交流群</a></li>
+                    
+                        <li><a href="" target="_blank"></a></li>
+                    
+                        <li><a href="" target="_blank"></a></li>
+                    
+                </ul>
+                
+            </div>
+        </div>
+    </div>
+</article>
+
+
+
+
+
+
+    <!-- 来必力City版公共JS代码 start (一个网页只需插入一次) -->
+    <script type="text/javascript">
+       (function(d, s) {
+           var j, e = d.getElementsByTagName(s)[0];
+    
+           if (typeof LivereTower === 'function') { return; }
+    
+           j = d.createElement(s);
+           j.src = 'https://cdn-city.livere.com/js/embed.dist.js';
+           j.async = true;
+    
+           e.parentNode.insertBefore(j, e);
+       })(document, 'script');
+    </script>
+    <noscript>为正常使用来必力评论功能请激活JavaScript</noscript>
+    <!-- 来必力City版 公共JS代码 end -->
+
+
+
+<!-- async load function -->
+<script>
+    function async(u, c) {
+      var d = document, t = 'script',
+          o = d.createElement(t),
+          s = d.getElementsByTagName(t)[0];
+      o.src = u;
+      if (c) { o.addEventListener('load', function (e) { c(null, e); }, false); }
+      s.parentNode.insertBefore(o, s);
+    }
+</script>
+<!-- anchor-js, Doc:http://bryanbraun.github.io/anchorjs/ -->
+<script>
+    async("https://cdn.bootcss.com/anchor-js/1.1.1/anchor.min.js",function(){
+        anchors.options = {
+          visible: 'hover',
+          placement: 'left',
+          icon: 'ℬ'
+        };
+        anchors.add().remove('.intro-header h1').remove('.subheading').remove('.sidebar-container h5');
+    })
+</script>
+<style>
+    /* place left on bigger screen */
+    @media all and (min-width: 800px) {
+        .anchorjs-link{
+            position: absolute;
+            left: -0.75em;
+            font-size: 1.1em;
+            margin-top : -0.1em;
+        }
+    }
+</style>
+
+
+
+    <!-- Footer -->
+    <!-- Footer -->
+<footer>
+    <div class="container">
+        <div class="row">
+            <div class="col-lg-8 col-lg-offset-2 col-md-10 col-md-offset-1">
+                <ul class="list-inline text-center">
+                
+                    <li>
+                        <a href="/atom.xml">
+                            <span class="fa-stack fa-lg">
+                                <i class="fa fa-circle fa-stack-2x"></i>
+                                <i class="fa fa-rss fa-stack-1x fa-inverse"></i>
+                            </span>
+                        </a>
+                    </li>
+                
+                
+                
+                    <li>
+                        <a target="_blank" href="https://www.zhihu.com/people/80imike">
+                            <span class="fa-stack fa-lg">
+                                <i class="fa fa-circle fa-stack-2x"></i>
+                                <i class="fa  fa-stack-1x fa-inverse">知</i>
+                            </span>
+                        </a>
+                    </li>
+                
+
+                
+                    <li>
+                        <a target="_blank" href="http://weibo.com/2093524665">
+                            <span class="fa-stack fa-lg">
+                                <i class="fa fa-circle fa-stack-2x"></i>
+                                <i class="fa fa-weibo fa-stack-1x fa-inverse"></i>
+                            </span>
+                        </a>
+                    </li>
+                
+
+                
+
+                
+
+                
+
+                </ul>
+                <p class="copyright text-muted">
+                    Copyright &copy; Mike 2020 | Hosted by <a href="https://pages.coding.me" target="_blank" rel="noopener" style="font-weight: bold">Coding Pages</a>
+                    <br>
+                    Theme by <a href="http://beantech.org" target="_blank" rel="noopener">BeanTech</a> 
+                    <span style="display: inline-block; margin: 0 5px;">
+                        <i class="fa fa-heart"></i>
+                    </span> 
+                    re-Ported by <a href="http://www.huweihuang.com" target="_blank" rel="noopener">胡伟煌</a> | 
+                    <iframe
+                        style="margin-left: 2px; margin-bottom:-5px;"
+                        frameborder="0" scrolling="0" width="91px" height="20px"
+                        src="https://ghbtns.com/github-btn.html?user=huweihuang&repo=hexo-theme-huweihuang&type=star&count=true" >
+                    </iframe>
+                </p>
+            </div>
+        </div>
+    </div>
+</footer>
+
+<!-- jQuery -->
+
+<script src="/js/jquery.min.js"></script>
+
+
+<!-- Bootstrap Core JavaScript -->
+
+<script src="/js/bootstrap.min.js"></script>
+
+
+<!-- Custom Theme JavaScript -->
+
+<script src="/js/hux-blog.min.js"></script>
+
+
+
+<!-- async load function -->
+<script>
+    function async(u, c) {
+      var d = document, t = 'script',
+          o = d.createElement(t),
+          s = d.getElementsByTagName(t)[0];
+      o.src = u;
+      if (c) { o.addEventListener('load', function (e) { c(null, e); }, false); }
+      s.parentNode.insertBefore(o, s);
+    }
+</script>
+
+<!-- 
+     Because of the native support for backtick-style fenced code blocks 
+     right within the Markdown is landed in Github Pages, 
+     From V1.6, There is no need for Highlight.js, 
+     so Huxblog drops it officially.
+
+     - https://github.com/blog/2100-github-pages-now-faster-and-simpler-with-jekyll-3-0  
+     - https://help.github.com/articles/creating-and-highlighting-code-blocks/    
+-->
+<!--
+    <script>
+        async("http://cdn.bootcss.com/highlight.js/8.6/highlight.min.js", function(){
+            hljs.initHighlightingOnLoad();
+        })
+    </script>
+    <link href="http://cdn.bootcss.com/highlight.js/8.6/styles/github.min.css" rel="stylesheet">
+-->
+
+
+<!-- jquery.tagcloud.js -->
+<script>
+    // only load tagcloud.js in tag.html
+    if($('#tag_cloud').length !== 0){
+        async("https://www.hi-linux.com/js/jquery.tagcloud.js",function(){
+            $.fn.tagcloud.defaults = {
+                //size: {start: 1, end: 1, unit: 'em'},
+                color: {start: '#bbbbee', end: '#0085a1'},
+            };
+            $('#tag_cloud a').tagcloud();
+        })
+    }
+</script>
+
+<!--fastClick.js -->
+<script>
+    async("https://cdn.bootcss.com/fastclick/1.0.6/fastclick.min.js", function(){
+        var $nav = document.querySelector("nav");
+        if($nav) FastClick.attach($nav);
+    })
+</script>
+
+
+<!-- Google Analytics -->
+
+
+
+
+<!-- Baidu Tongji -->
+
+
+
+
+
+
+	<a id="rocket" href="#top" class=""></a>
+	<script type="text/javascript" src="/js/totop.js?v=1.0.0" async=""></script>
+    <script type="text/javascript" src="/js/toc.js?v=1.0.0" async=""></script>
+<!-- Image to hack wechat -->
+<img src="https://www.hi-linux.com/img/icon_wechat.png" width="0" height="0" />
+<!-- Migrate from head to bottom, no longer block render and still work -->
+
+<script>(function(w,d, s, id) {w.webpushr=w.webpushr||function(){(w.webpushr.q=w.webpushr.q||[]).push(arguments)};var js, fjs = d.getElementsByTagName(s)[0];js = d.createElement(s); js.id = id;js.src = 'https://cdn.webpushr.com/app.min.js';fjs.parentNode.appendChild(js);}(window,document, 'script', 'webpushr-jssdk'));webpushr('init','BF9JK7xV9kjWTdMx2lr6RWaPfXV7wNuZaVAJ1bfIGoBNJavqLEBVFMKLubITnCA4bh2fI9iH9tMF95nXnPt7xxY');</script></body>
+
+</html>
