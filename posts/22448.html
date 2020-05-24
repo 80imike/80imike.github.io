@@ -14,11 +14,11 @@
     <script async defer src="https://buttons.github.io/buttons.js"></script>
     <title>
         
-          如何在不杀进程的前提下关闭一个 TCP Socket 连接 - 运维之美
+          5 分钟读懂 MySQL 四种隔离级别间的区别 - 运维之美
         
     </title>
 
-    <link rel="canonical" href="https://www.hi-linux.com/posts/62556.html">
+    <link rel="canonical" href="https://www.hi-linux.com/posts/22448.html">
 
     <!-- Bootstrap Core CSS -->
     
@@ -105,10 +105,10 @@
                             
                               <a class="tag" href="/tags/#技巧" title="技巧">技巧</a>
                             
-                              <a class="tag" href="/tags/#Shell" title="Shell">Shell</a>
+                              <a class="tag" href="/tags/#MySQL" title="MySQL">MySQL</a>
                             
                         </div>
-                        <h1>如何在不杀进程的前提下关闭一个 TCP Socket 连接</h1>
+                        <h1>5 分钟读懂 MySQL 四种隔离级别间的区别</h1>
                         <h2 class="subheading"></h2>
                         <span class="meta">
                             Posted by Mike on
@@ -232,36 +232,98 @@
                 col-md-10 col-md-offset-1
                 post-container">
 
-                <div id="vip-container"><p>要在线关闭一个 TCP Socket 连接，你可能会说很简单，<code>netstat -antp</code> 找到连接，<code>kill</code> 掉这个进程就行了。</p>
-<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"># netstat -antp|grep 6789</span><br><span class="line">tcp        0      0 1.1.1.1:59950      1.1.1.2:6789        ESTABLISHED 45059&#x2F;ceph-fuse</span><br><span class="line"># kill 45059</span><br></pre></td></tr></table></figure>
-<p>连接确实关掉了，进程也跟着一起杀死了。达不到 “在线” 的要求。</p>
-<p>有没有办法不杀死进程，但还是可以关闭 Socket 连接呢？</p>
-<p>我们知道，在编码的时候，要关闭一个 Socket，只要调用 close 函数就可以了，但是进程在运行着呢，怎么让它调用 close 呢？</p>
-<p>在 superuser 上看到一个很棒的方法，原理就是 <code>gdb attach</code> 到进程上下文，然后 call close($fd)。</p>
-<a id="more"></a>
+                <div id="vip-container"><h2 id="什么是事务">什么是事务</h2>
+<p>事务是应用程序中一系列严密的操作，所有操作必须成功完成，否则在每个操作中所作的所有更改都会被撤消。也就是事务具有原子性，一个事务中的一系列的操作要么全部成功，要么一个都不做。</p>
+<p>事务的结束有两种，当事务中的所以步骤全部成功执行时，事务提交。如果其中一个步骤失败，将发生回滚操作，撤消撤消之前到事务开始时的所以操作。</p>
+<h2 id="事务的-acid">事务的 ACID</h2>
+<p><strong>事务具有四个特征：原子性（ Atomicity ）、一致性（ Consistency ）、隔离性（ Isolation ）和持续性（ Durability ）。这四个特性简称为 ACID 特性。</strong></p>
 <ol>
-<li>使用 <code>netstat</code> 找到进程</li>
+<li>原子性：事务是数据库的逻辑工作单位，事务中包含的各操作要么都做，要么都不做</li>
+<li>一致性：事务执行的结果必须是使数据库从一个一致性状态变到另一个一致性状态。因此当数据库只包含成功事务提交的结果时，就说数据库处于一致性状态。如果数据库系统 运行中发生故障，有些事务尚未完成就被迫中断，这些未完成事务对数据库所做的修改有一部分已写入物理数据库，这时数据库就处于一种不正确的状态，或者说是不一致的状态。</li>
+<li>隔离性：一个事务的执行不能其它事务干扰。即一个事务内部的操作及使用的数据对其它并发事务是隔离的，并发执行的各个事务之间不能互相干扰。</li>
+<li>持续性：也称永久性，指一个事务一旦提交，它对数据库中的数据的改变就应该是永久性的。接下来的其它操作或故障不应该对其执行结果有任何影响。</li>
 </ol>
-<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"># netstat -antp|grep 6789</span><br><span class="line">tcp        0      0 1.1.1.1:59950      1.1.1.2:6789        ESTABLISHED 45059&#x2F;ceph-fuse</span><br></pre></td></tr></table></figure>
-<p>如上，进程 pid 为 45059。</p>
-<ol start="2">
-<li>使用 <code>lsof</code> 找到进程 45059 打开的所有文件描述符，并找到对应的 Socket 连接。</li>
-</ol>
-<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line"># lsof -np 45059</span><br><span class="line">COMMAND     PID USER   FD   TYPE             DEVICE SIZE&#x2F;OFF       NODE NAME</span><br><span class="line">ceph-fuse 45059 root  rtd    DIR                8,2     4096          2 &#x2F;</span><br><span class="line">ceph-fuse 45059 root  txt    REG                8,2  6694144    1455967 &#x2F;usr&#x2F;bin&#x2F;ceph-fuse</span><br><span class="line">ceph-fuse 45059 root  mem    REG                8,2   510416    2102312 &#x2F;usr&#x2F;lib64&#x2F;libfreeblpriv3.so</span><br><span class="line">...</span><br><span class="line">ceph-fuse 45059 root   12u  IPv4         1377072656      0t0        TCP 1.1.1.1:59950-&gt;1.1.1.2:smc-https (ESTABLISHED)</span><br></pre></td></tr></table></figure>
-<p>其中 12u 就是上面对应 Socket 连接的文件描述符。</p>
-<ol start="3">
-<li>gdb 连接到进程</li>
-</ol>
-<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">$ gdb -p 45059</span><br></pre></td></tr></table></figure>
-<ol start="4">
-<li>关闭 Socket 连接</li>
-</ol>
-<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">(gdb) call close(12u)</span><br></pre></td></tr></table></figure>
-<p>Socket 连接就可以关闭了，但是进程 45059 还是好着的。</p>
-<p>你可能会问，什么时候会用到这个特性呢？场景还是比较多的，比如你想测试下应用是否会自动重连 MySQL，通过这个办法就可以比较方便的测试了。</p>
+<a id="more"></a>
+<h2 id="mysql-的四种隔离级别">MySQL 的四种隔离级别</h2>
+<p><strong>SQL 标准定义了 4 类隔离级别，包括了一些具体规则，用来限定事务内外的哪些改变是可见的，哪些是不可见的。低级别的隔离级一般支持更高的并发处理，并拥有更低的系统开销。</strong></p>
+<h3 id="read-uncommitted读取未提交内容">Read Uncommitted（读取未提交内容）</h3>
+<p>在该隔离级别，所有事务都可以看到其他未提交事务的执行结果。本隔离级别很少用于实际应用，因为它的性能也不比其他级别好多少。读取未提交的数据，也被称之为脏读（Dirty Read）。</p>
+<h3 id="read-committed读取提交内容">Read Committed（读取提交内容）</h3>
+<p>这是大多数数据库系统的默认隔离级别（但不是 MySQL 默认的）。它满足了隔离的简单定义：一个事务只能看见已经提交事务所做的改变。这种隔离级别 也支持所谓的不可重复读（Nonrepeatable Read），因为同一事务的其他实例在该实例处理其间可能会有新的 Commit，所以同一 Select 可能返回不同结果。</p>
+<h3 id="repeatable-read可重读">Repeatable Read（可重读）</h3>
+<p>这是 MySQL 的默认事务隔离级别，它确保同一事务的多个实例在并发读取数据时，会看到同样的数据行。不过理论上，这会导致另一个棘手的问题：幻读 （Phantom Read）。简单的说，幻读指当用户读取某一范围的数据行时，另一个事务又在该范围内插入了新行，当用户再读取该范围的数据行时，会发现有新的 “幻影” 行。InnoDB 和 Falcon 存储引擎通过多版本并发控制（MVCC，Multiversion Concurrency Control）机制解决了该问题。</p>
+<h3 id="serializable可串行化">Serializable（可串行化）</h3>
+<p>这是最高的隔离级别，它通过强制事务排序，使之不可能相互冲突，从而解决幻读问题。简言之，它是在每个读的数据行上加上共享锁。在这个级别，可能导致大量的超时现象和锁竞争。</p>
+<p>这四种隔离级别采取不同的锁类型来实现，若读取的是同一个数据的话，就容易发生问题。例如：</p>
+<p>脏读 (Drity Read)：某个事务已更新一份数据，另一个事务在此时读取了同一份数据，由于某些原因，前一个 RollBack 了操作，则后一个事务所读取的数据就会是不正确的。</p>
+<p>不可重复读 (Non-repeatable read):在一个事务的两次查询之中数据不一致，这可能是两次查询过程中间插入了一个事务更新的原有的数据。</p>
+<p>幻读 (Phantom Read):在一个事务的两次查询中数据笔数不一致，例如有一个事务查询了几列 (Row) 数据，而另一个事务却在此时插入了新的几列数据，先前的事务在接下来的查询中，就会发现有几列数据是它先前所没有的。</p>
+<p>在 MySQL 中，实现了这四种隔离级别，分别有可能产生问题如下所示：</p>
+<p><img src="https://upload-images.jianshu.io/upload_images/1627454-eceded962ef591d1.png?imageMogr2/auto-orient/strip%7CimageView2/2/w/686/format/jpg" alt=""></p>
+<h2 id="测试-mysql-的隔离级别">测试 MySQL 的隔离级别</h2>
+<p>下面，将利用 MySQL 的客户端程序，我们分别来测试一下这几种隔离级别。</p>
+<p>测试数据库为 demo，表为 test；表结构：</p>
+<p><img src="https://upload-images.jianshu.io/upload_images/1627454-14163bb6124dd816.png?imageMogr2/auto-orient/strip%7CimageView2/2/w/616/format/jpg" alt=""></p>
+<p>两个命令行客户端分别为 A，B；不断改变 A 的隔离级别，在 B 端修改数据。</p>
+<h3 id="1-将-a-的隔离级别设置为-read-uncommitted-未提交读">1. 将 A 的隔离级别设置为 Read Uncommitted (未提交读)</h3>
+<p><img src="https://upload-images.jianshu.io/upload_images/1627454-66609deaf1f77a2f.png?imageMogr2/auto-orient/strip%7CimageView2/2/w/708/format/jpg" alt=""></p>
+<p>A：启动事务，此时数据为初始状态</p>
+<p><img src="https://upload-images.jianshu.io/upload_images/1627454-895da4e5af710e10.png?imageMogr2/auto-orient/strip%7CimageView2/2/w/709/format/jpg" alt=""></p>
+<p>B：启动事务，更新数据，但不提交</p>
+<p><img src="https://upload-images.jianshu.io/upload_images/1627454-ebdce5eedc07a388.png?imageMogr2/auto-orient/strip%7CimageView2/2/w/716/format/jpg" alt=""></p>
+<p>A：再次读取数据，发现数据已经被修改了，这就是所谓的 “脏读”</p>
+<p><img src="https://upload-images.jianshu.io/upload_images/1627454-c2076c78c2f8721b.png?imageMogr2/auto-orient/strip%7CimageView2/2/w/710/format/jpg" alt=""></p>
+<p>B：回滚事务</p>
+<p><img src="https://upload-images.jianshu.io/upload_images/1627454-4e0eb8e5b93e7508.png?imageMogr2/auto-orient/strip%7CimageView2/2/w/716/format/jpg" alt=""></p>
+<p>A：再次读数据，发现数据变回初始状态</p>
+<p><img src="https://upload-images.jianshu.io/upload_images/1627454-e0c4697a63bb7756.png?imageMogr2/auto-orient/strip%7CimageView2/2/w/710/format/jpg" alt=""></p>
+<p>经过上面的实验可以得出结论，事务 B 更新了一条记录，但是没有提交，此时事务 A 可以查询出未提交记录。造成脏读现象。未提交读是最低的隔离级别。</p>
+<h3 id="2-将客户端-a-的事务隔离级别设置为-read-committed-已提交读">2. 将客户端 A 的事务隔离级别设置为 Read Committed (已提交读)</h3>
+<p><img src="https://upload-images.jianshu.io/upload_images/1627454-9850c93ff1d0b87e.png?imageMogr2/auto-orient/strip%7CimageView2/2/w/713/format/jpg" alt=""></p>
+<p>A：启动事务，此时数据为初始状态</p>
+<p><img src="https://upload-images.jianshu.io/upload_images/1627454-895da4e5af710e10.png?imageMogr2/auto-orient/strip%7CimageView2/2/w/709/format/jpg" alt=""></p>
+<p>B：启动事务，更新数据，但不提交</p>
+<p><img src="https://upload-images.jianshu.io/upload_images/1627454-ebdce5eedc07a388.png?imageMogr2/auto-orient/strip%7CimageView2/2/w/716/format/jpg" alt=""></p>
+<p>A：再次读数据，发现数据未被修改</p>
+<p><img src="https://upload-images.jianshu.io/upload_images/1627454-c27ffc43c74eaff7.png?imageMogr2/auto-orient/strip%7CimageView2/2/w/710/format/jpg" alt=""></p>
+<p>B：提交事务</p>
+<p><img src="https://upload-images.jianshu.io/upload_images/1627454-e7fcfe11e7bc77f4.png?imageMogr2/auto-orient/strip%7CimageView2/2/w/706/format/jpg" alt=""></p>
+<p>A：再次读取数据，发现数据已发生变化，说明B提交的修改被事务中的A读到了，这就是所谓的 “不可重复读”</p>
+<p><img src="https://upload-images.jianshu.io/upload_images/1627454-f75e52220936ba91.png?imageMogr2/auto-orient/strip%7CimageView2/2/w/709/format/jpg" alt=""></p>
+<p>经过上面的实验可以得出结论，已提交读隔离级别解决了脏读的问题。但是出现了不可重复读的问题，即事务 A 在两次查询的数据不一致，因为在两次查询之间事务 B 更新了一条数据。已提交读只允许读取已提交的记录，但不要求可重复读。</p>
+<h3 id="3-将-a-的隔离级别设置为-repeatable-read-可重复读">3. 将 A 的隔离级别设置为 Repeatable Read (可重复读)</h3>
+<p><img src="https://upload-images.jianshu.io/upload_images/1627454-cd82123669a159e3.png?imageMogr2/auto-orient/strip%7CimageView2/2/w/711/format/jpg" alt=""></p>
+<p>A：启动事务，此时数据为初始状态</p>
+<p><img src="https://upload-images.jianshu.io/upload_images/1627454-034eb70d85fb2765.png?imageMogr2/auto-orient/strip%7CimageView2/2/w/708/format/jpg" alt=""></p>
+<p>B：启动事务，更新数据，但不提交</p>
+<p><img src="https://upload-images.jianshu.io/upload_images/1627454-ebdce5eedc07a388.png?imageMogr2/auto-orient/strip%7CimageView2/2/w/716/format/jpg" alt=""></p>
+<p>A：再次读取数据，发现数据未被修改</p>
+<p><img src="https://upload-images.jianshu.io/upload_images/1627454-c27ffc43c74eaff7.png?imageMogr2/auto-orient/strip%7CimageView2/2/w/710/format/jpg" alt=""></p>
+<p>B：提交事务</p>
+<p><img src="https://upload-images.jianshu.io/upload_images/1627454-e7fcfe11e7bc77f4.png?imageMogr2/auto-orient/strip%7CimageView2/2/w/706/format/jpg" alt=""></p>
+<p>A：再次读取数据，发现数据依然未发生变化，这说明这次可以重复读了</p>
+<p><img src="https://upload-images.jianshu.io/upload_images/1627454-c27ffc43c74eaff7.png?imageMogr2/auto-orient/strip%7CimageView2/2/w/710/format/jpg" alt=""></p>
+<p>B：插入一条新的数据，并提交</p>
+<p><img src="https://upload-images.jianshu.io/upload_images/1627454-0cc15096520791ec.png?imageMogr2/auto-orient/strip%7CimageView2/2/w/705/format/jpg" alt=""></p>
+<p>A：再次读取数据，发现数据依然未发生变化。虽然可以重复读了，但是却发现读的不是最新数据，这就是所谓的 “幻读”</p>
+<p><img src="https://upload-images.jianshu.io/upload_images/1627454-c27ffc43c74eaff7.png?imageMogr2/auto-orient/strip%7CimageView2/2/w/710/format/jpg" alt=""></p>
+<p>A：提交本次事务，再次读取数据，发现读取正常了</p>
+<p><img src="https://upload-images.jianshu.io/upload_images/1627454-34a1fc2ace6ebc23.png?imageMogr2/auto-orient/strip%7CimageView2/2/w/706/format/jpg" alt=""></p>
+<p>由以上的实验可以得出结论，可重复读隔离级别只允许读取已提交记录，而且在一个事务两次读取一个记录期间，其他事务不得更新该记录。但该事务不要求与其他事务可串行化，例如：当一个事务可以找到由一个已提交事务更新的记录，但是可能产生幻读问题(注意是可能，因为数据库对隔离级别的实现有所差别)。像以上的实验，就没有出现数据幻读的问题。</p>
+<h3 id="4-将-a-的隔离级别设置为可串行化-serializable">4. 将 A 的隔离级别设置为可串行化 (Serializable)</h3>
+<p><img src="https://upload-images.jianshu.io/upload_images/1627454-b3bdfa59a34f9f52.png?imageMogr2/auto-orient/strip%7CimageView2/2/w/705/format/jpg" alt=""></p>
+<p>A：启动事务，此时数据为初始状态</p>
+<p><img src="https://upload-images.jianshu.io/upload_images/1627454-a703dc5fbfa9556f.png?imageMogr2/auto-orient/strip%7CimageView2/2/w/711/format/jpg" alt=""></p>
+<p>B：发现 B 此时进入了等待状态，原因是因为 A 的事务尚未提交，只能等待（此时，B 可能会发生等待超时）</p>
+<p><img src="https://upload-images.jianshu.io/upload_images/1627454-f6cc3d7f422eefa5.png?imageMogr2/auto-orient/strip%7CimageView2/2/w/710/format/jpg" alt=""></p>
+<p>A：提交事务</p>
+<p><img src="https://upload-images.jianshu.io/upload_images/1627454-7ab66d7a2ee442e1.png?imageMogr2/auto-orient/strip%7CimageView2/2/w/710/format/jpg" alt=""></p>
+<p>B：发现插入成功</p>
+<p><img src="https://upload-images.jianshu.io/upload_images/1627454-5dd245d3cc5954f9.png?imageMogr2/auto-orient/strip%7CimageView2/2/w/714/format/jpg" alt=""></p>
+<p>Serializable 完全锁定字段，若一个事务来查询同一份数据就必须等待，直到前一个事务完成并解除锁定为止。是完整的隔离级别，会锁定对应的数据表格，因而会有效率的问题。</p>
 <blockquote>
-<p>来源：Zlatan Eevee</p>
-<p>原文：<a href="http://t.cn/AijmTykM" target="_blank" rel="noopener">http://t.cn/AijmTykM</a></p>
+<p>来源：知乎</p>
+<p>原文：<a href="https://url.cn/5tswojh" target="_blank" rel="noopener">https://url.cn/5tswojh</a></p>
 <p>题图：来自谷歌图片搜索</p>
 <p>版权：本文版权归原作者所有</p>
 <p>投稿：欢迎投稿，邮箱: <a href="mailto:editor@hi-linux.com">editor@hi-linux.com</a></p>
@@ -290,12 +352,12 @@
                 <ul class="pager">
                     
                         <li class="previous">
-                            <a href="/posts/29704.html" data-toggle="tooltip" data-placement="top" title="5 分钟带你领略号称瑞士军刀的网络工具神器 Netcat">&larr; Previous Post</a>
+                            <a href="/posts/62556.html" data-toggle="tooltip" data-placement="top" title="如何在不杀进程的前提下关闭一个 TCP Socket 连接">&larr; Previous Post</a>
                         </li>
                     
                     
                         <li class="next">
-                            <a href="/posts/22448.html" data-toggle="tooltip" data-placement="top" title="5 分钟读懂 MySQL 四种隔离级别间的区别">Next Post &rarr;</a>
+                            <a href="/posts/25333.html" data-toggle="tooltip" data-placement="top" title="5 分钟理解微博云原生技术实践之路">Next Post &rarr;</a>
                         </li>
                     
                 </ul>
@@ -337,7 +399,7 @@
         <div id="toc" class="toc-article">
         <strong class="toc-title">Contents</strong>
         
-          <ol class="nav">none</ol>
+          <ol class="toc-nav"><li class="toc-nav-item toc-nav-level-2"><a class="toc-nav-link" href="#什么是事务"><span class="toc-nav-number">1.</span> <span class="toc-nav-text">什么是事务</span></a></li><li class="toc-nav-item toc-nav-level-2"><a class="toc-nav-link" href="#事务的-acid"><span class="toc-nav-number">2.</span> <span class="toc-nav-text">事务的 ACID</span></a></li><li class="toc-nav-item toc-nav-level-2"><a class="toc-nav-link" href="#mysql-的四种隔离级别"><span class="toc-nav-number">3.</span> <span class="toc-nav-text">MySQL 的四种隔离级别</span></a><ol class="toc-nav-child"><li class="toc-nav-item toc-nav-level-3"><a class="toc-nav-link" href="#read-uncommitted读取未提交内容"><span class="toc-nav-number">3.1.</span> <span class="toc-nav-text">Read Uncommitted（读取未提交内容）</span></a></li><li class="toc-nav-item toc-nav-level-3"><a class="toc-nav-link" href="#read-committed读取提交内容"><span class="toc-nav-number">3.2.</span> <span class="toc-nav-text">Read Committed（读取提交内容）</span></a></li><li class="toc-nav-item toc-nav-level-3"><a class="toc-nav-link" href="#repeatable-read可重读"><span class="toc-nav-number">3.3.</span> <span class="toc-nav-text">Repeatable Read（可重读）</span></a></li><li class="toc-nav-item toc-nav-level-3"><a class="toc-nav-link" href="#serializable可串行化"><span class="toc-nav-number">3.4.</span> <span class="toc-nav-text">Serializable（可串行化）</span></a></li></ol></li><li class="toc-nav-item toc-nav-level-2"><a class="toc-nav-link" href="#测试-mysql-的隔离级别"><span class="toc-nav-number">4.</span> <span class="toc-nav-text">测试 MySQL 的隔离级别</span></a><ol class="toc-nav-child"><li class="toc-nav-item toc-nav-level-3"><a class="toc-nav-link" href="#1-将-a-的隔离级别设置为-read-uncommitted-未提交读"><span class="toc-nav-number">4.1.</span> <span class="toc-nav-text">1. 将 A 的隔离级别设置为 Read Uncommitted (未提交读)</span></a></li><li class="toc-nav-item toc-nav-level-3"><a class="toc-nav-link" href="#2-将客户端-a-的事务隔离级别设置为-read-committed-已提交读"><span class="toc-nav-number">4.2.</span> <span class="toc-nav-text">2. 将客户端 A 的事务隔离级别设置为 Read Committed (已提交读)</span></a></li><li class="toc-nav-item toc-nav-level-3"><a class="toc-nav-link" href="#3-将-a-的隔离级别设置为-repeatable-read-可重复读"><span class="toc-nav-number">4.3.</span> <span class="toc-nav-text">3. 将 A 的隔离级别设置为 Repeatable Read (可重复读)</span></a></li><li class="toc-nav-item toc-nav-level-3"><a class="toc-nav-link" href="#4-将-a-的隔离级别设置为可串行化-serializable"><span class="toc-nav-number">4.4.</span> <span class="toc-nav-text">4. 将 A 的隔离级别设置为可串行化 (Serializable)</span></a></li></ol></li></ol>
         
         </div>
       </aside>
@@ -361,7 +423,7 @@
                         
                           <a class="tag" href="/tags/#技巧" title="技巧">技巧</a>
                         
-                          <a class="tag" href="/tags/#Shell" title="Shell">Shell</a>
+                          <a class="tag" href="/tags/#MySQL" title="MySQL">MySQL</a>
                         
                     </div>
                 </section>
