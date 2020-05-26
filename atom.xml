@@ -6,7 +6,7 @@
   <link href="/atom.xml" rel="self"/>
   
   <link href="https://www.hi-linux.com/"/>
-  <updated>2020-05-25T09:18:23.206Z</updated>
+  <updated>2020-05-26T05:48:14.033Z</updated>
   <id>https://www.hi-linux.com/</id>
   
   <author>
@@ -15,6 +15,43 @@
   </author>
   
   <generator uri="https://hexo.io/">Hexo</generator>
+  
+  <entry>
+    <title>推荐一款可在线访问任意 Pod 的神器 Podtnl（无需暴露服务）</title>
+    <link href="https://www.hi-linux.com/posts/57908.html"/>
+    <id>https://www.hi-linux.com/posts/57908.html</id>
+    <published>2020-05-26T01:00:00.000Z</published>
+    <updated>2020-05-26T05:48:14.033Z</updated>
+    
+    <content type="html"><![CDATA[<div id="vip-container"><p><code>Podtnl</code> 是一个不通过暴露 <code>Kubernetes Service</code> 服务也可以在线访问 <code>Pod</code> 的一个功能强大的 <code>CLI</code> 工具。</p><blockquote><p>项目地址：<a href="https://github.com/narendranathreddythota/podtnl" target="_blank" rel="noopener">https://github.com/narendranathreddythota/podtnl</a></p></blockquote><p><code>Podtnl</code> 使用了两个主要的概念：端口转发和隧道。<code>Podtnl</code> 使用非常简单，特别是在应用开发阶段非常有用，完全不用担心有没有创建 <code>Ingress</code>、<code>LoadBalancer</code> 等资源。</p><p><img src="https://www.hi-linux.com/img/linux/tunnel.png" alt=""></p><h3 id="podtnl-安装">Podtnl 安装</h3><p>直接下载 <code>GitHub</code> 仓库上 <code>Release</code> 的二进制文件，开箱即用。</p><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">$ wget https:&#x2F;&#x2F;github.com&#x2F;narendranathreddythota&#x2F;podtnl&#x2F;releases&#x2F;download&#x2F;1.0&#x2F;podtnl</span><br><span class="line">$ chmod +x podtnl</span><br><span class="line">$ mv podtnl &#x2F;usr&#x2F;local&#x2F;bin&#x2F;</span><br></pre></td></tr></table></figure><p>如果你使用 <code>macOS</code>，你还可以使用 <code>Homebrew</code> 进行安装。</p><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">$ brew tap narendranathreddythota&#x2F;podtnl</span><br><span class="line">$ brew install podtnl</span><br></pre></td></tr></table></figure><a id="more"></a><h3 id="podtnl-使用">Podtnl 使用</h3><p>要使用 <code>Podtnl</code> ，你需要先提供一个隧道。目前 <code>Podtnl</code> 只支持 <code>Ngrok</code> 作为隧道提供商，所以需要提前安装配置好 <code>Ngrok</code>。你可以通过地址 <code>https://dashboard.ngrok.com/get-started/setup</code> 进行配置。</p><p>当 <code>Podtnl</code> 和 <code>Ngrok</code> 都配置好过后，即可使用 <code>Podtnl</code>。 <code>Podtnl</code> 可以使用的一些命令如下所示：</p><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line">Available Flage</span><br><span class="line">  version        : Output Podtnl Version</span><br><span class="line">  provider       : Input Tunnel Provider</span><br><span class="line">  providerPath   : Input Tunnel Provider Path</span><br><span class="line">  podname        : Input Pod Name</span><br><span class="line">  protocol       : Input Type of Protocol</span><br><span class="line">  namespace      : Input Namespace</span><br><span class="line">  podport        : Input Pod Port</span><br><span class="line">  auth           : Need Authentication ? Applicable for HTTP</span><br></pre></td></tr></table></figure><p>比如：当前 <code>Kubernetes</code> 集群中在 <code>kube-ops</code> 命名空间下面有如下一个 <code>Pod</code>，容器暴露 <code>8080</code> 端口：</p><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">$ kubectl get pods -n kube-ops</span><br><span class="line">NAME                                             READY   STATUS    RESTARTS   AGE</span><br><span class="line">devops-name-devops-demo-7cf5fcc5c6-j76h5         1&#x2F;1     Running   0          3d14h</span><br></pre></td></tr></table></figure><p>我们就可以按照如下所示的命令来直接暴露该 <code>Pod</code>：</p><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line">$ podtnl -provider ngrok -podname devops-name-devops-demo-7cf5fcc5c6-j76h5 -podport 8080 -namespace kube-ops</span><br><span class="line">[INFO] ...Tunnel provider ngrok</span><br><span class="line">[INFO] NGROK is Ready</span><br><span class="line">[INFO] Username: hBIHNsBB3G3OFQ8vj7lm8WXC17EybR59</span><br><span class="line">[INFO] Password: fRJrZs3mtvTSWLKpFa2VcxVjCw5RexbVHnxirWqPqL44K47Q4VMetM4McwFZBJFm</span><br><span class="line">Forwarding from 127.0.0.1:8080 -&gt; 8080</span><br><span class="line">Forwarding from [::1]:8080 -&gt; 8080</span><br><span class="line">[INFO] mytunnel is created and Live: -&gt; https:&#x2F;&#x2F;c13f78fe.ngrok.io</span><br></pre></td></tr></table></figure><p>然后我们可以使用上面生成的地址 <code>https://c13f78fe.ngrok.io</code> 来直接访问该 <code>Pod</code>。默认会使用 <code>Basic Auth</code> 认证方式，使用上面生成的 <code>Username</code> 和 <code>Password</code> 即可认证。</p><p>如果 <code>Pod</code> 是 <code>TCP</code> 服务需要直接暴露，则需添加 <code>protocol</code> 参数指定即可。</p><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line">$ podtnl -provider ngrok -podname orderer1-7cb4b7565-nv95k -podport 7050 -protocol tcp</span><br><span class="line"></span><br><span class="line">Expected Output:</span><br><span class="line">[INFO] ...Tunnel provider ngrok</span><br><span class="line">[INFO] NGROK is Ready</span><br><span class="line">[INFO] mytunnel is created and Live: -&gt; tcp:&#x2F;&#x2F;0.tcp.ngrok.io:10467</span><br><span class="line"></span><br><span class="line">^C[WARN] Shutting down all open tunnels..</span><br><span class="line">[DBUG] Closing tunnel in tcp:&#x2F;&#x2F;0.tcp.ngrok.io:10467</span><br></pre></td></tr></table></figure><p>更多好用的玩法，你可以去 「<a href="https://github.com/narendranathreddythota/podtnl" target="_blank" rel="noopener">Podtnl 官网</a>」进行探索哟！</p><blockquote><p>本文转载自：「k8s 技术圈」，原文：<a href="https://tinyurl.com/y6urwkgt%EF%BC%8C%E7%89%88%E6%9D%83%E5%BD%92%E5%8E%9F%E4%BD%9C%E8%80%85%E6%89%80%E6%9C%89%E3%80%82%E6%AC%A2%E8%BF%8E%E6%8A%95%E7%A8%BF%EF%BC%8C%E6%8A%95%E7%A8%BF%E9%82%AE%E7%AE%B1:" target="_blank" rel="noopener">https://tinyurl.com/y6urwkgt，版权归原作者所有。欢迎投稿，投稿邮箱:</a> <code>editor@hi-linux.com</code> 。</p></blockquote></div><script src="https://my.openwrite.cn/js/readmore.js" type="text/javascript"></script><script>var isMobile = navigator.userAgent.match(/(phone|pad|pod|iPhone|iPod|ios|iPad|Android|Mobile|BlackBerry|IEMobile|MQQBrowser|JUC|Fennec|wOSBrowser|BrowserNG|WebOS|Symbian|Windows Phone)/i);if (!isMobile) {    var btw = new BTWPlugin();    btw.init({        "id": "vip-container",        "blogId": "10135-1588830050631-449",        "name": "「奇妙的 Linux 世界」",        "qrcode": "https://www.hi-linux.com/img/wechat/mp_qrcode_12.jpg",        "keyword": "VIP"    });}</script>]]></content>
+    
+    <summary type="html">
+    
+      &lt;p&gt;&lt;code&gt;Podtnl&lt;/code&gt; 是一个不通过暴露 &lt;code&gt;Kubernetes Service&lt;/code&gt; 服务也可以在线访问 &lt;code&gt;Pod&lt;/code&gt; 的一个功能强大的 &lt;code&gt;CLI&lt;/code&gt; 工具。&lt;/p&gt;
+&lt;blockquote&gt;
+&lt;p&gt;项目地址：&lt;a href=&quot;https://github.com/narendranathreddythota/podtnl&quot; target=&quot;_blank&quot; rel=&quot;noopener&quot;&gt;https://github.com/narendranathreddythota/podtnl&lt;/a&gt;&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;p&gt;&lt;code&gt;Podtnl&lt;/code&gt; 使用了两个主要的概念：端口转发和隧道。&lt;code&gt;Podtnl&lt;/code&gt; 使用非常简单，特别是在应用开发阶段非常有用，完全不用担心有没有创建 &lt;code&gt;Ingress&lt;/code&gt;、&lt;code&gt;LoadBalancer&lt;/code&gt; 等资源。&lt;/p&gt;
+&lt;p&gt;&lt;img src=&quot;https://www.hi-linux.com/img/linux/tunnel.png&quot; alt=&quot;&quot;&gt;&lt;/p&gt;
+&lt;h3 id=&quot;Podtnl-安装&quot;&gt;Podtnl 安装&lt;/h3&gt;
+&lt;p&gt;直接下载 &lt;code&gt;GitHub&lt;/code&gt; 仓库上 &lt;code&gt;Release&lt;/code&gt; 的二进制文件，开箱即用。&lt;/p&gt;
+&lt;figure class=&quot;highlight plain&quot;&gt;&lt;table&gt;&lt;tr&gt;&lt;td class=&quot;gutter&quot;&gt;&lt;pre&gt;&lt;span class=&quot;line&quot;&gt;1&lt;/span&gt;&lt;br&gt;&lt;span class=&quot;line&quot;&gt;2&lt;/span&gt;&lt;br&gt;&lt;span class=&quot;line&quot;&gt;3&lt;/span&gt;&lt;br&gt;&lt;/pre&gt;&lt;/td&gt;&lt;td class=&quot;code&quot;&gt;&lt;pre&gt;&lt;span class=&quot;line&quot;&gt;$ wget https:&amp;#x2F;&amp;#x2F;github.com&amp;#x2F;narendranathreddythota&amp;#x2F;podtnl&amp;#x2F;releases&amp;#x2F;download&amp;#x2F;1.0&amp;#x2F;podtnl&lt;/span&gt;&lt;br&gt;&lt;span class=&quot;line&quot;&gt;$ chmod +x podtnl&lt;/span&gt;&lt;br&gt;&lt;span class=&quot;line&quot;&gt;$ mv podtnl &amp;#x2F;usr&amp;#x2F;local&amp;#x2F;bin&amp;#x2F;&lt;/span&gt;&lt;br&gt;&lt;/pre&gt;&lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;&lt;/figure&gt;
+&lt;p&gt;如果你使用 &lt;code&gt;macOS&lt;/code&gt;，你还可以使用 &lt;code&gt;Homebrew&lt;/code&gt; 进行安装。&lt;/p&gt;
+&lt;figure class=&quot;highlight plain&quot;&gt;&lt;table&gt;&lt;tr&gt;&lt;td class=&quot;gutter&quot;&gt;&lt;pre&gt;&lt;span class=&quot;line&quot;&gt;1&lt;/span&gt;&lt;br&gt;&lt;span class=&quot;line&quot;&gt;2&lt;/span&gt;&lt;br&gt;&lt;/pre&gt;&lt;/td&gt;&lt;td class=&quot;code&quot;&gt;&lt;pre&gt;&lt;span class=&quot;line&quot;&gt;$ brew tap narendranathreddythota&amp;#x2F;podtnl&lt;/span&gt;&lt;br&gt;&lt;span class=&quot;line&quot;&gt;$ brew install podtnl&lt;/span&gt;&lt;br&gt;&lt;/pre&gt;&lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;&lt;/figure&gt;
+    
+    </summary>
+    
+    
+      <category term="Kubernetes" scheme="https://www.hi-linux.com/categories/kubernetes/"/>
+    
+    
+      <category term="Linux" scheme="https://www.hi-linux.com/tags/Linux/"/>
+    
+      <category term="技巧" scheme="https://www.hi-linux.com/tags/%E6%8A%80%E5%B7%A7/"/>
+    
+      <category term="Kubernetes" scheme="https://www.hi-linux.com/tags/Kubernetes/"/>
+    
+  </entry>
   
   <entry>
     <title>内网穿透神器 ZeroTier 使用教程</title>
@@ -790,51 +827,6 @@
       <category term="技巧" scheme="https://www.hi-linux.com/tags/%E6%8A%80%E5%B7%A7/"/>
     
       <category term="工具" scheme="https://www.hi-linux.com/tags/%E5%B7%A5%E5%85%B7/"/>
-    
-  </entry>
-  
-  <entry>
-    <title>浅谈集群、分布式、微服务的异同</title>
-    <link href="https://www.hi-linux.com/posts/52526.html"/>
-    <id>https://www.hi-linux.com/posts/52526.html</id>
-    <published>2020-05-23T02:27:00.000Z</published>
-    <updated>2020-05-23T15:29:29.321Z</updated>
-    
-    <content type="html"><![CDATA[<div id="vip-container"><h3 id="什么是集群">什么是集群</h3><p>集群是是指将多台服务器集中在一起，每台服务器都实现相同的业务，做相同的事情。但是每台服务器并不是缺一不可，存在的作用主要是缓解并发压力和单点故障转移问题。可以利用一些廉价的符合工业标准的硬件构造高扩展、高性能、低成本、高可用的系统。</p><p>集群主要具有以下特性：</p><ul><li>伸缩性（Scalability）</li></ul><p>在一些大的系统中，预测最终用户的数量和行为是非常困难的，伸缩性是指系统适应不断增长的用户数的能力。提高这种并发会话能力的一种最直观的方式就增加资源（CPU，内存，硬盘等），集群是解决这个问题的另一种方式，它允许一组服务器组在一起，像单个服务器一样分担处理一个繁重的任务，我们只需要将新的服务器加入集群中即可，对于客户来看，服务无论从连续性还是性能上都几乎没有变化，好像系统在不知不觉中完成了升级。</p><ul><li>高可用性（High availability）</li></ul><p>单一服务器的解决方案并不是一个健壮方式，因为容易出现单点失效。像银行、账单处理这样一些关键的应用程序是不能容忍哪怕是几分钟的死机。它们需要这样一些服务在任何时间都可以访问并在可预期的合理的时间周期内有响应。高可用性集群的出现是为了使集群的整体服务尽可能可用，以便考虑计算硬件和软件的易错性。如果高可用性集群中的主节点发生了故障，那么这段时间内将由次节点代替它。次节点通常是主节点的镜像，所以当它代替主节点时，它可以完全接管其身份，并且因此使系统环境对于用户是一致的。</p><ul><li>负载均衡（Load balancing）</li></ul><p>负载均衡集群为企业需求提供了更实用的系统。如名称所暗示的，该系统使负载可以在计算机集群中尽可能平均地分摊处理。该负载可能是需要均衡的应用程序处理负载或网络流量负载。这样的系统非常适合于运行同一组应用程序的大量用户。每个节点都可以处理一部分负载，并且可以在节点之间动态分配负载，以实现平衡。</p><ul><li>高性能 (High Performance)</li></ul><p>通常，这种涉及为集群开发并行编程应用程序，以解决复杂的科学问题。这是并行计算的基础，尽管它不使用专门的并行超级计算机，这种超级计算机内部由十至上万个独立处理器组成。但它却使用商业系统，如通过高速连接来链接的一组单处理器或双处理器 PC，并且在公共消息传递层上进行通信以运行并行应用程序。因此，您会常常听说又有一种便宜的 Linux 超级计算机问世了。但它实际是一个计算机集群，其处理能力与真的超级计算机相等。</p><a id="more"></a><h3 id="什么是分布式">什么是分布式</h3><p>分布式服务顾名思义服务是分散部署在不同的机器上的，一个服务可能负责几个功能，是一种面向 SOA 架构的，服务之间也是通过 RPC 来交互或者是 Webservice 来交互的。</p><p>分布式部署是指将多台服务器集中在一起，每台服务器都实现总体中的不同业务，做不同的事情。各分开部署的部分彼此通过各种通讯协议交互信息，并且每台服务器都缺一不可，如果某台服务器故障，则部分功能缺失，或导致整体无法运行。</p><p>分布式存在的主要作用是大幅度的提高效率，缓解服务器的访问和存储压力。区别分布式的方式是一个业务分拆多个子业务，部署在不同的服务器上。</p><p>例如：将一个大的系统划分为多个业务模块，业务模块分别部署到不同的机器上，各个业务模块之间通过接口进行数据交互。</p><p><img src="https://img-blog.csdn.net/20170213134043567" alt=""></p><p>上面：service A、B、C、D 分别是业务组件，通过 API Geteway 进行业务访问。</p><h3 id="什么是微服务">什么是微服务</h3><p>微服务的概念和分布式比较相似，微服务是一种架构风格。简单来说微服务就是很小的服务，小到一个服务只对应一个单一的功能。每个微服务仅关注于完成一件任务并很好地完成该任务，这个服务可以单独部署运行。 各个微服务之间是松耦合的，服务之间可以通过 RPC 来相互交互。每个微服务都是由独立的小团队开发、测试、部署，上线，负责它的整个生命周期。</p><p>在做架构设计的时候，先做逻辑架构，再做物理架构。当你拿到需求后，估算过最大用户量和并发量后，计算单个应用服务器能否满足需求，如果用户量只有几百人的小应用，单体应用就能搞定，即所有应用部署在一个应用服务器里。如果是很大用户量，且某些功能会被频繁访问，或者某些功能计算量很大，建议将应用拆解为多个子系统，各自负责各自功能，这就是微服务架构。</p><p>微服务的设计是为了不因为某个模块的升级和 BUG 影响现有的系统业务。微服务与分布式的细微差别是，微服务的应用不一定是分散在多个服务器上，它也可以是同一个服务器。</p><p>微服务相比分布式服务来说，它的粒度更小，服务之间耦合度更低。由于每个微服务都由独立的小团队负责，因此它敏捷性更高。分布式服务最后都会向微服务架构演化，这是一种趋势。不过服务微服务化后带来的挑战也是显而易见的，例如服务粒度小，数量大，后期运维将会很难。</p><h3 id="分布式-集群-微服务的异同及联系">分布式、集群、微服务的异同及联系</h3><ol><li>分布式是以缩短单个任务的执行时间来提升效率的，而集群则是通过提高单位时间内执行的任务数来提升效率。</li></ol><p>例如：如果一个任务由 10 个子任务组成，每个子任务单独执行需 1 小时，则在一台服务器上执行该任务需 10 小时。</p><ul><li><p>采用分布式方案，提供 10 台服务器，每台服务器只负责处理一个子任务，不考虑子任务间的依赖关系，执行完这个任务只需一个小时。(这种工作模式的一个典型代表就是 Hadoop 的 Map/Reduce 分布式计算模型）</p></li><li><p>而采用集群方案，同样提供 10 台服务器，每台服务器都能独立处理这个任务。假设有 10 个任务同时到达，10 个服务器将同时工作，1 小时后，10 个任务同时完成，这样，整身来看，还是 1 小时内完成一个任务。</p></li></ul><blockquote><p>注：分布式需要做好事务管理。</p></blockquote><ol start="2"><li>集群模式是不同服务器部署同一套服务对外访问，实现服务的负载均衡。区别集群的方式是根据部署多台服务器业务是否相同，分布式中的每一个节点，都可以做集群。而集群并不一定就是分布式的。</li></ol><p>举例：就比如新浪网，访问的人多了，他可以做一个群集，前面放一个响应服务器，后面几台服务器完成同一业务，如果有业务访问的时候，响应服务器看哪台服务器的负载不是很重，就将给哪一台去完成。</p><p>而分布式，从窄意上理解，也跟集群差不多。但是它的组织比较松散，不像集群有一个组织性，一台服务器垮了，其它的服务器可以顶上来。分布式的每一个节点，都完成不同的业务，一个节点垮了，那这个业务就不可访问了。</p><blockquote><p>注：集群模式需要做好 Session 共享，确保在不同服务器切换的过程中不会因为没有获取到 Session 而中止退出服务。</p></blockquote><ul><li>分布式是否属于微服务？</li></ul><p>答案是肯定的。分布式和微服务的架构很相似，只是部署的方式不一样而已。</p><p>生产环境下的微服务肯定是分布式部署的，分布式部署的应用不一定是微服务架构的，比如集群部署，它是把相同应用复制到不同服务器上，但是逻辑功能上还是单体应用。</p><ul><li>在开发中我们可以将分布式和集群分开吗？</li></ul><p>针对这个问题，我们可以根据分布式的介绍看出，其主要的功能是用了将我们的系统模块化，将系统进行解耦的，方便我们的维护和开发的，但是其并不能解决我们的并发问题，也无法保证我们的系统在服务器宕机后的正常运转。</p><p>而集群呢？其恰好弥补了分布式的缺陷。集群，就是多个服务器处理相同的业务，这在一方面可以解决或者说改善我们系统的并发问题，一方面可以解决我们服务器如果出现一定数量的宕机后，系统仍然可以正常运转。</p><p>好的设计应该是分布式和集群的结合，先分布式再集群，具体实现就是业务拆分成很多子业务，然后针对每个子业务进行集群部署，这样每个子业务如果出了问题，整个系统完全不会受影响。</p><p>因此分布式和集群是一对好基友，谁也离不开谁。</p><h3 id="参考文档">参考文档</h3><ol><li><a href="https://www.google.com" target="_blank" rel="noopener">https://www.google.com</a></li><li><a href="http://t.cn/E9VjXwt" target="_blank" rel="noopener">http://t.cn/E9VjXwt</a></li><li><a href="http://t.cn/E9VRNNh" target="_blank" rel="noopener">http://t.cn/E9VRNNh</a></li><li><a href="http://t.cn/E9VeGiu" target="_blank" rel="noopener">http://t.cn/E9VeGiu</a></li></ol></div><script src="https://my.openwrite.cn/js/readmore.js" type="text/javascript"></script><script>var isMobile = navigator.userAgent.match(/(phone|pad|pod|iPhone|iPod|ios|iPad|Android|Mobile|BlackBerry|IEMobile|MQQBrowser|JUC|Fennec|wOSBrowser|BrowserNG|WebOS|Symbian|Windows Phone)/i);if (!isMobile) {    var btw = new BTWPlugin();    btw.init({        "id": "vip-container",        "blogId": "10135-1588830050631-449",        "name": "「奇妙的 Linux 世界」",        "qrcode": "https://www.hi-linux.com/img/wechat/mp_qrcode_12.jpg",        "keyword": "VIP"    });}</script>]]></content>
-    
-    <summary type="html">
-    
-      &lt;h3 id=&quot;什么是集群&quot;&gt;什么是集群&lt;/h3&gt;
-&lt;p&gt;集群是是指将多台服务器集中在一起，每台服务器都实现相同的业务，做相同的事情。但是每台服务器并不是缺一不可，存在的作用主要是缓解并发压力和单点故障转移问题。可以利用一些廉价的符合工业标准的硬件构造高扩展、高性能、低成本、高可用的系统。&lt;/p&gt;
-&lt;p&gt;集群主要具有以下特性：&lt;/p&gt;
-&lt;ul&gt;
-&lt;li&gt;伸缩性（Scalability）&lt;/li&gt;
-&lt;/ul&gt;
-&lt;p&gt;在一些大的系统中，预测最终用户的数量和行为是非常困难的，伸缩性是指系统适应不断增长的用户数的能力。提高这种并发会话能力的一种最直观的方式就增加资源（CPU，内存，硬盘等），集群是解决这个问题的另一种方式，它允许一组服务器组在一起，像单个服务器一样分担处理一个繁重的任务，我们只需要将新的服务器加入集群中即可，对于客户来看，服务无论从连续性还是性能上都几乎没有变化，好像系统在不知不觉中完成了升级。&lt;/p&gt;
-&lt;ul&gt;
-&lt;li&gt;高可用性（High availability）&lt;/li&gt;
-&lt;/ul&gt;
-&lt;p&gt;单一服务器的解决方案并不是一个健壮方式，因为容易出现单点失效。像银行、账单处理这样一些关键的应用程序是不能容忍哪怕是几分钟的死机。它们需要这样一些服务在任何时间都可以访问并在可预期的合理的时间周期内有响应。高可用性集群的出现是为了使集群的整体服务尽可能可用，以便考虑计算硬件和软件的易错性。如果高可用性集群中的主节点发生了故障，那么这段时间内将由次节点代替它。次节点通常是主节点的镜像，所以当它代替主节点时，它可以完全接管其身份，并且因此使系统环境对于用户是一致的。&lt;/p&gt;
-&lt;ul&gt;
-&lt;li&gt;负载均衡（Load balancing）&lt;/li&gt;
-&lt;/ul&gt;
-&lt;p&gt;负载均衡集群为企业需求提供了更实用的系统。如名称所暗示的，该系统使负载可以在计算机集群中尽可能平均地分摊处理。该负载可能是需要均衡的应用程序处理负载或网络流量负载。这样的系统非常适合于运行同一组应用程序的大量用户。每个节点都可以处理一部分负载，并且可以在节点之间动态分配负载，以实现平衡。&lt;/p&gt;
-&lt;ul&gt;
-&lt;li&gt;高性能 (High Performance)&lt;/li&gt;
-&lt;/ul&gt;
-&lt;p&gt;通常，这种涉及为集群开发并行编程应用程序，以解决复杂的科学问题。这是并行计算的基础，尽管它不使用专门的并行超级计算机，这种超级计算机内部由十至上万个独立处理器组成。但它却使用商业系统，如通过高速连接来链接的一组单处理器或双处理器 PC，并且在公共消息传递层上进行通信以运行并行应用程序。因此，您会常常听说又有一种便宜的 Linux 超级计算机问世了。但它实际是一个计算机集群，其处理能力与真的超级计算机相等。&lt;/p&gt;
-    
-    </summary>
-    
-    
-      <category term="Linux" scheme="https://www.hi-linux.com/categories/Linux/"/>
-    
-    
-      <category term="Linux" scheme="https://www.hi-linux.com/tags/Linux/"/>
-    
-      <category term="技巧" scheme="https://www.hi-linux.com/tags/%E6%8A%80%E5%B7%A7/"/>
-    
-      <category term="分布式" scheme="https://www.hi-linux.com/tags/%E5%88%86%E5%B8%83%E5%BC%8F/"/>
     
   </entry>
   
