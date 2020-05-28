@@ -14,11 +14,11 @@
     <script async defer src="https://buttons.github.io/buttons.js"></script>
     <title>
         
-          推荐一款可在线访问任意 Pod 的神器 Podtnl（无需暴露服务） - 运维之美
+          手把手教你定制专属的个性化登陆界面,让你的终端更炫酷！ - 运维之美
         
     </title>
 
-    <link rel="canonical" href="https://www.hi-linux.com/posts/57908.html">
+    <link rel="canonical" href="https://www.hi-linux.com/posts/51306.html">
 
     <!-- Bootstrap Core CSS -->
     
@@ -105,14 +105,14 @@
                             
                               <a class="tag" href="/tags/#技巧" title="技巧">技巧</a>
                             
-                              <a class="tag" href="/tags/#Kubernetes" title="Kubernetes">Kubernetes</a>
+                              <a class="tag" href="/tags/#工具" title="工具">工具</a>
                             
                         </div>
-                        <h1>推荐一款可在线访问任意 Pod 的神器 Podtnl（无需暴露服务）</h1>
+                        <h1>手把手教你定制专属的个性化登陆界面,让你的终端更炫酷！</h1>
                         <h2 class="subheading"></h2>
                         <span class="meta">
                             Posted by Mike on
-                            2020-05-26
+                            2020-05-28
                         </span>
                     </div>
                 
@@ -232,32 +232,97 @@
                 col-md-10 col-md-offset-1
                 post-container">
 
-                <div id="vip-container"><p><code>Podtnl</code> 是一个不通过暴露 <code>Kubernetes Service</code> 服务也可以在线访问 <code>Pod</code> 的一个功能强大的 <code>CLI</code> 工具。</p>
+                <div id="vip-container"><p>在我们登入 macOS 的终端后，终端往往会弹出一段欢迎信息，显示登录主机、主机供应商提示等信息。但每次看到的都是同样的信息难免有些厌倦。</p>
+<p>通过修改 Motd 文件，我们可以给 SSH 加点料，让它更加好看和有趣。</p>
+<p>默认提示</p>
+<p><img src="https://cdn.sspai.com/2020/03/04/119ed2f44f8c779e52e5d0b61f0572b0.png" alt=""></p>
+<h2 id="原理">原理</h2>
 <blockquote>
-<p>项目地址：<a href="https://github.com/narendranathreddythota/podtnl" target="_blank" rel="noopener">https://github.com/narendranathreddythota/podtnl</a></p>
+<p>在类 Unix 系统中，/etc/motd 是一个包含「今日消息（Message of the day）」的文件。比起电子邮件，使用 Motd 给所有用户发送消息显得更有效率。其它操作系统中也可能有这一功能，比如 Multics 中的 Motd 信息分段。/etc/motd 的内容会在用户成功登录后由 Unix 登录命令显示，整个过程发生在 Shell 登录之前。较新的类 Unix 系统可以生成动态消息。Ｍotd 也被运用在其它领域，比如 IRC 服务器、半条命系列游戏等。</p>
+<p>来源：维基百科</p>
 </blockquote>
-<p><code>Podtnl</code> 使用了两个主要的概念：端口转发和隧道。<code>Podtnl</code> 使用非常简单，特别是在应用开发阶段非常有用，完全不用担心有没有创建 <code>Ingress</code>、<code>LoadBalancer</code> 等资源。</p>
-<p><img src="https://www.hi-linux.com/img/linux/tunnel.png" alt=""></p>
-<h3 id="podtnl-安装">Podtnl 安装</h3>
-<p>直接下载 <code>GitHub</code> 仓库上 <code>Release</code> 的二进制文件，开箱即用。</p>
-<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">$ wget https:&#x2F;&#x2F;github.com&#x2F;narendranathreddythota&#x2F;podtnl&#x2F;releases&#x2F;download&#x2F;1.0&#x2F;podtnl</span><br><span class="line">$ chmod +x podtnl</span><br><span class="line">$ mv podtnl &#x2F;usr&#x2F;local&#x2F;bin&#x2F;</span><br></pre></td></tr></table></figure>
-<p>如果你使用 <code>macOS</code>，你还可以使用 <code>Homebrew</code> 进行安装。</p>
-<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">$ brew tap narendranathreddythota&#x2F;podtnl</span><br><span class="line">$ brew install podtnl</span><br></pre></td></tr></table></figure>
+<p>Linux 系统通过 /etc/issue、/etc/issue.net、/etc/motd 以及 /run/motd.dynamic 来显示本地或者是远程登录后的提示信息，这个提示信息通常用于向用户展示系统版本、硬件参数等信息。其中 /etc/issue、/etc/issue.net 通常在未登录终端前显示，/etc/motd、/run/motd.dynamic 则是在成功登录终端后显示。</p>
+<p>此外还有 /etc/profile 与 /etc/profile.d/，在登录后会运行其中的脚本。</p>
 <a id="more"></a>
-<h3 id="podtnl-使用">Podtnl 使用</h3>
-<p>要使用 <code>Podtnl</code> ，你需要先提供一个隧道。目前 <code>Podtnl</code> 只支持 <code>Ngrok</code> 作为隧道提供商，所以需要提前安装配置好 <code>Ngrok</code>。你可以通过地址 <code>https://dashboard.ngrok.com/get-started/setup</code> 进行配置。</p>
-<p>当 <code>Podtnl</code> 和 <code>Ngrok</code> 都配置好过后，即可使用 <code>Podtnl</code>。 <code>Podtnl</code> 可以使用的一些命令如下所示：</p>
-<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line">Available Flage</span><br><span class="line">  version        : Output Podtnl Version</span><br><span class="line">  provider       : Input Tunnel Provider</span><br><span class="line">  providerPath   : Input Tunnel Provider Path</span><br><span class="line">  podname        : Input Pod Name</span><br><span class="line">  protocol       : Input Type of Protocol</span><br><span class="line">  namespace      : Input Namespace</span><br><span class="line">  podport        : Input Pod Port</span><br><span class="line">  auth           : Need Authentication ? Applicable for HTTP</span><br></pre></td></tr></table></figure>
-<p>比如：当前 <code>Kubernetes</code> 集群中在 <code>kube-ops</code> 命名空间下面有如下一个 <code>Pod</code>，容器暴露 <code>8080</code> 端口：</p>
-<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">$ kubectl get pods -n kube-ops</span><br><span class="line">NAME                                             READY   STATUS    RESTARTS   AGE</span><br><span class="line">devops-name-devops-demo-7cf5fcc5c6-j76h5         1&#x2F;1     Running   0          3d14h</span><br></pre></td></tr></table></figure>
-<p>我们就可以按照如下所示的命令来直接暴露该 <code>Pod</code>：</p>
-<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line">$ podtnl -provider ngrok -podname devops-name-devops-demo-7cf5fcc5c6-j76h5 -podport 8080 -namespace kube-ops</span><br><span class="line">[INFO] ...Tunnel provider ngrok</span><br><span class="line">[INFO] NGROK is Ready</span><br><span class="line">[INFO] Username: hBIHNsBB3G3OFQ8vj7lm8WXC17EybR59</span><br><span class="line">[INFO] Password: fRJrZs3mtvTSWLKpFa2VcxVjCw5RexbVHnxirWqPqL44K47Q4VMetM4McwFZBJFm</span><br><span class="line">Forwarding from 127.0.0.1:8080 -&gt; 8080</span><br><span class="line">Forwarding from [::1]:8080 -&gt; 8080</span><br><span class="line">[INFO] mytunnel is created and Live: -&gt; https:&#x2F;&#x2F;c13f78fe.ngrok.io</span><br></pre></td></tr></table></figure>
-<p>然后我们可以使用上面生成的地址 <code>https://c13f78fe.ngrok.io</code> 来直接访问该 <code>Pod</code>。默认会使用 <code>Basic Auth</code> 认证方式，使用上面生成的 <code>Username</code> 和 <code>Password</code> 即可认证。</p>
-<p>如果 <code>Pod</code> 是 <code>TCP</code> 服务需要直接暴露，则需添加 <code>protocol</code> 参数指定即可。</p>
-<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line">$ podtnl -provider ngrok -podname orderer1-7cb4b7565-nv95k -podport 7050 -protocol tcp</span><br><span class="line"></span><br><span class="line">Expected Output:</span><br><span class="line">[INFO] ...Tunnel provider ngrok</span><br><span class="line">[INFO] NGROK is Ready</span><br><span class="line">[INFO] mytunnel is created and Live: -&gt; tcp:&#x2F;&#x2F;0.tcp.ngrok.io:10467</span><br><span class="line"></span><br><span class="line">^C[WARN] Shutting down all open tunnels..</span><br><span class="line">[DBUG] Closing tunnel in tcp:&#x2F;&#x2F;0.tcp.ngrok.io:10467</span><br></pre></td></tr></table></figure>
-<p>更多好用的玩法，你可以去 「<a href="https://github.com/narendranathreddythota/podtnl" target="_blank" rel="noopener">Podtnl 官网</a>」进行探索哟！</p>
+<h2 id="哪里-get-到好康的提示信息">哪里 Get 到好康的提示信息？</h2>
+<h3 id="asciiworld">ASCiiWorld</h3>
+<p>在 AsciiWorld 中提供了现成的图案，左侧可按照分类来搜寻自己需要的字符画。不过 ASCiiWorld 历史悠久，上面的字符画稍显陈旧，不太符合我的审美，哈哈哈。</p>
+<p><img src="https://cdn.sspai.com/2020/03/04/57a737ad43d131f259820d9b410d886b.png" alt=""></p>
+<p>ASCiiWorld</p>
+<p>网站链接：<a href="http://www.asciiworld.com/" target="_blank" rel="noopener">http://www.asciiworld.com/</a></p>
+<h3 id="通过图片转换">通过图片转换</h3>
+<p>V 友 Kokodayo 基于 Img2Motd 开发了网页版的 图片转 Linux Shell 彩色文本。试了一下还挺好玩的亚子，不过对图片和终端的要求有点高。图片的长宽尽量控制在 100 * 100 以内，同时尽量避免使用过于复杂的图案。</p>
+<p><img src="https://cdn.sspai.com/2020/03/04/7eb2b4325eed153625ce2cb027fae6b8.png" alt=""></p>
+<p>Bakaya-Motd</p>
+<p>网站链接：<a href="https://motd.bakaya.ro/" target="_blank" rel="noopener">https://motd.bakaya.ro/</a></p>
+<h3 id="文字特效">文字特效</h3>
+<p>Patorjk 可以根据自己输入的文字，并选择对应的字体来生成字符画，字体种类比较丰富（老板：每天给我换 150 种，但遗憾的是生成语言仅支持英文，如果有中文生成需要的，可以考虑使用 ASCii 字符画生成器来实现。</p>
+<p><img src="https://cdn.sspai.com/2020/03/04/aac68b477cef72eea48c0534e2b954b9.png" alt=""></p>
+<p>Patorjk</p>
+<p>网站链接：<a href="http://patorjk.com/software/taag/" target="_blank" rel="noopener">http://patorjk.com/software/taag/</a></p>
+<h3 id="neofetch">Neofetch</h3>
+<p>当然，除了静态的字符画，我们还可以选择使用一些工具来动态显示欢迎信息。</p>
+<p>Neofetch 是一款用于显示系统信息的脚本，同类的工具还有 ScreenFetch 和 Linux_Logo。Neofetch 除了可以显示 ASCii 字符画，还可以通过 w3m-img 等运行库在终端中显示全彩图片（不过我还没折腾出来，没搞懂是终端的原因还是其它什么原因。</p>
+<p><img src="https://cdn.sspai.com/2020/03/04/083f03f3d42afafec9aace46d31351b3.png" alt=""></p>
+<p>Neofetch</p>
 <blockquote>
-<p>本文转载自：「k8s 技术圈」，原文：<a href="https://tinyurl.com/y6urwkgt%EF%BC%8C%E7%89%88%E6%9D%83%E5%BD%92%E5%8E%9F%E4%BD%9C%E8%80%85%E6%89%80%E6%9C%89%E3%80%82%E6%AC%A2%E8%BF%8E%E6%8A%95%E7%A8%BF%EF%BC%8C%E6%8A%95%E7%A8%BF%E9%82%AE%E7%AE%B1:" target="_blank" rel="noopener">https://tinyurl.com/y6urwkgt，版权归原作者所有。欢迎投稿，投稿邮箱:</a> <code>editor@hi-linux.com</code> 。</p>
+<p>项目地址：<a href="https://github.com/dylanaraps/neofetch/" target="_blank" rel="noopener">https://github.com/dylanaraps/neofetch/</a></p>
+</blockquote>
+<ol>
+<li>安装方法</li>
+</ol>
+<ul>
+<li>Debian / Ubuntu</li>
+</ul>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">$ apt update &amp;&amp; apt upgrade -y</span><br><span class="line">$ apt install neofetch -y</span><br></pre></td></tr></table></figure>
+<ul>
+<li>CentOS / Fedora / RHEL</li>
+</ul>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">$ yum update &amp;&amp; yum upgrade -y</span><br><span class="line">$ yum install dnf-plugins-core -y</span><br><span class="line">$ dnf copr enable konimex&#x2F;neofetch</span><br><span class="line">$ dnf install neofetch</span><br></pre></td></tr></table></figure>
+<ul>
+<li>macOS</li>
+</ul>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">$ brew install neofetch</span><br></pre></td></tr></table></figure>
+<p>更多 Neofetch 的玩法可以参考 Neofetch-Wiki，比如说通过 w3m-img 展示全彩图片、显示桌面截图、修改显示信息的类型、显示主机的扩展信息等等，在此不做过多阐述。</p>
+<ol start="2">
+<li>更改方法</li>
+</ol>
+<ul>
+<li>
+<p>静态 Motd：如果是从图片转换的，那么将新 Motd 更名为 motd 上传至 /etc 目录中，重新登录终端即可生效。</p>
+</li>
+<li>
+<p>动态 Motd：在 Ubuntu 16.04 （其它系统同理）后，启用了动态 Motd，此时我们需要将生成的 motd 文件写入至 /etc/update-motd.d/30-banner 中的对应位置。</p>
+</li>
+<li>
+<p>Neofetch：在 /etc/profile.d/ 创建一个名为 <a href="http://neofetch.sh" target="_blank" rel="noopener">neofetch.sh</a> 的脚本，填入以下内容，保存后重新登入 SSH 即可生效。</p>
+</li>
+</ul>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">#&#x2F;bin&#x2F;sh</span><br><span class="line">neofetch</span><br></pre></td></tr></table></figure>
+<p>最终效果</p>
+<p><img src="https://cdn.sspai.com/2020/03/04/dac33bf6a775a51c33826f95d30f153e.png?imageView2/2/w/1120/q/90/interlace/1/ignore-error/1" alt=""></p>
+<p>Patorjk</p>
+<p><img src="https://cdn.sspai.com/2020/03/04/ae6a16a19a582d1e3cedfe06b0afff0b.png?imageView2/2/w/1120/q/90/interlace/1/ignore-error/1" alt=""></p>
+<p>Neofetch</p>
+<p><img src="https://cdn.sspai.com/2020/03/04/ae6a16a19a582d1e3cedfe06b0afff0b.png?imageView2/2/w/1120/q/90/interlace/1/ignore-error/1" alt=""></p>
+<p>Neofetch in macOS</p>
+<h2 id="结语">结语</h2>
+<p>有人也许会认为修改 Motd 纯属是「徒增功耗、方向错了」，但我个人觉得，除了能够让你的终端更加有趣，还能够在你登录终端前显示主机的重要信息，避免在生产环境中「rm -rf /*」。</p>
+<p>如果你有更多有趣、新奇的玩法，不妨在讨论区中和大家一起分享。喜欢这篇文章的话，不要忘记点赞、分享和关注哦。</p>
+<h3 id="参考链接">参考链接</h3>
+<ul>
+<li>
+<p>Linux 公社：bash的登录与欢迎信息: /etc/issue,/etc/motd</p>
+</li>
+<li>
+<p>旷世的忧伤：Linux 服务器维护简易指南</p>
+</li>
+<li>
+<p>Kokodayo：在 Linux Shell 的登录欢迎语里……放“图片”！</p>
+</li>
+</ul>
+<blockquote>
+<p>本文转载自：「鸟之言语」，原文：<a href="https://tinyurl.com/qqczh4n%EF%BC%8C%E7%89%88%E6%9D%83%E5%BD%92%E5%8E%9F%E4%BD%9C%E8%80%85%E6%89%80%E6%9C%89%E3%80%82%E6%AC%A2%E8%BF%8E%E6%8A%95%E7%A8%BF%EF%BC%8C%E6%8A%95%E7%A8%BF%E9%82%AE%E7%AE%B1:" target="_blank" rel="noopener">https://tinyurl.com/qqczh4n，版权归原作者所有。欢迎投稿，投稿邮箱:</a> <a href="mailto:editor@hi-linux.com">editor@hi-linux.com</a>。</p>
 </blockquote>
 </div>
 
@@ -282,13 +347,9 @@
                 <!-- Pager -->
                 <ul class="pager">
                     
-                        <li class="previous">
-                            <a href="/posts/51306.html" data-toggle="tooltip" data-placement="top" title="手把手教你定制专属的个性化登陆界面,让你的终端更炫酷！">&larr; Previous Post</a>
-                        </li>
-                    
                     
                         <li class="next">
-                            <a href="/posts/33914.html" data-toggle="tooltip" data-placement="top" title="内网穿透神器 ZeroTier 使用教程">Next Post &rarr;</a>
+                            <a href="/posts/57908.html" data-toggle="tooltip" data-placement="top" title="推荐一款可在线访问任意 Pod 的神器 Podtnl（无需暴露服务）">Next Post &rarr;</a>
                         </li>
                     
                 </ul>
@@ -330,7 +391,7 @@
         <div id="toc" class="toc-article">
         <strong class="toc-title">Contents</strong>
         
-          <ol class="toc-nav"><li class="toc-nav-item toc-nav-level-3"><a class="toc-nav-link" href="#podtnl-安装"><span class="toc-nav-number">1.</span> <span class="toc-nav-text">Podtnl 安装</span></a></li><li class="toc-nav-item toc-nav-level-3"><a class="toc-nav-link" href="#podtnl-使用"><span class="toc-nav-number">2.</span> <span class="toc-nav-text">Podtnl 使用</span></a></li></ol>
+          <ol class="toc-nav"><li class="toc-nav-item toc-nav-level-2"><a class="toc-nav-link" href="#原理"><span class="toc-nav-number">1.</span> <span class="toc-nav-text">原理</span></a></li><li class="toc-nav-item toc-nav-level-2"><a class="toc-nav-link" href="#哪里-get-到好康的提示信息"><span class="toc-nav-number">2.</span> <span class="toc-nav-text">哪里 Get 到好康的提示信息？</span></a><ol class="toc-nav-child"><li class="toc-nav-item toc-nav-level-3"><a class="toc-nav-link" href="#asciiworld"><span class="toc-nav-number">2.1.</span> <span class="toc-nav-text">ASCiiWorld</span></a></li><li class="toc-nav-item toc-nav-level-3"><a class="toc-nav-link" href="#通过图片转换"><span class="toc-nav-number">2.2.</span> <span class="toc-nav-text">通过图片转换</span></a></li><li class="toc-nav-item toc-nav-level-3"><a class="toc-nav-link" href="#文字特效"><span class="toc-nav-number">2.3.</span> <span class="toc-nav-text">文字特效</span></a></li><li class="toc-nav-item toc-nav-level-3"><a class="toc-nav-link" href="#neofetch"><span class="toc-nav-number">2.4.</span> <span class="toc-nav-text">Neofetch</span></a></li></ol></li><li class="toc-nav-item toc-nav-level-2"><a class="toc-nav-link" href="#结语"><span class="toc-nav-number">3.</span> <span class="toc-nav-text">结语</span></a><ol class="toc-nav-child"><li class="toc-nav-item toc-nav-level-3"><a class="toc-nav-link" href="#参考链接"><span class="toc-nav-number">3.1.</span> <span class="toc-nav-text">参考链接</span></a></li></ol></li></ol>
         
         </div>
       </aside>
@@ -354,7 +415,7 @@
                         
                           <a class="tag" href="/tags/#技巧" title="技巧">技巧</a>
                         
-                          <a class="tag" href="/tags/#Kubernetes" title="Kubernetes">Kubernetes</a>
+                          <a class="tag" href="/tags/#工具" title="工具">工具</a>
                         
                     </div>
                 </section>
