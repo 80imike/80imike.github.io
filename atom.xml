@@ -6,7 +6,7 @@
   <link href="/atom.xml" rel="self"/>
   
   <link href="https://www.hi-linux.com/"/>
-  <updated>2020-06-13T12:06:20.411Z</updated>
+  <updated>2020-06-22T04:43:16.319Z</updated>
   <id>https://www.hi-linux.com/</id>
   
   <author>
@@ -15,6 +15,51 @@
   </author>
   
   <generator uri="https://hexo.io/">Hexo</generator>
+  
+  <entry>
+    <title>分享一个解决 sudo 命令找不到环境变量的小技巧</title>
+    <link href="https://www.hi-linux.com/posts/30418.html"/>
+    <id>https://www.hi-linux.com/posts/30418.html</id>
+    <published>2020-06-22T01:00:00.000Z</published>
+    <updated>2020-06-22T04:43:16.319Z</updated>
+    
+    <content type="html"><![CDATA[<div id="vip-container"><h3 id="如何解决-sudo-命令找不到环境变量的问题">如何解决 sudo 命令找不到环境变量的问题</h3><p>在通过 <code>sudo</code> 运行命令时，系统会默认重置环境变量为安全的环境变量，也就是说，先前设置的变量都会失效，只有少数配置文件中指定的环境变量能够保存下来。</p><p><code>sudo</code> 的配置文件是 <code>/etc/sudoers</code>，需要 <code>root</code> 权限才能读取，运行以下命令：</p><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">$ sudo sed &#39;&#x2F;^#&#x2F;d;&#x2F;^$&#x2F;d&#39; &#x2F;etc&#x2F;sudoers</span><br></pre></td></tr></table></figure><p><code>sudo</code> 的配置如下图所示：</p><p><img src="http://ghoulich.xninja.org/wp-content/uploads/sites/2/2017/05/image-01_sudo-conf.png" alt=""></p><p>sudo 配置文件</p><p>请注意：</p><ul><li><p>第 3 行的 <code>Defaults env_reset</code> 表示默认会重置环境变量，因此自定义的变量会在 <code>sudo</code> 环境中失效，也就不会获取正确的变量值。</p></li><li><p>第 4 行至第 8 行的 <code>env_keep</code> 配置项，用于保留部分环境变量不被重置，需要保留的变量就写入双引号之中。</p></li><li><p>第 9 行的 <code>secure_path</code> 配置项，其中包含的路径将被当做 <code>sudo</code> 环境的 <code>PATH</code> 变量使用，如果在 <code>sudo</code> 环境无法找到某些命令，那么可以将这些命令的路径加入该配置项之中。</p></li></ul><a id="more"></a><p>综上所述，<code>sudo</code> 命令找不到环境变量或命令的问题，有三种解决方法：</p><ol><li>sudo -E</li></ol><p>加上 <code>-E</code>  选项后，用户可以在 <code>sudo</code>  执行时保留当前用户已存在的环境变量，不会被 <code>sudo</code> 重置。另外，如果用户对于指定的环境变量没有权限，则会报错。</p><ol start="2"><li>修改 sudo 配置文件</li></ol><p>在内部测试机器中，安全性要求不高，总是需要加上 <code>-E</code> 参数来执行脚本，这个安全设定也不是很方便。因此，可以通过修改 <code>/etc/sudoers</code> 文件的 <code>env_keep</code> 和 <code>secure_path</code> 配置项，来指定 <code>sudo</code> 环境中需要保留的环境变量和路径。</p><p>当然你也可以用更简单粗暴的方式：直接将 <code>Defaults env_reset</code> 改成 <code>Defaults !env_reset</code> 来取消掉对 <code>PATH</code> 变量的重置，然后在 <code>.bashrc</code> 中最后添加 <code>alias sudo='sudo env PATH=$PATH'</code>。这样 <code>sudo</code> 执行命令时所搜寻的路径就是系统的 <code>PATH</code> 变量中的路径，如果你想添加其他变量方法也是类似。</p><ol start="3"><li>手动添加变量</li></ol><p>手动在脚本中设置所需的变量，在执行 <code>sudo</code> 脚本前先将所需要的变量写入到需要执行的脚本开头。</p><h3 id="参考文档">参考文档</h3><ol><li><p><a href="https://www.google.com" target="_blank" rel="noopener">https://www.google.com</a></p></li><li><p><a href="http://ghoulich.xninja.org/2017/05/09/how-to-find-env-variables-when-exec-sudo-commands/" target="_blank" rel="noopener">http://ghoulich.xninja.org/2017/05/09/how-to-find-env-variables-when-exec-sudo-commands/</a></p></li><li><p><a href="http://www.ibm.com/developerworks/cn/aix/library/au-sudo/index.html" target="_blank" rel="noopener">http://www.ibm.com/developerworks/cn/aix/library/au-sudo/index.html</a></p></li></ol></div><script src="https://my.openwrite.cn/js/readmore.js" type="text/javascript"></script><script>var isMobile = navigator.userAgent.match(/(phone|pad|pod|iPhone|iPod|ios|iPad|Android|Mobile|BlackBerry|IEMobile|MQQBrowser|JUC|Fennec|wOSBrowser|BrowserNG|WebOS|Symbian|Windows Phone)/i);if (!isMobile) {    var btw = new BTWPlugin();    btw.init({        "id": "vip-container",        "blogId": "10135-1588830050631-449",        "name": "「奇妙的 Linux 世界」",        "qrcode": "https://www.hi-linux.com/img/wechat/mp_qrcode_12.jpg",        "keyword": "VIP"    });}</script>]]></content>
+    
+    <summary type="html">
+    
+      &lt;h3 id=&quot;如何解决-sudo-命令找不到环境变量的问题&quot;&gt;如何解决 sudo 命令找不到环境变量的问题&lt;/h3&gt;
+&lt;p&gt;在通过 &lt;code&gt;sudo&lt;/code&gt; 运行命令时，系统会默认重置环境变量为安全的环境变量，也就是说，先前设置的变量都会失效，只有少数配置文件中指定的环境变量能够保存下来。&lt;/p&gt;
+&lt;p&gt;&lt;code&gt;sudo&lt;/code&gt; 的配置文件是 &lt;code&gt;/etc/sudoers&lt;/code&gt;，需要 &lt;code&gt;root&lt;/code&gt; 权限才能读取，运行以下命令：&lt;/p&gt;
+&lt;figure class=&quot;highlight plain&quot;&gt;&lt;table&gt;&lt;tr&gt;&lt;td class=&quot;gutter&quot;&gt;&lt;pre&gt;&lt;span class=&quot;line&quot;&gt;1&lt;/span&gt;&lt;br&gt;&lt;/pre&gt;&lt;/td&gt;&lt;td class=&quot;code&quot;&gt;&lt;pre&gt;&lt;span class=&quot;line&quot;&gt;$ sudo sed &amp;#39;&amp;#x2F;^#&amp;#x2F;d;&amp;#x2F;^$&amp;#x2F;d&amp;#39; &amp;#x2F;etc&amp;#x2F;sudoers&lt;/span&gt;&lt;br&gt;&lt;/pre&gt;&lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;&lt;/figure&gt;
+&lt;p&gt;&lt;code&gt;sudo&lt;/code&gt; 的配置如下图所示：&lt;/p&gt;
+&lt;p&gt;&lt;img src=&quot;http://ghoulich.xninja.org/wp-content/uploads/sites/2/2017/05/image-01_sudo-conf.png&quot; alt=&quot;&quot;&gt;&lt;/p&gt;
+&lt;p&gt;sudo 配置文件&lt;/p&gt;
+&lt;p&gt;请注意：&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;
+&lt;p&gt;第 3 行的 &lt;code&gt;Defaults env_reset&lt;/code&gt; 表示默认会重置环境变量，因此自定义的变量会在 &lt;code&gt;sudo&lt;/code&gt; 环境中失效，也就不会获取正确的变量值。&lt;/p&gt;
+&lt;/li&gt;
+&lt;li&gt;
+&lt;p&gt;第 4 行至第 8 行的 &lt;code&gt;env_keep&lt;/code&gt; 配置项，用于保留部分环境变量不被重置，需要保留的变量就写入双引号之中。&lt;/p&gt;
+&lt;/li&gt;
+&lt;li&gt;
+&lt;p&gt;第 9 行的 &lt;code&gt;secure_path&lt;/code&gt; 配置项，其中包含的路径将被当做 &lt;code&gt;sudo&lt;/code&gt; 环境的 &lt;code&gt;PATH&lt;/code&gt; 变量使用，如果在 &lt;code&gt;sudo&lt;/code&gt; 环境无法找到某些命令，那么可以将这些命令的路径加入该配置项之中。&lt;/p&gt;
+&lt;/li&gt;
+&lt;/ul&gt;
+    
+    </summary>
+    
+    
+      <category term="Linux" scheme="https://www.hi-linux.com/categories/Linux/"/>
+    
+    
+      <category term="技巧" scheme="https://www.hi-linux.com/tags/%E6%8A%80%E5%B7%A7/"/>
+    
+      <category term="Linux" scheme="https://www.hi-linux.com/tags/Linux/"/>
+    
+      <category term="sudo" scheme="https://www.hi-linux.com/tags/sudo/"/>
+    
+  </entry>
   
   <entry>
     <title>手把手教你解决 Chrome、IE 等浏览器无法正常访问 Kubernetes Dashboard 的问题</title>
@@ -775,45 +820,6 @@
       <category term="Linux" scheme="https://www.hi-linux.com/tags/Linux/"/>
     
       <category term="MySQL" scheme="https://www.hi-linux.com/tags/MySQL/"/>
-    
-  </entry>
-  
-  <entry>
-    <title>如何优雅的回退 Git 误操作</title>
-    <link href="https://www.hi-linux.com/posts/2831.html"/>
-    <id>https://www.hi-linux.com/posts/2831.html</id>
-    <published>2020-05-24T01:02:00.000Z</published>
-    <updated>2020-05-24T07:59:40.000Z</updated>
-    
-    <content type="html"><![CDATA[<div id="vip-container"><p><code>Git</code> 版本管理时，往往需要撤销某些操作。</p><p>本文介绍几种最主要的情况，给出详细的解释。更多的命令可以参考《<a href="https://mp.weixin.qq.com/s?__biz=MzI3MTI2NzkxMA==&amp;mid=2247483821&amp;idx=1&amp;sn=37a2d147d25cea5efc424736bfb01dc8&amp;chksm=eac52084ddb2a9922e1962d30347f2593014dd45de91ba8464539b04a79906b28fa1c450336d&amp;token=630135187&amp;lang=zh_CN#rd" target="_blank" rel="noopener">常用 Git 命令清单</a>》一文。</p><h2 id="一-撤销提交">一、撤销提交</h2><p>一种常见的场景是，提交代码以后，你突然意识到这个提交有问题，应该撤销掉，这时执行下面的命令就可以了。</p><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">$ git revert HEAD</span><br></pre></td></tr></table></figure><p>上面命令的原理是，在当前提交后面，新增一次提交，抵消掉上一次提交导致的所有变化。它不会改变过去的历史，所以是首选方式，没有任何丢失代码的风险。</p><p><code>git revert</code> 命令只能抵消上一个提交，如果想抵消多个提交，必须在命令行依次指定这些提交。比如，抵消前两个提交，要像下面这样写。</p><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">$ git revert [倒数第一个提交] [倒数第二个提交]</span><br></pre></td></tr></table></figure><p><code>git revert</code> 命令还有两个参数。</p><ul><li><code>--no-edit</code>：执行时不打开默认编辑器，直接使用 <code>Git</code> 自动生成的提交信息。</li><li><code>--no-commit</code>：只抵消暂存区和工作区的文件变化，不产生新的提交。</li></ul><a id="more"></a><h2 id="二-丢弃提交">二、丢弃提交</h2><p>如果希望以前的提交在历史中彻底消失，而不是被抵消掉，可以使用 <code>git reset</code> 命令，丢弃掉某个提交之后的所有提交。</p><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">$ git reset [last good SHA]</span><br></pre></td></tr></table></figure><p><code>git reset</code> 的原理是，让最新提交的指针回到以前某个时点，该时点之后的提交都从历史中消失。</p><p>默认情况下，<code>git reset</code> 不改变工作区的文件（但会改变暂存区），<code>--hard</code> 参数可以让工作区里面的文件也回到以前的状态。</p><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">$ git reset --hard [last good SHA]</span><br></pre></td></tr></table></figure><p>执行 <code>git reset</code> 命令之后，如果想找回那些丢弃掉的提交，可以使用 <code>git reflog</code> 命令，具体做法参考这里。不过，这种做法有时效性，时间长了可能找不回来。</p><h2 id="三-替换上一次提交">三、替换上一次提交</h2><p>提交以后，发现提交信息写错了，这时可以使用 <code>git commit</code> 命令的 <code>--amend</code>  参数，可以修改上一次的提交信息。</p><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">$ git commit --amend -m <span class="string">"Fixes bug #42"</span></span><br></pre></td></tr></table></figure><p>它的原理是产生一个新的提交对象，替换掉上一次提交产生的提交对象。</p><p>这时如果暂存区有发生变化的文件，会一起提交到仓库。所以，<code>--amend</code> 不仅可以修改提交信息，还可以整个把上一次提交替换掉。</p><h2 id="四-撤销工作区的文件修改">四、撤销工作区的文件修改</h2><p>如果工作区的某个文件被改乱了，但还没有提交，可以用 <code>git checkout</code> 命令找回本次修改之前的文件。</p><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">$ git checkout -- [filename]</span><br></pre></td></tr></table></figure><p>它的原理是先找暂存区，如果该文件有暂存的版本，则恢复该版本，否则恢复上一次提交的版本。</p><p>注意，工作区的文件变化一旦被撤销，就无法找回了。</p><h2 id="五-从暂存区撤销文件">五、从暂存区撤销文件</h2><p>如果不小心把一个文件添加到暂存区，可以用下面的命令撤销。</p><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">$ git rm --cached [filename]</span><br></pre></td></tr></table></figure><p>上面的命令不影响已经提交的内容。</p><h2 id="六-撤销当前分支的变化">六、撤销当前分支的变化</h2><p>你在当前分支上做了几次提交，突然发现放错了分支，这几个提交本应该放到另一个分支。</p><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># 新建一个 feature 分支，指向当前最新的提交</span></span><br><span class="line"><span class="comment"># 注意，这时依然停留在当前分支</span></span><br><span class="line">$ git branch feature</span><br><span class="line"></span><br><span class="line"><span class="comment"># 切换到这几次提交之前的状态</span></span><br><span class="line">$ git reset --hard [当前分支此前的最后一次提交]</span><br><span class="line"></span><br><span class="line"><span class="comment"># 切换到 feature 分支</span></span><br><span class="line">$ git checkout feature</span><br></pre></td></tr></table></figure><p>上面的操作等于是撤销当前分支的变化，将这些变化放到一个新建的分支。</p><blockquote><p>本文转载自：「阮一峰的网络日志」，原文：<a href="https://url.cn/5NLK2pC%EF%BC%8C%E7%89%88%E6%9D%83%E5%BD%92%E5%8E%9F%E4%BD%9C%E8%80%85%E6%89%80%E6%9C%89%E3%80%82%E6%AC%A2%E8%BF%8E%E6%8A%95%E7%A8%BF%EF%BC%8C%E6%8A%95%E7%A8%BF%E9%82%AE%E7%AE%B1:" target="_blank" rel="noopener">https://url.cn/5NLK2pC，版权归原作者所有。欢迎投稿，投稿邮箱:</a> <code>editor@hi-linux.com</code> 。</p></blockquote></div><script src="https://my.openwrite.cn/js/readmore.js" type="text/javascript"></script><script>var isMobile = navigator.userAgent.match(/(phone|pad|pod|iPhone|iPod|ios|iPad|Android|Mobile|BlackBerry|IEMobile|MQQBrowser|JUC|Fennec|wOSBrowser|BrowserNG|WebOS|Symbian|Windows Phone)/i);if (!isMobile) {    var btw = new BTWPlugin();    btw.init({        "id": "vip-container",        "blogId": "10135-1588830050631-449",        "name": "「奇妙的 Linux 世界」",        "qrcode": "https://www.hi-linux.com/img/wechat/mp_qrcode_12.jpg",        "keyword": "VIP"    });}</script>]]></content>
-    
-    <summary type="html">
-    
-      &lt;p&gt;&lt;code&gt;Git&lt;/code&gt; 版本管理时，往往需要撤销某些操作。&lt;/p&gt;
-&lt;p&gt;本文介绍几种最主要的情况，给出详细的解释。更多的命令可以参考《&lt;a href=&quot;https://mp.weixin.qq.com/s?__biz=MzI3MTI2NzkxMA==&amp;amp;mid=2247483821&amp;amp;idx=1&amp;amp;sn=37a2d147d25cea5efc424736bfb01dc8&amp;amp;chksm=eac52084ddb2a9922e1962d30347f2593014dd45de91ba8464539b04a79906b28fa1c450336d&amp;amp;token=630135187&amp;amp;lang=zh_CN#rd&quot; target=&quot;_blank&quot; rel=&quot;noopener&quot;&gt;常用 Git 命令清单&lt;/a&gt;》一文。&lt;/p&gt;
-&lt;h2 id=&quot;一、撤销提交&quot;&gt;一、撤销提交&lt;/h2&gt;
-&lt;p&gt;一种常见的场景是，提交代码以后，你突然意识到这个提交有问题，应该撤销掉，这时执行下面的命令就可以了。&lt;/p&gt;
-&lt;figure class=&quot;highlight bash&quot;&gt;&lt;table&gt;&lt;tr&gt;&lt;td class=&quot;gutter&quot;&gt;&lt;pre&gt;&lt;span class=&quot;line&quot;&gt;1&lt;/span&gt;&lt;br&gt;&lt;/pre&gt;&lt;/td&gt;&lt;td class=&quot;code&quot;&gt;&lt;pre&gt;&lt;span class=&quot;line&quot;&gt;$ git revert HEAD&lt;/span&gt;&lt;br&gt;&lt;/pre&gt;&lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;&lt;/figure&gt;
-&lt;p&gt;上面命令的原理是，在当前提交后面，新增一次提交，抵消掉上一次提交导致的所有变化。它不会改变过去的历史，所以是首选方式，没有任何丢失代码的风险。&lt;/p&gt;
-&lt;p&gt;&lt;code&gt;git revert&lt;/code&gt; 命令只能抵消上一个提交，如果想抵消多个提交，必须在命令行依次指定这些提交。比如，抵消前两个提交，要像下面这样写。&lt;/p&gt;
-&lt;figure class=&quot;highlight plain&quot;&gt;&lt;table&gt;&lt;tr&gt;&lt;td class=&quot;gutter&quot;&gt;&lt;pre&gt;&lt;span class=&quot;line&quot;&gt;1&lt;/span&gt;&lt;br&gt;&lt;/pre&gt;&lt;/td&gt;&lt;td class=&quot;code&quot;&gt;&lt;pre&gt;&lt;span class=&quot;line&quot;&gt;$ git revert [倒数第一个提交] [倒数第二个提交]&lt;/span&gt;&lt;br&gt;&lt;/pre&gt;&lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;&lt;/figure&gt;
-&lt;p&gt;&lt;code&gt;git revert&lt;/code&gt; 命令还有两个参数。&lt;/p&gt;
-&lt;ul&gt;
-&lt;li&gt;&lt;code&gt;--no-edit&lt;/code&gt;：执行时不打开默认编辑器，直接使用 &lt;code&gt;Git&lt;/code&gt; 自动生成的提交信息。&lt;/li&gt;
-&lt;li&gt;&lt;code&gt;--no-commit&lt;/code&gt;：只抵消暂存区和工作区的文件变化，不产生新的提交。&lt;/li&gt;
-&lt;/ul&gt;
-    
-    </summary>
-    
-    
-      <category term="Linux" scheme="https://www.hi-linux.com/categories/Linux/"/>
-    
-    
-      <category term="技巧" scheme="https://www.hi-linux.com/tags/%E6%8A%80%E5%B7%A7/"/>
-    
-      <category term="Linux" scheme="https://www.hi-linux.com/tags/Linux/"/>
-    
-      <category term="Git" scheme="https://www.hi-linux.com/tags/Git/"/>
     
   </entry>
   
