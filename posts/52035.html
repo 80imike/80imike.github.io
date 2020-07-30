@@ -1,0 +1,595 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<!-- Head tag -->
+<head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="google-site-verification" content="xBT4GhYoi5qRD5tr338pgPM5OWHHIDR6mNg1a3euekI" />
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="description" content="">
+    <meta name="keyword"  content="Linux,运维,Nginx,Zabbix,Centos,Ansible,MySQL,Python,Docker,ELK,Haproxy,Git,Nodejs,安全,技术">
+    <link rel="shortcut icon" href="/img/ironman-draw.png">
+    <!-- Place this tag in your head or just before your close body tag. -->
+    <script async defer src="https://buttons.github.io/buttons.js"></script>
+    <title>
+        
+          两个助你高效编写 Kubernetes YAML 文件的神技 - 运维之美
+        
+    </title>
+
+    <link rel="canonical" href="https://www.hi-linux.com/posts/52035.html">
+
+    <!-- Bootstrap Core CSS -->
+    
+<link rel="stylesheet" href="/css/bootstrap.min.css">
+
+
+    <!-- Custom CSS --> 
+    
+<link rel="stylesheet" href="/css/beantech.min.css">
+
+    
+    <!-- Pygments Highlight CSS -->
+    
+<link rel="stylesheet" href="/css/highlight.css">
+
+
+    
+<link rel="stylesheet" href="/css/widget.css">
+
+
+    
+<link rel="stylesheet" href="/css/rocket.css">
+
+
+    
+<link rel="stylesheet" href="/css/signature.css">
+
+
+    
+<link rel="stylesheet" href="/css/toc.css">
+
+
+    <!-- Custom Fonts -->
+    <!-- <link href="https://maxcdn.bootstrapcdn.com/font-awesome/4.3.0/css/font-awesome.min.css" rel="stylesheet" type="text/css"> -->
+    <!-- Hux change font-awesome CDN to qiniu -->
+    <link href="https://cdn.staticfile.org/font-awesome/4.5.0/css/font-awesome.min.css" rel="stylesheet" type="text/css">
+
+
+    <!-- Hux Delete, sad but pending in China
+    <link href='http://fonts.googleapis.com/css?family=Lora:400,700,400italic,700italic' rel='stylesheet' type='text/css'>
+    <link href='http://fonts.googleapis.com/css?family=Open+Sans:300italic,400italic,600italic,700italic,800italic,400,300,600,700,800' rel='stylesheet' type='text/
+    css'>
+    -->
+
+
+    <!-- HTML5 Shim and Respond.js IE8 support of HTML5 elements and media queries -->
+    <!-- WARNING: Respond.js doesn't work if you view the page via file:// -->
+    <!--[if lt IE 9]>
+        <script src="https://oss.maxcdn.com/libs/html5shiv/3.7.0/html5shiv.js"></script>
+        <script src="https://oss.maxcdn.com/libs/respond.js/1.4.2/respond.min.js"></script>
+    <![endif]-->
+
+    <!-- ga & ba script hoook -->
+    <script></script>
+<meta name="generator" content="Hexo 4.2.0"><link rel="alternate" href="/atom.xml" title="运维之美" type="application/atom+xml">
+</head>
+
+
+<!-- hack iOS CSS :active style -->
+<body ontouchstart="">
+	<!-- Modified by Yu-Hsuan Yen -->
+<!-- Post Header -->
+<style type="text/css">
+    header.intro-header{
+        
+            background-image: url('/img/header_img/building.jpg')
+            /*post*/
+        
+    }
+    
+</style>
+
+<header class="intro-header" >
+    <!-- Signature -->
+    <div id="signature">
+        <div class="container">
+            <div class="row">
+                <div class="col-lg-8 col-lg-offset-2 col-md-10 col-md-offset-1">
+                
+                    <div class="post-heading">
+                        <div class="tags">
+                            
+                              <a class="tag" href="/tags/#Linux" title="Linux">Linux</a>
+                            
+                              <a class="tag" href="/tags/#Kubernetes" title="Kubernetes">Kubernetes</a>
+                            
+                              <a class="tag" href="/tags/#YAML" title="YAML">YAML</a>
+                            
+                        </div>
+                        <h1>两个助你高效编写 Kubernetes YAML 文件的神技</h1>
+                        <h2 class="subheading"></h2>
+                        <span class="meta">
+                            Posted by Mike on
+                            2020-07-30
+                        </span>
+                    </div>
+                
+
+
+                </div>
+            </div>
+        </div>
+    </div>
+</header>
+
+	
+    <!-- Navigation -->
+<nav class="navbar navbar-default navbar-custom navbar-fixed-top">
+    <div class="container-fluid">
+        <!-- Brand and toggle get grouped for better mobile display -->
+        <div class="navbar-header page-scroll">
+            <button type="button" class="navbar-toggle">
+                <span class="sr-only">Toggle navigation</span>
+                <span class="icon-bar"></span>
+                <span class="icon-bar"></span>
+                <span class="icon-bar"></span>
+            </button>
+            <a class="navbar-brand" href="/">运维之美</a>
+        </div>
+
+        <!-- Collect the nav links, forms, and other content for toggling -->
+        <!-- Known Issue, found by Hux:
+            <nav>'s height woule be hold on by its content.
+            so, when navbar scale out, the <nav> will cover tags.
+            also mask any touch event of tags, unfortunately.
+        -->
+        <div id="huxblog_navbar">
+            <div class="navbar-collapse">
+                <ul class="nav navbar-nav navbar-right">
+                    <li>
+                        <a href="/">Home</a>
+                    </li>
+
+                    
+
+                        
+                    
+
+                        
+                    
+
+                        
+                        <li>
+                            <a href="/about/">About</a>
+                        </li>
+                        
+                    
+
+                        
+                        <li>
+                            <a href="/archive/">Archives</a>
+                        </li>
+                        
+                    
+
+                        
+                        <li>
+                            <a href="/tags/">Tags</a>
+                        </li>
+                        
+                    
+                    
+                </ul>
+            </div>
+        </div>
+        <!-- /.navbar-collapse -->
+    </div>
+    <!-- /.container -->
+</nav>
+<script>
+    // Drop Bootstarp low-performance Navbar
+    // Use customize navbar with high-quality material design animation
+    // in high-perf jank-free CSS3 implementation
+    var $body   = document.body;
+    var $toggle = document.querySelector('.navbar-toggle');
+    var $navbar = document.querySelector('#huxblog_navbar');
+    var $collapse = document.querySelector('.navbar-collapse');
+
+    $toggle.addEventListener('click', handleMagic)
+    function handleMagic(e){
+        if ($navbar.className.indexOf('in') > 0) {
+        // CLOSE
+            $navbar.className = " ";
+            // wait until animation end.
+            setTimeout(function(){
+                // prevent frequently toggle
+                if($navbar.className.indexOf('in') < 0) {
+                    $collapse.style.height = "0px"
+                }
+            },400)
+        }else{
+        // OPEN
+            $collapse.style.height = "auto"
+            $navbar.className += " in";
+        }
+    }
+</script>
+
+
+    <!-- Main Content -->
+    <!-- Modify by Yu-Hsuan Yen -->
+
+<!-- Post Content -->
+<article>
+    <div class="container">
+        <div class="row">
+
+            <!-- Post Container -->
+            <div class="
+                col-lg-8 col-lg-offset-2
+                col-md-10 col-md-offset-1
+                post-container">
+
+                <div id="vip-container"><p>我们在编写 <code>Kubernetes</code> 资源清单的时候可能会经常会忘记要创建的资源名称，即使知道了可能也不记得该资源对象有哪些属性可以使用了，特别是对于那些名称很长的资源或者属性，即使死记硬背下来隔一段时间又会忘记了。</p>
+<p>比如现在我们要创建一个 <code>validating</code> 的 <code>admission webhook</code>，我们就需要定义一个 <code>ValidatingWebhookConfiguration</code> 的资源对象，但是可能我们不记得它的全名了。这个时候我们可以使用 <code>kubectl api-resources</code> 命令来找到我们需要的 <code>API</code> 资源。找到了正确的资源名称之后，就需要了解如何编写正确的 <code>YAML</code> 资源清单文件了，但是 <code>Kubernetes</code> 中资源对象实在是太多了，而且每一个资源对象中配置属性也是非常多的，我们不可能都能完全记住，这个时候我们也可以借助 <code>kubectl explain</code> 命令来找到完整的结构，这对于我们编写 <code>YAML</code> 资源清单文件非常有帮助。</p>
+<h2 id="kubectl-api-resources-命令">kubectl api-resources 命令</h2>
+<p><code>kubectl api-resources</code> 命令可以打印所有已经注册的 <code>API</code> 资源，如下所示：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line">$ Kubectl api-resources</span><br><span class="line">NAME                              SHORTNAMES                                   APIGROUP                       NAMESPACED   KIND</span><br><span class="line">bindings                                                                                                      true         Binding</span><br><span class="line">componentstatuses                 cs                                                                          false        ComponentStatus</span><br><span class="line">configmaps                        cm                                                                          true         ConfigMap</span><br><span class="line">endpoints                         ep                                                                          true         Endpoints</span><br><span class="line">events                            ev                                                                          true         Event</span><br><span class="line">limitranges                       limits                                                                      true         LimitRange</span><br><span class="line">namespaces                        ns                                                                          false        Namespace</span><br><span class="line">nodes                             no                                                                          false        Node</span><br><span class="line">......</span><br></pre></td></tr></table></figure>
+<p>其中也会包含上面提到的 <code>ValidatingWebhookConfiguration</code> 资源：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">mutatingwebhookconfigurations                                                  admissionregistration.k8s.io   false        MutatingWebhookConfiguration</span><br><span class="line">validatingwebhookconfigurations                                                admissionregistration.k8s.io   false        ValidatingWebhookConfiguration</span><br><span class="line">customresourcedefinitions         crd,crds                                     apiextensions.k8s.io           false        CustomResourceDefinition</span><br><span class="line">apiservices                                                                    apiregistration.k8s.io         false        APIService</span><br></pre></td></tr></table></figure>
+<p>由于 <code>Kubernetes</code> 中已经注册的资源对象非常多，所以如果我们知道我们要查找的资源名称包含一些关键词的话，可以用 <code>grep</code> 来过滤:</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">$ kubectl api-resources |grep validating</span><br><span class="line">validatingwebhookconfigurations                                                admissionregistration.k8s.io   false        ValidatingWebhookConfiguration</span><br></pre></td></tr></table></figure>
+<p>这样就可以更精确的搜索到需要使用的资源名称了，比如我们这里就是 <code>ValidatingWebhookConfiguration</code> ，现在知道了资源对象的名称，然后可以使用 <code>kubectl explain</code> 命令来查找资源对象的属性。</p>
+<a id="more"></a>
+<h2 id="kubectl-explain-命令">kubectl explain 命令</h2>
+<p><code>kubectl explain</code> 命令可以将资源对象的详细属性都展示出来，比如我们现在不知道如何去编写 <code>ValidatingWebhookConfiguration</code> ，这个时候我们可以通过命令 <code>kubectl explain ValidatingWebhookConfiguration</code> 来获取详细的信息：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br></pre></td><td class="code"><pre><span class="line">$ kubectl explain ValidatingWebhookConfiguration</span><br><span class="line">KIND:     ValidatingWebhookConfiguration</span><br><span class="line">VERSION:  admissionregistration.k8s.io&#x2F;v1</span><br><span class="line"></span><br><span class="line">DESCRIPTION:</span><br><span class="line">     ValidatingWebhookConfiguration describes the configuration of and admission</span><br><span class="line">     webhook that accept or reject and object without changing it.</span><br><span class="line"></span><br><span class="line">FIELDS:</span><br><span class="line">   apiVersion  &lt;string&gt;</span><br><span class="line">     APIVersion defines the versioned schema of this representation of an</span><br><span class="line">     object. Servers should convert recognized schemas to the latest internal</span><br><span class="line">     value, and may reject unrecognized values. More info:</span><br><span class="line">     https:&#x2F;&#x2F;git.k8s.io&#x2F;community&#x2F;contributors&#x2F;devel&#x2F;sig-architecture&#x2F;api-conventions.md#resources</span><br><span class="line"></span><br><span class="line">   kind  &lt;string&gt;</span><br><span class="line">     Kind is a string value representing the REST resource this object</span><br><span class="line">     represents. Servers may infer this from the endpoint the client submits</span><br><span class="line">     requests to. Cannot be updated. In CamelCase. More info:</span><br><span class="line">     https:&#x2F;&#x2F;git.k8s.io&#x2F;community&#x2F;contributors&#x2F;devel&#x2F;sig-architecture&#x2F;api-conventions.md#types-kinds</span><br><span class="line"></span><br><span class="line">   metadata  &lt;Object&gt;</span><br><span class="line">     Standard object metadata; More info:</span><br><span class="line">     https:&#x2F;&#x2F;git.k8s.io&#x2F;community&#x2F;contributors&#x2F;devel&#x2F;sig-architecture&#x2F;api-conventions.md#metadata.</span><br><span class="line"></span><br><span class="line">   webhooks  &lt;[]Object&gt;</span><br><span class="line">     Webhooks is a list of webhooks and the affected resources and operations.</span><br></pre></td></tr></table></figure>
+<p>这个命令会输出顶层的属性，我们只需要明白 <code>&lt;string&gt;</code> 表示字符串，<code>&lt;Object&gt;</code> 表示对象, <code>[]</code> 表示数组即可，对象在 <code>YAML</code> 文件中就需要缩进，数组就需要通过添加一个破折号来表示一个 <code>Item</code>，对于对象和对象数组我们不知道里面有什么属性的，我们还可以继续在后面查看，如下所示：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br></pre></td><td class="code"><pre><span class="line">$ kubectl explain ValidatingWebhookConfiguration.metadata</span><br><span class="line">KIND:     ValidatingWebhookConfiguration</span><br><span class="line">VERSION:  admissionregistration.k8s.io&#x2F;v1</span><br><span class="line"></span><br><span class="line">RESOURCE: metadata &lt;Object&gt;</span><br><span class="line"></span><br><span class="line">DESCRIPTION:</span><br><span class="line">     Standard object metadata; More info:</span><br><span class="line">     https:&#x2F;&#x2F;git.k8s.io&#x2F;community&#x2F;contributors&#x2F;devel&#x2F;sig-architecture&#x2F;api-conventions.md#metadata.</span><br><span class="line"></span><br><span class="line">     ObjectMeta is metadata that all persisted resources must have, which</span><br><span class="line">     includes all objects users must create.</span><br><span class="line"></span><br><span class="line">FIELDS:</span><br><span class="line">   annotations  &lt;map[string]string&gt;</span><br><span class="line">     Annotations is an unstructured key value map stored with a resource that</span><br><span class="line">     may be set by external tools to store and retrieve arbitrary metadata. They</span><br><span class="line">     are not queryable and should be preserved when modifying objects. More</span><br><span class="line">     info: http:&#x2F;&#x2F;kubernetes.io&#x2F;docs&#x2F;user-guide&#x2F;annotations</span><br><span class="line"></span><br><span class="line">   ......</span><br></pre></td></tr></table></figure>
+<p>上面输出的属性就是属于 <code>metadata</code> 这个 <code>key</code> 下面对应的对象了，有的时候如果觉得这样一层一层的去查看比较麻烦，我们还可以传入一个 <code>--recursive</code> 参数来获取所有的属性：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br><span class="line">70</span><br><span class="line">71</span><br><span class="line">72</span><br><span class="line">73</span><br></pre></td><td class="code"><pre><span class="line">$ kubectl explain validatingwebhookconfiguration --recursive</span><br><span class="line">KIND:     ValidatingWebhookConfiguration</span><br><span class="line">VERSION:  admissionregistration.k8s.io&#x2F;v1</span><br><span class="line"></span><br><span class="line">DESCRIPTION:</span><br><span class="line">     ValidatingWebhookConfiguration describes the configuration of and admission</span><br><span class="line">     webhook that accept or reject and object without changing it.</span><br><span class="line"></span><br><span class="line">FIELDS:</span><br><span class="line">   apiVersion  &lt;string&gt;</span><br><span class="line">   kind  &lt;string&gt;</span><br><span class="line">   metadata  &lt;Object&gt;</span><br><span class="line">      annotations  &lt;map[string]string&gt;</span><br><span class="line">      clusterName  &lt;string&gt;</span><br><span class="line">      creationTimestamp  &lt;string&gt;</span><br><span class="line">      deletionGracePeriodSeconds  &lt;integer&gt;</span><br><span class="line">      deletionTimestamp  &lt;string&gt;</span><br><span class="line">      finalizers  &lt;[]string&gt;</span><br><span class="line">      generateName  &lt;string&gt;</span><br><span class="line">      generation  &lt;integer&gt;</span><br><span class="line">      labels  &lt;map[string]string&gt;</span><br><span class="line">      managedFields  &lt;[]Object&gt;</span><br><span class="line">         apiVersion  &lt;string&gt;</span><br><span class="line">         fieldsType  &lt;string&gt;</span><br><span class="line">         fieldsV1  &lt;map[string]&gt;</span><br><span class="line">         manager  &lt;string&gt;</span><br><span class="line">         operation  &lt;string&gt;</span><br><span class="line">         time  &lt;string&gt;</span><br><span class="line">      name  &lt;string&gt;</span><br><span class="line">      namespace  &lt;string&gt;</span><br><span class="line">      ownerReferences  &lt;[]Object&gt;</span><br><span class="line">         apiVersion  &lt;string&gt;</span><br><span class="line">         blockOwnerDeletion  &lt;boolean&gt;</span><br><span class="line">         controller  &lt;boolean&gt;</span><br><span class="line">         kind  &lt;string&gt;</span><br><span class="line">         name  &lt;string&gt;</span><br><span class="line">         uid  &lt;string&gt;</span><br><span class="line">      resourceVersion  &lt;string&gt;</span><br><span class="line">      selfLink  &lt;string&gt;</span><br><span class="line">      uid  &lt;string&gt;</span><br><span class="line">   webhooks  &lt;[]Object&gt;</span><br><span class="line">      admissionReviewVersions  &lt;[]string&gt;</span><br><span class="line">      clientConfig  &lt;Object&gt;</span><br><span class="line">         caBundle  &lt;string&gt;</span><br><span class="line">         service  &lt;Object&gt;</span><br><span class="line">            name  &lt;string&gt;</span><br><span class="line">            namespace  &lt;string&gt;</span><br><span class="line">            path  &lt;string&gt;</span><br><span class="line">            port  &lt;integer&gt;</span><br><span class="line">         url  &lt;string&gt;</span><br><span class="line">      failurePolicy  &lt;string&gt;</span><br><span class="line">      matchPolicy  &lt;string&gt;</span><br><span class="line">      name  &lt;string&gt;</span><br><span class="line">      namespaceSelector  &lt;Object&gt;</span><br><span class="line">         matchExpressions  &lt;[]Object&gt;</span><br><span class="line">            key  &lt;string&gt;</span><br><span class="line">            operator  &lt;string&gt;</span><br><span class="line">            values  &lt;[]string&gt;</span><br><span class="line">         matchLabels  &lt;map[string]string&gt;</span><br><span class="line">      objectSelector  &lt;Object&gt;</span><br><span class="line">         matchExpressions  &lt;[]Object&gt;</span><br><span class="line">            key  &lt;string&gt;</span><br><span class="line">            operator  &lt;string&gt;</span><br><span class="line">            values  &lt;[]string&gt;</span><br><span class="line">         matchLabels  &lt;map[string]string&gt;</span><br><span class="line">      rules  &lt;[]Object&gt;</span><br><span class="line">         apiGroups  &lt;[]string&gt;</span><br><span class="line">         apiVersions  &lt;[]string&gt;</span><br><span class="line">         operations  &lt;[]string&gt;</span><br><span class="line">         resources  &lt;[]string&gt;</span><br><span class="line">         scope  &lt;string&gt;</span><br><span class="line">      sideEffects  &lt;string&gt;</span><br><span class="line">      timeoutSeconds  &lt;integer&gt;</span><br></pre></td></tr></table></figure>
+<p>这个命令就可以将资源对象的完整属性列出来，而且缩进格式和 <code>YAML</code> 文件基本上是一致的，这样对于我们去编写资源清单文件就更加友好了。</p>
+<p>自从使用 <code>kubectl api-resources</code> 和 <code>kubectl explain</code> 这两个命令后，为我们编写资源清单文件节省了很多时间，工作效率大大提高了！</p>
+<p>这么好的神技，你还不赶紧用起来吗？ 如果你还有更好的方法，欢迎大家积极留言讨论哟！</p>
+<blockquote>
+<p>本文转载自：「k8s技术圈」，原文：<a href="https://tinyurl.com/y4vvln2x%EF%BC%8C%E7%89%88%E6%9D%83%E5%BD%92%E5%8E%9F%E4%BD%9C%E8%80%85%E6%89%80%E6%9C%89%E3%80%82%E6%AC%A2%E8%BF%8E%E6%8A%95%E7%A8%BF%EF%BC%8C%E6%8A%95%E7%A8%BF%E9%82%AE%E7%AE%B1:" target="_blank" rel="noopener">https://tinyurl.com/y4vvln2x，版权归原作者所有。欢迎投稿，投稿邮箱:</a> <a href="mailto:editor@hi-linux.com">editor@hi-linux.com</a>。</p>
+</blockquote>
+</div>
+
+			<script src="https://my.openwrite.cn/js/readmore.js" type="text/javascript"></script>
+			<script>
+			var isMobile = navigator.userAgent.match(/(phone|pad|pod|iPhone|iPod|ios|iPad|Android|Mobile|BlackBerry|IEMobile|MQQBrowser|JUC|Fennec|wOSBrowser|BrowserNG|WebOS|Symbian|Windows Phone)/i);
+			if (!isMobile) {
+			    var btw = new BTWPlugin();
+			    btw.init({
+			        "id": "vip-container",
+			        "blogId": "10135-1588830050631-449",
+			        "name": "「奇妙的 Linux 世界」",
+			        "qrcode": "https://www.hi-linux.com/img/wechat/mp_qrcode_12.jpg",
+			        "keyword": "VIP"
+			    });
+			}
+			</script>
+		
+                
+
+                <hr>
+                <!-- Pager -->
+                <ul class="pager">
+                    
+                    
+                        <li class="next">
+                            <a href="/posts/61047.html" data-toggle="tooltip" data-placement="top" title="再见 ELK，是时候拥抱下一代日志系统 Loki 了">Next Post &rarr;</a>
+                        </li>
+                    
+                </ul>
+
+                <!-- duoshuo Share start -->
+                
+                <!-- 多说 Share end-->
+
+                <!-- 多说评论框 start -->
+                
+                <!-- 多说评论框 end -->
+
+                <!-- disqus comment start -->
+                
+                <!-- disqus comment end -->
+
+                
+                    <!-- disqus 评论框 start -->
+                    <div class="comment">
+                        <div id="lv-container" data-id="city" data-uid="MTAyMC8yNzg2My80NDQw"></div>
+                    </div>
+                    <!-- disqus 评论框 end -->
+                
+
+            </div>
+            
+            <!-- Tabe of Content -->
+            <!-- Table of Contents -->
+
+  
+    <style>
+      span.toc-nav-number{
+        display: none
+      }
+    </style>
+  
+    
+      <aside id="sidebar">
+        <div id="toc" class="toc-article">
+        <strong class="toc-title">Contents</strong>
+        
+          <ol class="toc-nav"><li class="toc-nav-item toc-nav-level-2"><a class="toc-nav-link" href="#kubectl-api-resources-命令"><span class="toc-nav-number">1.</span> <span class="toc-nav-text">kubectl api-resources 命令</span></a></li><li class="toc-nav-item toc-nav-level-2"><a class="toc-nav-link" href="#kubectl-explain-命令"><span class="toc-nav-number">2.</span> <span class="toc-nav-text">kubectl explain 命令</span></a></li></ol>
+        
+        </div>
+      </aside>
+    
+
+                
+            <!-- Sidebar Container -->
+            <div class="
+                col-lg-8 col-lg-offset-2
+                col-md-10 col-md-offset-1
+                sidebar-container">
+
+                <!-- Featured Tags -->
+                
+                <section>
+                    <!-- no hr -->
+                    <h5><a href="/tags/">FEATURED TAGS</a></h5>
+                    <div class="tags">
+                       
+                          <a class="tag" href="/tags/#Linux" title="Linux">Linux</a>
+                        
+                          <a class="tag" href="/tags/#Kubernetes" title="Kubernetes">Kubernetes</a>
+                        
+                          <a class="tag" href="/tags/#YAML" title="YAML">YAML</a>
+                        
+                    </div>
+                </section>
+                
+
+                <!-- Friends Blog -->
+                
+                <hr>
+                <h5>FRIENDS</h5>
+                <ul class="list-inline">
+
+                    
+                        <li><a href="http://www.mike.org.cn/" target="_blank">简单.生活</a></li>
+                    
+                        <li><a href="http://shang.qq.com/wpa/qunwpa?idkey=ea4c43493c2269428ac6ef6141de4b6d78e5ab2d41380ca4099b833b62884ee9" target="_blank">技术交流群</a></li>
+                    
+                        <li><a href="" target="_blank"></a></li>
+                    
+                        <li><a href="" target="_blank"></a></li>
+                    
+                </ul>
+                
+            </div>
+        </div>
+    </div>
+</article>
+
+
+
+
+
+
+    <!-- 来必力City版公共JS代码 start (一个网页只需插入一次) -->
+    <script type="text/javascript">
+       (function(d, s) {
+           var j, e = d.getElementsByTagName(s)[0];
+    
+           if (typeof LivereTower === 'function') { return; }
+    
+           j = d.createElement(s);
+           j.src = 'https://cdn-city.livere.com/js/embed.dist.js';
+           j.async = true;
+    
+           e.parentNode.insertBefore(j, e);
+       })(document, 'script');
+    </script>
+    <noscript>为正常使用来必力评论功能请激活JavaScript</noscript>
+    <!-- 来必力City版 公共JS代码 end -->
+
+
+
+<!-- async load function -->
+<script>
+    function async(u, c) {
+      var d = document, t = 'script',
+          o = d.createElement(t),
+          s = d.getElementsByTagName(t)[0];
+      o.src = u;
+      if (c) { o.addEventListener('load', function (e) { c(null, e); }, false); }
+      s.parentNode.insertBefore(o, s);
+    }
+</script>
+<!-- anchor-js, Doc:http://bryanbraun.github.io/anchorjs/ -->
+<script>
+    async("https://cdn.bootcss.com/anchor-js/1.1.1/anchor.min.js",function(){
+        anchors.options = {
+          visible: 'hover',
+          placement: 'left',
+          icon: 'ℬ'
+        };
+        anchors.add().remove('.intro-header h1').remove('.subheading').remove('.sidebar-container h5');
+    })
+</script>
+<style>
+    /* place left on bigger screen */
+    @media all and (min-width: 800px) {
+        .anchorjs-link{
+            position: absolute;
+            left: -0.75em;
+            font-size: 1.1em;
+            margin-top : -0.1em;
+        }
+    }
+</style>
+
+
+
+    <!-- Footer -->
+    <!-- Footer -->
+<footer>
+    <div class="container">
+        <div class="row">
+            <div class="col-lg-8 col-lg-offset-2 col-md-10 col-md-offset-1">
+                <ul class="list-inline text-center">
+                
+                    <li>
+                        <a href="/atom.xml">
+                            <span class="fa-stack fa-lg">
+                                <i class="fa fa-circle fa-stack-2x"></i>
+                                <i class="fa fa-rss fa-stack-1x fa-inverse"></i>
+                            </span>
+                        </a>
+                    </li>
+                
+                
+                
+                    <li>
+                        <a target="_blank" href="https://www.zhihu.com/people/80imike">
+                            <span class="fa-stack fa-lg">
+                                <i class="fa fa-circle fa-stack-2x"></i>
+                                <i class="fa  fa-stack-1x fa-inverse">知</i>
+                            </span>
+                        </a>
+                    </li>
+                
+
+                
+                    <li>
+                        <a target="_blank" href="http://weibo.com/2093524665">
+                            <span class="fa-stack fa-lg">
+                                <i class="fa fa-circle fa-stack-2x"></i>
+                                <i class="fa fa-weibo fa-stack-1x fa-inverse"></i>
+                            </span>
+                        </a>
+                    </li>
+                
+
+                
+
+                
+
+                
+
+                </ul>
+                <p class="copyright text-muted">
+                    Copyright &copy; Mike 2020 | Hosted by <a href="https://pages.coding.me" target="_blank" rel="noopener" style="font-weight: bold">Coding Pages</a>
+                    <br>
+                    Theme by <a href="http://beantech.org" target="_blank" rel="noopener">BeanTech</a> 
+                    <span style="display: inline-block; margin: 0 5px;">
+                        <i class="fa fa-heart"></i>
+                    </span> 
+                    re-Ported by <a href="http://www.huweihuang.com" target="_blank" rel="noopener">胡伟煌</a> | 
+                    <iframe
+                        style="margin-left: 2px; margin-bottom:-5px;"
+                        frameborder="0" scrolling="0" width="91px" height="20px"
+                        src="https://ghbtns.com/github-btn.html?user=huweihuang&repo=hexo-theme-huweihuang&type=star&count=true" >
+                    </iframe>
+                </p>
+            </div>
+        </div>
+    </div>
+</footer>
+
+<!-- jQuery -->
+
+<script src="/js/jquery.min.js"></script>
+
+
+<!-- Bootstrap Core JavaScript -->
+
+<script src="/js/bootstrap.min.js"></script>
+
+
+<!-- Custom Theme JavaScript -->
+
+<script src="/js/hux-blog.min.js"></script>
+
+
+
+<!-- async load function -->
+<script>
+    function async(u, c) {
+      var d = document, t = 'script',
+          o = d.createElement(t),
+          s = d.getElementsByTagName(t)[0];
+      o.src = u;
+      if (c) { o.addEventListener('load', function (e) { c(null, e); }, false); }
+      s.parentNode.insertBefore(o, s);
+    }
+</script>
+
+<!-- 
+     Because of the native support for backtick-style fenced code blocks 
+     right within the Markdown is landed in Github Pages, 
+     From V1.6, There is no need for Highlight.js, 
+     so Huxblog drops it officially.
+
+     - https://github.com/blog/2100-github-pages-now-faster-and-simpler-with-jekyll-3-0  
+     - https://help.github.com/articles/creating-and-highlighting-code-blocks/    
+-->
+<!--
+    <script>
+        async("http://cdn.bootcss.com/highlight.js/8.6/highlight.min.js", function(){
+            hljs.initHighlightingOnLoad();
+        })
+    </script>
+    <link href="http://cdn.bootcss.com/highlight.js/8.6/styles/github.min.css" rel="stylesheet">
+-->
+
+
+<!-- jquery.tagcloud.js -->
+<script>
+    // only load tagcloud.js in tag.html
+    if($('#tag_cloud').length !== 0){
+        async("https://www.hi-linux.com/js/jquery.tagcloud.js",function(){
+            $.fn.tagcloud.defaults = {
+                //size: {start: 1, end: 1, unit: 'em'},
+                color: {start: '#bbbbee', end: '#0085a1'},
+            };
+            $('#tag_cloud a').tagcloud();
+        })
+    }
+</script>
+
+<!--fastClick.js -->
+<script>
+    async("https://cdn.bootcss.com/fastclick/1.0.6/fastclick.min.js", function(){
+        var $nav = document.querySelector("nav");
+        if($nav) FastClick.attach($nav);
+    })
+</script>
+
+
+<!-- Google Analytics -->
+
+
+
+
+<!-- Baidu Tongji -->
+
+
+
+
+
+
+	<a id="rocket" href="#top" class=""></a>
+	<script type="text/javascript" src="/js/totop.js?v=1.0.0" async=""></script>
+    <script type="text/javascript" src="/js/toc.js?v=1.0.0" async=""></script>
+<!-- Image to hack wechat -->
+<img src="https://www.hi-linux.com/img/icon_wechat.png" width="0" height="0" />
+<!-- Migrate from head to bottom, no longer block render and still work -->
+
+<script>(function(w,d, s, id) {w.webpushr=w.webpushr||function(){(w.webpushr.q=w.webpushr.q||[]).push(arguments)};var js, fjs = d.getElementsByTagName(s)[0];js = d.createElement(s); js.id = id;js.src = 'https://cdn.webpushr.com/app.min.js';fjs.parentNode.appendChild(js);}(window,document, 'script', 'webpushr-jssdk'));webpushr('init','BF9JK7xV9kjWTdMx2lr6RWaPfXV7wNuZaVAJ1bfIGoBNJavqLEBVFMKLubITnCA4bh2fI9iH9tMF95nXnPt7xxY');</script></body>
+
+</html>
