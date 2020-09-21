@@ -6,7 +6,7 @@
   <link href="/atom.xml" rel="self"/>
   
   <link href="https://www.hi-linux.com/"/>
-  <updated>2020-09-15T04:35:21.450Z</updated>
+  <updated>2020-09-21T08:54:14.519Z</updated>
   <id>https://www.hi-linux.com/</id>
   
   <author>
@@ -15,6 +15,43 @@
   </author>
   
   <generator uri="https://hexo.io/">Hexo</generator>
+  
+  <entry>
+    <title>几种常用 Python 包管理工具配置国内 PyPI 镜像源的方法</title>
+    <link href="https://www.hi-linux.com/posts/18238.html"/>
+    <id>https://www.hi-linux.com/posts/18238.html</id>
+    <published>2020-09-21T01:00:00.000Z</published>
+    <updated>2020-09-21T08:54:14.519Z</updated>
+    
+    <content type="html"><![CDATA[<div id="vip-container"><p>不论是使用 <code>pip</code>，还是 <code>Pipenv</code>、<code>Poetry</code> 等工具，安装 <code>Python</code> 包的时候会默认从官方的 <code>PyPI</code> 源下载文件，速度比较慢。国内的一些公司和机构提供了 <code>PyPI</code> 镜像源（<code>mirror source</code>），你可以设置让这些工具从国内的镜像源安装 <code>Python</code> 包，以便提高下载速度。</p><p>官方 <code>PyPI</code> 源的 URL 为 <code>https://pypi.org/simple</code> （旧的 <code>URL</code> 为 <code>https://pypi.python.org/simple</code> ），下面我们将以豆瓣提供的镜像源为例（<code>URL</code> 为 <code>https://pypi.doubanio.com/simple/</code>），介绍不同工具更改 <code>PyPI</code> 镜像源的方法。</p><h2 id="pip">pip</h2><p>临时设置可以通过 <code>-i</code> 选项：</p><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">$ pip install -i https:&#x2F;&#x2F;pypi.doubanio.com&#x2F;simple&#x2F; flask</span><br></pre></td></tr></table></figure><p>全局设置有不同的层级和文件位置，以用户全局（per-user）为例，在 <code>Linux</code> &amp; <code>macOS</code> 中，配置需要写到 <code>~/.pip/pip.conf</code> 文件中；<code>Windows</code> 中，配置文件位置为 <code>%HOMEPATH%\pip\pip.ini</code>，<code>%HOMEPATH%</code> 即你的用户文件夹，一般为 “<code>\Users\&lt;你的用户名&gt;</code>”，具体值可以使用 <code>echo %HOMEPATH%</code> 命令查看。</p><p>通常你需要手动创建对应的目录和文件，然后写入下面的内容：</p><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">[global]</span><br><span class="line">index-url &#x3D; https:&#x2F;&#x2F;pypi.doubanio.com&#x2F;simple</span><br><span class="line">[install]</span><br><span class="line">trusted-host &#x3D; pypi.doubanio.com</span><br></pre></td></tr></table></figure><blockquote><p>附注：按照 <code>pip</code> 文档，上面的配置文件位置是旧（legacy）的配置方式，但是因为比较方便设置，这里沿用了。新的建议是 Linux &amp; macOS 放到 <code>$HOME/.config/pip/pip.conf</code>，Windows 则放到 <code>%APPDATA%\pip\pip.ini</code>。具体可以访问 <code>pip</code> 文档配置部分查看。</p></blockquote><a id="more"></a><h2 id="pipenv">Pipenv</h2><p>类似 <code>pip</code> 的 <code>-i （–index-url</code> 选项，你可以使用 <code>–pypi-mirror</code> 临时设置镜像源地址：</p><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">$ pipenv install --pypi-mirror https:&#x2F;&#x2F;pypi.doubanio.com&#x2F;simple flask</span><br></pre></td></tr></table></figure><p>如果想对项目全局（per-project）设置，可以修改 <code>Pipfile</code> 中 [[source]] 小节：</p><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">[[source]]</span><br><span class="line">url &#x3D; &quot;https:&#x2F;&#x2F;pypi.doubanio.com&#x2F;simple&quot;</span><br><span class="line">verify_ssl &#x3D; true</span><br><span class="line">name &#x3D; &quot;douban&quot;</span><br></pre></td></tr></table></figure><p>另外一种方式是使用环境变量 <code>PIPENV_PYPI_MIRROR</code> 设置（<code>Windows</code> 系统使用 <code>set</code> 命令）：</p><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">$ export PIPENV_PYPI_MIRROR&#x3D;https:&#x2F;&#x2F;pypi.doubanio.com&#x2F;simple</span><br></pre></td></tr></table></figure><p>你可以通过把这个环境变量的设置语句写入到终端的配置文件里实现 “永久” 设置，<code>Linux</code> &amp; <code>macOS</code> 可参考这里，<code>Windows</code> 可参考这里。</p><h2 id="poetry-flit">Poetry / Flit</h2><p>因为 <code>Poetry</code>，<code>Flit</code> 这些工具遵循 <code>PEP 518</code> 创建了一个 <code>pyproject.toml</code> 文件来替代 <code>setup.py</code>、<code>Pipfile</code> 等配置文件，所以我们可以在这个文件里更改 <code>PyPI</code> 源。</p><p>使用 <code>Poetry</code> 时，在 <code>pyproject.toml</code> 末尾添加下面的内容来设置自定义镜像源：</p><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">[[tool.poetry.source]]</span><br><span class="line">name &#x3D; &quot;douban&quot;</span><br><span class="line">url &#x3D; &quot;https:&#x2F;&#x2F;pypi.doubanio.com&#x2F;simple&#x2F;&quot;</span><br></pre></td></tr></table></figure><p>目前暂时没有其他方式，未来或许会为 <code>poetry add</code> 命令添加一个相关的设置选项。</p><p>同样的，<code>Flit</code> 大概要添加下面这些内容（未测试）：</p><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">[[tool.flit.source]]</span><br><span class="line">name &#x3D; &quot;douban&quot;</span><br><span class="line">url &#x3D; &quot;https:&#x2F;&#x2F;pypi.doubanio.com&#x2F;simple&#x2F;&quot;</span><br></pre></td></tr></table></figure><h1 id="常用的国内-pypi-镜像列表">常用的国内 PyPI 镜像列表</h1><ul><li>豆瓣 <a href="https://pypi.doubanio.com/simple/" target="_blank" rel="noopener">https://pypi.doubanio.com/simple/</a></li><li>网易 <a href="https://mirrors.163.com/pypi/simple/" target="_blank" rel="noopener">https://mirrors.163.com/pypi/simple/</a></li><li>阿里云 <a href="https://mirrors.aliyun.com/pypi/simple/" target="_blank" rel="noopener">https://mirrors.aliyun.com/pypi/simple/</a></li><li>清华大学 <a href="https://pypi.tuna.tsinghua.edu.cn/simple/" target="_blank" rel="noopener">https://pypi.tuna.tsinghua.edu.cn/simple/</a></li></ul><p>顺便提一下，使用镜像源需要注意一个问题：包的版本可能不会及时更新，遇到这种情况可以通过临时换回官方源解决。</p><blockquote><p>本文转载自：「李辉的博客」，原文：<a href="https://tinyurl.com/y5xfwxuu%EF%BC%8C%E7%89%88%E6%9D%83%E5%BD%92%E5%8E%9F%E4%BD%9C%E8%80%85%E6%89%80%E6%9C%89%E3%80%82%E6%AC%A2%E8%BF%8E%E6%8A%95%E7%A8%BF%EF%BC%8C%E6%8A%95%E7%A8%BF%E9%82%AE%E7%AE%B1:" target="_blank" rel="noopener">https://tinyurl.com/y5xfwxuu，版权归原作者所有。欢迎投稿，投稿邮箱:</a> <a href="mailto:editor@hi-linux.com">editor@hi-linux.com</a>。</p></blockquote></div><script src="https://my.openwrite.cn/js/readmore.js" type="text/javascript"></script><script>var isMobile = navigator.userAgent.match(/(phone|pad|pod|iPhone|iPod|ios|iPad|Android|Mobile|BlackBerry|IEMobile|MQQBrowser|JUC|Fennec|wOSBrowser|BrowserNG|WebOS|Symbian|Windows Phone)/i);if (!isMobile) {    var btw = new BTWPlugin();    btw.init({        "id": "vip-container",        "blogId": "10135-1588830050631-449",        "name": "「奇妙的 Linux 世界」",        "qrcode": "https://www.hi-linux.com/img/wechat/mp_qrcode_12.jpg",        "keyword": "VIP"    });}</script>]]></content>
+    
+    <summary type="html">
+    
+      &lt;p&gt;不论是使用 &lt;code&gt;pip&lt;/code&gt;，还是 &lt;code&gt;Pipenv&lt;/code&gt;、&lt;code&gt;Poetry&lt;/code&gt; 等工具，安装 &lt;code&gt;Python&lt;/code&gt; 包的时候会默认从官方的 &lt;code&gt;PyPI&lt;/code&gt; 源下载文件，速度比较慢。国内的一些公司和机构提供了 &lt;code&gt;PyPI&lt;/code&gt; 镜像源（&lt;code&gt;mirror source&lt;/code&gt;），你可以设置让这些工具从国内的镜像源安装 &lt;code&gt;Python&lt;/code&gt; 包，以便提高下载速度。&lt;/p&gt;
+&lt;p&gt;官方 &lt;code&gt;PyPI&lt;/code&gt; 源的 URL 为 &lt;code&gt;https://pypi.org/simple&lt;/code&gt; （旧的 &lt;code&gt;URL&lt;/code&gt; 为 &lt;code&gt;https://pypi.python.org/simple&lt;/code&gt; ），下面我们将以豆瓣提供的镜像源为例（&lt;code&gt;URL&lt;/code&gt; 为 &lt;code&gt;https://pypi.doubanio.com/simple/&lt;/code&gt;），介绍不同工具更改 &lt;code&gt;PyPI&lt;/code&gt; 镜像源的方法。&lt;/p&gt;
+&lt;h2 id=&quot;pip&quot;&gt;pip&lt;/h2&gt;
+&lt;p&gt;临时设置可以通过 &lt;code&gt;-i&lt;/code&gt; 选项：&lt;/p&gt;
+&lt;figure class=&quot;highlight plain&quot;&gt;&lt;table&gt;&lt;tr&gt;&lt;td class=&quot;gutter&quot;&gt;&lt;pre&gt;&lt;span class=&quot;line&quot;&gt;1&lt;/span&gt;&lt;br&gt;&lt;/pre&gt;&lt;/td&gt;&lt;td class=&quot;code&quot;&gt;&lt;pre&gt;&lt;span class=&quot;line&quot;&gt;$ pip install -i https:&amp;#x2F;&amp;#x2F;pypi.doubanio.com&amp;#x2F;simple&amp;#x2F; flask&lt;/span&gt;&lt;br&gt;&lt;/pre&gt;&lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;&lt;/figure&gt;
+&lt;p&gt;全局设置有不同的层级和文件位置，以用户全局（per-user）为例，在 &lt;code&gt;Linux&lt;/code&gt; &amp;amp; &lt;code&gt;macOS&lt;/code&gt; 中，配置需要写到 &lt;code&gt;~/.pip/pip.conf&lt;/code&gt; 文件中；&lt;code&gt;Windows&lt;/code&gt; 中，配置文件位置为 &lt;code&gt;%HOMEPATH%\pip\pip.ini&lt;/code&gt;，&lt;code&gt;%HOMEPATH%&lt;/code&gt; 即你的用户文件夹，一般为 “&lt;code&gt;\Users\&amp;lt;你的用户名&amp;gt;&lt;/code&gt;”，具体值可以使用 &lt;code&gt;echo %HOMEPATH%&lt;/code&gt; 命令查看。&lt;/p&gt;
+&lt;p&gt;通常你需要手动创建对应的目录和文件，然后写入下面的内容：&lt;/p&gt;
+&lt;figure class=&quot;highlight plain&quot;&gt;&lt;table&gt;&lt;tr&gt;&lt;td class=&quot;gutter&quot;&gt;&lt;pre&gt;&lt;span class=&quot;line&quot;&gt;1&lt;/span&gt;&lt;br&gt;&lt;span class=&quot;line&quot;&gt;2&lt;/span&gt;&lt;br&gt;&lt;span class=&quot;line&quot;&gt;3&lt;/span&gt;&lt;br&gt;&lt;span class=&quot;line&quot;&gt;4&lt;/span&gt;&lt;br&gt;&lt;/pre&gt;&lt;/td&gt;&lt;td class=&quot;code&quot;&gt;&lt;pre&gt;&lt;span class=&quot;line&quot;&gt;[global]&lt;/span&gt;&lt;br&gt;&lt;span class=&quot;line&quot;&gt;index-url &amp;#x3D; https:&amp;#x2F;&amp;#x2F;pypi.doubanio.com&amp;#x2F;simple&lt;/span&gt;&lt;br&gt;&lt;span class=&quot;line&quot;&gt;[install]&lt;/span&gt;&lt;br&gt;&lt;span class=&quot;line&quot;&gt;trusted-host &amp;#x3D; pypi.doubanio.com&lt;/span&gt;&lt;br&gt;&lt;/pre&gt;&lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;&lt;/figure&gt;
+&lt;blockquote&gt;
+&lt;p&gt;附注：按照 &lt;code&gt;pip&lt;/code&gt; 文档，上面的配置文件位置是旧（legacy）的配置方式，但是因为比较方便设置，这里沿用了。新的建议是 Linux &amp;amp; macOS 放到 &lt;code&gt;$HOME/.config/pip/pip.conf&lt;/code&gt;，Windows 则放到 &lt;code&gt;%APPDATA%\pip\pip.ini&lt;/code&gt;。具体可以访问 &lt;code&gt;pip&lt;/code&gt; 文档配置部分查看。&lt;/p&gt;
+&lt;/blockquote&gt;
+    
+    </summary>
+    
+    
+      <category term="Python" scheme="https://www.hi-linux.com/categories/Python/"/>
+    
+    
+      <category term="技巧" scheme="https://www.hi-linux.com/tags/%E6%8A%80%E5%B7%A7/"/>
+    
+      <category term="Linux" scheme="https://www.hi-linux.com/tags/Linux/"/>
+    
+      <category term="Python" scheme="https://www.hi-linux.com/tags/Python/"/>
+    
+  </entry>
   
   <entry>
     <title>10 个冷门但又非常实用的 Docker 使用技巧</title>
@@ -739,43 +776,6 @@
       <category term="Linux" scheme="https://www.hi-linux.com/tags/Linux/"/>
     
       <category term="Kubernetes" scheme="https://www.hi-linux.com/tags/Kubernetes/"/>
-    
-  </entry>
-  
-  <entry>
-    <title>手把手教你定制一个专属的个性化终端登陆界面</title>
-    <link href="https://www.hi-linux.com/posts/51306.html"/>
-    <id>https://www.hi-linux.com/posts/51306.html</id>
-    <published>2020-05-28T01:00:00.000Z</published>
-    <updated>2020-05-28T07:30:10.000Z</updated>
-    
-    <content type="html"><![CDATA[<div id="vip-container"><p>在我们登入 macOS 的终端后，终端往往会弹出一段欢迎信息，显示登录主机、主机供应商提示等信息。但每次看到的都是同样的信息难免有些厌倦。</p><p>通过修改 Motd 文件，我们可以给 SSH 加点料，让它更加好看和有趣。</p><p>默认提示</p><p><img src="https://cdn.sspai.com/2020/03/04/119ed2f44f8c779e52e5d0b61f0572b0.png" alt=""></p><h2 id="原理">原理</h2><blockquote><p>在类 Unix 系统中，/etc/motd 是一个包含「今日消息（Message of the day）」的文件。比起电子邮件，使用 Motd 给所有用户发送消息显得更有效率。其它操作系统中也可能有这一功能，比如 Multics 中的 Motd 信息分段。/etc/motd 的内容会在用户成功登录后由 Unix 登录命令显示，整个过程发生在 Shell 登录之前。较新的类 Unix 系统可以生成动态消息。Ｍotd 也被运用在其它领域，比如 IRC 服务器、半条命系列游戏等。</p><p>来源：维基百科</p></blockquote><p>Linux 系统通过 /etc/issue、/etc/issue.net、/etc/motd 以及 /run/motd.dynamic 来显示本地或者是远程登录后的提示信息，这个提示信息通常用于向用户展示系统版本、硬件参数等信息。其中 /etc/issue、/etc/issue.net 通常在未登录终端前显示，/etc/motd、/run/motd.dynamic 则是在成功登录终端后显示。</p><p>此外还有 /etc/profile 与 /etc/profile.d/，在登录后会运行其中的脚本。</p><a id="more"></a><h2 id="哪里-get-到好康的提示信息">哪里 Get 到好康的提示信息？</h2><h3 id="asciiworld">ASCiiWorld</h3><p>在 AsciiWorld 中提供了现成的图案，左侧可按照分类来搜寻自己需要的字符画。不过 ASCiiWorld 历史悠久，上面的字符画稍显陈旧，不太符合我的审美，哈哈哈。</p><p><img src="https://cdn.sspai.com/2020/03/04/57a737ad43d131f259820d9b410d886b.png" alt=""></p><p>ASCiiWorld</p><p>网站链接：<a href="http://www.asciiworld.com/" target="_blank" rel="noopener">http://www.asciiworld.com/</a></p><h3 id="通过图片转换">通过图片转换</h3><p>V 友 Kokodayo 基于 Img2Motd 开发了网页版的 图片转 Linux Shell 彩色文本。试了一下还挺好玩的亚子，不过对图片和终端的要求有点高。图片的长宽尽量控制在 100 * 100 以内，同时尽量避免使用过于复杂的图案。</p><p><img src="https://cdn.sspai.com/2020/03/04/7eb2b4325eed153625ce2cb027fae6b8.png" alt=""></p><p>Bakaya-Motd</p><p>网站链接：<a href="https://motd.bakaya.ro/" target="_blank" rel="noopener">https://motd.bakaya.ro/</a></p><h3 id="文字特效">文字特效</h3><p>Patorjk 可以根据自己输入的文字，并选择对应的字体来生成字符画，字体种类比较丰富（老板：每天给我换 150 种，但遗憾的是生成语言仅支持英文，如果有中文生成需要的，可以考虑使用 ASCii 字符画生成器来实现。</p><p><img src="https://cdn.sspai.com/2020/03/04/aac68b477cef72eea48c0534e2b954b9.png" alt=""></p><p>Patorjk</p><p>网站链接：<a href="http://patorjk.com/software/taag/" target="_blank" rel="noopener">http://patorjk.com/software/taag/</a></p><h3 id="neofetch">Neofetch</h3><p>当然，除了静态的字符画，我们还可以选择使用一些工具来动态显示欢迎信息。</p><p>Neofetch 是一款用于显示系统信息的脚本，同类的工具还有 ScreenFetch 和 Linux_Logo。Neofetch 除了可以显示 ASCii 字符画，还可以通过 w3m-img 等运行库在终端中显示全彩图片（不过我还没折腾出来，没搞懂是终端的原因还是其它什么原因。</p><p><img src="https://cdn.sspai.com/2020/03/04/083f03f3d42afafec9aace46d31351b3.png" alt=""></p><p>Neofetch</p><blockquote><p>项目地址：<a href="https://github.com/dylanaraps/neofetch/" target="_blank" rel="noopener">https://github.com/dylanaraps/neofetch/</a></p></blockquote><ol><li>安装方法</li></ol><ul><li>Debian / Ubuntu</li></ul><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">$ apt update &amp;&amp; apt upgrade -y</span><br><span class="line">$ apt install neofetch -y</span><br></pre></td></tr></table></figure><ul><li>CentOS / Fedora / RHEL</li></ul><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">$ yum update &amp;&amp; yum upgrade -y</span><br><span class="line">$ yum install dnf-plugins-core -y</span><br><span class="line">$ dnf copr enable konimex&#x2F;neofetch</span><br><span class="line">$ dnf install neofetch</span><br></pre></td></tr></table></figure><ul><li>macOS</li></ul><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">$ brew install neofetch</span><br></pre></td></tr></table></figure><p>更多 Neofetch 的玩法可以参考 Neofetch-Wiki，比如说通过 w3m-img 展示全彩图片、显示桌面截图、修改显示信息的类型、显示主机的扩展信息等等，在此不做过多阐述。</p><ol start="2"><li>更改方法</li></ol><ul><li><p>静态 Motd：如果是从图片转换的，那么将新 Motd 更名为 motd 上传至 /etc 目录中，重新登录终端即可生效。</p></li><li><p>动态 Motd：在 Ubuntu 16.04 （其它系统同理）后，启用了动态 Motd，此时我们需要将生成的 motd 文件写入至 /etc/update-motd.d/30-banner 中的对应位置。</p></li><li><p>Neofetch：在 /etc/profile.d/ 创建一个名为 <a href="http://neofetch.sh" target="_blank" rel="noopener">neofetch.sh</a> 的脚本，填入以下内容，保存后重新登入 SSH 即可生效。</p></li></ul><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">#&#x2F;bin&#x2F;sh</span><br><span class="line">neofetch</span><br></pre></td></tr></table></figure><p>最终效果</p><p><img src="https://cdn.sspai.com/2020/03/04/dac33bf6a775a51c33826f95d30f153e.png?imageView2/2/w/1120/q/90/interlace/1/ignore-error/1" alt=""></p><p>Patorjk</p><p><img src="https://cdn.sspai.com/2020/03/04/ae6a16a19a582d1e3cedfe06b0afff0b.png?imageView2/2/w/1120/q/90/interlace/1/ignore-error/1" alt=""></p><p>Neofetch</p><p><img src="https://cdn.sspai.com/2020/03/04/ae6a16a19a582d1e3cedfe06b0afff0b.png?imageView2/2/w/1120/q/90/interlace/1/ignore-error/1" alt=""></p><p>Neofetch in macOS</p><h2 id="结语">结语</h2><p>有人也许会认为修改 Motd 纯属是「徒增功耗、方向错了」，但我个人觉得，除了能够让你的终端更加有趣，还能够在你登录终端前显示主机的重要信息，避免在生产环境中「rm -rf /*」。</p><p>如果你有更多有趣、新奇的玩法，不妨在讨论区中和大家一起分享。喜欢这篇文章的话，不要忘记点赞、分享和关注哦。</p><h3 id="参考链接">参考链接</h3><ul><li><p>Linux 公社：bash的登录与欢迎信息: /etc/issue,/etc/motd</p></li><li><p>旷世的忧伤：Linux 服务器维护简易指南</p></li><li><p>Kokodayo：在 Linux Shell 的登录欢迎语里……放“图片”！</p></li></ul><blockquote><p>本文转载自：「鸟之言语」，原文：<a href="https://tinyurl.com/qqczh4n%EF%BC%8C%E7%89%88%E6%9D%83%E5%BD%92%E5%8E%9F%E4%BD%9C%E8%80%85%E6%89%80%E6%9C%89%E3%80%82%E6%AC%A2%E8%BF%8E%E6%8A%95%E7%A8%BF%EF%BC%8C%E6%8A%95%E7%A8%BF%E9%82%AE%E7%AE%B1:" target="_blank" rel="noopener">https://tinyurl.com/qqczh4n，版权归原作者所有。欢迎投稿，投稿邮箱:</a> <a href="mailto:editor@hi-linux.com">editor@hi-linux.com</a>。</p></blockquote></div><script src="https://my.openwrite.cn/js/readmore.js" type="text/javascript"></script><script>var isMobile = navigator.userAgent.match(/(phone|pad|pod|iPhone|iPod|ios|iPad|Android|Mobile|BlackBerry|IEMobile|MQQBrowser|JUC|Fennec|wOSBrowser|BrowserNG|WebOS|Symbian|Windows Phone)/i);if (!isMobile) {    var btw = new BTWPlugin();    btw.init({        "id": "vip-container",        "blogId": "10135-1588830050631-449",        "name": "「奇妙的 Linux 世界」",        "qrcode": "https://www.hi-linux.com/img/wechat/mp_qrcode_12.jpg",        "keyword": "VIP"    });}</script>]]></content>
-    
-    <summary type="html">
-    
-      &lt;p&gt;在我们登入 macOS 的终端后，终端往往会弹出一段欢迎信息，显示登录主机、主机供应商提示等信息。但每次看到的都是同样的信息难免有些厌倦。&lt;/p&gt;
-&lt;p&gt;通过修改 Motd 文件，我们可以给 SSH 加点料，让它更加好看和有趣。&lt;/p&gt;
-&lt;p&gt;默认提示&lt;/p&gt;
-&lt;p&gt;&lt;img src=&quot;https://cdn.sspai.com/2020/03/04/119ed2f44f8c779e52e5d0b61f0572b0.png&quot; alt=&quot;&quot;&gt;&lt;/p&gt;
-&lt;h2 id=&quot;原理&quot;&gt;原理&lt;/h2&gt;
-&lt;blockquote&gt;
-&lt;p&gt;在类 Unix 系统中，/etc/motd 是一个包含「今日消息（Message of the day）」的文件。比起电子邮件，使用 Motd 给所有用户发送消息显得更有效率。其它操作系统中也可能有这一功能，比如 Multics 中的 Motd 信息分段。/etc/motd 的内容会在用户成功登录后由 Unix 登录命令显示，整个过程发生在 Shell 登录之前。较新的类 Unix 系统可以生成动态消息。Ｍotd 也被运用在其它领域，比如 IRC 服务器、半条命系列游戏等。&lt;/p&gt;
-&lt;p&gt;来源：维基百科&lt;/p&gt;
-&lt;/blockquote&gt;
-&lt;p&gt;Linux 系统通过 /etc/issue、/etc/issue.net、/etc/motd 以及 /run/motd.dynamic 来显示本地或者是远程登录后的提示信息，这个提示信息通常用于向用户展示系统版本、硬件参数等信息。其中 /etc/issue、/etc/issue.net 通常在未登录终端前显示，/etc/motd、/run/motd.dynamic 则是在成功登录终端后显示。&lt;/p&gt;
-&lt;p&gt;此外还有 /etc/profile 与 /etc/profile.d/，在登录后会运行其中的脚本。&lt;/p&gt;
-    
-    </summary>
-    
-    
-      <category term="Linux" scheme="https://www.hi-linux.com/categories/Linux/"/>
-    
-    
-      <category term="技巧" scheme="https://www.hi-linux.com/tags/%E6%8A%80%E5%B7%A7/"/>
-    
-      <category term="Linux" scheme="https://www.hi-linux.com/tags/Linux/"/>
-    
-      <category term="工具" scheme="https://www.hi-linux.com/tags/%E5%B7%A5%E5%85%B7/"/>
     
   </entry>
   
