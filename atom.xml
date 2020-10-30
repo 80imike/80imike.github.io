@@ -6,7 +6,7 @@
   <link href="/atom.xml" rel="self"/>
   
   <link href="https://www.hi-linux.com/"/>
-  <updated>2020-10-20T09:25:25.014Z</updated>
+  <updated>2020-10-29T07:40:05.276Z</updated>
   <id>https://www.hi-linux.com/</id>
   
   <author>
@@ -15,6 +15,39 @@
   </author>
   
   <generator uri="https://hexo.io/">Hexo</generator>
+  
+  <entry>
+    <title>巧用 Docker 快速部署 GPU 的基础环境</title>
+    <link href="https://www.hi-linux.com/posts/15874.html"/>
+    <id>https://www.hi-linux.com/posts/15874.html</id>
+    <published>2020-10-30T01:00:00.000Z</published>
+    <updated>2020-10-29T07:40:05.276Z</updated>
+    
+    <content type="html"><![CDATA[<div id="vip-container"><p>在 Linux 服务器上使用 GPU 跑深度学习的模型很正常不过。如果我们想用 Docker 实现同样的需求，就需要做些额外的工作。本质上就是我们要在容器里能看到并且使用宿主机上的显卡。 在这篇文章里我们就介绍一下 Docker 使用 GPU 的环境搭建。</p><h2 id="nvidia-驱动">Nvidia 驱动</h2><p>某些命令以 Ubuntu 作为示例。 首先宿主机上必现安装 Nvidia 驱动。</p><p>这里推荐从 Nvidia 官网下载脚本安装，安装和卸载都比较方便并且适用于任何 Linux 发行版，包括 CentOS，Ubuntu 等。 NVIDIA Telsa GPU 的 Linux 驱动在安装过程中需要编译 kernel module，系统需提前安装 gcc 和编译 Linux Kernel Module 所依赖的包，例如 <code>kernel-devel-$(uname -r)</code> 等。</p><h3 id="安装-gcc-和-kernel-dev">安装 gcc 和 kernel-dev</h3><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">$ sudo apt install gcc kernel-dev -y</span><br></pre></td></tr></table></figure><h3 id="安装-nvidia-驱动">安装 Nvidia 驱动</h3><ol><li><p>访问 <a href="https://www.nvidia.com/Download/Find.aspx" target="_blank" rel="noopener">https://www.nvidia.com/Download/Find.aspx</a></p></li><li><p>选择对应操作系统和安装包，并单击 [SEARCH] 搜寻驱动，选择要下载的驱动版本</p></li></ol><p><img src="https://www.hi-linux.com/img/linux/nvdriver.png" alt=""></p><ol start="3"><li>在宿主机上下载并执行对应版本安装脚本</li></ol><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">$ wget https:&#x2F;&#x2F;www.nvidia.com&#x2F;content&#x2F;DriverDownload-March2009&#x2F;confirmation.php?url&#x3D;&#x2F;tesla&#x2F;450.80.02&#x2F;NVIDIA-Linux-x86_64-450.80.02.run&amp;lang&#x3D;us&amp;type&#x3D;Tesla</span><br><span class="line">$ chmod +x NVIDIA-Linux-x86_64-450.80.02.run &amp;&amp; .&#x2F;NVIDIA-Linux-x86_64-450.80.02.run</span><br></pre></td></tr></table></figure><ol start="4"><li>验证</li></ol><p>使用 <code>nvidia-smi</code> 命令验证是否安装成功，如果输出类似下图则驱动安装成功。</p><p><img src="https://www.hi-linux.com/img/linux/nvsmi.png" alt=""></p><h2 id="cuda-驱动">CUDA 驱动</h2><p>CUDA（Compute Unified Device Architecture）是显卡厂商 NVIDIA 推出的运算平台。<code>CUDA™</code>是一种由 NVIDIA 推出的通用并行计算架构，该架构使 GPU 能够解决复杂的计算问题。它包含了 CUDA 指令集架构（ISA）以及 GPU 内部的并行计算引擎。 这里安装的方式和显卡驱动安装类似。</p><ol><li>访问官网下载对应版本安装包，<a href="https://developer.nvidia.com/cuda-toolkit-archive" target="_blank" rel="noopener">https://developer.nvidia.com/cuda-toolkit-archive</a></li></ol><p><img src="https://www.hi-linux.com/img/linux/cudadirver.png" alt=""></p><ol start="2"><li>配置环境变量</li></ol><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">$ echo &#39;export PATH&#x3D;&#x2F;usr&#x2F;local&#x2F;cuda&#x2F;bin:$PATH&#39; | sudo tee &#x2F;etc&#x2F;profile.d&#x2F;cuda.sh </span><br><span class="line">$ source &#x2F;etc&#x2F;profile</span><br></pre></td></tr></table></figure><h2 id="nvidia-docker2">nvidia-docker2</h2><p>Docker 的安装这里就不展开了，具体查看官方文档非常详细。</p><p>这里我们就直接介绍安装 nvidia-docker2.</p><p>既然叫 nvidia-docker2 就有 nvidia-docker1 就是它的 1.0 版本目前已经废弃了，所以注意不要装错。</p><p>这里先简单说一下 nvidia-docker2 的原理，nvidia-docker2 的依赖由下几部分组成.</p><ul><li>libnvidia-container</li><li>nvidia-container-toolkit</li><li>nvidia-container-runtime</li></ul><p><img src="https://www.hi-linux.com/img/linux/nvidia-docker-arch.png" alt=""></p><p>nvidia-container-runtime 是在 runc 基础上多实现了 nvidia-container-runime-hook (现在叫 nvidia-container-toolkit)，该 hook 是在容器启动后（Namespace已创建完成），容器自定义命令(Entrypoint)启动前执行。当检测到 NVIDIA_VISIBLE_DEVICES 环境变量时，会调用 libnvidia-container 挂载 GPU Device 和 CUDA Driver。如果没有检测到 NVIDIA_VISIBLE_DEVICES 就会执行默认的 runc。</p><p>下面分两步安装</p><ol><li>设置 repository 和 GPG key</li></ol><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">$ distribution&#x3D;$(. &#x2F;etc&#x2F;os-release;echo $ID$VERSION_ID)</span><br><span class="line">$ curl -s -L https:&#x2F;&#x2F;nvidia.github.io&#x2F;nvidia-docker&#x2F;gpgkey | sudo apt-key add -</span><br><span class="line">$ curl -s -L https:&#x2F;&#x2F;nvidia.github.io&#x2F;nvidia-docker&#x2F;$distribution&#x2F;nvidia-docker.list | sudo tee &#x2F;etc&#x2F;apt&#x2F;sources.list.d&#x2F;nvidia-docker.list</span><br></pre></td></tr></table></figure><ol start="2"><li>安装</li></ol><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">$ sudo apt-get update</span><br><span class="line">$ sudo apt-get install -y nvidia-docker2</span><br><span class="line">$ sudo systemctl restart docker</span><br></pre></td></tr></table></figure><ol start="3"><li>验证</li></ol><p>执行以下命令：</p><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">$ docker run --rm --gpus all nvidia&#x2F;cuda:10.2-base nvidia-smi</span><br></pre></td></tr></table></figure><p>如果输出跟直接在宿主机上执行 <code>nvidia-smi</code> 一致则说明安装成功。 如果跑的深度学习模型使用的是 tensorflow 可以在容器里执行:</p><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">import tensorflow as tf</span><br><span class="line">tf.contrib.eager.num_gpus()</span><br></pre></td></tr></table></figure><p>如果输出了宿主机上的 Nvidia 显卡数量，则模型能使用到显卡加速。 如果使用的是 pytorch 可以在容器里执行：</p><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">import torch</span><br><span class="line">torch.cuda.is_available()</span><br></pre></td></tr></table></figure><p>如果输出 True 证明环境也成功了，可以使用显卡。</p><ol start="4"><li>使用示例</li></ol><ul><li>使用所有显卡</li></ul><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">$ docker run --rm --gpus all nvidia&#x2F;cuda nvidia-smi </span><br><span class="line">$ docker run --rm --runtime&#x3D;nvidia -e NVIDIA_VISIBLE_DEVICES&#x3D;all nvidia&#x2F;cuda nvidia-smi</span><br></pre></td></tr></table></figure><ul><li>指明使用哪几张卡</li></ul><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">$ docker run --gpus &#39;&quot;device&#x3D;1,2&quot;&#39; nvidia&#x2F;cuda nvidia-smi </span><br><span class="line">$ docker run --rm --runtime&#x3D;nvidia -e NVIDIA_VISIBLE_DEVICES&#x3D;1,2 nvidia&#x2F;cuda nvidia-smi</span><br></pre></td></tr></table></figure><p>到这里在 Docker 下使用 Nvidia 显卡加速计算的基础环境搭建就介绍完了。后续我们可以继续研究一下 K8S 下调度 GPU 的实现。</p><blockquote><p>本文转载自：「lxkaka」，原文：<a href="https://lxkaka.wang/docker-nvidia/%EF%BC%8C%E7%89%88%E6%9D%83%E5%BD%92%E5%8E%9F%E4%BD%9C%E8%80%85%E6%89%80%E6%9C%89%E3%80%82%E6%AC%A2%E8%BF%8E%E6%8A%95%E7%A8%BF%EF%BC%8C%E6%8A%95%E7%A8%BF%E9%82%AE%E7%AE%B1:" target="_blank" rel="noopener">https://lxkaka.wang/docker-nvidia/，版权归原作者所有。欢迎投稿，投稿邮箱:</a> <a href="mailto:editor@hi-linux.com">editor@hi-linux.com</a>。</p></blockquote></div><script src="https://my.openwrite.cn/js/readmore.js" type="text/javascript"></script><script>var isMobile = navigator.userAgent.match(/(phone|pad|pod|iPhone|iPod|ios|iPad|Android|Mobile|BlackBerry|IEMobile|MQQBrowser|JUC|Fennec|wOSBrowser|BrowserNG|WebOS|Symbian|Windows Phone)/i);if (!isMobile) {    var btw = new BTWPlugin();    btw.init({        "id": "vip-container",        "blogId": "10135-1588830050631-449",        "name": "「奇妙的 Linux 世界」",        "qrcode": "https://www.hi-linux.com/img/wechat/mp_qrcode_12.jpg",        "keyword": "VIP"    });}</script>]]></content>
+    
+    <summary type="html">
+    
+      
+      
+        
+        
+          &lt;div id=&quot;vip-container&quot;&gt;&lt;p&gt;在 Linux 服务器上使用 GPU 跑深度学习的模型很正常不过。如果我们想用 Docker 实现同样的需求，就需要做些额外的工作。本质上就是我们要在容器里能看到并且使用宿主机上的显卡。 在这篇文章里我们就介绍一下
+        
+      
+    
+    </summary>
+    
+    
+      <category term="Docker" scheme="https://www.hi-linux.com/categories/docker/"/>
+    
+    
+      <category term="Linux" scheme="https://www.hi-linux.com/tags/Linux/"/>
+    
+      <category term="Docker" scheme="https://www.hi-linux.com/tags/Docker/"/>
+    
+      <category term="GPU" scheme="https://www.hi-linux.com/tags/GPU/"/>
+    
+  </entry>
   
   <entry>
     <title>如何在 Kubernetes 集群中集成 Kata</title>
@@ -732,48 +765,6 @@
       <category term="Linux" scheme="https://www.hi-linux.com/tags/Linux/"/>
     
       <category term="SSH" scheme="https://www.hi-linux.com/tags/SSH/"/>
-    
-  </entry>
-  
-  <entry>
-    <title>手把手教会你解决 Chrome 访问非受信证书页面时，提示「您的连接不是私密连接」错误的方法</title>
-    <link href="https://www.hi-linux.com/posts/35330.html"/>
-    <id>https://www.hi-linux.com/posts/35330.html</id>
-    <published>2020-07-06T01:00:00.000Z</published>
-    <updated>2020-07-06T06:20:14.078Z</updated>
-    
-    <content type="html"><![CDATA[<div id="vip-container"><p>在较新版本的 <code>Chrome</code> 中访问一些未受信任的 <code>HTTPS</code> 页面时，会提示类似 <code>NET::ERR_CERT_INVALID</code> 的错误。以往旧版本中，我们可以选择跳过得以继续访问，但是新版本的 <code>Chrome</code> 中并不允许继续，且提示以下错误：</p><p><img src="https://www.hi-linux.com/img/linux/Kubernetes-Dashboard-1.png" alt=""></p><p>经过很多种尝试后，目前发现只有两种比较有效的方法可以解决。</p><ul><li>方法一</li></ul><p>你可以在 <code>Chrome</code> 启动时加上 <code>--ignore-certificate-errors</code> 和 <code>--ignore-urlfetcher-cert-requests</code> 参数来解决该问题。</p><ol><li>Windows 用户</li></ol><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">&quot;C:\Program Files (x86)\Google\Chrome\Application\chrome.exe&quot; --ignore-certificate-errors</span><br></pre></td></tr></table></figure><ol start="2"><li>Mac 用户</li></ol><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">&#x2F;Applications&#x2F;Google\ Chrome.app&#x2F;Contents&#x2F;MacOS&#x2F;Google\ Chrome --ignore-certificate-errors --ignore-urlfetcher-cert-requests &amp;&gt; &#x2F;dev&#x2F;null</span><br></pre></td></tr></table></figure><p>然后重新打开 <code>Chrome</code> 并浏览您的网站，便可正常访问。</p><a id="more"></a><ul><li>方法二</li></ul><p>当出现 “您的连接不是私密” 页面时，点击高级后，并直接输入 <code>thisisunsafe</code> 关键字并回车。当你使用的 <code>Chrome</code> 版本不允许通过点击操作设置例外时，这样操作将允许将此次请求设置到安全例外中。</p><p><img src="https://www.hi-linux.com/img/linux/Kubernetes-Dashboard-4.png" alt=""></p><p><img src="https://www.hi-linux.com/img/linux/Kubernetes-Dashboard-6.png" alt=""></p><blockquote><p>注意：在 Chrome 该页面上，直接键盘输入后回车，并不是在地址栏输入。</p></blockquote><p>如果你真的看不明白上面的文字描述，还可以参考下面的操作演示：</p><p><img src="https://www.hi-linux.com/img/linux/chrome-unsafessl.gif" alt=""></p><p><strong>参考文档</strong></p><ol><li><p><a href="https://www.google.com" target="_blank" rel="noopener">https://www.google.com</a></p></li><li><p><a href="http://www.hackdig.com/03/hack-68770.htm" target="_blank" rel="noopener">http://www.hackdig.com/03/hack-68770.htm</a></p></li><li><p><a href="https://blog.csdn.net/quanqxj/article/details/103076795" target="_blank" rel="noopener">https://blog.csdn.net/quanqxj/article/details/103076795</a></p></li><li><p><a href="https://medium.com/@dblazeski/chrome-bypass-net-err-cert-invalid-for-development-daefae43eb12" target="_blank" rel="noopener">https://medium.com/@dblazeski/chrome-bypass-net-err-cert-invalid-for-development-daefae43eb12</a></p></li></ol></div><script src="https://my.openwrite.cn/js/readmore.js" type="text/javascript"></script><script>var isMobile = navigator.userAgent.match(/(phone|pad|pod|iPhone|iPod|ios|iPad|Android|Mobile|BlackBerry|IEMobile|MQQBrowser|JUC|Fennec|wOSBrowser|BrowserNG|WebOS|Symbian|Windows Phone)/i);if (!isMobile) {    var btw = new BTWPlugin();    btw.init({        "id": "vip-container",        "blogId": "10135-1588830050631-449",        "name": "「奇妙的 Linux 世界」",        "qrcode": "https://www.hi-linux.com/img/wechat/mp_qrcode_12.jpg",        "keyword": "VIP"    });}</script>]]></content>
-    
-    <summary type="html">
-    
-      &lt;p&gt;在较新版本的 &lt;code&gt;Chrome&lt;/code&gt; 中访问一些未受信任的 &lt;code&gt;HTTPS&lt;/code&gt; 页面时，会提示类似 &lt;code&gt;NET::ERR_CERT_INVALID&lt;/code&gt; 的错误。以往旧版本中，我们可以选择跳过得以继续访问，但是新版本的 &lt;code&gt;Chrome&lt;/code&gt; 中并不允许继续，且提示以下错误：&lt;/p&gt;
-&lt;p&gt;&lt;img src=&quot;https://www.hi-linux.com/img/linux/Kubernetes-Dashboard-1.png&quot; alt=&quot;&quot;&gt;&lt;/p&gt;
-&lt;p&gt;经过很多种尝试后，目前发现只有两种比较有效的方法可以解决。&lt;/p&gt;
-&lt;ul&gt;
-&lt;li&gt;方法一&lt;/li&gt;
-&lt;/ul&gt;
-&lt;p&gt;你可以在 &lt;code&gt;Chrome&lt;/code&gt; 启动时加上 &lt;code&gt;--ignore-certificate-errors&lt;/code&gt; 和 &lt;code&gt;--ignore-urlfetcher-cert-requests&lt;/code&gt; 参数来解决该问题。&lt;/p&gt;
-&lt;ol&gt;
-&lt;li&gt;Windows 用户&lt;/li&gt;
-&lt;/ol&gt;
-&lt;figure class=&quot;highlight plain&quot;&gt;&lt;table&gt;&lt;tr&gt;&lt;td class=&quot;gutter&quot;&gt;&lt;pre&gt;&lt;span class=&quot;line&quot;&gt;1&lt;/span&gt;&lt;br&gt;&lt;/pre&gt;&lt;/td&gt;&lt;td class=&quot;code&quot;&gt;&lt;pre&gt;&lt;span class=&quot;line&quot;&gt;&amp;quot;C:\Program Files (x86)\Google\Chrome\Application\chrome.exe&amp;quot; --ignore-certificate-errors&lt;/span&gt;&lt;br&gt;&lt;/pre&gt;&lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;&lt;/figure&gt;
-&lt;ol start=&quot;2&quot;&gt;
-&lt;li&gt;Mac 用户&lt;/li&gt;
-&lt;/ol&gt;
-&lt;figure class=&quot;highlight plain&quot;&gt;&lt;table&gt;&lt;tr&gt;&lt;td class=&quot;gutter&quot;&gt;&lt;pre&gt;&lt;span class=&quot;line&quot;&gt;1&lt;/span&gt;&lt;br&gt;&lt;/pre&gt;&lt;/td&gt;&lt;td class=&quot;code&quot;&gt;&lt;pre&gt;&lt;span class=&quot;line&quot;&gt;&amp;#x2F;Applications&amp;#x2F;Google\ Chrome.app&amp;#x2F;Contents&amp;#x2F;MacOS&amp;#x2F;Google\ Chrome --ignore-certificate-errors --ignore-urlfetcher-cert-requests &amp;amp;&amp;gt; &amp;#x2F;dev&amp;#x2F;null&lt;/span&gt;&lt;br&gt;&lt;/pre&gt;&lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;&lt;/figure&gt;
-&lt;p&gt;然后重新打开 &lt;code&gt;Chrome&lt;/code&gt; 并浏览您的网站，便可正常访问。&lt;/p&gt;
-    
-    </summary>
-    
-    
-      <category term="Chrome" scheme="https://www.hi-linux.com/categories/Chrome/"/>
-    
-    
-      <category term="技巧" scheme="https://www.hi-linux.com/tags/%E6%8A%80%E5%B7%A7/"/>
-    
-      <category term="Linux" scheme="https://www.hi-linux.com/tags/Linux/"/>
-    
-      <category term="Chrome" scheme="https://www.hi-linux.com/tags/Chrome/"/>
     
   </entry>
   
