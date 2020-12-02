@@ -6,7 +6,7 @@
   <link href="/atom.xml" rel="self"/>
   
   <link href="https://www.hi-linux.com/"/>
-  <updated>2020-11-30T07:19:06.488Z</updated>
+  <updated>2020-12-02T05:03:57.807Z</updated>
   <id>https://www.hi-linux.com/</id>
   
   <author>
@@ -15,6 +15,40 @@
   </author>
   
   <generator uri="https://hexo.io/">Hexo</generator>
+  
+  <entry>
+    <title>推荐一款实时查看 Docker 容器日志的神器 Dozzie</title>
+    <link href="https://www.hi-linux.com/posts/40902.html"/>
+    <id>https://www.hi-linux.com/posts/40902.html</id>
+    <published>2020-12-02T01:00:00.000Z</published>
+    <updated>2020-12-02T05:03:57.807Z</updated>
+    
+    <content type="html"><![CDATA[<div id="vip-container"><p>介绍一款使用了几个月的开源小工具，Dozzle。它是一款轻量、简单的容器日志查看工具。</p><p>项目地址：<a href="https://dozzle.dev/" target="_blank" rel="noopener">https://dozzle.dev/</a></p><p>本篇将简单介绍如何使用它，包括如何快速从源码构建它。</p><h2 id="写在前面">写在前面</h2><p>这款工具相比较一些重量级的工具，比如 ELK 系列而言，实在是太轻量了，容器版本不过 10MB 左右大小。</p><p>主要原因是，它不存储和处理日志，仅仅提供实时查看功能，类似我们日常使用 ps、top 一样，使用它可以减少我们在服务器上低效执行 docker logs 或者 docker-compose logs 等类似命令的执行。</p><p><img src="https://www.hi-linux.com/img/linux/dozzle1.png" alt=""></p><p>先来聊聊一般情况下，怎么用这个小工具。</p><a id="more"></a><h2 id="一般场景">一般场景</h2><p>一般场景下，启动它，提供一个我们可以访问的端口，和其他多数优秀的开源项目一样简单，只需要一条简单的命令：</p><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">docker run --name dozzle -d --volume&#x3D;&#x2F;var&#x2F;run&#x2F;docker.sock:&#x2F;var&#x2F;run&#x2F;docker.sock:ro -p 8888:8080 amir20&#x2F;dozzle:latest</span><br></pre></td></tr></table></figure><p>这里和官方文档不同的是，在挂载 docker.sock 的时候，因为我们并不需要去操作该文件，所以建议加上 ro 只读的限制，避免出现一些我们不希望出现的意外情况，尤其是使用 latest 版本的时候。当然，实际使用中还是建议锁定镜像版本，并认真审查项目相关源码。</p><p>当然，考虑到可维护性，我们可以把它写成 compose 配置文件：</p><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line">version: &quot;3&quot;</span><br><span class="line"></span><br><span class="line">services:</span><br><span class="line">  dozzle:</span><br><span class="line">    container_name: dozzle</span><br><span class="line">    image: amir20&#x2F;dozzle:latest</span><br><span class="line">    volumes:</span><br><span class="line">      - &#x2F;var&#x2F;run&#x2F;docker.sock:&#x2F;var&#x2F;run&#x2F;docker.sock:ro</span><br><span class="line">    ports:</span><br><span class="line">      - 8888:8080</span><br></pre></td></tr></table></figure><p>将上面的内容保存为 docker-compose.yml ，使用 docker-compose up 启动程序；或者前文提到的 docker run 命令之后，我们便可以通过浏览器访问 localhost:8888 来查看当前相同机器（容器网卡）内的容器的实时日志，以及已停止容器的历史运行日志了。</p><p>因为容器的盛行，许多时候我们需要同时查阅多个服务的日志状态，Dozzle 支持“分屏”查看，还是很方便的。</p><p><img src="https://www.hi-linux.com/img/linux/dozzle2.png" alt=""></p><p>当然，还有常用的关键词搜索过滤、文本高亮。</p><p><img src="https://www.hi-linux.com/img/linux/dozzle3.png" alt=""></p><h2 id="如何从源码构建应用">如何从源码构建应用</h2><p>实际使用过程中，我们可能需要定制代码，来实现一些特别的需求，作者很贴心的提供了多阶段构建脚本，不过估计不少同样身处国内的同学会因为网络客观原因无法顺利构建，这里记录一下如何简单快速的完成应用构建。</p><p>首先是获取源代码：</p><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">git clone https:&#x2F;&#x2F;github.com&#x2F;amir20&#x2F;dozzle.git --depth&#x3D;1 --branch&#x3D;master</span><br></pre></td></tr></table></figure><p>使用 --depth 和 --branch 可以有效减少获取代码时的传输量，从而提高你的代码下载速度。</p><p>接着是针对原始的 Dockerfile 进行调整，让 Alpine 、Node 、Go 的相关依赖、软件获取。</p><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br></pre></td><td class="code"><pre><span class="line">diff --git a&#x2F;Dockerfile b&#x2F;Dockerfile</span><br><span class="line">index 9bce54e..eda3672 100644</span><br><span class="line">--- a&#x2F;Dockerfile</span><br><span class="line">+++ b&#x2F;Dockerfile</span><br><span class="line">@@ -1,5 +1,15 @@</span><br><span class="line"> # Build assets</span><br><span class="line">-FROM node:current-alpine as node</span><br><span class="line">+FROM node:14.15.0-alpine as node</span><br><span class="line">+</span><br><span class="line">+ENV LANG en_US.UTF-8</span><br><span class="line">+ENV LANGUAGE en_US.UTF-8</span><br><span class="line">+ENV LC_ALL&#x3D;en_US.UTF-8</span><br><span class="line">+</span><br><span class="line">+RUN echo &#39;&#39; &gt; &#x2F;etc&#x2F;apk&#x2F;repositories &amp;&amp; \</span><br><span class="line">+    VER&#x3D;$(awk -F&#x3D; &#39;$1&#x3D;&#x3D;&quot;VERSION_ID&quot; &#123; print $2 ;&#125;&#39; &#x2F;etc&#x2F;os-release | cut -d . -f 1,2) &amp;&amp; \</span><br><span class="line">+    echo &quot;https:&#x2F;&#x2F;mirror.tuna.tsinghua.edu.cn&#x2F;alpine&#x2F;v$&#123;VER&#125;&#x2F;main&quot;         &gt;&gt; &#x2F;etc&#x2F;apk&#x2F;repositories &amp;&amp; \</span><br><span class="line">+    echo &quot;https:&#x2F;&#x2F;mirror.tuna.tsinghua.edu.cn&#x2F;alpine&#x2F;v$&#123;VER&#125;&#x2F;community&quot;    &gt;&gt; &#x2F;etc&#x2F;apk&#x2F;repositories &amp;&amp; \</span><br><span class="line">+    echo &quot;Asia&#x2F;Shanghai&quot; &gt; &#x2F;etc&#x2F;timezone</span><br><span class="line"> </span><br><span class="line"> RUN apk add --no-cache git openssh python make g++ util-linux</span><br><span class="line"> </span><br><span class="line">@@ -7,6 +17,7 @@ WORKDIR &#x2F;build</span><br><span class="line"> </span><br><span class="line"> # Install dependencies</span><br><span class="line"> COPY package*.json yarn.lock .&#x2F;</span><br><span class="line">+RUN yarn config set registry https:&#x2F;&#x2F;registry.npm.taobao.org&#x2F;</span><br><span class="line"> RUN yarn install --network-timeout 1000000</span><br><span class="line"> </span><br><span class="line"> # Copy config files</span><br><span class="line">@@ -20,6 +31,19 @@ RUN yarn build</span><br><span class="line"> </span><br><span class="line"> FROM golang:1.15-alpine AS builder</span><br><span class="line"> </span><br><span class="line">+ENV LANG en_US.UTF-8</span><br><span class="line">+ENV LANGUAGE en_US.UTF-8</span><br><span class="line">+ENV LC_ALL&#x3D;en_US.UTF-8</span><br><span class="line">+</span><br><span class="line">+RUN echo &#39;&#39; &gt; &#x2F;etc&#x2F;apk&#x2F;repositories &amp;&amp; \</span><br><span class="line">+    VER&#x3D;$(awk -F&#x3D; &#39;$1&#x3D;&#x3D;&quot;VERSION_ID&quot; &#123; print $2 ;&#125;&#39; &#x2F;etc&#x2F;os-release | cut -d . -f 1,2) &amp;&amp; \</span><br><span class="line">+    echo &quot;https:&#x2F;&#x2F;mirror.tuna.tsinghua.edu.cn&#x2F;alpine&#x2F;v$&#123;VER&#125;&#x2F;main&quot;         &gt;&gt; &#x2F;etc&#x2F;apk&#x2F;repositories &amp;&amp; \</span><br><span class="line">+    echo &quot;https:&#x2F;&#x2F;mirror.tuna.tsinghua.edu.cn&#x2F;alpine&#x2F;v$&#123;VER&#125;&#x2F;community&quot;    &gt;&gt; &#x2F;etc&#x2F;apk&#x2F;repositories &amp;&amp; \</span><br><span class="line">+    echo &quot;Asia&#x2F;Shanghai&quot; &gt; &#x2F;etc&#x2F;timezone</span><br><span class="line">+</span><br><span class="line">+RUN go env -w GO111MODULE&#x3D;on  &amp;&amp; \</span><br><span class="line">+    go env -w GOPROXY&#x3D;https:&#x2F;&#x2F;mirrors.aliyun.com&#x2F;goproxy&#x2F;,direct</span><br><span class="line">+</span><br><span class="line"> RUN apk add --no-cache git ca-certificates</span><br><span class="line"> RUN mkdir &#x2F;dozzle</span><br></pre></td></tr></table></figure><p>上面是我一般会做的镜像“加速”构建调整，执行下面的构建命令，稍等片刻，便能获得属于你的 Dozzle。</p><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">docker build -t dozzle:custom --build-arg TAG&#x3D;custom .</span><br></pre></td></tr></table></figure><p><img src="https://www.hi-linux.com/img/linux/dozzle4.png" alt=""></p><h2 id="最后">最后</h2><p>希望本篇内容能解救不停登录服务器查看日志，或者耐着性子等云平台日志中心日志刷新的你。</p><blockquote><p>本文转载自：「苏洋博客」，原文：<a href="https://tinyurl.com/y5bsr5zq%EF%BC%8C%E7%89%88%E6%9D%83%E5%BD%92%E5%8E%9F%E4%BD%9C%E8%80%85%E6%89%80%E6%9C%89%E3%80%82%E6%AC%A2%E8%BF%8E%E6%8A%95%E7%A8%BF%EF%BC%8C%E6%8A%95%E7%A8%BF%E9%82%AE%E7%AE%B1:" target="_blank" rel="noopener">https://tinyurl.com/y5bsr5zq，版权归原作者所有。欢迎投稿，投稿邮箱:</a> <a href="mailto:editor@hi-linux.com">editor@hi-linux.com</a>。</p></blockquote></div><script src="https://my.openwrite.cn/js/readmore.js" type="text/javascript"></script><script>var isMobile = navigator.userAgent.match(/(phone|pad|pod|iPhone|iPod|ios|iPad|Android|Mobile|BlackBerry|IEMobile|MQQBrowser|JUC|Fennec|wOSBrowser|BrowserNG|WebOS|Symbian|Windows Phone)/i);if (!isMobile) {    var btw = new BTWPlugin();    btw.init({        "id": "vip-container",        "blogId": "10135-1588830050631-449",        "name": "「奇妙的 Linux 世界」",        "qrcode": "https://www.hi-linux.com/img/wechat/mp_qrcode_12.jpg",        "keyword": "VIP"    });}</script>]]></content>
+    
+    <summary type="html">
+    
+      &lt;p&gt;介绍一款使用了几个月的开源小工具，Dozzle。它是一款轻量、简单的容器日志查看工具。&lt;/p&gt;
+&lt;p&gt;项目地址：&lt;a href=&quot;https://dozzle.dev/&quot; target=&quot;_blank&quot; rel=&quot;noopener&quot;&gt;https://dozzle.dev/&lt;/a&gt;&lt;/p&gt;
+&lt;p&gt;本篇将简单介绍如何使用它，包括如何快速从源码构建它。&lt;/p&gt;
+&lt;h2 id=&quot;写在前面&quot;&gt;写在前面&lt;/h2&gt;
+&lt;p&gt;这款工具相比较一些重量级的工具，比如 ELK 系列而言，实在是太轻量了，容器版本不过 10MB 左右大小。&lt;/p&gt;
+&lt;p&gt;主要原因是，它不存储和处理日志，仅仅提供实时查看功能，类似我们日常使用 ps、top 一样，使用它可以减少我们在服务器上低效执行 docker logs 或者 docker-compose logs 等类似命令的执行。&lt;/p&gt;
+&lt;p&gt;&lt;img src=&quot;https://www.hi-linux.com/img/linux/dozzle1.png&quot; alt=&quot;&quot;&gt;&lt;/p&gt;
+&lt;p&gt;先来聊聊一般情况下，怎么用这个小工具。&lt;/p&gt;
+    
+    </summary>
+    
+    
+      <category term="Docker" scheme="https://www.hi-linux.com/categories/docker/"/>
+    
+    
+      <category term="Linux" scheme="https://www.hi-linux.com/tags/Linux/"/>
+    
+      <category term="Docker" scheme="https://www.hi-linux.com/tags/Docker/"/>
+    
+      <category term="Dozzie" scheme="https://www.hi-linux.com/tags/Dozzie/"/>
+    
+  </entry>
   
   <entry>
     <title>如何在 Docker 中使用 Docker</title>
@@ -711,60 +745,6 @@
       <category term="Kubernetes" scheme="https://www.hi-linux.com/tags/Kubernetes/"/>
     
       <category term="YAML" scheme="https://www.hi-linux.com/tags/YAML/"/>
-    
-  </entry>
-  
-  <entry>
-    <title>再见 ELK，是时候拥抱下一代日志系统 Loki 了</title>
-    <link href="https://www.hi-linux.com/posts/61047.html"/>
-    <id>https://www.hi-linux.com/posts/61047.html</id>
-    <published>2020-07-27T01:00:00.000Z</published>
-    <updated>2020-07-27T04:18:14.060Z</updated>
-    
-    <content type="html"><![CDATA[<div id="vip-container"><p>最近，在对公司容器云的日志方案进行设计的时候，发现主流的 ELK 或者 EFK 比较重，再加上现阶段对于 ES 复杂的搜索功能很多都用不上，最终选择了 Grafana 开源的 Loki 日志系统。下面我们来介绍下 Loki 的一些基本概念和架构。</p><blockquote><p>Loki 是 Grafana Labs 团队最新的开源项目，是一个水平可扩展，高可用性，多租户的日志聚合系统。它的设计非常经济高效且易于操作，因为它不会为日志内容编制索引，而是为每个日志流编制一组标签，专门为 Prometheus 和 Kubernetes 用户做了相关优化。该项目受 Prometheus 启发，官方的介绍就是： <code>Like Prometheus,But For Logs.</code>，类似于 Prometheus 的日志系统。</p><p>项目地址：<a href="https://github.com/grafana/loki/" target="_blank" rel="noopener">https://github.com/grafana/loki/</a></p></blockquote><p>与其他日志聚合系统相比， Loki 具有下面的一些特性：</p><ul><li><p>不对日志进行全文索引。通过存储压缩非结构化日志和仅索引元数据，Loki 操作起来会更简单，更省成本。</p></li><li><p>通过使用与 Prometheus 相同的标签记录流对日志进行索引和分组，这使得日志的扩展和操作效率更高。</p></li><li><p>特别适合储存 Kubernetes Pod 日志; 诸如 Pod 标签之类的元数据会被自动删除和编入索引。</p></li><li><p>受 Grafana 原生支持。</p></li></ul><h2 id="背景和动机">背景和动机</h2><p>当我们的容器云运行的应用或者某个节点出现问题了，解决思路应该如下：</p><p><img src="https://www.hi-linux.com/img/linux/loki1.jpeg" alt=""></p><p>我们的监控使用的是基于 Prometheus 体系进行改造的，Prometheus 中比较重要的是 Metric 和 Alert，Metric 是来说明当前或者历史达到了某个值，Alert 设置 Metric 达到某个特定的基数触发了告警，但是这些信息明显是不够的。</p><p>我们都知道，Kubernetes 的基本单位是 Pod，Pod 把日志输出到 Stdout 和 Stderr，平时有什么问题我们通常在界面或者通过命令查看相关的日志。</p><p>举个例子：当我们的某个 Pod 的内存变得很大，触发了我们的 Alert。这时管理员，去页面查询确认是哪个 Pod 有问题，然后要确认 Pod 内存变大的原因，我们还需要去查询 Pod 的日志，如果没有日志系统，那么我们就需要到页面或者使用命令进行查询：</p><p><img src="https://www.hi-linux.com/img/linux/loki2.jpeg" alt=""></p><p>如果，这个时候应用突然挂了，这个时候我们就无法查到相关的日志了。所以需要引入日志系统，统一收集日志。而使用 ELK 的话，就需要在 Kibana 和 Grafana 之间切换，影响用户体验。所以 ，Loki 的第一目的就是最小化度量和日志的切换成本，有助于减少异常事件的响应时间和提高用户的体验。</p><a id="more"></a><h2 id="elk-存在的问题">ELK 存在的问题</h2><p>现有的很多日志采集的方案都是采用全文检索对日志进行索引（如 ELK 方案），优点是功能丰富，允许复杂的操作。但是，这些方案往往规模复杂，资源占用高，操作苦难。很多功能往往用不上，大多数查询只关注一定时间范围和一些简单的参数（如：host、service 等），使用这些解决方案就有点杀鸡用牛刀的感觉了。</p><p><img src="https://www.hi-linux.com/img/linux/loki3.jpeg" alt=""></p><p>因此，Loki 的第二个目的是，在查询语言的易操作性和复杂性之间可以达到一个权衡。</p><h2 id="成本考量">成本考量</h2><p>全文检索的方案也带来成本问题，简单的说就是全文搜索（如：ES）的倒排索引的切分和共享的成本较高。后来出现了其他不同的设计方案，如：</p><ul><li>OKlog</li></ul><p>项目地址：<a href="https://github.com/oklog/oklog" target="_blank" rel="noopener">https://github.com/oklog/oklog</a></p><p>采用最终一致的、基于网格的分布策略。这两个设计决策提供了大量的成本降低和非常简单的操作，但是查询不够方便。因此，Loki 的第三个目的是，提供一个更具成本效益的解决方案。</p><h2 id="整体架构">整体架构</h2><p>Loki 的架构如下：</p><p><img src="https://www.hi-linux.com/img/linux/loki4.jpeg" alt=""></p><p>不难看出，Loki 的架构非常简单，主要由以下 3 个部分组成：</p><ul><li><p>Loki 是主服务器，负责存储日志和处理查询。</p></li><li><p>Promtail是代理，负责收集日志并将其发送给 Loki 。</p></li><li><p>Grafana 用于 UI 展示。</p></li></ul><p>Loki 使用了和 Prometheus 一样的标签来作为索引。也就是说，你通过这些标签既可以查询日志的内容也可以查询到监控的数据，不但减少了两种查询之间的切换成本，也极大地降低了日志索引的存储。</p><p>Loki 使用与 Prometheus 相同的服务发现和标签重新标记库，编写了 Pormtail。在 Kubernetes 中 Promtail 以 DaemonSet 方式运行在每个节点中，通过 Kubernetes API 得到日志的正确元数据，并将它们发送到 Loki。下面是日志的存储架构：</p><p><img src="https://www.hi-linux.com/img/linux/loki5.jpeg" alt=""></p><h3 id="读写">读写</h3><p>日志数据的写主要依托的是 Distributor 和 Ingester 两个组件，整体的流程如下：</p><p><img src="https://www.hi-linux.com/img/linux/loki6.jpeg" alt=""></p><h3 id="distributor">Distributor</h3><p>一旦 Promtail 收集日志并将其发送给 Loki，Distributor 就是第一个接收日志的组件。由于日志的写入量可能很大，所以不能在它们传入时将它们写入数据库。这会毁掉数据库。我们需要批处理和压缩数据。</p><p>Loki 通过构建压缩数据块来实现这一点，方法是在日志进入时对其进行 Gzip 操作。组件 Ingester 是一个有状态的组件，负责构建和刷新 Chunck，当 Chunk 达到一定的数量或者时间后，刷新到存储中去。每个流的日志对应一个 Ingester，当日志到达 Distributor 后，根据元数据和 Hash 算法计算出应该到哪个 Ingester 上面。</p><p><img src="https://www.hi-linux.com/img/linux/loki7.jpeg" alt=""></p><p>此外，为了冗余和弹性，我们将其复制 n（默认情况下为 3）次。</p><h3 id="ingester">Ingester</h3><p>Ingester 接收到日志并开始构建 Chunk：</p><p><img src="https://www.hi-linux.com/img/linux/loki8.jpeg" alt=""></p><p>基本上就是将日志进行压缩并附加到 Chunk 上面。一旦 Chunk 填满（数据达到一定数量或者过了一定期限），Ingester 将其刷新到数据库。我们对块和索引使用单独的数据库，因为它们存储的数据类型不同。</p><p><img src="https://www.hi-linux.com/img/linux/loki9.jpeg" alt=""></p><p>刷新一个 Chunk 之后，Ingester 然后创建一个新的空 Chunk 并将新条目添加到该 Chunk 中。</p><h3 id="querier">Querier</h3><p>读取就非常简单了，由 Querier 负责给定一个时间范围和标签选择器，Querier 查看索引以确定哪些块匹配，并通过 Greps 将结果显示出来。它还从 Ingester 获取尚未刷新的最新数据。</p><p>对于每个查询，一个查询器将为您显示所有相关日志。实现了查询并行化，提供分布式 Grep，使即使是大型查询也是足够的。</p><p><img src="https://www.hi-linux.com/img/linux/loki10.jpeg" alt=""></p><h3 id="可扩展性">可扩展性</h3><p>Loki 的索引存储可以是 Cassandra/Bigtable/Dynamodb，而 Chuncks 可以是各种对象存储，Querier 和 Distributor 都是无状态的组件。</p><p>对于 Ingester，它虽然是有状态的。但是，当新的节点加入或者减少，整节点间的 Chunk 会重新分配，已适应新的散列环。而 Loki 底层存储的实现 Cortex 已经在实际的生产中投入使用多年了。</p><h2 id="参考链接">参考链接</h2><ol><li><p><a href="https://blog.csdn.net/Linkthaha/article/details/100575278" target="_blank" rel="noopener">https://blog.csdn.net/Linkthaha/article/details/100575278</a></p></li><li><p><a href="http://blog.csdn.net/Linkthaha/article/details/100575651" target="_blank" rel="noopener">http://blog.csdn.net/Linkthaha/article/details/100575651</a></p></li><li><p><a href="https://www.qikqiak.com/post/grafana-log-tool-loki/" target="_blank" rel="noopener">https://www.qikqiak.com/post/grafana-log-tool-loki/</a></p></li></ol></div><script src="https://my.openwrite.cn/js/readmore.js" type="text/javascript"></script><script>var isMobile = navigator.userAgent.match(/(phone|pad|pod|iPhone|iPod|ios|iPad|Android|Mobile|BlackBerry|IEMobile|MQQBrowser|JUC|Fennec|wOSBrowser|BrowserNG|WebOS|Symbian|Windows Phone)/i);if (!isMobile) {    var btw = new BTWPlugin();    btw.init({        "id": "vip-container",        "blogId": "10135-1588830050631-449",        "name": "「奇妙的 Linux 世界」",        "qrcode": "https://www.hi-linux.com/img/wechat/mp_qrcode_12.jpg",        "keyword": "VIP"    });}</script>]]></content>
-    
-    <summary type="html">
-    
-      &lt;p&gt;最近，在对公司容器云的日志方案进行设计的时候，发现主流的 ELK 或者 EFK 比较重，再加上现阶段对于 ES 复杂的搜索功能很多都用不上，最终选择了 Grafana 开源的 Loki 日志系统。下面我们来介绍下 Loki 的一些基本概念和架构。&lt;/p&gt;
-&lt;blockquote&gt;
-&lt;p&gt;Loki 是 Grafana Labs 团队最新的开源项目，是一个水平可扩展，高可用性，多租户的日志聚合系统。它的设计非常经济高效且易于操作，因为它不会为日志内容编制索引，而是为每个日志流编制一组标签，专门为 Prometheus 和 Kubernetes 用户做了相关优化。该项目受 Prometheus 启发，官方的介绍就是： &lt;code&gt;Like Prometheus,But For Logs.&lt;/code&gt;，类似于 Prometheus 的日志系统。&lt;/p&gt;
-&lt;p&gt;项目地址：&lt;a href=&quot;https://github.com/grafana/loki/&quot; target=&quot;_blank&quot; rel=&quot;noopener&quot;&gt;https://github.com/grafana/loki/&lt;/a&gt;&lt;/p&gt;
-&lt;/blockquote&gt;
-&lt;p&gt;与其他日志聚合系统相比， Loki 具有下面的一些特性：&lt;/p&gt;
-&lt;ul&gt;
-&lt;li&gt;
-&lt;p&gt;不对日志进行全文索引。通过存储压缩非结构化日志和仅索引元数据，Loki 操作起来会更简单，更省成本。&lt;/p&gt;
-&lt;/li&gt;
-&lt;li&gt;
-&lt;p&gt;通过使用与 Prometheus 相同的标签记录流对日志进行索引和分组，这使得日志的扩展和操作效率更高。&lt;/p&gt;
-&lt;/li&gt;
-&lt;li&gt;
-&lt;p&gt;特别适合储存 Kubernetes Pod 日志; 诸如 Pod 标签之类的元数据会被自动删除和编入索引。&lt;/p&gt;
-&lt;/li&gt;
-&lt;li&gt;
-&lt;p&gt;受 Grafana 原生支持。&lt;/p&gt;
-&lt;/li&gt;
-&lt;/ul&gt;
-&lt;h2 id=&quot;背景和动机&quot;&gt;背景和动机&lt;/h2&gt;
-&lt;p&gt;当我们的容器云运行的应用或者某个节点出现问题了，解决思路应该如下：&lt;/p&gt;
-&lt;p&gt;&lt;img src=&quot;https://www.hi-linux.com/img/linux/loki1.jpeg&quot; alt=&quot;&quot;&gt;&lt;/p&gt;
-&lt;p&gt;我们的监控使用的是基于 Prometheus 体系进行改造的，Prometheus 中比较重要的是 Metric 和 Alert，Metric 是来说明当前或者历史达到了某个值，Alert 设置 Metric 达到某个特定的基数触发了告警，但是这些信息明显是不够的。&lt;/p&gt;
-&lt;p&gt;我们都知道，Kubernetes 的基本单位是 Pod，Pod 把日志输出到 Stdout 和 Stderr，平时有什么问题我们通常在界面或者通过命令查看相关的日志。&lt;/p&gt;
-&lt;p&gt;举个例子：当我们的某个 Pod 的内存变得很大，触发了我们的 Alert。这时管理员，去页面查询确认是哪个 Pod 有问题，然后要确认 Pod 内存变大的原因，我们还需要去查询 Pod 的日志，如果没有日志系统，那么我们就需要到页面或者使用命令进行查询：&lt;/p&gt;
-&lt;p&gt;&lt;img src=&quot;https://www.hi-linux.com/img/linux/loki2.jpeg&quot; alt=&quot;&quot;&gt;&lt;/p&gt;
-&lt;p&gt;如果，这个时候应用突然挂了，这个时候我们就无法查到相关的日志了。所以需要引入日志系统，统一收集日志。而使用 ELK 的话，就需要在 Kibana 和 Grafana 之间切换，影响用户体验。所以 ，Loki 的第一目的就是最小化度量和日志的切换成本，有助于减少异常事件的响应时间和提高用户的体验。&lt;/p&gt;
-    
-    </summary>
-    
-    
-      <category term="Loki" scheme="https://www.hi-linux.com/categories/Loki/"/>
-    
-    
-      <category term="Linux" scheme="https://www.hi-linux.com/tags/Linux/"/>
-    
-      <category term="Kubernetes" scheme="https://www.hi-linux.com/tags/Kubernetes/"/>
-    
-      <category term="Loki" scheme="https://www.hi-linux.com/tags/Loki/"/>
     
   </entry>
   
