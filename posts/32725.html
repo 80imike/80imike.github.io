@@ -1,0 +1,721 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<!-- Head tag -->
+<head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="google-site-verification" content="xBT4GhYoi5qRD5tr338pgPM5OWHHIDR6mNg1a3euekI" />
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="description" content="">
+    <meta name="keyword"  content="Linux,运维,Nginx,Zabbix,Centos,Ansible,MySQL,Python,Docker,ELK,Haproxy,Git,Nodejs,安全,技术">
+    <link rel="shortcut icon" href="/img/ironman-draw.png">
+    <!-- Place this tag in your head or just before your close body tag. -->
+    <script async defer src="https://buttons.github.io/buttons.js"></script>
+    <title>
+        
+          再见 Docker，是时候拥抱下一代容器镜像构建工具 Kaniko 了 - 运维之美
+        
+    </title>
+
+    <link rel="canonical" href="https://www.hi-linux.com/posts/32725.html">
+
+    <!-- Bootstrap Core CSS -->
+    
+<link rel="stylesheet" href="/css/bootstrap.min.css">
+
+
+    <!-- Custom CSS --> 
+    
+<link rel="stylesheet" href="/css/beantech.min.css">
+
+    
+    <!-- Pygments Highlight CSS -->
+    
+<link rel="stylesheet" href="/css/highlight.css">
+
+
+    
+<link rel="stylesheet" href="/css/widget.css">
+
+
+    
+<link rel="stylesheet" href="/css/rocket.css">
+
+
+    
+<link rel="stylesheet" href="/css/signature.css">
+
+
+    
+<link rel="stylesheet" href="/css/toc.css">
+
+
+    <!-- Custom Fonts -->
+    <!-- <link href="https://maxcdn.bootstrapcdn.com/font-awesome/4.3.0/css/font-awesome.min.css" rel="stylesheet" type="text/css"> -->
+    <!-- Hux change font-awesome CDN to qiniu -->
+    <link href="https://cdn.staticfile.org/font-awesome/4.5.0/css/font-awesome.min.css" rel="stylesheet" type="text/css">
+
+
+    <!-- Hux Delete, sad but pending in China
+    <link href='http://fonts.googleapis.com/css?family=Lora:400,700,400italic,700italic' rel='stylesheet' type='text/css'>
+    <link href='http://fonts.googleapis.com/css?family=Open+Sans:300italic,400italic,600italic,700italic,800italic,400,300,600,700,800' rel='stylesheet' type='text/
+    css'>
+    -->
+
+
+    <!-- HTML5 Shim and Respond.js IE8 support of HTML5 elements and media queries -->
+    <!-- WARNING: Respond.js doesn't work if you view the page via file:// -->
+    <!--[if lt IE 9]>
+        <script src="https://oss.maxcdn.com/libs/html5shiv/3.7.0/html5shiv.js"></script>
+        <script src="https://oss.maxcdn.com/libs/respond.js/1.4.2/respond.min.js"></script>
+    <![endif]-->
+
+    <!-- ga & ba script hoook -->
+    <script></script>
+<meta name="generator" content="Hexo 4.2.0"><link rel="alternate" href="/atom.xml" title="运维之美" type="application/atom+xml">
+</head>
+
+
+<!-- hack iOS CSS :active style -->
+<body ontouchstart="">
+	<!-- Modified by Yu-Hsuan Yen -->
+<!-- Post Header -->
+<style type="text/css">
+    header.intro-header{
+        
+            background-image: url('/img/header_img/building.jpg')
+            /*post*/
+        
+    }
+    
+</style>
+
+<header class="intro-header" >
+    <!-- Signature -->
+    <div id="signature">
+        <div class="container">
+            <div class="row">
+                <div class="col-lg-8 col-lg-offset-2 col-md-10 col-md-offset-1">
+                
+                    <div class="post-heading">
+                        <div class="tags">
+                            
+                              <a class="tag" href="/tags/#Linux" title="Linux">Linux</a>
+                            
+                              <a class="tag" href="/tags/#Docker" title="Docker">Docker</a>
+                            
+                              <a class="tag" href="/tags/#Kaniko" title="Kaniko">Kaniko</a>
+                            
+                        </div>
+                        <h1>再见 Docker，是时候拥抱下一代容器镜像构建工具 Kaniko 了</h1>
+                        <h2 class="subheading"></h2>
+                        <span class="meta">
+                            Posted by Mike on
+                            2020-12-15
+                        </span>
+                    </div>
+                
+
+
+                </div>
+            </div>
+        </div>
+    </div>
+</header>
+
+	
+    <!-- Navigation -->
+<nav class="navbar navbar-default navbar-custom navbar-fixed-top">
+    <div class="container-fluid">
+        <!-- Brand and toggle get grouped for better mobile display -->
+        <div class="navbar-header page-scroll">
+            <button type="button" class="navbar-toggle">
+                <span class="sr-only">Toggle navigation</span>
+                <span class="icon-bar"></span>
+                <span class="icon-bar"></span>
+                <span class="icon-bar"></span>
+            </button>
+            <a class="navbar-brand" href="/">运维之美</a>
+        </div>
+
+        <!-- Collect the nav links, forms, and other content for toggling -->
+        <!-- Known Issue, found by Hux:
+            <nav>'s height woule be hold on by its content.
+            so, when navbar scale out, the <nav> will cover tags.
+            also mask any touch event of tags, unfortunately.
+        -->
+        <div id="huxblog_navbar">
+            <div class="navbar-collapse">
+                <ul class="nav navbar-nav navbar-right">
+                    <li>
+                        <a href="/">Home</a>
+                    </li>
+
+                    
+
+                        
+                    
+
+                        
+                    
+
+                        
+                        <li>
+                            <a href="/about/">About</a>
+                        </li>
+                        
+                    
+
+                        
+                        <li>
+                            <a href="/archive/">Archives</a>
+                        </li>
+                        
+                    
+
+                        
+                        <li>
+                            <a href="/tags/">Tags</a>
+                        </li>
+                        
+                    
+                    
+                </ul>
+            </div>
+        </div>
+        <!-- /.navbar-collapse -->
+    </div>
+    <!-- /.container -->
+</nav>
+<script>
+    // Drop Bootstarp low-performance Navbar
+    // Use customize navbar with high-quality material design animation
+    // in high-perf jank-free CSS3 implementation
+    var $body   = document.body;
+    var $toggle = document.querySelector('.navbar-toggle');
+    var $navbar = document.querySelector('#huxblog_navbar');
+    var $collapse = document.querySelector('.navbar-collapse');
+
+    $toggle.addEventListener('click', handleMagic)
+    function handleMagic(e){
+        if ($navbar.className.indexOf('in') > 0) {
+        // CLOSE
+            $navbar.className = " ";
+            // wait until animation end.
+            setTimeout(function(){
+                // prevent frequently toggle
+                if($navbar.className.indexOf('in') < 0) {
+                    $collapse.style.height = "0px"
+                }
+            },400)
+        }else{
+        // OPEN
+            $collapse.style.height = "auto"
+            $navbar.className += " in";
+        }
+    }
+</script>
+
+
+    <!-- Main Content -->
+    <!-- Modify by Yu-Hsuan Yen -->
+
+<!-- Post Content -->
+<article>
+    <div class="container">
+        <div class="row">
+
+            <!-- Post Container -->
+            <div class="
+                col-lg-8 col-lg-offset-2
+                col-md-10 col-md-offset-1
+                post-container">
+
+                <div id="vip-container"><h2 id="1-daemon-less-镜像构建工具">1. daemon-less 镜像构建工具</h2>
+<h3 id="11-什么是-daemon-less-镜像构建工具">1.1  什么是 daemon-less 镜像构建工具</h3>
+<p>在 CICD 流程中，经常会涉及镜像构建，常规的做法是使用 Docker in Docker 或者 Docker out of Docker 进行构建。详情可以参考文档：<a href="https://mp.weixin.qq.com/s?__biz=MzI3MTI2NzkxMA==&amp;mid=2247492294&amp;idx=1&amp;sn=6c702bf5b94f6df07b6560403813b27f&amp;chksm=eac6c3efddb14af9b540b88ae9d46fe97c98fe35bfe135c3091e4de5d30d5184d130f94a6f1d&amp;token=692202010&amp;lang=zh_CN#rd" target="_blank" rel="noopener">如何在 Docker 中使用 Docker</a></p>
+<p>实际上，为了避免垄断，促进行业发展，基于 Docker 的镜像格式，早就指定了统一的 OCI 镜像格式规范。也就是说，只需要通过 Dockerfile 得到一个符合 OCI 规范的镜像即可，并没有强制要求谁来做这件事。</p>
+<p>daemon-less 的构建工具，可以不依赖于 Docker Daemon 进行构建镜像。这在 CICD 场景下，具有重要的意义。同时，Kubernetes 正在摆脱 Docker 的影响，构建更加开放的架构生态，CICD 需要与 Docker Daemon 解耦。</p>
+<a id="more"></a>
+<h3 id="12-daemon-less-的优势">1.2 daemon-less 的优势</h3>
+<ul>
+<li>免挂载 sock 文件</li>
+</ul>
+<p>目前，实现 CRI 和 OCI 接口的运行时组件越来越多，例如 cri-o、containerd。这些运行时管理工具，并没有类似 /var/run/docker.sock 的文件用于挂载服务。daemon-less 的构建方式能够对接这些工具。</p>
+<ul>
+<li>更加安全</li>
+</ul>
+<p>这些 daemon-less 工具，通常运行在 userspace ，而不是以 root 特权运行，提供更加安全的运行时。</p>
+<ul>
+<li>更适合 Kubernetes</li>
+</ul>
+<p>通过挂载 /var/run/docker.sock 的方式，使用 Docker Daemon 构建镜像，是一种集中的构建方式。镜像的构建主要交给节点上的 Docker Daemon 来完成。而如果能直接将 Dockerfile 转换成镜像，更加适应 Kubernetes、Serverless 基础设施，构建规模和效率将得到提高。</p>
+<h3 id="13-相关的开源项目">1.3 相关的开源项目</h3>
+<ul>
+<li>Kaniko, Google 主导</li>
+<li>Buildah, Red Hat 主导</li>
+<li>Img, Jessie Frazelle 发起</li>
+</ul>
+<p>从 Star 量上看，Buildah、Img 目前是 3K+，而 Kaniko 达到 7K+，下面以 Kaniko 为例行文。</p>
+<h2 id="2-kaniko-的工作原理">2. Kaniko 的工作原理</h2>
+<p><img src="https://www.hi-linux.com/img/staticfile/2020-12-11-m1ucVx.png" alt=""></p>
+<p>如上图是 Kaniko 的工作原理图。Kaniko 执行器从 Dockerfile 构建镜像，并将其推送到镜像仓库。主要分为以下几步:</p>
+<ul>
+<li>根据 Dockerfile 中 FROM 描述，解压基础镜像的文件系统</li>
+<li>执行 Dockerfile 中的每条命令，在用户空间建立文件快照</li>
+<li>将变更的文件层添加到基础镜像中，更新镜像的元数据</li>
+<li>推送镜像</li>
+</ul>
+<p>已知的问题</p>
+<ul>
+<li>不支持构建 Windows 镜像</li>
+<li>kaniko 命令只能在官方镜像中运行，不支持其他 Docker 镜像</li>
+<li>不支持 Registry V1 接口</li>
+</ul>
+<h2 id="3-kaniko-demo">3. Kaniko Demo</h2>
+<h3 id="31-测试-demo-选择">3.1 测试 Demo 选择</h3>
+<p>这里选择的是 <a href="https://github.com/traefik/whoami" target="_blank" rel="noopener">https://github.com/traefik/whoami</a> 项目。访问该服务之后，接口会返回访问者的相关信息。</p>
+<p>对项目的要求是，通过 Dockerfile 能够直接编译得到镜像。一共有两个验证点:</p>
+<ul>
+<li>能够构建镜像</li>
+<li>构建的镜像能够运行</li>
+</ul>
+<h3 id="32-在-docker-上运行-kaniko">3.2 在 Docker 上运行 Kaniko</h3>
+<ul>
+<li>生成推送镜像的凭证</li>
+</ul>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line">$ export AUTH&#x3D;$(echo -n YOUR_USERNAME:YOUR_PASSWORD | base64 )</span><br><span class="line"></span><br><span class="line">$ cat &gt; config.json &lt;&lt;-EOF</span><br><span class="line">&#123;</span><br><span class="line">    &quot;auths&quot;: &#123;</span><br><span class="line">        &quot;https:&#x2F;&#x2F;index.docker.io&#x2F;v1&#x2F;&quot;: &#123;</span><br><span class="line">            &quot;auth&quot;: &quot;$&#123;AUTH&#125;&quot;</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br><span class="line">EOF</span><br></pre></td></tr></table></figure>
+<ul>
+<li>构建镜像</li>
+</ul>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">$ docker run \</span><br><span class="line">  --interactive -v &#96;pwd&#96;&#x2F;config.json:&#x2F;kaniko&#x2F;.docker&#x2F;config.json gcr.io&#x2F;kaniko-project&#x2F;executor:latest \</span><br><span class="line">  --context git:&#x2F;&#x2F;github.com&#x2F;traefik&#x2F;whoami \</span><br><span class="line">  --dockerfile Dockerfile \</span><br><span class="line">  --destination&#x3D;shaowenchen&#x2F;kaniko-demo:v1</span><br></pre></td></tr></table></figure>
+<p>参数说明:</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">- context, 构建需要的上下文。支持多种格式，S3、本地目录、标准输入、Git 仓库等</span><br><span class="line">- dockerfile, Dockerfile 路径</span><br><span class="line">- destination, 构建后推送的镜像地址</span><br></pre></td></tr></table></figure>
+<p>在生产环境，可以配置缓存，用于加速镜像构建。</p>
+<ul>
+<li>查看日志</li>
+</ul>
+<p>执行上一步的命令之后，可以看到如下输出:</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br><span class="line">70</span><br><span class="line">71</span><br><span class="line">72</span><br><span class="line">73</span><br><span class="line">74</span><br></pre></td><td class="code"><pre><span class="line">Enumerating objects: 17, done.</span><br><span class="line">Counting objects: 100% (17&#x2F;17), done.</span><br><span class="line">Compressing objects: 100% (13&#x2F;13), done.</span><br><span class="line">Total 157 (delta 3), reused 12 (delta 3), pack-reused 140</span><br><span class="line">INFO[0004] Resolved base name golang:1-alpine to builder</span><br><span class="line">INFO[0004] Retrieving image manifest golang:1-alpine</span><br><span class="line">INFO[0004] Retrieving image golang:1-alpine</span><br><span class="line">INFO[0007] Retrieving image manifest golang:1-alpine</span><br><span class="line">INFO[0007] Retrieving image golang:1-alpine</span><br><span class="line">INFO[0010] No base image, nothing to extract</span><br><span class="line">INFO[0010] Built cross stage deps: map[0:[&#x2F;usr&#x2F;share&#x2F;zoneinfo &#x2F;etc&#x2F;ssl&#x2F;certs&#x2F;ca-certificates.crt &#x2F;go&#x2F;whoami&#x2F;whoami]]</span><br><span class="line">INFO[0010] Retrieving image manifest golang:1-alpine</span><br><span class="line">INFO[0010] Retrieving image golang:1-alpine</span><br><span class="line">INFO[0012] Retrieving image manifest golang:1-alpine</span><br><span class="line">INFO[0012] Retrieving image golang:1-alpine</span><br><span class="line">INFO[0015] Executing 0 build triggers</span><br><span class="line">INFO[0015] Unpacking rootfs as cmd RUN apk --no-cache --no-progress add git ca-certificates tzdata make     &amp;&amp; update-ca-certificates     &amp;&amp; rm -rf &#x2F;var&#x2F;cache&#x2F;apk&#x2F;* requires it.</span><br><span class="line">INFO[0035] RUN apk --no-cache --no-progress add git ca-certificates tzdata make     &amp;&amp; update-ca-certificates     &amp;&amp; rm -rf &#x2F;var&#x2F;cache&#x2F;apk&#x2F;*</span><br><span class="line">INFO[0035] Taking snapshot of full filesystem...</span><br><span class="line">INFO[0041] cmd: &#x2F;bin&#x2F;sh</span><br><span class="line">INFO[0041] args: [-c apk --no-cache --no-progress add git ca-certificates tzdata make     &amp;&amp; update-ca-certificates     &amp;&amp; rm -rf &#x2F;var&#x2F;cache&#x2F;apk&#x2F;*]</span><br><span class="line">INFO[0041] Running: [&#x2F;bin&#x2F;sh -c apk --no-cache --no-progress add git ca-certificates tzdata make     &amp;&amp; update-ca-certificates     &amp;&amp; rm -rf &#x2F;var&#x2F;cache&#x2F;apk&#x2F;*]</span><br><span class="line">fetch http:&#x2F;&#x2F;dl-cdn.alpinelinux.org&#x2F;alpine&#x2F;v3.12&#x2F;main&#x2F;x86_64&#x2F;APKINDEX.tar.gz</span><br><span class="line">fetch http:&#x2F;&#x2F;dl-cdn.alpinelinux.org&#x2F;alpine&#x2F;v3.12&#x2F;community&#x2F;x86_64&#x2F;APKINDEX.tar.gz</span><br><span class="line">(1&#x2F;7) Installing nghttp2-libs (1.41.0-r0)</span><br><span class="line">(2&#x2F;7) Installing libcurl (7.69.1-r2)</span><br><span class="line">(3&#x2F;7) Installing expat (2.2.9-r1)</span><br><span class="line">(4&#x2F;7) Installing pcre2 (10.35-r0)</span><br><span class="line">(5&#x2F;7) Installing git (2.26.2-r0)</span><br><span class="line">(6&#x2F;7) Installing make (4.3-r0)</span><br><span class="line">(7&#x2F;7) Installing tzdata (2020c-r1)</span><br><span class="line">Executing busybox-1.31.1-r19.trigger</span><br><span class="line">OK: 25 MiB in 22 packages</span><br><span class="line">WARNING: ca-certificates.crt does not contain exactly one certificate or CRL: skipping</span><br><span class="line">INFO[0042] Taking snapshot of full filesystem...</span><br><span class="line">INFO[0045] WORKDIR &#x2F;go&#x2F;whoami</span><br><span class="line">INFO[0045] cmd: workdir</span><br><span class="line">INFO[0045] Changed working directory to &#x2F;go&#x2F;whoami</span><br><span class="line">INFO[0045] Creating directory &#x2F;go&#x2F;whoami</span><br><span class="line">INFO[0045] Taking snapshot of files...</span><br><span class="line">INFO[0045] COPY go.mod .</span><br><span class="line">INFO[0045] Taking snapshot of files...</span><br><span class="line">INFO[0045] COPY go.sum .</span><br><span class="line">INFO[0045] Taking snapshot of files...</span><br><span class="line">INFO[0045] RUN GO111MODULE&#x3D;on GOPROXY&#x3D;https:&#x2F;&#x2F;proxy.golang.org go mod download</span><br><span class="line">INFO[0045] cmd: &#x2F;bin&#x2F;sh</span><br><span class="line">INFO[0045] args: [-c GO111MODULE&#x3D;on GOPROXY&#x3D;https:&#x2F;&#x2F;proxy.golang.org go mod download]</span><br><span class="line">INFO[0045] Running: [&#x2F;bin&#x2F;sh -c GO111MODULE&#x3D;on GOPROXY&#x3D;https:&#x2F;&#x2F;proxy.golang.org go mod download]</span><br><span class="line">INFO[0045] Taking snapshot of full filesystem...</span><br><span class="line">INFO[0047] COPY . .</span><br><span class="line">INFO[0047] Taking snapshot of files...</span><br><span class="line">INFO[0047] RUN make build</span><br><span class="line">INFO[0047] cmd: &#x2F;bin&#x2F;sh</span><br><span class="line">INFO[0047] args: [-c make build]</span><br><span class="line">INFO[0047] Running: [&#x2F;bin&#x2F;sh -c make build]</span><br><span class="line">CGO_ENABLED&#x3D;0 go build -a --trimpath --installsuffix cgo --ldflags&#x3D;&quot;-s&quot; -o whoami</span><br><span class="line">INFO[0058] Taking snapshot of full filesystem...</span><br><span class="line">INFO[0062] Saving file usr&#x2F;share&#x2F;zoneinfo for later use</span><br><span class="line">INFO[0062] Saving file etc&#x2F;ssl&#x2F;certs&#x2F;ca-certificates.crt for later use</span><br><span class="line">INFO[0062] Saving file go&#x2F;whoami&#x2F;whoami for later use</span><br><span class="line">INFO[0062] Deleting filesystem...</span><br><span class="line">INFO[0063] No base image, nothing to extract</span><br><span class="line">INFO[0063] Executing 0 build triggers</span><br><span class="line">INFO[0063] Unpacking rootfs as cmd COPY --from&#x3D;builder &#x2F;usr&#x2F;share&#x2F;zoneinfo &#x2F;usr&#x2F;share&#x2F;zoneinfo requires it.</span><br><span class="line">INFO[0063] COPY --from&#x3D;builder &#x2F;usr&#x2F;share&#x2F;zoneinfo &#x2F;usr&#x2F;share&#x2F;zoneinfo</span><br><span class="line">INFO[0063] Taking snapshot of files...</span><br><span class="line">INFO[0063] COPY --from&#x3D;builder &#x2F;etc&#x2F;ssl&#x2F;certs&#x2F;ca-certificates.crt &#x2F;etc&#x2F;ssl&#x2F;certs&#x2F;</span><br><span class="line">INFO[0063] Taking snapshot of files...</span><br><span class="line">INFO[0063] COPY --from&#x3D;builder &#x2F;go&#x2F;whoami&#x2F;whoami .</span><br><span class="line">INFO[0063] Taking snapshot of files...</span><br><span class="line">INFO[0063] ENTRYPOINT [&quot;&#x2F;whoami&quot;]</span><br><span class="line">INFO[0063] EXPOSE 80</span><br><span class="line">INFO[0063] cmd: EXPOSE</span><br><span class="line">INFO[0063] Adding exposed port: 80&#x2F;tcp</span><br></pre></td></tr></table></figure>
+<p>最后正常退出，构建并推送镜像成功。</p>
+<ul>
+<li>查看构建镜像是否落盘本地</li>
+</ul>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">$ docker images|grep kaniko-demo</span><br></pre></td></tr></table></figure>
+<p>执行完命令，没有任何输出，符合预期。构建之后的镜像，直接被推送到了远程 Registry。</p>
+<ul>
+<li>DockerHub 查看镜像</li>
+</ul>
+<p>在 DockerHub 页面可以查看到推送的镜像:</p>
+<p><img src="https://www.hi-linux.com/img/staticfile/2020-12-11-0ZiuKe.png" alt=""></p>
+<ul>
+<li>使用镜像，创建容器</li>
+</ul>
+<p>执行命令:</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">$ docker run -d -p 8011:80 shaowenchen&#x2F;kaniko-demo:v1</span><br></pre></td></tr></table></figure>
+<p>验证服务是否正常:</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line">$ curl localhost:8011</span><br><span class="line"></span><br><span class="line">Hostname: 6dd22f1e4100</span><br><span class="line">IP: 127.0.0.1</span><br><span class="line">IP: 172.17.0.2</span><br><span class="line">RemoteAddr: 172.17.0.1:40940</span><br><span class="line">GET &#x2F; HTTP&#x2F;1.1</span><br><span class="line">Host: localhost:8011</span><br><span class="line">User-Agent: curl&#x2F;7.29.0</span><br><span class="line">Accept: *&#x2F;*</span><br></pre></td></tr></table></figure>
+<h3 id="33-在-kubernetes-上运行-kaniko">3.3  在 Kubernetes 上运行 Kaniko</h3>
+<ul>
+<li>查看 Kubernetes 版本 - v1.17.9</li>
+</ul>
+<p>对于不同版本的 Kubernetes，下面有些命令会有所差异，需要自行适配。</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">$ kubectl version</span><br><span class="line"></span><br><span class="line">Client Version: version.Info&#123;Major:&quot;1&quot;, Minor:&quot;17&quot;, GitVersion:&quot;v1.17.9&quot;, GitCommit:&quot;4fb7ed12476d57b8437ada90b4f93b17ffaeed99&quot;, GitTreeState:&quot;clean&quot;, BuildDate:&quot;2020-07-15T16:18:16Z&quot;, GoVersion:&quot;go1.13.9&quot;, Compiler:&quot;gc&quot;, Platform:&quot;linux&#x2F;amd64&quot;&#125;</span><br><span class="line">Server Version: version.Info&#123;Major:&quot;1&quot;, Minor:&quot;17&quot;, GitVersion:&quot;v1.17.9&quot;, GitCommit:&quot;4fb7ed12476d57b8437ada90b4f93b17ffaeed99&quot;, GitTreeState:&quot;clean&quot;, BuildDate:&quot;2020-07-15T16:10:45Z&quot;, GoVersion:&quot;go1.13.9&quot;, Compiler:&quot;gc&quot;, Platform:&quot;linux&#x2F;amd64&quot;&#125;</span><br></pre></td></tr></table></figure>
+<ul>
+<li>创建命名空间</li>
+</ul>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">$ kubectl create ns kaniko-demo</span><br></pre></td></tr></table></figure>
+<ul>
+<li>创建镜像推送秘钥</li>
+</ul>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">$ kubectl -n kaniko-demo create secret docker-registry kaniko-secret \</span><br><span class="line">  --docker-server&#x3D;https:&#x2F;&#x2F;index.docker.io&#x2F;v1&#x2F; \</span><br><span class="line">  --docker-username&#x3D;YOUR_USERNAME \</span><br><span class="line">  --docker-password&#x3D;YOUR_PASSWORD \</span><br><span class="line">  --docker-email&#x3D;mail@chenshaowen.com</span><br></pre></td></tr></table></figure>
+<ul>
+<li>创建 kaniko Pod 构建镜像</li>
+</ul>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br></pre></td><td class="code"><pre><span class="line">$ cat &gt; kaniko-builder.yaml &lt;&lt;-EOF</span><br><span class="line">apiVersion: v1</span><br><span class="line">kind: Pod</span><br><span class="line">metadata:</span><br><span class="line">  name: kaniko</span><br><span class="line">  namespace: kaniko-demo</span><br><span class="line">spec:</span><br><span class="line">  containers:</span><br><span class="line">  - name: kaniko</span><br><span class="line">    image: gcr.io&#x2F;kaniko-project&#x2F;executor:latest</span><br><span class="line">    args:</span><br><span class="line">    - &quot;--dockerfile&#x3D;Dockerfile&quot;</span><br><span class="line">    - &quot;--context&#x3D;git:&#x2F;&#x2F;github.com&#x2F;traefik&#x2F;whoami&quot;</span><br><span class="line">    - &quot;--destination&#x3D;shaowenchen&#x2F;kaniko-demo:v2&quot;</span><br><span class="line">    volumeMounts:</span><br><span class="line">    - name: kaniko-secret</span><br><span class="line">      mountPath: &#x2F;kaniko&#x2F;.docker&#x2F;</span><br><span class="line">    restartPolicy: Never</span><br><span class="line">    volumes:</span><br><span class="line">  - name: kaniko-secret</span><br><span class="line">    secret:</span><br><span class="line">      secretName: kaniko-secret</span><br><span class="line">      items:</span><br><span class="line">          - key: .dockerconfigjson</span><br><span class="line">            path: config.json</span><br><span class="line">EOF</span><br></pre></td></tr></table></figure>
+<ul>
+<li>创建 Pod</li>
+</ul>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">$ kubectl apply -f kaniko-builder.yaml</span><br></pre></td></tr></table></figure>
+<ul>
+<li>查看日志</li>
+</ul>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">$ kubectl -n kaniko-demo logs kaniko</span><br></pre></td></tr></table></figure>
+<p>日志内容与直接在 Docker 中运行类似，这里就不重复贴出。</p>
+<ul>
+<li>查看 DockerHub 页面的镜像</li>
+</ul>
+<p><img src="https://www.hi-linux.com/img/staticfile/2020-12-11-uMSm2v.png" alt=""></p>
+<ul>
+<li>使用构建的镜像创建负载</li>
+</ul>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">$ kubectl -n kaniko-demo run kaniko --image&#x3D;shaowenchen&#x2F;kaniko-demo:v2</span><br></pre></td></tr></table></figure>
+<ul>
+<li>暴露服务并查看服务端口</li>
+</ul>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">$ kubectl -n  kaniko-demo expose deploy&#x2F;kaniko --type&#x3D;NodePort --port&#x3D;80 --target-port&#x3D;80</span><br><span class="line">$ kubectl -n  kaniko-demo get svc</span><br><span class="line">NAME     TYPE       CLUSTER-IP      EXTERNAL-IP   PORT(S)        AGE</span><br><span class="line">kaniko   NodePort   10.233.27.225   &lt;none&gt;        80:30772&#x2F;TCP   29s</span><br></pre></td></tr></table></figure>
+<ul>
+<li>验证构建的镜像能正常使用</li>
+</ul>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line">$ curl 192.168.13.3:30772</span><br><span class="line"></span><br><span class="line">Hostname: kaniko-5ddbf597b6-5h8k8</span><br><span class="line">IP: 127.0.0.1</span><br><span class="line">IP: 10.233.90.187</span><br><span class="line">RemoteAddr: 192.168.13.3:11443</span><br><span class="line">GET &#x2F; HTTP&#x2F;1.1</span><br><span class="line">Host: 192.168.13.3:30772</span><br><span class="line">User-Agent: curl&#x2F;7.29.0</span><br><span class="line">Accept: *&#x2F;*</span><br></pre></td></tr></table></figure>
+<h2 id="4-其他关注的问题">4. 其他关注的问题</h2>
+<ul>
+<li>支持 ARM 镜像构建</li>
+</ul>
+<p>在最新的版本中，已经可以看到 ARM 的 Kaniko 执行器: <a href="https://github.com/GoogleContainerTools/kaniko/releases/tag/v1.3.0" target="_blank" rel="noopener">https://github.com/GoogleContainerTools/kaniko/releases/tag/v1.3.0</a></p>
+<ul>
+<li>无法给 Git 仓库单独配置秘钥和分支参数</li>
+</ul>
+<p>官方提供的一种方式是直接将秘钥和分支参数拼接在 Git 仓库的 URL 中</p>
+<ul>
+<li>没有提供构建之前的 prehook 命令</li>
+</ul>
+<p>需要在 Dockerfile 中完整描述从源码到镜像的构建过程。最好借助于分阶段构建，改造有些项目中直接 Copy 构建产物的的 Dockerfile 。类似下面的 Dockerfile 不能直接使用:</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line">FROM java:openjdk-8-jre-alpine</span><br><span class="line"></span><br><span class="line">WORKDIR &#x2F;home</span><br><span class="line"></span><br><span class="line">COPY target&#x2F;*.jar &#x2F;home</span><br><span class="line"></span><br><span class="line">ENTRYPOINT java -jar *.jar</span><br></pre></td></tr></table></figure>
+<h2 id="5-参考">5. 参考</h2>
+<ol>
+<li><a href="https://github.com/GoogleContainerTools/kaniko" target="_blank" rel="noopener">https://github.com/GoogleContainerTools/kaniko</a></li>
+<li><a href="https://github.com/genuinetools/img" target="_blank" rel="noopener">https://github.com/genuinetools/img</a></li>
+<li><a href="https://github.com/containers/buildah" target="_blank" rel="noopener">https://github.com/containers/buildah</a></li>
+</ol>
+<blockquote>
+<p>本文转载自：「陈少文的博客」，原文：<a href="https://tinyurl.com/yyrnttya%EF%BC%8C%E7%89%88%E6%9D%83%E5%BD%92%E5%8E%9F%E4%BD%9C%E8%80%85%E6%89%80%E6%9C%89%E3%80%82%E6%AC%A2%E8%BF%8E%E6%8A%95%E7%A8%BF%EF%BC%8C%E6%8A%95%E7%A8%BF%E9%82%AE%E7%AE%B1:" target="_blank" rel="noopener">https://tinyurl.com/yyrnttya，版权归原作者所有。欢迎投稿，投稿邮箱:</a> <a href="mailto:editor@hi-linux.com">editor@hi-linux.com</a>。</p>
+</blockquote>
+</div>
+
+			<script src="https://my.openwrite.cn/js/readmore.js" type="text/javascript"></script>
+			<script>
+			var isMobile = navigator.userAgent.match(/(phone|pad|pod|iPhone|iPod|ios|iPad|Android|Mobile|BlackBerry|IEMobile|MQQBrowser|JUC|Fennec|wOSBrowser|BrowserNG|WebOS|Symbian|Windows Phone)/i);
+			if (!isMobile) {
+			    var btw = new BTWPlugin();
+			    btw.init({
+			        "id": "vip-container",
+			        "blogId": "10135-1588830050631-449",
+			        "name": "「奇妙的 Linux 世界」",
+			        "qrcode": "https://www.hi-linux.com/img/wechat/mp_qrcode_12.jpg",
+			        "keyword": "VIP"
+			    });
+			}
+			</script>
+		
+                
+
+                <hr>
+                <!-- Pager -->
+                <ul class="pager">
+                    
+                    
+                        <li class="next">
+                            <a href="/posts/6856.html" data-toggle="tooltip" data-placement="top" title="几种在 Kubernetes 集群中获取客户端真实 IP 的方法">Next Post &rarr;</a>
+                        </li>
+                    
+                </ul>
+
+                <!-- duoshuo Share start -->
+                
+                <!-- 多说 Share end-->
+
+                <!-- 多说评论框 start -->
+                
+                <!-- 多说评论框 end -->
+
+                <!-- disqus comment start -->
+                
+                <!-- disqus comment end -->
+
+                
+                    <!-- disqus 评论框 start -->
+                    <div class="comment">
+                        <div id="lv-container" data-id="city" data-uid="MTAyMC8yNzg2My80NDQw"></div>
+                    </div>
+                    <!-- disqus 评论框 end -->
+                
+
+            </div>
+            
+            <!-- Tabe of Content -->
+            <!-- Table of Contents -->
+
+  
+    <style>
+      span.toc-nav-number{
+        display: none
+      }
+    </style>
+  
+    
+      <aside id="sidebar">
+        <div id="toc" class="toc-article">
+        <strong class="toc-title">Contents</strong>
+        
+          <ol class="toc-nav"><li class="toc-nav-item toc-nav-level-2"><a class="toc-nav-link" href="#1-daemon-less-镜像构建工具"><span class="toc-nav-number">1.</span> <span class="toc-nav-text">1. daemon-less 镜像构建工具</span></a><ol class="toc-nav-child"><li class="toc-nav-item toc-nav-level-3"><a class="toc-nav-link" href="#11-什么是-daemon-less-镜像构建工具"><span class="toc-nav-number">1.1.</span> <span class="toc-nav-text">1.1  什么是 daemon-less 镜像构建工具</span></a></li><li class="toc-nav-item toc-nav-level-3"><a class="toc-nav-link" href="#12-daemon-less-的优势"><span class="toc-nav-number">1.2.</span> <span class="toc-nav-text">1.2 daemon-less 的优势</span></a></li><li class="toc-nav-item toc-nav-level-3"><a class="toc-nav-link" href="#13-相关的开源项目"><span class="toc-nav-number">1.3.</span> <span class="toc-nav-text">1.3 相关的开源项目</span></a></li></ol></li><li class="toc-nav-item toc-nav-level-2"><a class="toc-nav-link" href="#2-kaniko-的工作原理"><span class="toc-nav-number">2.</span> <span class="toc-nav-text">2. Kaniko 的工作原理</span></a></li><li class="toc-nav-item toc-nav-level-2"><a class="toc-nav-link" href="#3-kaniko-demo"><span class="toc-nav-number">3.</span> <span class="toc-nav-text">3. Kaniko Demo</span></a><ol class="toc-nav-child"><li class="toc-nav-item toc-nav-level-3"><a class="toc-nav-link" href="#31-测试-demo-选择"><span class="toc-nav-number">3.1.</span> <span class="toc-nav-text">3.1 测试 Demo 选择</span></a></li><li class="toc-nav-item toc-nav-level-3"><a class="toc-nav-link" href="#32-在-docker-上运行-kaniko"><span class="toc-nav-number">3.2.</span> <span class="toc-nav-text">3.2 在 Docker 上运行 Kaniko</span></a></li><li class="toc-nav-item toc-nav-level-3"><a class="toc-nav-link" href="#33-在-kubernetes-上运行-kaniko"><span class="toc-nav-number">3.3.</span> <span class="toc-nav-text">3.3  在 Kubernetes 上运行 Kaniko</span></a></li></ol></li><li class="toc-nav-item toc-nav-level-2"><a class="toc-nav-link" href="#4-其他关注的问题"><span class="toc-nav-number">4.</span> <span class="toc-nav-text">4. 其他关注的问题</span></a></li><li class="toc-nav-item toc-nav-level-2"><a class="toc-nav-link" href="#5-参考"><span class="toc-nav-number">5.</span> <span class="toc-nav-text">5. 参考</span></a></li></ol>
+        
+        </div>
+      </aside>
+    
+
+                
+            <!-- Sidebar Container -->
+            <div class="
+                col-lg-8 col-lg-offset-2
+                col-md-10 col-md-offset-1
+                sidebar-container">
+
+                <!-- Featured Tags -->
+                
+                <section>
+                    <!-- no hr -->
+                    <h5><a href="/tags/">FEATURED TAGS</a></h5>
+                    <div class="tags">
+                       
+                          <a class="tag" href="/tags/#Linux" title="Linux">Linux</a>
+                        
+                          <a class="tag" href="/tags/#Docker" title="Docker">Docker</a>
+                        
+                          <a class="tag" href="/tags/#Kaniko" title="Kaniko">Kaniko</a>
+                        
+                    </div>
+                </section>
+                
+
+                <!-- Friends Blog -->
+                
+                <hr>
+                <h5>FRIENDS</h5>
+                <ul class="list-inline">
+
+                    
+                        <li><a href="http://www.mike.org.cn/" target="_blank">简单.生活</a></li>
+                    
+                        <li><a href="http://shang.qq.com/wpa/qunwpa?idkey=ea4c43493c2269428ac6ef6141de4b6d78e5ab2d41380ca4099b833b62884ee9" target="_blank">技术交流群</a></li>
+                    
+                        <li><a href="" target="_blank"></a></li>
+                    
+                        <li><a href="" target="_blank"></a></li>
+                    
+                </ul>
+                
+            </div>
+        </div>
+    </div>
+</article>
+
+
+
+
+
+
+    <!-- 来必力City版公共JS代码 start (一个网页只需插入一次) -->
+    <script type="text/javascript">
+       (function(d, s) {
+           var j, e = d.getElementsByTagName(s)[0];
+    
+           if (typeof LivereTower === 'function') { return; }
+    
+           j = d.createElement(s);
+           j.src = 'https://cdn-city.livere.com/js/embed.dist.js';
+           j.async = true;
+    
+           e.parentNode.insertBefore(j, e);
+       })(document, 'script');
+    </script>
+    <noscript>为正常使用来必力评论功能请激活JavaScript</noscript>
+    <!-- 来必力City版 公共JS代码 end -->
+
+
+
+<!-- async load function -->
+<script>
+    function async(u, c) {
+      var d = document, t = 'script',
+          o = d.createElement(t),
+          s = d.getElementsByTagName(t)[0];
+      o.src = u;
+      if (c) { o.addEventListener('load', function (e) { c(null, e); }, false); }
+      s.parentNode.insertBefore(o, s);
+    }
+</script>
+<!-- anchor-js, Doc:http://bryanbraun.github.io/anchorjs/ -->
+<script>
+    async("https://cdn.bootcss.com/anchor-js/1.1.1/anchor.min.js",function(){
+        anchors.options = {
+          visible: 'hover',
+          placement: 'left',
+          icon: 'ℬ'
+        };
+        anchors.add().remove('.intro-header h1').remove('.subheading').remove('.sidebar-container h5');
+    })
+</script>
+<style>
+    /* place left on bigger screen */
+    @media all and (min-width: 800px) {
+        .anchorjs-link{
+            position: absolute;
+            left: -0.75em;
+            font-size: 1.1em;
+            margin-top : -0.1em;
+        }
+    }
+</style>
+
+
+
+    <!-- Footer -->
+    <!-- Footer -->
+<footer>
+    <div class="container">
+        <div class="row">
+            <div class="col-lg-8 col-lg-offset-2 col-md-10 col-md-offset-1">
+                <ul class="list-inline text-center">
+                
+                    <li>
+                        <a href="/atom.xml">
+                            <span class="fa-stack fa-lg">
+                                <i class="fa fa-circle fa-stack-2x"></i>
+                                <i class="fa fa-rss fa-stack-1x fa-inverse"></i>
+                            </span>
+                        </a>
+                    </li>
+                
+                
+                
+                    <li>
+                        <a target="_blank" href="https://www.zhihu.com/people/80imike">
+                            <span class="fa-stack fa-lg">
+                                <i class="fa fa-circle fa-stack-2x"></i>
+                                <i class="fa  fa-stack-1x fa-inverse">知</i>
+                            </span>
+                        </a>
+                    </li>
+                
+
+                
+                    <li>
+                        <a target="_blank" href="http://weibo.com/2093524665">
+                            <span class="fa-stack fa-lg">
+                                <i class="fa fa-circle fa-stack-2x"></i>
+                                <i class="fa fa-weibo fa-stack-1x fa-inverse"></i>
+                            </span>
+                        </a>
+                    </li>
+                
+
+                
+
+                
+
+                
+
+                </ul>
+                <p class="copyright text-muted">
+                    Copyright &copy; Mike 2020 | Hosted by <a href="https://pages.coding.me" target="_blank" rel="noopener" style="font-weight: bold">Coding Pages</a>
+                    <br>
+                    Theme by <a href="http://beantech.org" target="_blank" rel="noopener">BeanTech</a> 
+                    <span style="display: inline-block; margin: 0 5px;">
+                        <i class="fa fa-heart"></i>
+                    </span> 
+                    re-Ported by <a href="http://www.huweihuang.com" target="_blank" rel="noopener">胡伟煌</a> | 
+                    <iframe
+                        style="margin-left: 2px; margin-bottom:-5px;"
+                        frameborder="0" scrolling="0" width="91px" height="20px"
+                        src="https://ghbtns.com/github-btn.html?user=huweihuang&repo=hexo-theme-huweihuang&type=star&count=true" >
+                    </iframe>
+                </p>
+            </div>
+        </div>
+    </div>
+</footer>
+
+<!-- jQuery -->
+
+<script src="/js/jquery.min.js"></script>
+
+
+<!-- Bootstrap Core JavaScript -->
+
+<script src="/js/bootstrap.min.js"></script>
+
+
+<!-- Custom Theme JavaScript -->
+
+<script src="/js/hux-blog.min.js"></script>
+
+
+
+<!-- async load function -->
+<script>
+    function async(u, c) {
+      var d = document, t = 'script',
+          o = d.createElement(t),
+          s = d.getElementsByTagName(t)[0];
+      o.src = u;
+      if (c) { o.addEventListener('load', function (e) { c(null, e); }, false); }
+      s.parentNode.insertBefore(o, s);
+    }
+</script>
+
+<!-- 
+     Because of the native support for backtick-style fenced code blocks 
+     right within the Markdown is landed in Github Pages, 
+     From V1.6, There is no need for Highlight.js, 
+     so Huxblog drops it officially.
+
+     - https://github.com/blog/2100-github-pages-now-faster-and-simpler-with-jekyll-3-0  
+     - https://help.github.com/articles/creating-and-highlighting-code-blocks/    
+-->
+<!--
+    <script>
+        async("http://cdn.bootcss.com/highlight.js/8.6/highlight.min.js", function(){
+            hljs.initHighlightingOnLoad();
+        })
+    </script>
+    <link href="http://cdn.bootcss.com/highlight.js/8.6/styles/github.min.css" rel="stylesheet">
+-->
+
+
+<!-- jquery.tagcloud.js -->
+<script>
+    // only load tagcloud.js in tag.html
+    if($('#tag_cloud').length !== 0){
+        async("https://www.hi-linux.com/js/jquery.tagcloud.js",function(){
+            $.fn.tagcloud.defaults = {
+                //size: {start: 1, end: 1, unit: 'em'},
+                color: {start: '#bbbbee', end: '#0085a1'},
+            };
+            $('#tag_cloud a').tagcloud();
+        })
+    }
+</script>
+
+<!--fastClick.js -->
+<script>
+    async("https://cdn.bootcss.com/fastclick/1.0.6/fastclick.min.js", function(){
+        var $nav = document.querySelector("nav");
+        if($nav) FastClick.attach($nav);
+    })
+</script>
+
+
+<!-- Google Analytics -->
+
+
+
+
+<!-- Baidu Tongji -->
+
+
+
+
+
+
+	<a id="rocket" href="#top" class=""></a>
+	<script type="text/javascript" src="/js/totop.js?v=1.0.0" async=""></script>
+    <script type="text/javascript" src="/js/toc.js?v=1.0.0" async=""></script>
+<!-- Image to hack wechat -->
+<img src="https://www.hi-linux.com/img/icon_wechat.png" width="0" height="0" />
+<!-- Migrate from head to bottom, no longer block render and still work -->
+
+<script>(function(w,d, s, id) {w.webpushr=w.webpushr||function(){(w.webpushr.q=w.webpushr.q||[]).push(arguments)};var js, fjs = d.getElementsByTagName(s)[0];js = d.createElement(s); js.id = id;js.src = 'https://cdn.webpushr.com/app.min.js';fjs.parentNode.appendChild(js);}(window,document, 'script', 'webpushr-jssdk'));webpushr('init','BF9JK7xV9kjWTdMx2lr6RWaPfXV7wNuZaVAJ1bfIGoBNJavqLEBVFMKLubITnCA4bh2fI9iH9tMF95nXnPt7xxY');</script></body>
+
+</html>
