@@ -232,15 +232,15 @@
                 col-md-10 col-md-offset-1
                 post-container">
 
-                <div id="vip-container"><h3 id="sysdig-简介">Sysdig 简介</h3>
+                <div id="vip-container"><h3><span id="sysdig-简介">Sysdig 简介</span></h3>
 <p><code>Sysdig</code> 官网 上对自己的介绍是：</p>
 <blockquote>
 <p>Open Source Universal System Visibility With Native Contaier Support.</p>
 </blockquote>
 <p>它的定位是系统监控、分析和排障的工具，其实在 <code>Linux</code> 平台上，已经有很多这方面的工具 <code>strace</code>、<code>tcpdump</code>、<code>htop</code>、<code>iftop</code>、<code>lsof</code>、<code>netstat</code>，它们都能用来分析 <code>Linux</code> 系统的运行情况，而且还有很多日志、监控工具。为什么还需要 <code>Sysdig</code> 呢？在我看来，<code>Sysdig</code> 的优点可以归纳为三个词语：整合、强大、灵活。</p>
-<h4 id="整合">整合</h4>
+<h4><span id="整合">整合</span></h4>
 <p>虽然 <code>Linux</code> 有很多系统分析和调优的工具，但是它们一般都负责某个特殊的功能，并且使用方式有很大的差异，如果要分析和定位问题，一般都需要熟练掌握需要命令的使用。而且这些工具的数据无法进行共享，只能相互独立工作。<code>Sysdig</code> 一个工具就能实现上述所有工具的功能，并且提供了统一的使用语法。</p>
-<h4 id="强大">强大</h4>
+<h4><span id="强大">强大</span></h4>
 <p><code>Sysdig</code> 能获取实时的系统数据，也能把信息保存到文件中以供后面分析。捕获的数据包含系统的个个方面：</p>
 <ul>
 <li>全方面的系统参数：CPU、Memory、Disk IO、网络 IO</li>
@@ -259,19 +259,19 @@
 </ul>
 <p>基本上自带的工具就能满足大部分的分析需求。</p>
 <a id="more"></a>
-<h4 id="灵活">灵活</h4>
+<h4><span id="灵活">灵活</span></h4>
 <p><code>Sysdig</code> 有着类似于 <code>tcpdump</code> 的过滤语法，用户可以随意组合自己的过滤逻辑，从茫茫的数据中找到关心的信息。除此之外，用户还可以自己编写 <code>Lua</code> 脚本来自定义分析逻辑，基本上不受任何限制。</p>
-<h4 id="工作原理">工作原理</h4>
+<h4><span id="工作原理">工作原理</span></h4>
 <p><code>Sysdig</code> 通过在内核的 driver 模块注册系统调用的 hook，这样当有系统调用发生和完成的时候，它会把系统调用信息拷贝到特定的 buffer，然后用户模块的组件对数据信息处理（解压、解析、过滤等），并最终通过 <code>Sysdig</code> 命令行和用户进行交互。</p>
-<p><img src="https://478h5m1yrfsa3bbe262u7muv-wpengine.netdna-ssl.com/wp-content/uploads/2014/04/Blog2-pic3-1024x886.png" alt=""></p>
+<p><img src="https://478h5m1yrfsa3bbe262u7muv-wpengine.netdna-ssl.com/wp-content/uploads/2014/04/Blog2-pic3-1024x886.png" alt></p>
 <p>更多的原理可以参考官方博客</p>
 <p>除了 <code>Sysdig</code> 命令之外，还有一个基于终端的 UI 命令 <code>Csysdig</code>，它类似于 <code>top</code> 命令，定时对系统情况进行刷新，并且可以让用户交互。这篇文章我们只介绍 <code>Sysdig</code>，不会讲解 <code>Csysdig</code> 的使用。</p>
-<h3 id="安装">安装</h3>
+<h3><span id="安装">安装</span></h3>
 <p><code>Sysdig</code> 的安装在官方文档中有详细的说明，这里不再赘述。需要注意的是，<code>Sysdig</code> 对内核版本有一定的要求，请保证内核不要太旧。</p>
 <p>另外，如果使用容器的方式安装，需要把主机的很多系统目录 mount 到容器中：</p>
 <figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">$ docker run -i -t --name sysdig --privileged -v &#x2F;var&#x2F;run&#x2F;docker.sock:&#x2F;host&#x2F;var&#x2F;run&#x2F;docker.sock -v &#x2F;dev:&#x2F;host&#x2F;dev -v &#x2F;proc:&#x2F;host&#x2F;proc:ro -v &#x2F;boot:&#x2F;host&#x2F;boot:ro -v &#x2F;lib&#x2F;modules:&#x2F;host&#x2F;lib&#x2F;modules:ro -v &#x2F;usr:&#x2F;host&#x2F;usr:ro sysdig&#x2F;sysdig</span><br></pre></td></tr></table></figure>
-<h3 id="sysdig-基本用法">Sysdig 基本用法</h3>
-<h4 id="基本格式">基本格式</h4>
+<h3><span id="sysdig-基本用法">Sysdig 基本用法</span></h3>
+<h4><span id="基本格式">基本格式</span></h4>
 <p>直接在终端输入 <code>sysdig</code> 就能开始捕获系统信息，这个命令需要系统管理员权限，执行后你会看到终端有持续不断的输出流。</p>
 <figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">$ sudo sysdig</span><br></pre></td></tr></table></figure>
 <p>因为系统每时每刻都有大量的系统调用产生，这样是没办法看清更无法分析输出信息的，可以先使用 CTRL + c 来退出命令。</p>
@@ -290,7 +290,7 @@
 <li>evt.type： 事件的名称，比如 open、stat等，一般是系统调用。</li>
 <li>evt.args： 事件的参数。如果是系统调用，这些对应着系统调用的参数。</li>
 </ul>
-<h4 id="过滤">过滤</h4>
+<h4><span id="过滤">过滤</span></h4>
 <p>完整的 <code>Sysdig</code> 使用方法是这样的：</p>
 <figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">sysdig [option]...  [filter]</span><br></pre></td></tr></table></figure>
 <p>因为 <code>Sysdig</code> 的输出内容很多，不管是监控还是查问题我们要关注的事件只是其中很小的一部分。这个时候就要用到过滤的功能，找到感兴趣的事件。<code>Sysdig</code> 的过滤功能很强大，不仅支持的过滤项很多，而且还能够自由地进行逻辑组合。</p>
@@ -310,7 +310,7 @@
 <p>更酷的是，多个过滤条件还可以通过 and、or 和 not 进行逻辑组合，比如：</p>
 <figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">$ sysdig &quot;not (fd.name contains &#x2F;proc or fd.name contains &#x2F;dev)&quot;</span><br></pre></td></tr></table></figure>
 <p>这些强大的功能综合到一起，就能让我们很容易定位到需要的事件，分析和监控更有目的性。</p>
-<h4 id="自定义输出格式">自定义输出格式</h4>
+<h4><span id="自定义输出格式">自定义输出格式</span></h4>
 <p>标准的输出已经打印出常用的信息，sysdig 还允许你自定义打印出的内容，参数 <code>-p</code> 可以加上类似于 C 语言 printf 字符串，比如：</p>
 <figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">$ sysdig -p&quot;user:%user.name dir:%evt.arg.path&quot; evt.type&#x3D;chdir</span><br><span class="line">user:ubuntu dir:&#x2F;root</span><br><span class="line">user:ubuntu dir:&#x2F;root&#x2F;tmp</span><br><span class="line">user:ubuntu dir:&#x2F;root&#x2F;Download</span><br></pre></td></tr></table></figure>
 <p>上面的信息，可以很容易看到用户更改当前目录的情况。从上面的例子也可以使用 <code>-p</code> 的使用方法：</p>
@@ -320,7 +320,7 @@
 <li>如果某个字段在时间中不存在，默认这个事件会过滤掉，在这个字符串最前面加上 * 符号，会打印出所有的事件，不存在的字段会变成 <na>，比如:</na></li>
 </ul>
 <figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line">$ sysdig -p&quot;*%evt.type %evt.dir %evt.arg.name&quot; evt.type&#x3D;open</span><br><span class="line">open &gt; &lt;NA&gt;</span><br><span class="line">open &lt; &#x2F;proc&#x2F;1285&#x2F;task&#x2F;1399&#x2F;stat</span><br><span class="line">open &gt; &lt;NA&gt;</span><br><span class="line">open &lt; &#x2F;proc&#x2F;1285&#x2F;task&#x2F;1400&#x2F;io</span><br><span class="line">open &gt; &lt;NA&gt;</span><br><span class="line">open &lt; &#x2F;proc&#x2F;1285&#x2F;task&#x2F;1400&#x2F;statm</span><br><span class="line">open &gt; &lt;NA&gt;</span><br></pre></td></tr></table></figure>
-<h4 id="保存到文件">保存到文件</h4>
+<h4><span id="保存到文件">保存到文件</span></h4>
 <p>尽管可以用过滤器减少输出，直接在终端查看事件流还是没有办法让我们进行深入分析。和 <code>tcpdump</code> 工具类似，<code>Sysdig</code> 也允许你把捕获的时间保存到本地的文件，然后再读取文件的内容进行分析。</p>
 <p>保存到文件可以通过 <code>-w</code> 实现，从文件中读取需要 <code>-r</code> 参数，比如：</p>
 <figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"># 捕获事件，并保存到文件中，这样在终端是看不到输出的。</span><br><span class="line">$ sudo sysdig -w sysdig-trace-file.scap</span><br><span class="line"></span><br><span class="line"># 从文件中读取 Sysdig 格式的事件进行分析。</span><br><span class="line">$ sudo sysdig -r sysdig-trace-file.scap</span><br></pre></td></tr></table></figure>
@@ -337,7 +337,7 @@
 <p>而且读取的时候也可以进一步对文件进行分割，比如：</p>
 <figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">$ sysdig -r dump.scap -G 300 -z -w segments.scap</span><br></pre></td></tr></table></figure>
 <p>这个命令，就是读取 dump.scap 文件的内容，并且把它分割成五分钟（-G 300s）的多个文件。</p>
-<h4 id="常用的参数">常用的参数</h4>
+<h4><span id="常用的参数">常用的参数</span></h4>
 <p>除了上面介绍的过滤器参数，<code>Sysdig</code> 还有很多可用的参数，完整的列表和解释请参考 <code>man sysdig</code> 文档。这里介绍一下比较常用的：</p>
 <ul>
 <li>-A --print-ascii：把 buffer 中数据按照 ASCII 格式打印，方便用户阅读</li>
@@ -346,7 +346,7 @@
 <li>-s 1024：捕获 buffer 的数据大小，默认为 80，如果这个值设置的过大，会产生很大的文件</li>
 <li>-N：不用把端口号转换成可读的名字，这个参数会提高处理的效率</li>
 </ul>
-<h3 id="chisels实用的工具箱">Chisels：实用的工具箱</h3>
+<h3><span id="chisels实用的工具箱">Chisels：实用的工具箱</span></h3>
 <p>虽然有了过滤器和文件的输入输出，加上 <code>Sysdig</code> 其他的参数，我们可以按照需求去分析和监控系统了，但是很多场景需要更复杂的数据聚合。<code>Sysdig</code> 提供了另外一个强大的功能：<code>chisels</code>，它们是一组预定义的功能集合，通过 <code>Lua</code> 脚本实现，用来分析特定的场景。</p>
 <p>可以通过 <code>sudo sysdig -cl</code> 列出支持的所有 <code>chisels</code>，我们来解释一些比较常用的 <code>chisels</code>：</p>
 <ul>
@@ -367,25 +367,25 @@
 <figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">$ sysdig -r sysdig.pcap -c spy_users</span><br></pre></td></tr></table></figure>
 <p>更多的使用案例，可以参考 Sysdig Example 这篇 wiki。</p>
 <p>在 <code>Linux</code> 机器上，这些 <code>chisel</code> 保存在 /usr/share/sysdig/chisels 文件夹中，每个 <code>chisel</code> 对应一个 <code>Lua</code> 脚本文件。如果提供的这些 <code>chisel</code> 还不能满足需求，用户也可以根据需求编写自己的 <code>chisel</code>。</p>
-<h3 id="对容器的支持">对容器的支持</h3>
+<h3><span id="对容器的支持">对容器的支持</span></h3>
 <p><code>Sysdig</code> 另外一个优势是它对容器（ <code>Docker</code> 和 <code>Kubernetes</code> ）的良好支持，这对于目前采用了容器化的系统管理员来说是很好的福利。</p>
 <p>使用 <code>-pc</code> 参数就能自动在打印的事件中添加上容器的信息（容器名、容器 id 等），比如捕获 container 名字为 zen_knuth 的所有系统活动：</p>
 <figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">$ sysdig -pc container.name&#x3D;zen_knuth</span><br></pre></td></tr></table></figure>
 <p>对容器的分析和原来的一样，只要通过 container.name=apache 指定要分析的容器名字就行，比如查看某个容器的网络连接：</p>
 <figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">$ sysdig -pc -c topconns container.name&#x3D;wordpress1</span><br></pre></td></tr></table></figure>
 <p>要集成 <code>Kubernetes</code> 系统监控的话，使用 <code>-k http://master_ip:8080</code> 参数，后面是 apiserver 的地址，如果 apiserver 需要认证的话，需要指定 <code>-K filename</code> 来说明 apiserver CA 证书的文件地址。关于 <code>Kubernetes</code> 的监控和分析不是这篇文章的重点，读者可以参数 <code>Sysdig</code> 的博客或者其他文档。</p>
-<h3 id="csysdig图形化的-sysdig">Csysdig：图形化的 Sysdig</h3>
+<h3><span id="csysdig图形化的-sysdig">Csysdig：图形化的 Sysdig</span></h3>
 <p><code>Sysdig</code> 还提供了另外一个图形化的工具：<code>Csysdig</code>，它的界面和 top/htop 命令相似，并且可以接受用户的交互。</p>
-<p><img src="https://assets.digitalocean.com/articles/sysdig_ubuntu_1604/LEhCwvI.jpg" alt=""></p>
+<p><img src="https://assets.digitalocean.com/articles/sysdig_ubuntu_1604/LEhCwvI.jpg" alt></p>
 <p>和 <code>Sysdig</code> 一样，<code>Csysdig</code> 可以实时捕获系统事件，也可以读取之前保存的文件。</p>
-<h3 id="更多文档">更多文档</h3>
+<h3><span id="更多文档">更多文档</span></h3>
 <p>这篇文章介绍的都出入门的、基础概念性的知识，如果读者希望进一步了解 sysdig，不妨继续阅读下面这些文章：</p>
 <ul>
 <li>sysdig 和传统的 strace、htop、lsof、tcpdump、iftop命令的比较</li>
 <li>理解 sysdig 的输出</li>
 <li>sysdig twitter 账号 #digoftheday</li>
 </ul>
-<h3 id="参考资料">参考资料</h3>
+<h3><span id="参考资料">参考资料</span></h3>
 <p>这篇文章主要参考了一下的博客、文章和资料：</p>
 <ul>
 <li>Sysdig User Guide</li>
@@ -472,7 +472,7 @@
         <div id="toc" class="toc-article">
         <strong class="toc-title">Contents</strong>
         
-          <ol class="toc-nav"><li class="toc-nav-item toc-nav-level-3"><a class="toc-nav-link" href="#sysdig-简介"><span class="toc-nav-number">1.</span> <span class="toc-nav-text">Sysdig 简介</span></a><ol class="toc-nav-child"><li class="toc-nav-item toc-nav-level-4"><a class="toc-nav-link" href="#整合"><span class="toc-nav-number">1.1.</span> <span class="toc-nav-text">整合</span></a></li><li class="toc-nav-item toc-nav-level-4"><a class="toc-nav-link" href="#强大"><span class="toc-nav-number">1.2.</span> <span class="toc-nav-text">强大</span></a></li><li class="toc-nav-item toc-nav-level-4"><a class="toc-nav-link" href="#灵活"><span class="toc-nav-number">1.3.</span> <span class="toc-nav-text">灵活</span></a></li><li class="toc-nav-item toc-nav-level-4"><a class="toc-nav-link" href="#工作原理"><span class="toc-nav-number">1.4.</span> <span class="toc-nav-text">工作原理</span></a></li></ol></li><li class="toc-nav-item toc-nav-level-3"><a class="toc-nav-link" href="#安装"><span class="toc-nav-number">2.</span> <span class="toc-nav-text">安装</span></a></li><li class="toc-nav-item toc-nav-level-3"><a class="toc-nav-link" href="#sysdig-基本用法"><span class="toc-nav-number">3.</span> <span class="toc-nav-text">Sysdig 基本用法</span></a><ol class="toc-nav-child"><li class="toc-nav-item toc-nav-level-4"><a class="toc-nav-link" href="#基本格式"><span class="toc-nav-number">3.1.</span> <span class="toc-nav-text">基本格式</span></a></li><li class="toc-nav-item toc-nav-level-4"><a class="toc-nav-link" href="#过滤"><span class="toc-nav-number">3.2.</span> <span class="toc-nav-text">过滤</span></a></li><li class="toc-nav-item toc-nav-level-4"><a class="toc-nav-link" href="#自定义输出格式"><span class="toc-nav-number">3.3.</span> <span class="toc-nav-text">自定义输出格式</span></a></li><li class="toc-nav-item toc-nav-level-4"><a class="toc-nav-link" href="#保存到文件"><span class="toc-nav-number">3.4.</span> <span class="toc-nav-text">保存到文件</span></a></li><li class="toc-nav-item toc-nav-level-4"><a class="toc-nav-link" href="#常用的参数"><span class="toc-nav-number">3.5.</span> <span class="toc-nav-text">常用的参数</span></a></li></ol></li><li class="toc-nav-item toc-nav-level-3"><a class="toc-nav-link" href="#chisels实用的工具箱"><span class="toc-nav-number">4.</span> <span class="toc-nav-text">Chisels：实用的工具箱</span></a></li><li class="toc-nav-item toc-nav-level-3"><a class="toc-nav-link" href="#对容器的支持"><span class="toc-nav-number">5.</span> <span class="toc-nav-text">对容器的支持</span></a></li><li class="toc-nav-item toc-nav-level-3"><a class="toc-nav-link" href="#csysdig图形化的-sysdig"><span class="toc-nav-number">6.</span> <span class="toc-nav-text">Csysdig：图形化的 Sysdig</span></a></li><li class="toc-nav-item toc-nav-level-3"><a class="toc-nav-link" href="#更多文档"><span class="toc-nav-number">7.</span> <span class="toc-nav-text">更多文档</span></a></li><li class="toc-nav-item toc-nav-level-3"><a class="toc-nav-link" href="#参考资料"><span class="toc-nav-number">8.</span> <span class="toc-nav-text">参考资料</span></a></li></ol>
+          <ol class="toc-nav"><li class="toc-nav-item toc-nav-level-3"><a class="toc-nav-link" href="#vip-container"><span class="toc-nav-number">1.</span> <span class="toc-nav-text">Sysdig 简介</span></a><ol class="toc-nav-child"><li class="toc-nav-item toc-nav-level-4"><a class="toc-nav-link" href="#vip-container"><span class="toc-nav-number">1.1.</span> <span class="toc-nav-text">整合</span></a></li><li class="toc-nav-item toc-nav-level-4"><a class="toc-nav-link" href="#vip-container"><span class="toc-nav-number">1.2.</span> <span class="toc-nav-text">强大</span></a></li><li class="toc-nav-item toc-nav-level-4"><a class="toc-nav-link" href="#vip-container"><span class="toc-nav-number">1.3.</span> <span class="toc-nav-text">灵活</span></a></li><li class="toc-nav-item toc-nav-level-4"><a class="toc-nav-link" href="#vip-container"><span class="toc-nav-number">1.4.</span> <span class="toc-nav-text">工作原理</span></a></li></ol></li><li class="toc-nav-item toc-nav-level-3"><a class="toc-nav-link" href="#vip-container"><span class="toc-nav-number">2.</span> <span class="toc-nav-text">安装</span></a></li><li class="toc-nav-item toc-nav-level-3"><a class="toc-nav-link" href="#vip-container"><span class="toc-nav-number">3.</span> <span class="toc-nav-text">Sysdig 基本用法</span></a><ol class="toc-nav-child"><li class="toc-nav-item toc-nav-level-4"><a class="toc-nav-link" href="#vip-container"><span class="toc-nav-number">3.1.</span> <span class="toc-nav-text">基本格式</span></a></li><li class="toc-nav-item toc-nav-level-4"><a class="toc-nav-link" href="#vip-container"><span class="toc-nav-number">3.2.</span> <span class="toc-nav-text">过滤</span></a></li><li class="toc-nav-item toc-nav-level-4"><a class="toc-nav-link" href="#vip-container"><span class="toc-nav-number">3.3.</span> <span class="toc-nav-text">自定义输出格式</span></a></li><li class="toc-nav-item toc-nav-level-4"><a class="toc-nav-link" href="#vip-container"><span class="toc-nav-number">3.4.</span> <span class="toc-nav-text">保存到文件</span></a></li><li class="toc-nav-item toc-nav-level-4"><a class="toc-nav-link" href="#vip-container"><span class="toc-nav-number">3.5.</span> <span class="toc-nav-text">常用的参数</span></a></li></ol></li><li class="toc-nav-item toc-nav-level-3"><a class="toc-nav-link" href="#vip-container"><span class="toc-nav-number">4.</span> <span class="toc-nav-text">Chisels：实用的工具箱</span></a></li><li class="toc-nav-item toc-nav-level-3"><a class="toc-nav-link" href="#vip-container"><span class="toc-nav-number">5.</span> <span class="toc-nav-text">对容器的支持</span></a></li><li class="toc-nav-item toc-nav-level-3"><a class="toc-nav-link" href="#vip-container"><span class="toc-nav-number">6.</span> <span class="toc-nav-text">Csysdig：图形化的 Sysdig</span></a></li><li class="toc-nav-item toc-nav-level-3"><a class="toc-nav-link" href="#vip-container"><span class="toc-nav-number">7.</span> <span class="toc-nav-text">更多文档</span></a></li><li class="toc-nav-item toc-nav-level-3"><a class="toc-nav-link" href="#vip-container"><span class="toc-nav-number">8.</span> <span class="toc-nav-text">参考资料</span></a></li></ol>
         
         </div>
       </aside>

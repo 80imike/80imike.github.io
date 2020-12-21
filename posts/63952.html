@@ -233,12 +233,12 @@
                 post-container">
 
                 <div id="vip-container"><p>我们都知道应用程序和网站的性能是他们成功的关键因素。但是，使您的应用程序或网站表现更好的过程并不总是很清楚。代码质量和基础架构当然至关重要，但在许多情况下，您可以通过专注于一些非常基本的应用程序的交付技术，对应用程序的最终用户体验进行大量改进。其中一个例子是在应用程序栈中实现和优化缓存。在教程中介绍的技术可以帮助新手和高级用户使用NGINX中包含的内容缓存功能，从而获得更好的性能。</p>
-<h2 id="概览">概览</h2>
+<h2><span id="概览">概览</span></h2>
 <p>内容缓存位于客户端和源服务器 (upstream) 之间，并保存它看到的所有内容的副本。如果客户端请求缓存已存储的内容，则它会直接返回内容而不连接源服务器。这提高了性能，因为内容缓存更靠近客户端，并且更有效地使用应用程序服务器，因为它们不必每次都从头开始生成页面。</p>
 <p>Web 浏览器和应用程序服务器之间可能存在多个缓存：客户端的浏览器缓存，中间缓存，内容交付网络（CDN）以及位于应用程序服务器前面的负载平衡器或反向代理。即使在反向代理/负载均衡器级别，缓存也可以极大地提高性能。</p>
 <p>这里举一个例子，比如我的站点使用 Next.js 服务器端口渲染，由于服务器性能比较差，当然 $5 的服务器，并不能期望好到那里去，能用就已经非常了不起，能进入这个局域网就好了，别期望太多，每次打开页面将近花费 7 秒左右，当这其中包含网络延迟，但当我直接在服务器端(127.0.0.1) 发起请求时，时间接近 5 秒，然后再排除从数据库获取数据时间，服务器端渲染时间用了 4.5 秒，实在太慢，此时我能想到最快解决问题答案就是缓存，但在那里加入缓存，从每一步时间看来，在 Nginx 加入缓存最快解决问题</p>
 <p>Nginx 通常作为应用程序堆栈中的反向代理或负载平衡器部署，并具有一整套缓存功能。下面我们将讨论如何使用 NGINX 配置基本缓存。</p>
-<h2 id="如何设置和配置基本缓存">如何设置和配置基本缓存</h2>
+<h2><span id="如何设置和配置基本缓存">如何设置和配置基本缓存</span></h2>
 <p>只需要两个指令即可启用基本缓存：proxy_cache_path 和 proxy_cache。proxy_cache_path 指令设置缓存的路径和配置，proxy_cache 用来指令激活它。</p>
 <figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line">proxy_cache_path &#x2F;path&#x2F;to&#x2F;cache levels&#x3D;1:2 keys_zone&#x3D;my_cache:10m max_size&#x3D;10g </span><br><span class="line">                 inactive&#x3D;60m use_temp_path&#x3D;off;</span><br><span class="line"></span><br><span class="line">server &#123;</span><br><span class="line">    # ...</span><br><span class="line">    location &#x2F; &#123;</span><br><span class="line">        proxy_cache my_cache;</span><br><span class="line">        proxy_pass http:&#x2F;&#x2F;my_upstream;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
 <p>proxy_cache_path 指令的参数定义了以下设置：</p>
@@ -263,11 +263,11 @@
 </li>
 </ul>
 <p>最后，该 proxy_cache 指令激活与父 location 块的 URL 匹配的所有内容的缓存（在示例中为/）。您还可以在 server 块中包含 proxy_cache 指令; 它适用于没有自己的 location 指令的服务器的所有块。</p>
-<h2 id="当上游服务器关闭时提供缓存内容">当上游服务器关闭()时提供缓存内容</h2>
+<h2><span id="当上游服务器关闭时提供缓存内容">当上游服务器关闭()时提供缓存内容</span></h2>
 <p>NGINX 内容缓存的一个强大功能是，NGINX 可以配置为在无法从原始服务器获取新内容时从缓存中提供已缓存的内容。如果缓存资源的所有源服务器都已关闭或暂时占用，则会发生这种情况。NGINX 不是将错误传递给客户端，而是从缓存中提供文件的陈旧版本。这为 NGINX 代理的服务器提供了额外的容错能力，并确保在服务器故障或流量高峰时的正常运行时间。要启用此功能，请包含 proxy_cache_use_stale 指令：</p>
 <figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">location &#x2F; &#123;</span><br><span class="line">    # ...</span><br><span class="line">    proxy_cache_use_stale error timeout http_500 http_502 http_503 http_504;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
 <p>使用此示例配置，如果 NGINX 从原始服务器收到一个 error，timeout 或任何指定的 5xx 错误，并且在其缓存中具有所请求文件的过时版本，则它会传递过时文件，而不是将错误转发到客户端。</p>
-<h2 id="如何提高缓存性能">如何提高缓存性能</h2>
+<h2><span id="如何提高缓存性能">如何提高缓存性能</span></h2>
 <p>NGINX 具有丰富的可选设置，可用于微调缓存的性能。这是一个激活其中一些的例子：</p>
 <figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br></pre></td><td class="code"><pre><span class="line">proxy_cache_path &#x2F;path&#x2F;to&#x2F;cache levels&#x3D;1:2 keys_zone&#x3D;my_cache:10m max_size&#x3D;10g </span><br><span class="line">                 inactive&#x3D;60m use_temp_path&#x3D;off;</span><br><span class="line"></span><br><span class="line">server &#123;</span><br><span class="line">    # ...</span><br><span class="line">    location &#x2F; &#123;</span><br><span class="line">        proxy_cache my_cache;</span><br><span class="line">        proxy_cache_revalidate on;</span><br><span class="line">        proxy_cache_min_uses 3;</span><br><span class="line">        proxy_cache_use_stale error timeout updating http_500 http_502</span><br><span class="line">                              http_503 http_504;</span><br><span class="line">        proxy_cache_background_update on;</span><br><span class="line">        proxy_cache_lock on;</span><br><span class="line"></span><br><span class="line">        proxy_pass http:&#x2F;&#x2F;my_upstream;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
 <p>这些指令配置以下行为：</p>
@@ -285,13 +285,13 @@
 <p>与 proxy_cache_lock 启用，如果多个客户端请求的文件不在缓存（MISS），只有第一个这些请求是通过原始服务器的。其余请求等待满足该请求，然后从缓存中提取文件。如果 proxy_cache_lock 未启用，会导致缓存未命中的所有请求都将直接发送到源服务器。</p>
 </li>
 </ul>
-<h2 id="跨多个硬盘拆分缓存">跨多个硬盘拆分缓存</h2>
+<h2><span id="跨多个硬盘拆分缓存">跨多个硬盘拆分缓存</span></h2>
 <p>如果您有多个硬盘驱动器，可以使用 NGINX 在它们之间拆分缓存。以下示例根据请求 URI 将客户端均匀分布在两个硬盘驱动器上：</p>
 <figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br></pre></td><td class="code"><pre><span class="line">proxy_cache_path &#x2F;path&#x2F;to&#x2F;hdd1 levels&#x3D;1:2 keys_zone&#x3D;my_cache_hdd1:10m</span><br><span class="line">                 max_size&#x3D;10g inactive&#x3D;60m use_temp_path&#x3D;off;</span><br><span class="line">proxy_cache_path &#x2F;path&#x2F;to&#x2F;hdd2 levels&#x3D;1:2 keys_zone&#x3D;my_cache_hdd2:10m</span><br><span class="line">                 max_size&#x3D;10g inactive&#x3D;60m use_temp_path&#x3D;off;</span><br><span class="line"></span><br><span class="line">split_clients $request_uri $my_cache &#123;</span><br><span class="line">              50%          “my_cache_hdd1”;</span><br><span class="line">              50%          “my_cache_hdd2”;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line">server &#123;</span><br><span class="line">    # ...</span><br><span class="line">    location &#x2F; &#123;</span><br><span class="line">        proxy_cache $my_cache;</span><br><span class="line">        proxy_pass http:&#x2F;&#x2F;my_upstream;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
 <p>这两个 proxy_cache_path 指令在两个不同的硬盘驱动器上定义了两个缓存（my_cache_hdd1和my_cache_hdd2）。split_clients 配置块指定从一半的请求（结果50%）被缓存在 my_cache_hdd1 与另一半中 my_cache_hdd2。基于 $request_uri 变量的哈希（请求URI）确定每个请求使用哪个缓存，结果是对给定URI的请求总是缓存在同一缓存中。</p>
 <p>请注意，此方法不能替代 RAID 硬盘设置。如果存在硬盘驱动器故障，则可能导致系统出现不可预测的行为，包括用户看到针对故障硬盘驱动器的请求的 500 响应代码。适当的 RAID 硬盘设置可以处理硬盘故障。</p>
 <a id="more"></a>
-<h2 id="如何对-nginx-cache-进行检测">如何对 Nginx Cache 进行检测</h2>
+<h2><span id="如何对-nginx-cache-进行检测">如何对 Nginx Cache 进行检测</span></h2>
 <p>可以在响应头中加入 $upstream_cache_status 变量以进行检测</p>
 <figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">add_header X-Cache-Status $upstream_cache_status;</span><br></pre></td></tr></table></figure>
 <p>此示例 X-Cache-Status 在响应客户端时添加 HTTP 标头。以下是可能的值 $upstream_cache_status：</p>
@@ -318,52 +318,52 @@
 <p>HIT - 响应直接来自有效的缓存</p>
 </li>
 </ul>
-<h2 id="nginx-如何确定是否要缓存响应">Nginx 如何确定是否要缓存响应</h2>
+<h2><span id="nginx-如何确定是否要缓存响应">Nginx 如何确定是否要缓存响应</span></h2>
 <p>默认情况下，NGINX 尊重 Cache-Control 源服务器的标头。它不缓存响应 Cache-Control 设置为 Private，No-Cache 或 No-Store 或 Set-Cookie 在响应头。NGINX 只缓存 GET 和 HEAD 客户端请求。您可以按照以下答案中的说明覆盖这些默认值。</p>
 <p>如果 proxy_buffering 设置为 off，NGINX 不会缓存响应。on 默认的。</p>
-<h2 id="nginx-是否可以忽略-cache-control">Nginx 是否可以忽略 Cache-Control</h2>
+<h2><span id="nginx-是否可以忽略-cache-control">Nginx 是否可以忽略 Cache-Control</span></h2>
 <p>使用 proxy_ignore_headers 指令可以忽略 Cache-Control</p>
 <figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">location &#x2F;images&#x2F; &#123;</span><br><span class="line">    proxy_cache my_cache;</span><br><span class="line">    proxy_ignore_headers Cache-Control;</span><br><span class="line">    proxy_cache_valid any 30m;</span><br><span class="line">    # ...</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
 <p>NGINX忽略 /images/ Cache-Control 下所有内容的标题。该指令强制缓存数据到期，如果忽略标头则需要。NGINX 不会缓存没有过期的文件。</p>
-<h2 id="nginx-是否可以忽略-set-cookie">Nginx 是否可以忽略 Set-Cookie</h2>
+<h2><span id="nginx-是否可以忽略-set-cookie">Nginx 是否可以忽略 Set-Cookie</span></h2>
 <p>使用proxy_ignore_headers指令即可。</p>
-<h2 id="nginx-如何缓存-post-请求">Nginx 如何缓存 POST 请求</h2>
+<h2><span id="nginx-如何缓存-post-请求">Nginx 如何缓存 POST 请求</span></h2>
 <p>使用 proxy_cache_methods 指令：</p>
 <figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">proxy_cache_methods GET HEAD POST;</span><br></pre></td></tr></table></figure>
 <p>此示例启用了POST请求的缓存。</p>
-<h2 id="nginx-如何缓存动态内容">Nginx 如何缓存动态内容</h2>
+<h2><span id="nginx-如何缓存动态内容">Nginx 如何缓存动态内容</span></h2>
 <p>只要 Cache-Control 标头允许。即使在很短的时间内缓存动态内容也可以减少原始服务器和数据库的负载，从而缩短第一个字节的时间，因为不必为每个请求重新生成页面。</p>
-<h2 id="如何不使用-nginx-缓存">如何不使用 Nginx 缓存</h2>
+<h2><span id="如何不使用-nginx-缓存">如何不使用 Nginx 缓存</span></h2>
 <p>proxy_cache_bypass 指令</p>
 <figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">location &#x2F; &#123;</span><br><span class="line">    proxy_cache_bypass $cookie_nocache $arg_nocache;</span><br><span class="line">    # ...</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
 <p>该指令定义了 NGINX 立即从源服务器请求内容的请求类型，而不是首先尝试在缓存中找到它。这有时被称为通过缓存 “打孔”。</p>
-<h2 id="nginx-使用什么缓存密钥">Nginx 使用什么缓存密钥</h2>
+<h2><span id="nginx-使用什么缓存密钥">Nginx 使用什么缓存密钥</span></h2>
 <p>Nginx 生成的密钥的默认形式类似于以下 Nginx 变量的 MD5 哈希：<code>$scheme$proxy_host$request_uri</code>; 使用的实际算法稍微复杂一些。</p>
 <figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line">proxy_cache_path &#x2F;path&#x2F;to&#x2F;cache levels&#x3D;1:2 keys_zone&#x3D;my_cache:10m max_size&#x3D;10g</span><br><span class="line">                 inactive&#x3D;60m use_temp_path&#x3D;off;</span><br><span class="line"></span><br><span class="line">server &#123;</span><br><span class="line">    # ...</span><br><span class="line">    location &#x2F; &#123;</span><br><span class="line">        proxy_cache my_cache;</span><br><span class="line">        proxy_pass http:&#x2F;&#x2F;my_upstream;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
 <p>对于此示例配置，缓存密钥 <a href="http://www.example.org/my_image.jpg" target="_blank" rel="noopener">http://www.example.org/my_image.jpg</a> 计算为 md5(“http://my_upstream:80/my_image.jpg”)。</p>
 <p>请注意，$proxy_host 变量用于散列值而不是实际主机名（<a href="http://www.example.com" target="_blank" rel="noopener">www.example.com</a>）。$proxy_host 定义为 proxy_pass 指令中指定的代理服务器的名称和端口。</p>
 <p>要更改用作密钥基础的变量，请使用该 proxy_cache_key 指令。</p>
-<h2 id="使用-cookie-作为我的缓存密钥的一部分">使用 Cookie 作为我的缓存密钥的一部分</h2>
+<h2><span id="使用-cookie-作为我的缓存密钥的一部分">使用 Cookie 作为我的缓存密钥的一部分</span></h2>
 <p>缓存键可以配置为任意值，例如：</p>
 <figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">proxy_cache_key $proxy_host$request_uri$cookie_jessionid;</span><br></pre></td></tr></table></figure>
 <p>此示例将 JSESSIONID cookie 的值合并到缓存键中。具有相同 URI 但 JSESSIONID 值不同的项目将作为唯一项目单独缓存。</p>
-<h2 id="nginx-使用-etag-标头">Nginx 使用 ETag 标头</h2>
+<h2><span id="nginx-使用-etag-标头">Nginx 使用 ETag 标头</span></h2>
 <p>在 Nginx 1.7.3 及更高版本中，ETag 标头完全支持 If-None-Match。</p>
-<h2 id="nginx-如何处理字节范围请求">Nginx 如何处理字节范围请求</h2>
+<h2><span id="nginx-如何处理字节范围请求">Nginx 如何处理字节范围请求</span></h2>
 <p>如果文件在高速缓存中是最新的，则 Nginx 遵循字节范围请求并仅向项目客户端提供项目的指定字节。如果文件未缓存，或者文件过时，Nginx 会从原始服务器下载整个文件。如果请求是针对单个字节范围的，则 Nginx 会在下载流中遇到该范围后立即将该范围发送到客户端。如果请求在同一文件中指定了多个字节范围，则 Nginx 会在下载完成时将整个文件传送到客户端。</p>
 <p>下载完成后，Nginx 会将整个资源移动到缓存中，以便从缓存中立即满足所有未来的字节范围请求，无论是单个范围还是多个范围。</p>
 <p>请注意，upstream 服务器必须支持 Nginx 的字节范围请求，以支持对该 upstream 服务器的字节范围请求。</p>
-<h2 id="nginx-如何处理-pragma-标头">Nginx 如何处理 Pragma 标头</h2>
+<h2><span id="nginx-如何处理-pragma-标头">Nginx 如何处理 Pragma 标头</span></h2>
 <p>在 Pragma:no-cache 报头由客户加入到绕过所有中间缓存，直接进入到源服务器的请求的内容。Pragma 默认情况下，Nginx 不支持标头，但您可以使用以下 proxy_cache_bypass 指令配置该功能：</p>
 <figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">location &#x2F;images&#x2F; &#123;</span><br><span class="line">    proxy_cache my_cache;</span><br><span class="line">    proxy_cache_bypass $http_pragma;</span><br><span class="line">    # ...</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-<h2 id="nginx-是否支持标头-stale-while-revalidate-和-stale-if-error-以及扩展的-cache-control">Nginx 是否支持标头 stale-while-revalidate 和 stale-if-error 以及扩展的 Cache-Control</h2>
+<h2><span id="nginx-是否支持标头-stale-while-revalidate-和-stale-if-error-以及扩展的-cache-control">Nginx 是否支持标头 stale-while-revalidate 和 stale-if-error 以及扩展的 Cache-Control</span></h2>
 <p>Nginx 1.11.10 及更高版本中支持。这些扩展做了什么：</p>
 <p>如果当前正在更新stale-while-revalidate，Cache-ControlHTTP标头的扩展允许使用陈旧的缓存响应。<br>
 HTTP标头的stale-if-error扩展Cache-Control允许在发生错误时使用陈旧的缓存响应。</p>
 <p>这些头具有比低优先级proxy_cache_use_stale指令如上所述。</p>
-<h2 id="nginx-是否支持-vary-标头">Nginx 是否支持 Vary 标头</h2>
+<h2><span id="nginx-是否支持-vary-标头">Nginx 是否支持 Vary 标头</span></h2>
 <p>Nginx 1.7.7 及更高版本中是支持 Vary 标头的 。</p>
-<h2 id="结论">结论</h2>
+<h2><span id="结论">结论</span></h2>
 <p>至此，您应该很好地理解 Nginx 代理缓存的工作原理以及如何正确配置 Nginx 代理缓存。如果您有任何问题或反馈，请随时发表评论。</p>
 <blockquote>
 <p>来源：myfreax</p>
@@ -443,7 +443,7 @@ HTTP标头的stale-if-error扩展Cache-Control允许在发生错误时使用陈�
         <div id="toc" class="toc-article">
         <strong class="toc-title">Contents</strong>
         
-          <ol class="toc-nav"><li class="toc-nav-item toc-nav-level-2"><a class="toc-nav-link" href="#概览"><span class="toc-nav-number">1.</span> <span class="toc-nav-text">概览</span></a></li><li class="toc-nav-item toc-nav-level-2"><a class="toc-nav-link" href="#如何设置和配置基本缓存"><span class="toc-nav-number">2.</span> <span class="toc-nav-text">如何设置和配置基本缓存</span></a></li><li class="toc-nav-item toc-nav-level-2"><a class="toc-nav-link" href="#当上游服务器关闭时提供缓存内容"><span class="toc-nav-number">3.</span> <span class="toc-nav-text">当上游服务器关闭()时提供缓存内容</span></a></li><li class="toc-nav-item toc-nav-level-2"><a class="toc-nav-link" href="#如何提高缓存性能"><span class="toc-nav-number">4.</span> <span class="toc-nav-text">如何提高缓存性能</span></a></li><li class="toc-nav-item toc-nav-level-2"><a class="toc-nav-link" href="#跨多个硬盘拆分缓存"><span class="toc-nav-number">5.</span> <span class="toc-nav-text">跨多个硬盘拆分缓存</span></a></li><li class="toc-nav-item toc-nav-level-2"><a class="toc-nav-link" href="#如何对-nginx-cache-进行检测"><span class="toc-nav-number">6.</span> <span class="toc-nav-text">如何对 Nginx Cache 进行检测</span></a></li><li class="toc-nav-item toc-nav-level-2"><a class="toc-nav-link" href="#nginx-如何确定是否要缓存响应"><span class="toc-nav-number">7.</span> <span class="toc-nav-text">Nginx 如何确定是否要缓存响应</span></a></li><li class="toc-nav-item toc-nav-level-2"><a class="toc-nav-link" href="#nginx-是否可以忽略-cache-control"><span class="toc-nav-number">8.</span> <span class="toc-nav-text">Nginx 是否可以忽略 Cache-Control</span></a></li><li class="toc-nav-item toc-nav-level-2"><a class="toc-nav-link" href="#nginx-是否可以忽略-set-cookie"><span class="toc-nav-number">9.</span> <span class="toc-nav-text">Nginx 是否可以忽略 Set-Cookie</span></a></li><li class="toc-nav-item toc-nav-level-2"><a class="toc-nav-link" href="#nginx-如何缓存-post-请求"><span class="toc-nav-number">10.</span> <span class="toc-nav-text">Nginx 如何缓存 POST 请求</span></a></li><li class="toc-nav-item toc-nav-level-2"><a class="toc-nav-link" href="#nginx-如何缓存动态内容"><span class="toc-nav-number">11.</span> <span class="toc-nav-text">Nginx 如何缓存动态内容</span></a></li><li class="toc-nav-item toc-nav-level-2"><a class="toc-nav-link" href="#如何不使用-nginx-缓存"><span class="toc-nav-number">12.</span> <span class="toc-nav-text">如何不使用 Nginx 缓存</span></a></li><li class="toc-nav-item toc-nav-level-2"><a class="toc-nav-link" href="#nginx-使用什么缓存密钥"><span class="toc-nav-number">13.</span> <span class="toc-nav-text">Nginx 使用什么缓存密钥</span></a></li><li class="toc-nav-item toc-nav-level-2"><a class="toc-nav-link" href="#使用-cookie-作为我的缓存密钥的一部分"><span class="toc-nav-number">14.</span> <span class="toc-nav-text">使用 Cookie 作为我的缓存密钥的一部分</span></a></li><li class="toc-nav-item toc-nav-level-2"><a class="toc-nav-link" href="#nginx-使用-etag-标头"><span class="toc-nav-number">15.</span> <span class="toc-nav-text">Nginx 使用 ETag 标头</span></a></li><li class="toc-nav-item toc-nav-level-2"><a class="toc-nav-link" href="#nginx-如何处理字节范围请求"><span class="toc-nav-number">16.</span> <span class="toc-nav-text">Nginx 如何处理字节范围请求</span></a></li><li class="toc-nav-item toc-nav-level-2"><a class="toc-nav-link" href="#nginx-如何处理-pragma-标头"><span class="toc-nav-number">17.</span> <span class="toc-nav-text">Nginx 如何处理 Pragma 标头</span></a></li><li class="toc-nav-item toc-nav-level-2"><a class="toc-nav-link" href="#nginx-是否支持标头-stale-while-revalidate-和-stale-if-error-以及扩展的-cache-control"><span class="toc-nav-number">18.</span> <span class="toc-nav-text">Nginx 是否支持标头 stale-while-revalidate 和 stale-if-error 以及扩展的 Cache-Control</span></a></li><li class="toc-nav-item toc-nav-level-2"><a class="toc-nav-link" href="#nginx-是否支持-vary-标头"><span class="toc-nav-number">19.</span> <span class="toc-nav-text">Nginx 是否支持 Vary 标头</span></a></li><li class="toc-nav-item toc-nav-level-2"><a class="toc-nav-link" href="#结论"><span class="toc-nav-number">20.</span> <span class="toc-nav-text">结论</span></a></li></ol>
+          <ol class="toc-nav"><li class="toc-nav-item toc-nav-level-2"><a class="toc-nav-link" href="#vip-container"><span class="toc-nav-number">1.</span> <span class="toc-nav-text">概览</span></a></li><li class="toc-nav-item toc-nav-level-2"><a class="toc-nav-link" href="#vip-container"><span class="toc-nav-number">2.</span> <span class="toc-nav-text">如何设置和配置基本缓存</span></a></li><li class="toc-nav-item toc-nav-level-2"><a class="toc-nav-link" href="#vip-container"><span class="toc-nav-number">3.</span> <span class="toc-nav-text">当上游服务器关闭()时提供缓存内容</span></a></li><li class="toc-nav-item toc-nav-level-2"><a class="toc-nav-link" href="#vip-container"><span class="toc-nav-number">4.</span> <span class="toc-nav-text">如何提高缓存性能</span></a></li><li class="toc-nav-item toc-nav-level-2"><a class="toc-nav-link" href="#vip-container"><span class="toc-nav-number">5.</span> <span class="toc-nav-text">跨多个硬盘拆分缓存</span></a></li><li class="toc-nav-item toc-nav-level-2"><a class="toc-nav-link" href="#vip-container"><span class="toc-nav-number">6.</span> <span class="toc-nav-text">如何对 Nginx Cache 进行检测</span></a></li><li class="toc-nav-item toc-nav-level-2"><a class="toc-nav-link" href="#vip-container"><span class="toc-nav-number">7.</span> <span class="toc-nav-text">Nginx 如何确定是否要缓存响应</span></a></li><li class="toc-nav-item toc-nav-level-2"><a class="toc-nav-link" href="#vip-container"><span class="toc-nav-number">8.</span> <span class="toc-nav-text">Nginx 是否可以忽略 Cache-Control</span></a></li><li class="toc-nav-item toc-nav-level-2"><a class="toc-nav-link" href="#vip-container"><span class="toc-nav-number">9.</span> <span class="toc-nav-text">Nginx 是否可以忽略 Set-Cookie</span></a></li><li class="toc-nav-item toc-nav-level-2"><a class="toc-nav-link" href="#vip-container"><span class="toc-nav-number">10.</span> <span class="toc-nav-text">Nginx 如何缓存 POST 请求</span></a></li><li class="toc-nav-item toc-nav-level-2"><a class="toc-nav-link" href="#vip-container"><span class="toc-nav-number">11.</span> <span class="toc-nav-text">Nginx 如何缓存动态内容</span></a></li><li class="toc-nav-item toc-nav-level-2"><a class="toc-nav-link" href="#vip-container"><span class="toc-nav-number">12.</span> <span class="toc-nav-text">如何不使用 Nginx 缓存</span></a></li><li class="toc-nav-item toc-nav-level-2"><a class="toc-nav-link" href="#vip-container"><span class="toc-nav-number">13.</span> <span class="toc-nav-text">Nginx 使用什么缓存密钥</span></a></li><li class="toc-nav-item toc-nav-level-2"><a class="toc-nav-link" href="#vip-container"><span class="toc-nav-number">14.</span> <span class="toc-nav-text">使用 Cookie 作为我的缓存密钥的一部分</span></a></li><li class="toc-nav-item toc-nav-level-2"><a class="toc-nav-link" href="#vip-container"><span class="toc-nav-number">15.</span> <span class="toc-nav-text">Nginx 使用 ETag 标头</span></a></li><li class="toc-nav-item toc-nav-level-2"><a class="toc-nav-link" href="#vip-container"><span class="toc-nav-number">16.</span> <span class="toc-nav-text">Nginx 如何处理字节范围请求</span></a></li><li class="toc-nav-item toc-nav-level-2"><a class="toc-nav-link" href="#vip-container"><span class="toc-nav-number">17.</span> <span class="toc-nav-text">Nginx 如何处理 Pragma 标头</span></a></li><li class="toc-nav-item toc-nav-level-2"><a class="toc-nav-link" href="#vip-container"><span class="toc-nav-number">18.</span> <span class="toc-nav-text">Nginx 是否支持标头 stale-while-revalidate 和 stale-if-error 以及扩展的 Cache-Control</span></a></li><li class="toc-nav-item toc-nav-level-2"><a class="toc-nav-link" href="#vip-container"><span class="toc-nav-number">19.</span> <span class="toc-nav-text">Nginx 是否支持 Vary 标头</span></a></li><li class="toc-nav-item toc-nav-level-2"><a class="toc-nav-link" href="#vip-container"><span class="toc-nav-number">20.</span> <span class="toc-nav-text">结论</span></a></li></ol>
         
         </div>
       </aside>

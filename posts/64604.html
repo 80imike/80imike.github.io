@@ -101,9 +101,9 @@
                     <div class="post-heading">
                         <div class="tags">
                             
-                              <a class="tag" href="/tags/#Linux" title="Linux">Linux</a>
-                            
                               <a class="tag" href="/tags/#Docker" title="Docker">Docker</a>
+                            
+                              <a class="tag" href="/tags/#Linux" title="Linux">Linux</a>
                             
                         </div>
                         <h1>使用 Kubeadm 快速部署 Kubernetes</h1>
@@ -230,15 +230,15 @@
                 col-md-10 col-md-offset-1
                 post-container">
 
-                <div id="vip-container"><h3 id="kubernetes是什么">Kubernetes是什么？</h3>
+                <div id="vip-container"><h3><span id="kubernetes是什么">Kubernetes是什么？</span></h3>
 <p>Kubernetes是Google开源的基于Docker的容器集群管理系统，是谷歌内部大规模集群管理系统Borg的开源版本。Kubernetes基于Borg集群软件模型，其诱人之处在于该模型经过了Google庞大数据中心的校验。</p>
 <p>Kubernetes(K8s)是一个真正的平台，提供运行环境，使得复杂要求的应用在上面构建。它通过yaml语言写的配置文件，很简单快速的就能自动通过Docker镜像部署好应用环境，支持应用横向扩展，并且可以组织、编排、管理和迁移这些容器化的应用。</p>
 <p>本文主要介绍在Ubuntu 16.04上使用kubeadm搭建一个集群环境。</p>
 <a id="more"></a>
 <p><strong>Kubernetes架构</strong></p>
-<p><img src="https://www.hi-linux.com/img/linux/k8s_01.jpg" alt=""></p>
+<p><img src="https://www.hi-linux.com/img/linux/k8s_01.jpg" alt></p>
 <p><strong>Kubernetes地位</strong></p>
-<p><img src="https://www.hi-linux.com/img/linux/k8s_02.png" alt=""></p>
+<p><img src="https://www.hi-linux.com/img/linux/k8s_02.png" alt></p>
 <p>K8s的地位如上图所示，优点是有很好的可移植性和可扩展性。关于K8s，这两个重要的性质表现在：</p>
 <ul>
 <li>
@@ -256,7 +256,7 @@
 <p>Kubernetes官网: <a href="https://kubernetes.io/" target="_blank" rel="noopener">https://kubernetes.io/</a><br>
 Kubernetes中文社区: <a href="https://www.kubernetes.org.cn/" target="_blank" rel="noopener">https://www.kubernetes.org.cn/</a></p>
 </blockquote>
-<h3 id="前期环境准备与约束">前期环境准备与约束</h3>
+<h3><span id="前期环境准备与约束">前期环境准备与约束</span></h3>
 <p>准备了两台Ubuntu 16.04虚拟机，各项参数如下：</p>
 <table>
 <thead>
@@ -283,7 +283,7 @@ Kubernetes中文社区: <a href="https://www.kubernetes.org.cn/" target="_blank"
 </tbody>
 </table>
 <p>Kubernetes官网上提到每台机器至少要有1GB内存，不然集群运行之后，留给运行在容器内的应用的内存就很少了。同时要保证所有机器之前的网络是互相连通的。</p>
-<h3 id="部署kubernetes-master">部署Kubernetes Master</h3>
+<h3><span id="部署kubernetes-master">部署Kubernetes Master</span></h3>
 <p>安装内容包括:</p>
 <ul>
 <li>docker：容器运行的软件。</li>
@@ -291,7 +291,7 @@ Kubernetes中文社区: <a href="https://www.kubernetes.org.cn/" target="_blank"
 <li>kubectl：在集群运行时，控制容器的部件。只需要将其运行在主节点上，但是它将对所有节点都有效。</li>
 <li>Kubeadm：集群的引导程序。</li>
 </ul>
-<h4 id="安装kubernetes相关软件包">安装Kubernetes相关软件包</h4>
+<h4><span id="安装kubernetes相关软件包">安装Kubernetes相关软件包</span></h4>
 <p>由于墙的原因无法直接访问到Google的软件仓库(<a href="http://packages.cloud.google.com" target="_blank" rel="noopener">packages.cloud.google.com</a>)和容器仓库(<a href="http://gcr.io" target="_blank" rel="noopener">gcr.io</a>)，解决方法有两种：一是直接配置的Hosts文件，二是使用三方源或转存的容器仓库。这里使用修改Hosts文件的方法。</p>
 <p>把下面几行内容加入到hosts文件中</p>
 <figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">$ vim  &#x2F;etc&#x2F;hosts</span><br><span class="line"></span><br><span class="line">61.91.161.217 gcr.io</span><br><span class="line">61.91.161.217 www.gcr.io</span><br><span class="line">61.91.161.217 packages.cloud.google.com</span><br></pre></td></tr></table></figure>
@@ -320,7 +320,7 @@ Kubernetes中文社区: <a href="https://www.kubernetes.org.cn/" target="_blank"
 <p>由于墙的原因，从Google下载相关镜像速度很慢。为了更加顺利的搭建集群，建议优先下载好相应镜像。</p>
 <p>Kubernetes-1.5.2所需要的镜像：</p>
 <figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br></pre></td><td class="code"><pre><span class="line">$ docker pull gcr.io&#x2F;google_containers&#x2F;kube-apiserver-amd64:v1.5.4</span><br><span class="line">$ docker pull gcr.io&#x2F;google_containers&#x2F;kube-controller-manager-amd64:v1.5.4</span><br><span class="line">$ docker pull gcr.io&#x2F;google_containers&#x2F;kube-scheduler-amd64:v1.5.4              </span><br><span class="line">$ docker pull gcr.io&#x2F;google_containers&#x2F;kube-proxy-amd64:v1.5.4              </span><br><span class="line">$ docker pull gcr.io&#x2F;google_containers&#x2F;kube-apiserver-amd64:v1.5.2              </span><br><span class="line">$ docker pull gcr.io&#x2F;google_containers&#x2F;kube-scheduler-amd64:v1.5.2              </span><br><span class="line">$ docker pull gcr.io&#x2F;google_containers&#x2F;kube-controller-manager-amd64:v1.5.2</span><br><span class="line">$ docker pull gcr.io&#x2F;google_containers&#x2F;etcd-amd64:3.0.14-kubeadm      </span><br><span class="line">$ docker pull gcr.io&#x2F;google_containers&#x2F;kubedns-amd64:1.9                 </span><br><span class="line">$ docker pull gcr.io&#x2F;google_containers&#x2F;dnsmasq-metrics-amd64:1.0                 </span><br><span class="line">$ docker pull gcr.io&#x2F;google_containers&#x2F;kube-dnsmasq-amd64:1.4                 </span><br><span class="line">$ docker pull gcr.io&#x2F;google_containers&#x2F;kube-discovery-amd64:1.0                 </span><br><span class="line">$ docker pull gcr.io&#x2F;google_containers&#x2F;exechealthz-amd64:1.2                 </span><br><span class="line">$ docker pull gcr.io&#x2F;google_containers&#x2F;pause-amd6:3.0                 </span><br><span class="line">$ docker pull gcr.io&#x2F;google_containers&#x2F;kubernetes-dashboard-amd64:v1.6.0</span><br><span class="line">$ docker pull quay.io&#x2F;coreos&#x2F;flannel:v0.7.0-amd64</span><br></pre></td></tr></table></figure>
-<h4 id="部署kubernetes-master">部署Kubernetes master</h4>
+<h4><span id="部署kubernetes-master">部署Kubernetes master</span></h4>
 <p>理论上通过kubeadm使用init和join命令即可建立一个集群，这init就是在master节点对集群进行初始化。和k8s 1.4之前的部署方式不同的是kubeadm安装的k8s核心组件都是以容器的形式运行于master node上的。</p>
 <p><strong>初始化master</strong></p>
 <p>使用kubeadm init初始化kubernetes master。</p>
@@ -352,7 +352,7 @@ Kubernetes中文社区: <a href="https://www.kubernetes.org.cn/" target="_blank"
 <figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">$ kubectl get nodes</span><br><span class="line">NAME            STATUS         AGE</span><br><span class="line">dev-master-01   Ready,master   5h</span><br></pre></td></tr></table></figure>
 <p>或者访问http://localhost:8080出现这个也表示ok了。</p>
 <figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br></pre></td><td class="code"><pre><span class="line">$ curl http:&#x2F;&#x2F;127.0.0.1:8080</span><br><span class="line">&#123;</span><br><span class="line">  &quot;paths&quot;: [</span><br><span class="line">    &quot;&#x2F;api&quot;,</span><br><span class="line">    &quot;&#x2F;api&#x2F;v1&quot;,</span><br><span class="line">    &quot;&#x2F;apis&quot;,</span><br><span class="line">    &quot;&#x2F;apis&#x2F;apps&quot;,</span><br><span class="line">    &quot;&#x2F;apis&#x2F;apps&#x2F;v1beta1&quot;,</span><br><span class="line">    &quot;&#x2F;apis&#x2F;authentication.k8s.io&quot;,</span><br><span class="line">    &quot;&#x2F;apis&#x2F;authentication.k8s.io&#x2F;v1beta1&quot;,</span><br><span class="line">    &quot;&#x2F;apis&#x2F;authorization.k8s.io&quot;,</span><br><span class="line">    &quot;&#x2F;apis&#x2F;authorization.k8s.io&#x2F;v1beta1&quot;,</span><br><span class="line">    &quot;&#x2F;apis&#x2F;autoscaling&quot;,</span><br><span class="line">    &quot;&#x2F;apis&#x2F;autoscaling&#x2F;v1&quot;,</span><br><span class="line">    &quot;&#x2F;apis&#x2F;batch&quot;,</span><br><span class="line">    &quot;&#x2F;apis&#x2F;batch&#x2F;v1&quot;,</span><br><span class="line">    &quot;&#x2F;apis&#x2F;batch&#x2F;v2alpha1&quot;,</span><br><span class="line">    &quot;&#x2F;apis&#x2F;certificates.k8s.io&quot;,</span><br><span class="line">    &quot;&#x2F;apis&#x2F;certificates.k8s.io&#x2F;v1alpha1&quot;,</span><br><span class="line">    &quot;&#x2F;apis&#x2F;extensions&quot;,</span><br><span class="line">    &quot;&#x2F;apis&#x2F;extensions&#x2F;v1beta1&quot;,</span><br><span class="line">    &quot;&#x2F;apis&#x2F;policy&quot;,</span><br><span class="line">    &quot;&#x2F;apis&#x2F;policy&#x2F;v1beta1&quot;,</span><br><span class="line">    &quot;&#x2F;apis&#x2F;rbac.authorization.k8s.io&quot;,</span><br><span class="line">    &quot;&#x2F;apis&#x2F;rbac.authorization.k8s.io&#x2F;v1alpha1&quot;,</span><br><span class="line">    &quot;&#x2F;apis&#x2F;storage.k8s.io&quot;,</span><br><span class="line">    &quot;&#x2F;apis&#x2F;storage.k8s.io&#x2F;v1beta1&quot;,</span><br><span class="line">    &quot;&#x2F;healthz&quot;,</span><br><span class="line">    &quot;&#x2F;healthz&#x2F;poststarthook&#x2F;bootstrap-controller&quot;,</span><br><span class="line">    &quot;&#x2F;healthz&#x2F;poststarthook&#x2F;extensions&#x2F;third-party-resources&quot;,</span><br><span class="line">    &quot;&#x2F;healthz&#x2F;poststarthook&#x2F;rbac&#x2F;bootstrap-roles&quot;,</span><br><span class="line">    &quot;&#x2F;logs&quot;,</span><br><span class="line">    &quot;&#x2F;metrics&quot;,</span><br><span class="line">    &quot;&#x2F;swaggerapi&#x2F;&quot;,</span><br><span class="line">    &quot;&#x2F;ui&#x2F;&quot;,</span><br><span class="line">    &quot;&#x2F;version&quot;</span><br><span class="line">  ]</span><br></pre></td></tr></table></figure>
-<h3 id="部署kubernetes-node">部署Kubernetes node</h3>
+<h3><span id="部署kubernetes-node">部署Kubernetes node</span></h3>
 <p>根据Master上初始化成功后会打印的token，把minion node加入cluster。（注意：这里要保证master node的9898端口在防火墙是打开的）</p>
 <p>在minion node上执行</p>
 <figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br></pre></td><td class="code"><pre><span class="line">$ kubeadm join --token&#x3D;e4f68e.6cc8c11c93148cd7 10.211.55.11 --skip-preflight-checks</span><br><span class="line"></span><br><span class="line">[kubeadm] WARNING: kubeadm is in alpha, please do not use it for production clusters.</span><br><span class="line">[preflight] Skipping pre-flight checks</span><br><span class="line">[tokens] Validating provided token</span><br><span class="line">[discovery] Created cluster info discovery client, requesting info from &quot;http:&#x2F;&#x2F;10.211.55.11:9898&#x2F;cluster-info&#x2F;v1&#x2F;?token-id&#x3D;e4f68e&quot;</span><br><span class="line">[discovery] Cluster info object received, verifying signature using given token</span><br><span class="line">[discovery] Cluster info signature and contents are valid, will use API endpoints [https:&#x2F;&#x2F;10.211.55.11:6443]</span><br><span class="line">[bootstrap] Trying to connect to endpoint https:&#x2F;&#x2F;10.211.55.11:6443</span><br><span class="line">[bootstrap] Detected server version: v1.5.4</span><br><span class="line">[bootstrap] Successfully established connection with endpoint &quot;https:&#x2F;&#x2F;10.211.55.11:6443&quot;</span><br><span class="line">[csr] Created API client to obtain unique certificate for this node, generating keys and certificate signing request</span><br><span class="line">[csr] Received signed certificate from the API server:</span><br><span class="line">Issuer: CN&#x3D;kubernetes | Subject: CN&#x3D;system:node:dev-node-01 | CA: false</span><br><span class="line">Not before: 2017-03-21 09:19:00 +0000 UTC Not After: 2018-03-21 09:19:00 +0000 UTC</span><br><span class="line">[csr] Generating kubelet configuration</span><br><span class="line">[kubeconfig] Wrote KubeConfig file to disk: &quot;&#x2F;etc&#x2F;kubernetes&#x2F;kubelet.conf&quot;</span><br><span class="line"></span><br><span class="line">Node join complete:</span><br><span class="line">* Certificate signing request sent to master and response</span><br><span class="line">  received.</span><br><span class="line">* Kubelet informed of new secure connection details.</span><br><span class="line"></span><br><span class="line">Run &#39;kubectl get nodes&#39; on the master to see this machine join.</span><br></pre></td></tr></table></figure>
@@ -360,7 +360,7 @@ Kubernetes中文社区: <a href="https://www.kubernetes.org.cn/" target="_blank"
 <p>加入节点后，可以在master上验证下相关信息。</p>
 <figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">$ kubectl get nodes</span><br><span class="line"></span><br><span class="line">NAME            STATUS         AGE</span><br><span class="line">dev-master-01   Ready,master   5h</span><br><span class="line">dev-node-01     Ready          1m</span><br></pre></td></tr></table></figure>
 <p>上述这样以来基础环境就搭好了。不过只不过是万里长征第一步，折腾才刚刚开始而已。颤抖吧，少年！</p>
-<h3 id="一些小技巧">一些小技巧</h3>
+<h3><span id="一些小技巧">一些小技巧</span></h3>
 <ul>
 <li>由于使用kubeadm安装的kubernetes核心组件都是以docker容器的形式运行，如果安装过程出现问题，需要先执行下面的命令清理之前的执行残留后，才能重新开始。</li>
 </ul>
@@ -370,7 +370,7 @@ Kubernetes中文社区: <a href="https://www.kubernetes.org.cn/" target="_blank"
 <li>如果容器部署过程中失败，你非常想要知道它的状态及详细原因。可使用如下指令：</li>
 </ul>
 <figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">$ kubectl describe -n default  po kube-flannel-ds-m556b</span><br><span class="line">$ kubectl describe -n kube-system po kube-dns-2924299975-8r4st</span><br></pre></td></tr></table></figure>
-<h3 id="参考文档">参考文档</h3>
+<h3><span id="参考文档">参考文档</span></h3>
 <p><a href="http://www.google.com" target="_blank" rel="noopener">http://www.google.com</a><br>
 <a href="http://t.cn/RIBS5ji" target="_blank" rel="noopener">http://t.cn/RIBS5ji</a><br>
 <a href="http://www.jianshu.com/p/a05a2f778324" target="_blank" rel="noopener">http://www.jianshu.com/p/a05a2f778324</a><br>
@@ -448,7 +448,7 @@ Kubernetes中文社区: <a href="https://www.kubernetes.org.cn/" target="_blank"
         <div id="toc" class="toc-article">
         <strong class="toc-title">Contents</strong>
         
-          <ol class="toc-nav"><li class="toc-nav-item toc-nav-level-3"><a class="toc-nav-link" href="#kubernetes是什么"><span class="toc-nav-number">1.</span> <span class="toc-nav-text">Kubernetes是什么？</span></a></li><li class="toc-nav-item toc-nav-level-3"><a class="toc-nav-link" href="#前期环境准备与约束"><span class="toc-nav-number">2.</span> <span class="toc-nav-text">前期环境准备与约束</span></a></li><li class="toc-nav-item toc-nav-level-3"><a class="toc-nav-link" href="#部署kubernetes-master"><span class="toc-nav-number">3.</span> <span class="toc-nav-text">部署Kubernetes Master</span></a><ol class="toc-nav-child"><li class="toc-nav-item toc-nav-level-4"><a class="toc-nav-link" href="#安装kubernetes相关软件包"><span class="toc-nav-number">3.1.</span> <span class="toc-nav-text">安装Kubernetes相关软件包</span></a></li><li class="toc-nav-item toc-nav-level-4"><a class="toc-nav-link" href="#部署kubernetes-master"><span class="toc-nav-number">3.2.</span> <span class="toc-nav-text">部署Kubernetes master</span></a></li></ol></li><li class="toc-nav-item toc-nav-level-3"><a class="toc-nav-link" href="#部署kubernetes-node"><span class="toc-nav-number">4.</span> <span class="toc-nav-text">部署Kubernetes node</span></a></li><li class="toc-nav-item toc-nav-level-3"><a class="toc-nav-link" href="#一些小技巧"><span class="toc-nav-number">5.</span> <span class="toc-nav-text">一些小技巧</span></a></li><li class="toc-nav-item toc-nav-level-3"><a class="toc-nav-link" href="#参考文档"><span class="toc-nav-number">6.</span> <span class="toc-nav-text">参考文档</span></a></li></ol>
+          <ol class="toc-nav"><li class="toc-nav-item toc-nav-level-3"><a class="toc-nav-link" href="#vip-container"><span class="toc-nav-number">1.</span> <span class="toc-nav-text">Kubernetes是什么？</span></a></li><li class="toc-nav-item toc-nav-level-3"><a class="toc-nav-link" href="#vip-container"><span class="toc-nav-number">2.</span> <span class="toc-nav-text">前期环境准备与约束</span></a></li><li class="toc-nav-item toc-nav-level-3"><a class="toc-nav-link" href="#vip-container"><span class="toc-nav-number">3.</span> <span class="toc-nav-text">部署Kubernetes Master</span></a><ol class="toc-nav-child"><li class="toc-nav-item toc-nav-level-4"><a class="toc-nav-link" href="#vip-container"><span class="toc-nav-number">3.1.</span> <span class="toc-nav-text">安装Kubernetes相关软件包</span></a></li><li class="toc-nav-item toc-nav-level-4"><a class="toc-nav-link" href="#vip-container"><span class="toc-nav-number">3.2.</span> <span class="toc-nav-text">部署Kubernetes master</span></a></li></ol></li><li class="toc-nav-item toc-nav-level-3"><a class="toc-nav-link" href="#vip-container"><span class="toc-nav-number">4.</span> <span class="toc-nav-text">部署Kubernetes node</span></a></li><li class="toc-nav-item toc-nav-level-3"><a class="toc-nav-link" href="#vip-container"><span class="toc-nav-number">5.</span> <span class="toc-nav-text">一些小技巧</span></a></li><li class="toc-nav-item toc-nav-level-3"><a class="toc-nav-link" href="#vip-container"><span class="toc-nav-number">6.</span> <span class="toc-nav-text">参考文档</span></a></li></ol>
         
         </div>
       </aside>
@@ -468,9 +468,9 @@ Kubernetes中文社区: <a href="https://www.kubernetes.org.cn/" target="_blank"
                     <h5><a href="/tags/">FEATURED TAGS</a></h5>
                     <div class="tags">
                        
-                          <a class="tag" href="/tags/#Linux" title="Linux">Linux</a>
-                        
                           <a class="tag" href="/tags/#Docker" title="Docker">Docker</a>
+                        
+                          <a class="tag" href="/tags/#Linux" title="Linux">Linux</a>
                         
                     </div>
                 </section>

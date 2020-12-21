@@ -234,14 +234,14 @@
 <p>当你开始在真实的生产环境使用Docker容器去部署应用系统时，你可能需要用到多个容器部署一套复杂的多层应用系统，其中每个容器部署一个特定的应用系统。</p>
 <p>此时可能就会遇到如下问题：有多台宿主机，我们事先不知道会在哪台宿主机上创建容器，如何保证在这些宿主机上创建的容器们可以互相联通？</p>
 <a id="more"></a>
-<h3 id="关于sdn和容器">关于SDN和容器</h3>
+<h3><span id="关于sdn和容器">关于SDN和容器</span></h3>
 <p>作为近年来比较热的一个概念，众所周知SDN是Software Defined Network的缩写，即软件定义网络。但不同的人对SDN有不同的理解。在广义上，只要是你通过软件实现了一个东西，然后那个东西能够灵活地去达到网络上面的部署和伸缩，这就可以被认为是SDN。</p>
 <p><strong>围绕容器的开源的SDN解决方案</strong></p>
 <p>Docker自己的网络方案比较简单，就是每个宿主机上会跑一个非常纯粹的Linux Bridge，这个Bridge可以认为是一个二层的交换机，但它的能力有限，只能做一些简单的学习和转发。然后出来的流量，出网桥的流量会走IPTABLES，做NAT的地址转换，然后靠路由转发去做一个宿主之间的通信。</p>
 <p>但是当真正用它的网络模型部署一个比较复杂的业务时，会存在很多问题，比如容器重启之后IP就变了；或者是由于每台宿主机会分配固定的网段，因此同一个容器迁到不同宿主机时，它的IP可能会发生变化，因为它是在不同的网段；同时，NAT的存在会造成两端在通讯时看到对方的地址是不真实的，因为它被NAT过；并且NAT本身也是有性能损耗等。这些问题都对使用Docker自己的网络方案造成了障碍。</p>
 <p>由于容器技术给传统的虚拟化网络提出了一些新的挑战，所以围绕Docker产生了很多不同的网络解决方案，以弥补Docker在这些方面的不足。</p>
-<h3 id="现有的主要docker网络方案">现有的主要Docker网络方案</h3>
-<h4 id="基于实现方式分类">基于实现方式分类</h4>
+<h3><span id="现有的主要docker网络方案">现有的主要Docker网络方案</span></h3>
+<h4><span id="基于实现方式分类">基于实现方式分类</span></h4>
 <p><strong>隧道方案</strong></p>
 <p>通过隧道，或者说Overlay Networking的方式：</p>
 <ul>
@@ -257,7 +257,7 @@
 <li>Macvlan：从逻辑和Kernel层来看隔离性和性能最优的方案，基于二层隔离，所以需要二层路由器支持，大多数云服务商不支持，所以混合云上比较难以实现。</li>
 </ul>
 <p>路由方案一般是从3层或者2层实现隔离和跨主机容器互通的，出了问题也很容易排查。</p>
-<h4 id="基于网络模型分类">基于网络模型分类</h4>
+<h4><span id="基于网络模型分类">基于网络模型分类</span></h4>
 <p><strong>Docker Libnetwork Container Network Model(CNM)阵营</strong></p>
 <ul>
 <li>Docker Swarm overlay</li>
@@ -279,12 +279,12 @@
 <p>CNI的优势是兼容其他容器技术(e.g. rkt)及上层编排系统(Kuberneres &amp; Mesos)，而且社区活跃势头迅猛，Kubernetes加上CoreOS主推；缺点是非Docker原生。</p>
 <p>从上的可以看出，有一些第三方的网络方案是同时属于两个阵营的。</p>
 <p>本文主要介绍了Docker容器平台中的<code>libnetwork</code>，<code>flannel</code>，<code>calico</code>，<code>weave</code>这几种跨主机通信方案，并对各个方案的原理进行阐述。</p>
-<h3 id="libnetwork">Libnetwork</h3>
+<h3><span id="libnetwork">Libnetwork</span></h3>
 <p>Libnetwork是从1.6版本开始将Docker的网络功能从Docker核心代码中分离出去，形成一个单独的库。Libnetwork的目标是定义一个健壮的容器网络模型，提供一个一致的编程接口和应用程序的网络抽象。</p>
 <p>Libnetwork通过插件的形式为Docker提供网络功能，使得用户可以根据自己的需求实现自己的Driver来提供不同的网络功能。从1.9版本开始，docker已经实现了基于Libnetwork和libkv库的网络模式-多主机的Overlay网络。</p>
 <p>Libnetwork所要实现的网络模型基本是这样的：用户可以创建一个或多个网络(一个网络就是一个网桥或者一个VLAN)，一个容器可以加入一个或多个网络。 同一个网络中容器可以通信，不同网络中的容器隔离。</p>
 <p>Libnetwork实现了一个叫做Container Network Model (CNM)的东西，也就是说希望成为容器的标准网络模型、框架。其包含了下面几个概念：</p>
-<p><img src="https://www.hi-linux.com/img/linux/libnetwork1.jpg" alt=""></p>
+<p><img src="https://www.hi-linux.com/img/linux/libnetwork1.jpg" alt></p>
 <ul>
 <li>
 <p>Sandbox。Sandbox包含容器网络栈的配置，包括容器接口，路由表，DNS配置等的管理。 linux network namespace是常见的一种sandbox的实现。Sandbox中包含众多网络中的若干Endpoint。</p>
@@ -314,12 +314,12 @@
 <p>Remote：Remote驱动包不提供驱动，但提供了融合第三方驱动的接口。</p>
 </li>
 </ul>
-<h3 id="flannel">flannel</h3>
+<h3><span id="flannel">flannel</span></h3>
 <p>Flannel之前的名字是Rudder，它是由CoreOS团队针对Kubernetes设计的一个重载网络工具，它的主要思路是：预先留出一个网段，每个主机使用其中一部分，然后每个容器被分配不同的ip；让所有的容器认为大家在同一个直连的网络，底层通过UDP/VxLAN等进行报文的封装和转发。</p>
 <p>Flannel类似于weave、vxlan，提供了一个可配置的虚拟承载网络。Flannel以一个daemon形式运行，负责子网的分配，flannel使用etcd存储、交换网络配置、状态等信息。</p>
 <p><strong>flannel基本原理</strong></p>
 <p>flannel默认使用8285端口作为UDP封装报文的端口，VxLan使用8472端口。</p>
-<p><img src="https://www.hi-linux.com/img/linux/flannel-01.png" alt=""></p>
+<p><img src="https://www.hi-linux.com/img/linux/flannel-01.png" alt></p>
 <ol>
 <li>容器直接使用目标容器的ip访问，默认通过容器内部的eth0发送出去。</li>
 <li>报文通过veth pair被发送到vethXXX。</li>
@@ -333,16 +333,16 @@
 <li>docker0找到连到自己的容器，把报文发送过去。</li>
 </ol>
 <p>之前也写了一篇关于flannel的文章，有兴趣可以读一下：「<a href="https://www.hi-linux.com/posts/30481.html">flannel原理简析及安装</a>」</p>
-<h3 id="calico">Calico</h3>
+<h3><span id="calico">Calico</span></h3>
 <p>Calico是一个纯3层的数据中心网络方案，而且无缝集成像OpenStack这种IaaS云架构，能够提供可控的VM、容器、裸机之间的IP通信。</p>
 <p>它基于BPG协议和Linux自己的路由转发机制，不依赖特殊硬件，没有使用NAT或Tunnel等技术。能够方便的部署在物理服务器、虚拟机或者容器环境下。同时它自带的基于Iptables的ACL管理组件非常灵活，能够满足比较复杂的安全隔离需求。</p>
 <p>Calico在每一个计算节点利用Linux Kernel实现了一个高效的vRouter来负责数据转发，而每个vRouter通过BGP协议负责把自己上运行的workload的路由信息像整个Calico网络内传播–小规模部署可以直接互联，大规模下可通过指定的BGP route reflector来完成。</p>
 <p>这样保证最终所有的workload之间的数据流量都是通过IP路由的方式完成互联的。</p>
 <p><strong>基本原理</strong></p>
-<p><img src="https://www.hi-linux.com/img/linux/calico1.jpg" alt=""></p>
+<p><img src="https://www.hi-linux.com/img/linux/calico1.jpg" alt></p>
 <p>Calico的方案如上图所示。它把每个操作系统的协议栈认为是一个路由器，然后把所有的容器认为是连在这个路由器上的网络终端，在路由器之间跑标准的路由协议–BGP的协议，然后让它们自己去学习这个网络拓扑该如何转发。所以Calico方案其实是一个纯三层的方案，也就是说让每台机器的协议栈的三层去确保两个容器，跨主机容器之间的三层连通性。</p>
 <p><strong>Calico架构</strong></p>
-<p><img src="https://www.hi-linux.com/img/linux/calico2.png" alt=""></p>
+<p><img src="https://www.hi-linux.com/img/linux/calico2.png" alt></p>
 <p>结合上面这张图，我们来过一遍Calico的核心组件：</p>
 <ul>
 <li>Felix:Calico Agent，跑在每台需要运行Workload的节点上，主要负责配置路由及ACLS等信息来确保Endpoint的连通状态。</li>
@@ -372,13 +372,13 @@
 <li>Calico没有加密数据路径。 用不可信网络上的Calico建立覆盖网络是不安全的。</li>
 <li>没有IP重叠支持。 虽然Calico社区正在开发一个实验功能，将重叠IPv4包放入IPv6包中。 但这只是一个辅助解决方案，并不完全支持技术上的IP重叠。</li>
 </ol>
-<h3 id="weave">Weave</h3>
+<h3><span id="weave">Weave</span></h3>
 <p>Weave是由Zett.io公司开发的，它能够创建一个虚拟网络，用于连接部署在多台主机上的Docker容器，这样容器就像被接入了同一个网络交换机，那些使用网络的应用程序不必去配置端口映射和链接等信息。</p>
 <p>外部设备能够访问Weave网络上的应用程序容器所提供的服务，同时已有的内部系统也能够暴露到应用程序容器上。Weave能够穿透防火墙并运行在部分连接的网络上，另外，Weave的通信支持加密，所以用户可以从一个不受信任的网络连接到主机。</p>
 <p><strong>Weave实现原理</strong></p>
-<p><img src="https://www.hi-linux.com/img/linux/weave1.png" alt=""></p>
+<p><img src="https://www.hi-linux.com/img/linux/weave1.png" alt></p>
 <p>容器的网络通讯都通过route服务和网桥转发。</p>
-<p><img src="https://www.hi-linux.com/img/linux/weave2.png" alt=""></p>
+<p><img src="https://www.hi-linux.com/img/linux/weave2.png" alt></p>
 <p>Weave会在主机上创建一个网桥,每一个容器通过veth pair连接到该网桥上，同时网桥上有个Weave router的容器与之连接，该router会通过连接在网桥上的接口来抓取网络包(该接口工作在Promiscuous模式)。</p>
 <p>在每一个部署Docker的主机(可能是物理机也可能是虚拟机)上都部署有一个W(即Weave router)，它本身也可以以一个容器的形式部署)。Weave run的时候就可以给每个veth的容器端分配一个ip和相应的掩码。veth的网桥这端就是Weave router容器，并在Weave launch的时候分配好ip和掩码。</p>
 <p>Weave网络是由这些weave routers组成的对等端点(peer)构成，每个对等的一端都有自己的名字，其中包括一个可读性好的名字用于表示状态和日志的输出，一个唯一标识符用于运行中相互区别，即使重启Docker主机名字也保持不变，这些名字默认是mac地址。</p>
@@ -398,7 +398,7 @@
 <ol>
 <li>只能通过weave launch或者weave connect加入weave网络。</li>
 </ol>
-<h3 id="各方案对比">各方案对比</h3>
+<h3><span id="各方案对比">各方案对比</span></h3>
 <ul>
 <li>Flannel和overlay方案均使用承载网络，承载网络的优势和劣势都是非常明显。</li>
 </ul>
@@ -412,7 +412,7 @@
 <p>weave可以穿透防火墙，安全性较高，流量是被加密的，允许主机连接通过一个不被信任的网络，同样会有承载网络的带来的优缺点。</p>
 </li>
 </ul>
-<h3 id="参考文档">参考文档</h3>
+<h3><span id="参考文档">参考文档</span></h3>
 <p><a href="http://www.google.com" target="_blank" rel="noopener">http://www.google.com</a><br>
 <a href="http://t.cn/RXXC3Vf" target="_blank" rel="noopener">http://t.cn/RXXC3Vf</a><br>
 <a href="http://t.cn/RXXNzkR" target="_blank" rel="noopener">http://t.cn/RXXNzkR</a><br>
@@ -490,7 +490,7 @@
         <div id="toc" class="toc-article">
         <strong class="toc-title">Contents</strong>
         
-          <ol class="toc-nav"><li class="toc-nav-item toc-nav-level-3"><a class="toc-nav-link" href="#关于sdn和容器"><span class="toc-nav-number">1.</span> <span class="toc-nav-text">关于SDN和容器</span></a></li><li class="toc-nav-item toc-nav-level-3"><a class="toc-nav-link" href="#现有的主要docker网络方案"><span class="toc-nav-number">2.</span> <span class="toc-nav-text">现有的主要Docker网络方案</span></a><ol class="toc-nav-child"><li class="toc-nav-item toc-nav-level-4"><a class="toc-nav-link" href="#基于实现方式分类"><span class="toc-nav-number">2.1.</span> <span class="toc-nav-text">基于实现方式分类</span></a></li><li class="toc-nav-item toc-nav-level-4"><a class="toc-nav-link" href="#基于网络模型分类"><span class="toc-nav-number">2.2.</span> <span class="toc-nav-text">基于网络模型分类</span></a></li></ol></li><li class="toc-nav-item toc-nav-level-3"><a class="toc-nav-link" href="#libnetwork"><span class="toc-nav-number">3.</span> <span class="toc-nav-text">Libnetwork</span></a></li><li class="toc-nav-item toc-nav-level-3"><a class="toc-nav-link" href="#flannel"><span class="toc-nav-number">4.</span> <span class="toc-nav-text">flannel</span></a></li><li class="toc-nav-item toc-nav-level-3"><a class="toc-nav-link" href="#calico"><span class="toc-nav-number">5.</span> <span class="toc-nav-text">Calico</span></a></li><li class="toc-nav-item toc-nav-level-3"><a class="toc-nav-link" href="#weave"><span class="toc-nav-number">6.</span> <span class="toc-nav-text">Weave</span></a></li><li class="toc-nav-item toc-nav-level-3"><a class="toc-nav-link" href="#各方案对比"><span class="toc-nav-number">7.</span> <span class="toc-nav-text">各方案对比</span></a></li><li class="toc-nav-item toc-nav-level-3"><a class="toc-nav-link" href="#参考文档"><span class="toc-nav-number">8.</span> <span class="toc-nav-text">参考文档</span></a></li></ol>
+          <ol class="toc-nav"><li class="toc-nav-item toc-nav-level-3"><a class="toc-nav-link" href="#vip-container"><span class="toc-nav-number">1.</span> <span class="toc-nav-text">关于SDN和容器</span></a></li><li class="toc-nav-item toc-nav-level-3"><a class="toc-nav-link" href="#vip-container"><span class="toc-nav-number">2.</span> <span class="toc-nav-text">现有的主要Docker网络方案</span></a><ol class="toc-nav-child"><li class="toc-nav-item toc-nav-level-4"><a class="toc-nav-link" href="#vip-container"><span class="toc-nav-number">2.1.</span> <span class="toc-nav-text">基于实现方式分类</span></a></li><li class="toc-nav-item toc-nav-level-4"><a class="toc-nav-link" href="#vip-container"><span class="toc-nav-number">2.2.</span> <span class="toc-nav-text">基于网络模型分类</span></a></li></ol></li><li class="toc-nav-item toc-nav-level-3"><a class="toc-nav-link" href="#vip-container"><span class="toc-nav-number">3.</span> <span class="toc-nav-text">Libnetwork</span></a></li><li class="toc-nav-item toc-nav-level-3"><a class="toc-nav-link" href="#vip-container"><span class="toc-nav-number">4.</span> <span class="toc-nav-text">flannel</span></a></li><li class="toc-nav-item toc-nav-level-3"><a class="toc-nav-link" href="#vip-container"><span class="toc-nav-number">5.</span> <span class="toc-nav-text">Calico</span></a></li><li class="toc-nav-item toc-nav-level-3"><a class="toc-nav-link" href="#vip-container"><span class="toc-nav-number">6.</span> <span class="toc-nav-text">Weave</span></a></li><li class="toc-nav-item toc-nav-level-3"><a class="toc-nav-link" href="#vip-container"><span class="toc-nav-number">7.</span> <span class="toc-nav-text">各方案对比</span></a></li><li class="toc-nav-item toc-nav-level-3"><a class="toc-nav-link" href="#vip-container"><span class="toc-nav-number">8.</span> <span class="toc-nav-text">参考文档</span></a></li></ol>
         
         </div>
       </aside>

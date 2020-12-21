@@ -231,17 +231,17 @@
                 post-container">
 
                 <div id="vip-container"><p>在网站全站HTTPS后，如果用户手动敲入网站的HTTP地址，或者从其它地方点击了网站的HTTP链接，通常依赖于服务端301/302跳转才能使用HTTPS服务。而第一次的HTTP请求就有可能被劫持，导致请求无法到达服务器，从而构成HTTPS降级劫持。这个问题目前可以通过HSTS(HTTP Strict Transport Security，RFC6797)来解决。</p>
-<h3 id="hsts简介">HSTS简介</h3>
+<h3><span id="hsts简介">HSTS简介</span></h3>
 <p>HSTS(HTTP Strict Transport Security)是国际互联网工程组织IETF发布的一种互联网安全策略机制。采用HSTS策略的网站将保证浏览器始终连接到该网站的HTTPS加密版本，不需要用户手动在URL地址栏中输入加密地址，以减少会话劫持风险。</p>
 <a id="more"></a>
-<h4 id="hsts响应头格式">HSTS响应头格式</h4>
+<h4><span id="hsts响应头格式">HSTS响应头格式</span></h4>
 <figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">Strict-Transport-Security: max-age&#x3D;expireTime [; includeSubDomains] [; preload]</span><br></pre></td></tr></table></figure>
 <ul>
 <li>max-age，单位是秒，用来告诉浏览器在指定时间内，这个网站必须通过HTTPS协议来访问。也就是对于这个网站的HTTP地址，浏览器需要先在本地替换为HTTPS之后再发送请求。</li>
 <li>includeSubDomains，可选参数，如果指定这个参数，表明这个网站所有子域名也必须通过HTTPS协议来访问。</li>
 <li>preload，可选参数，一个浏览器内置的使用HTTPS的域名列表。</li>
 </ul>
-<h4 id="hsts-preload-list">HSTS Preload List</h4>
+<h4><span id="hsts-preload-list">HSTS Preload List</span></h4>
 <p>虽然HSTS可以很好的解决HTTPS降级攻击，但是对于HSTS生效前的首次HTTP请求，依然无法避免被劫持。浏览器厂商们为了解决这个问题，提出了<code>HSTS Preload List</code>方案：内置一份可以定期更新的列表，对于列表中的域名，即使用户之前没有访问过，也会使用HTTPS协议。</p>
 <p>目前这个Preload List由Google Chrome维护，Chrome、Firefox、Safari、IE 11和Microsoft Edge都在使用。如果要想把自己的域名加进这个列表，首先需要满足以下条件：</p>
 <ul>
@@ -255,7 +255,7 @@
 </ul>
 <p>即便满足了上述所有条件，也不一定能进入<code>HSTS Preload List</code>，更多信息可以查看：<code>https://hstspreload.org/</code>。</p>
 <p>通过Chrome的<code>chrome://net-internals/#hsts</code>工具，可以查询某个网站是否在Preload List之中，还可以手动把某个域名加到本机Preload List。</p>
-<h4 id="hsts缺点">HSTS缺点</h4>
+<h4><span id="hsts缺点">HSTS缺点</span></h4>
 <p>HSTS并不是HTTP会话劫持的完美解决方案。用户首次访问某网站是不受HSTS保护的。这是因为首次访问时，浏览器还未收到HSTS，所以仍有可能通过明文HTTP来访问。</p>
 <p>如果用户通过HTTP访问HSTS保护的网站时，以下几种情况存在降级劫持可能：</p>
 <ul>
@@ -273,7 +273,7 @@
 <p>其它可能存在的问题</p>
 <p>由于HSTS会在一定时间后失效(有效期由max-age指定)，所以浏览器是否强制HSTS策略取决于当前系统时间。大部分操作系统经常通过网络时间协议更新系统时间，如Ubuntu每次连接网络时，OS X Lion每隔9分钟会自动连接时间服务器。攻击者可以通过伪造NTP信息，设置错误时间来绕过HSTS。</p>
 <p>解决方法是认证NTP信息，或者禁止NTP大幅度增减时间。比如：Windows 8每7天更新一次时间，并且要求每次NTP设置的时间与当前时间不得超过15小时。</p>
-<h4 id="支持hsts浏览器">支持HSTS浏览器</h4>
+<h4><span id="支持hsts浏览器">支持HSTS浏览器</span></h4>
 <p>目前主流浏览器都已经支持HSTS特性，具体可参考下面列表：</p>
 <ul>
 <li>Google Chrome 4及以上版本</li>
@@ -282,28 +282,28 @@
 <li>Safari从OS X Mavericks起</li>
 <li>Internet Explorer及以上版本</li>
 </ul>
-<h3 id="hsts部署">HSTS部署</h3>
+<h3><span id="hsts部署">HSTS部署</span></h3>
 <p>服务器开启HSTS的方法是：当客户端通过HTTPS发出请求时，在服务器返回的超文本传输协议响应头中包含<code>Strict-Transport-Security</code>字段。非加密传输时设置的HSTS字段无效。</p>
 <p>最佳的部署方案是部署在离用户最近的位置，例如：架构有前端反向代理和后端Web服务器，在前端代理处配置HSTS是最好的，否则就需要在Web服务器层配置HSTS。如果Web服务器不明确支持HSTS，可以通过增加响应头的机制。如果其他方法都失败了，可以在应用程序层增加HSTS。</p>
 <p>HSTS启用比较简单，只需在相应头中加上如下信息：</p>
 <figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">Strict-Transport-Security: max-age&#x3D;63072000; includeSubdomains;preload;</span><br></pre></td></tr></table></figure>
 <p><code>Strict-Transport-Security</code>是Header字段名，<code>max-age</code>代表HSTS在客户端的生效时间。 <code>includeSubdomains</code>表示对所有子域名生效。preload是使用浏览器内置的域名列表。</p>
 <p>HSTS策略只能在HTTPS响应中进行设置，网站必须使用默认的443端口；必须使用域名，不能是IP。因此需要把HTTP重定向到HTTPS，如果明文响应中允许设置HSTS头，中间人攻击者就可以通过在普通站点中注入HSTS信息来执行DoS攻击。</p>
-<h4 id="apache上启用hsts">Apache上启用HSTS</h4>
+<h4><span id="apache上启用hsts">Apache上启用HSTS</span></h4>
 <figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br></pre></td><td class="code"><pre><span class="line">$ vim &#x2F;etc&#x2F;apache2&#x2F;sites-available&#x2F;hi-linux.conf</span><br><span class="line"></span><br><span class="line"># 开启HSTS需要启用headers模块</span><br><span class="line">LoadModule headers_module &#x2F;usr&#x2F;lib&#x2F;apache2&#x2F;modules&#x2F;mod_headers.so</span><br><span class="line"></span><br><span class="line">&lt;VirtualHost *:80&gt;</span><br><span class="line">  ServerName www.hi-linux.com</span><br><span class="line">  ServerAlias hi-linux.com</span><br><span class="line">...</span><br><span class="line"> #将所有访问者重定向到HTTPS,解决HSTS首次访问问题。</span><br><span class="line">  RedirectPermanent &#x2F; https:&#x2F;&#x2F;www.hi-linux.com&#x2F;</span><br><span class="line">&lt;&#x2F;VirtualHost&gt;</span><br><span class="line"></span><br><span class="line">&lt;VirtualHost 0.0.0.0:443&gt;</span><br><span class="line">...</span><br><span class="line"># 启用HTTP严格传输安全</span><br><span class="line">  Header always set Strict-Transport-Security &quot;max-age&#x3D;63072000; includeSubdomains; preload&quot;</span><br><span class="line">...</span><br><span class="line">&lt;&#x2F;VirtualHost&gt;</span><br></pre></td></tr></table></figure>
 <p>重启Apache服务</p>
 <figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">$ service apche2 restart</span><br></pre></td></tr></table></figure>
-<h4 id="nginx上启用hsts">Nginx上启用HSTS</h4>
+<h4><span id="nginx上启用hsts">Nginx上启用HSTS</span></h4>
 <figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br></pre></td><td class="code"><pre><span class="line">$ vim &#x2F;etc&#x2F;nginx&#x2F;conf.d&#x2F;hi-linux.conf</span><br><span class="line"></span><br><span class="line">server &#123;</span><br><span class="line">   listen 443 ssl;</span><br><span class="line">   server_name www.hi-linux.com;</span><br><span class="line">   add_header Strict-Transport-Security &quot;max-age&#x3D;63072000; includeSubdomains; preload&quot;;</span><br><span class="line">...</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line">server &#123;</span><br><span class="line">   listen 80;</span><br><span class="line">   server_name www.hi-linux.com;</span><br><span class="line">   return 301 https:&#x2F;&#x2F;www.hi-linux.com$request_uri;</span><br><span class="line">...</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
 <p>重启Nginx服务</p>
 <figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">$ service nginx restart</span><br></pre></td></tr></table></figure>
-<h4 id="iis启用hsts">IIS启用HSTS</h4>
+<h4><span id="iis启用hsts">IIS启用HSTS</span></h4>
 <p>要在IIS上启用HSTS需要用到第三方模块，具体可参考：<a href="https://hstsiis.codeplex.com/" target="_blank" rel="noopener">https://hstsiis.codeplex.com/</a></p>
-<h4 id="测试设置是否成功">测试设置是否成功</h4>
+<h4><span id="测试设置是否成功">测试设置是否成功</span></h4>
 <p>设置完成了后，可以用<code>curl</code>命令验证下是否设置成功。如果出来的结果中含有<code>Strict-Transport-Security</code>的字段，那么说明设置成功了。</p>
 <figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line">$ curl -I https:&#x2F;&#x2F;www.hi-linux.com</span><br><span class="line">HTTP&#x2F;1.1 200 OK</span><br><span class="line">Server: nginx</span><br><span class="line">Date: Sat, 27 May 2017 03:52:19 GMT</span><br><span class="line">Content-Type: text&#x2F;html; charset&#x3D;utf-8</span><br><span class="line">...</span><br><span class="line">Strict-Transport-Security: max-age&#x3D;63072000; includeSubDomains; preload</span><br><span class="line">X-Frame-Options: deny</span><br><span class="line">X-XSS-Protection: 1; mode&#x3D;block</span><br><span class="line">X-Content-Type-Options: nosniff</span><br><span class="line">...</span><br></pre></td></tr></table></figure>
 <p>对于<code>HSTS</code>以及<code>HSTS Preload List</code>，建议是只要不能确保永远提供HTTPS服务，就不要启用。因为一旦HSTS生效，之前的老用户在<code>max-age</code>过期前都会重定向到HTTPS，造成网站不能正确访问。唯一的办法是换新域名。</p>
-<h3 id="参考文档">参考文档</h3>
+<h3><span id="参考文档">参考文档</span></h3>
 <p><a href="http://www.google.com" target="_blank" rel="noopener">http://www.google.com</a><br>
 <a href="http://t.cn/RSzfyBb" target="_blank" rel="noopener">http://t.cn/RSzfyBb</a><br>
 <a href="https://yuan.ga/hsts-strict-https-enabled-site/" target="_blank" rel="noopener">https://yuan.ga/hsts-strict-https-enabled-site/</a><br>
@@ -381,7 +381,7 @@
         <div id="toc" class="toc-article">
         <strong class="toc-title">Contents</strong>
         
-          <ol class="toc-nav"><li class="toc-nav-item toc-nav-level-3"><a class="toc-nav-link" href="#hsts简介"><span class="toc-nav-number">1.</span> <span class="toc-nav-text">HSTS简介</span></a><ol class="toc-nav-child"><li class="toc-nav-item toc-nav-level-4"><a class="toc-nav-link" href="#hsts响应头格式"><span class="toc-nav-number">1.1.</span> <span class="toc-nav-text">HSTS响应头格式</span></a></li><li class="toc-nav-item toc-nav-level-4"><a class="toc-nav-link" href="#hsts-preload-list"><span class="toc-nav-number">1.2.</span> <span class="toc-nav-text">HSTS Preload List</span></a></li><li class="toc-nav-item toc-nav-level-4"><a class="toc-nav-link" href="#hsts缺点"><span class="toc-nav-number">1.3.</span> <span class="toc-nav-text">HSTS缺点</span></a></li><li class="toc-nav-item toc-nav-level-4"><a class="toc-nav-link" href="#支持hsts浏览器"><span class="toc-nav-number">1.4.</span> <span class="toc-nav-text">支持HSTS浏览器</span></a></li></ol></li><li class="toc-nav-item toc-nav-level-3"><a class="toc-nav-link" href="#hsts部署"><span class="toc-nav-number">2.</span> <span class="toc-nav-text">HSTS部署</span></a><ol class="toc-nav-child"><li class="toc-nav-item toc-nav-level-4"><a class="toc-nav-link" href="#apache上启用hsts"><span class="toc-nav-number">2.1.</span> <span class="toc-nav-text">Apache上启用HSTS</span></a></li><li class="toc-nav-item toc-nav-level-4"><a class="toc-nav-link" href="#nginx上启用hsts"><span class="toc-nav-number">2.2.</span> <span class="toc-nav-text">Nginx上启用HSTS</span></a></li><li class="toc-nav-item toc-nav-level-4"><a class="toc-nav-link" href="#iis启用hsts"><span class="toc-nav-number">2.3.</span> <span class="toc-nav-text">IIS启用HSTS</span></a></li><li class="toc-nav-item toc-nav-level-4"><a class="toc-nav-link" href="#测试设置是否成功"><span class="toc-nav-number">2.4.</span> <span class="toc-nav-text">测试设置是否成功</span></a></li></ol></li><li class="toc-nav-item toc-nav-level-3"><a class="toc-nav-link" href="#参考文档"><span class="toc-nav-number">3.</span> <span class="toc-nav-text">参考文档</span></a></li></ol>
+          <ol class="toc-nav"><li class="toc-nav-item toc-nav-level-3"><a class="toc-nav-link" href="#vip-container"><span class="toc-nav-number">1.</span> <span class="toc-nav-text">HSTS简介</span></a><ol class="toc-nav-child"><li class="toc-nav-item toc-nav-level-4"><a class="toc-nav-link" href="#vip-container"><span class="toc-nav-number">1.1.</span> <span class="toc-nav-text">HSTS响应头格式</span></a></li><li class="toc-nav-item toc-nav-level-4"><a class="toc-nav-link" href="#vip-container"><span class="toc-nav-number">1.2.</span> <span class="toc-nav-text">HSTS Preload List</span></a></li><li class="toc-nav-item toc-nav-level-4"><a class="toc-nav-link" href="#vip-container"><span class="toc-nav-number">1.3.</span> <span class="toc-nav-text">HSTS缺点</span></a></li><li class="toc-nav-item toc-nav-level-4"><a class="toc-nav-link" href="#vip-container"><span class="toc-nav-number">1.4.</span> <span class="toc-nav-text">支持HSTS浏览器</span></a></li></ol></li><li class="toc-nav-item toc-nav-level-3"><a class="toc-nav-link" href="#vip-container"><span class="toc-nav-number">2.</span> <span class="toc-nav-text">HSTS部署</span></a><ol class="toc-nav-child"><li class="toc-nav-item toc-nav-level-4"><a class="toc-nav-link" href="#vip-container"><span class="toc-nav-number">2.1.</span> <span class="toc-nav-text">Apache上启用HSTS</span></a></li><li class="toc-nav-item toc-nav-level-4"><a class="toc-nav-link" href="#vip-container"><span class="toc-nav-number">2.2.</span> <span class="toc-nav-text">Nginx上启用HSTS</span></a></li><li class="toc-nav-item toc-nav-level-4"><a class="toc-nav-link" href="#vip-container"><span class="toc-nav-number">2.3.</span> <span class="toc-nav-text">IIS启用HSTS</span></a></li><li class="toc-nav-item toc-nav-level-4"><a class="toc-nav-link" href="#vip-container"><span class="toc-nav-number">2.4.</span> <span class="toc-nav-text">测试设置是否成功</span></a></li></ol></li><li class="toc-nav-item toc-nav-level-3"><a class="toc-nav-link" href="#vip-container"><span class="toc-nav-number">3.</span> <span class="toc-nav-text">参考文档</span></a></li></ol>
         
         </div>
       </aside>

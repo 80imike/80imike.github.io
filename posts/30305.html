@@ -236,7 +236,7 @@
 <p><code>Kubernetes</code> 的神奇之处在于：它可以通过用户友好的 <code>API</code> 来处理跨基础架构的 <code>Deployments</code>，而背后的复杂性被隐藏在简单的抽象中。但为了充分理解它为我们提供的价值，我们需要理解它的内部原理。</p>
 <p>本指南将引导您理解从 <code>Client</code> 到 <code>Kubelet</code> 请求的完整生命周期，必要时会通过源代码来说明背后发生了什么。</p>
 <p>这是一份可以在线修改的文档，如果你发现有什么可以改进或重写的，欢迎提供帮助！</p>
-<h3 id="1-kubectl">1. Kubectl</h3>
+<h3><span id="1-kubectl">1. Kubectl</span></h3>
 <p><strong>验证和生成器</strong></p>
 <p>当敲下回车键以后，<code>Kubectl</code> 首先会执行一些客户端验证操作，以确保不合法的请求（例如：创建不支持的资源或使用格式错误的镜像名称）将会快速失败，也不会发送给 <code>Kube-Apiserver</code>。通过减少不必要的负载来提高系统性能。</p>
 <p>验证通过之后，<code>Kubectl</code> 开始将发送给 <code>Kube-Apiserver</code> 的 <code>HTTP</code> 请求进行封装。<code>Kube-Apiserver</code> 与 <code>Etcd</code> 进行通信，所有尝试访问或更改 <code>Kubernetes</code> 系统状态的请求都会通过 <code>Kube-Apiserver</code> 进行，<code>Kubectl</code> 也不例外。<code>Kubectl</code> 使用生成器（<a href="https://kubernetes.io/docs/user-guide/kubectl-conventions/#generators" target="_blank" rel="noopener">Generators</a>）来构造 <code>HTTP</code> 请求。生成器是一个用来处理序列化的抽象概念。</p>
@@ -265,7 +265,7 @@
 <li>用户名和密码通过 <code>HTTP</code> 基本认证发送。</li>
 <li><code>OpenID</code> 认证过程是由用户事先手动处理的，产生一个像 <code>Bearer Token</code> 一样被发送的 <code>Token</code>。</li>
 </ul>
-<h3 id="2-kube-apiserver">2. Kube-Apiserver</h3>
+<h3><span id="2-kube-apiserver">2. Kube-Apiserver</span></h3>
 <p><strong>认证</strong></p>
 <p>现在我们的请求已经成功发送了，接下来将会发生什么？这时候就该 <code>Kube-Apiserver</code> 闪亮登场了！<code>Kube-Apiserver</code> 是客户端和系统组件用来保存和检索集群状态的主要接口。为了执行相应的功能，<code>Kube-Apiserver</code> 需要能够验证请求者是合法的，这个过程被称为认证。</p>
 <p>那么 <code>Apiserver</code> 如何对请求进行认证呢？当 <code>Kube-Apiserver</code> 第一次启动时，它会查看用户提供的所有 <a href="https://kubernetes.io/docs/reference/command-line-tools-reference/kube-apiserver/" target="_blank" rel="noopener">CLI</a> 参数，并组合成一个合适的令牌列表。</p>
@@ -308,7 +308,7 @@
 <p><code>LimitRanger</code> 作用类似于上面的 <code>ResourceQuota</code> 控制器，针对 <code>Namespace</code> 资源的每个个体（<code>Pod</code> 与 <code>Container</code> 等）的资源配额。该插件和资源对象 <code>LimitRange</code> 一起实现资源配额管理。</p>
 </li>
 </ul>
-<h3 id="3-etcd">3. Etcd</h3>
+<h3><span id="3-etcd">3. Etcd</span></h3>
 <p>到现在为止，<code>Kubernetes</code> 已经对该客户端的调用请求进行了全面彻底地审查，并且已经验证通过，运行它进入下一个环节。下一步 <code>Kube-Apiserver</code> 将对 <code>HTTP</code> 请求进行反序列化，然后利用得到的结果构建运行时对象（有点像 <code>Kubectl</code> 生成器的逆过程），并保存到 <code>Etcd</code> 中。下面我们将这个过程分解一下。</p>
 <p>当收到请求时，<code>Kube-Apiserver</code> 是如何知道它该怎么做的呢？事实上，在客户端发送调用请求之前就已经产生了一系列非常复杂的流程。我们就从 <code>Kube-Apiserver</code> 二进制文件首次运行开始分析吧：</p>
 <ol>
@@ -329,7 +329,7 @@
 <li>最后构造 <code>HTTP</code> 响应并返回给客户端。</li>
 </ol>
 <p>原来 <code>Apiserver</code> 做了这么多的工作，以前竟然没有发现呢！到目前为止，我们创建的 <code>Deployment</code> 资源已经保存到了 <code>Etcd</code> 中，但 <code>Apiserver</code> 仍然看不到它。</p>
-<h3 id="4-初始化">4. 初始化</h3>
+<h3><span id="4-初始化">4. 初始化</span></h3>
 <p>在一个资源对象被持久化到数据存储之后，<code>Apiserver</code> 还无法完全看到或调度它，在此之前还要执行一系列<a href="https://kubernetes.io/docs/admin/extensible-admission-controllers/#initializers" target="_blank" rel="noopener">初始化器</a>。初始化器是一种与资源类型相关联的控制器，它会在资源对外可用之前执行某些逻辑。如果某个资源类型没有初始化器，就会跳过此初始化步骤立即使资源对外可见。</p>
 <p>正如<a href="https://ahmet.im/blog/initializers/" target="_blank" rel="noopener">大佬的博客</a>指出的那样，初始化器是一个强大的功能，因为它允许我们执行通用引导操作。例如：</p>
 <ul>
@@ -343,7 +343,7 @@
 <p>只有在 <code>pending</code> 字段下的列表中的第一个初始化器可以对资源进行操作，当所有的初始化器执行完成，并且 <code>pending</code> 字段为空时，该对象就会被认为初始化成功。</p>
 <p>你可能会注意到一个问题：如果 <code>Kube-Apiserver</code> 不能显示这些资源，那么用户级控制器是如何处理资源的呢？</p>
 <p>为了解决这个问题，<code>Kube-Apiserver</code> 暴露了一个 <code>?includeUninitialized</code> 查询参数，它会返回所有的资源对象（包括未初始化的）。</p>
-<h3 id="5-控制循环">5. 控制循环</h3>
+<h3><span id="5-控制循环">5. 控制循环</span></h3>
 <p><strong>Deployments controller</strong></p>
 <p>到了这个阶段，我们的 <code>Deployment</code> 记录已经保存在 <code>Etcd</code> 中，并且所有的初始化逻辑都执行完成，接下来的阶段将会涉及到该资源所依赖的拓扑结构。在 <code>Kubernetes</code> 中，<code>Deployment</code> 实际上只是一系列 <code>Replicaset</code> 的集合，而 <code>Replicaset</code> 是一系列 <code>Pod</code> 的集合。那么 <code>Kubernetes</code> 是如何从一个 <code>HTTP</code> 请求按照层级结构依次创建这些资源的呢？其实这些工作都是由 <code>Kubernetes</code> 内置的 <code>Controller</code>(控制器) 来完成的。</p>
 <p><code>Kubernetes</code> 在整个系统中使用了大量的 <code>Controller</code>，<code>Controller</code> 是一个用于将系统状态从当前状态修正到期望状态的异步脚本。所有 <code>Controller</code> 都通过 <code>Kube-Controller-Manager</code> 组件并行运行，每种 <code>Controller</code> 都负责一种具体的控制流程。首先介绍一下 <code>Deployment Controller</code>：</p>
@@ -399,7 +399,7 @@
 <blockquote>
 <p>注：预选策略和优选策略都可以通过 <code>--policy-config-file</code> 参数来扩展，如果默认的调度器不满足要求，还可以部署自定义的调度器。如果 <code>podSpec.schedulerName</code> 的值设置为其他的调度器，则 <code>Kubernetes</code> 会将该 <code>Pod</code> 的调度转交给那个调度器。</p>
 </blockquote>
-<h3 id="6-kubelet">6. Kubelet</h3>
+<h3><span id="6-kubelet">6. Kubelet</span></h3>
 <p><strong>Pod 同步</strong></p>
 <p>现在，所有的 <code>Controller</code> 都完成了工作，我们来总结一下：</p>
 <ul>
@@ -498,9 +498,9 @@
 <li>最后容器开始真正启动。</li>
 <li>如果 <code>Pod</code> 中配置了容器生命周期钩子（<code>Hook</code>），容器启动之后就会运行这些 <code>Hook</code>。<code>Hook</code> 的类型包括两种：<code>Exec</code>（执行一段命令） 和 <code>HTTP</code>（发送 <code>HTTP</code> 请求）。如果 <code>PostStart Hook</code> 启动的时间过长、挂起或者失败，容器将永远不会变成 <code>Running</code> 状态。</li>
 </ol>
-<h3 id="7-总结">7. 总结</h3>
+<h3><span id="7-总结">7. 总结</span></h3>
 <p>如果上面一切顺利，现在你的集群上应该会运行三个容器，所有的网络，数据卷和秘钥都被通过 <code>CRI</code> 接口添加到容器中并配置成功。</p>
-<h3 id="8-原文链接">8. 原文链接</h3>
+<h3><span id="8-原文链接">8. 原文链接</span></h3>
 <p><a href="https://github.com/jamiehannaford/what-happens-when-k8s" target="_blank" rel="noopener">What happens when … Kubernetes edition!</a></p>
 <blockquote>
 <p>来源：Ryan Yang 的 Blog<br>
@@ -579,7 +579,7 @@
         <div id="toc" class="toc-article">
         <strong class="toc-title">Contents</strong>
         
-          <ol class="toc-nav"><li class="toc-nav-item toc-nav-level-3"><a class="toc-nav-link" href="#1-kubectl"><span class="toc-nav-number">1.</span> <span class="toc-nav-text">1. Kubectl</span></a></li><li class="toc-nav-item toc-nav-level-3"><a class="toc-nav-link" href="#2-kube-apiserver"><span class="toc-nav-number">2.</span> <span class="toc-nav-text">2. Kube-Apiserver</span></a></li><li class="toc-nav-item toc-nav-level-3"><a class="toc-nav-link" href="#3-etcd"><span class="toc-nav-number">3.</span> <span class="toc-nav-text">3. Etcd</span></a></li><li class="toc-nav-item toc-nav-level-3"><a class="toc-nav-link" href="#4-初始化"><span class="toc-nav-number">4.</span> <span class="toc-nav-text">4. 初始化</span></a></li><li class="toc-nav-item toc-nav-level-3"><a class="toc-nav-link" href="#5-控制循环"><span class="toc-nav-number">5.</span> <span class="toc-nav-text">5. 控制循环</span></a></li><li class="toc-nav-item toc-nav-level-3"><a class="toc-nav-link" href="#6-kubelet"><span class="toc-nav-number">6.</span> <span class="toc-nav-text">6. Kubelet</span></a></li><li class="toc-nav-item toc-nav-level-3"><a class="toc-nav-link" href="#7-总结"><span class="toc-nav-number">7.</span> <span class="toc-nav-text">7. 总结</span></a></li><li class="toc-nav-item toc-nav-level-3"><a class="toc-nav-link" href="#8-原文链接"><span class="toc-nav-number">8.</span> <span class="toc-nav-text">8. 原文链接</span></a></li></ol>
+          <ol class="toc-nav"><li class="toc-nav-item toc-nav-level-3"><a class="toc-nav-link" href="#vip-container"><span class="toc-nav-number">1.</span> <span class="toc-nav-text">1. Kubectl</span></a></li><li class="toc-nav-item toc-nav-level-3"><a class="toc-nav-link" href="#vip-container"><span class="toc-nav-number">2.</span> <span class="toc-nav-text">2. Kube-Apiserver</span></a></li><li class="toc-nav-item toc-nav-level-3"><a class="toc-nav-link" href="#vip-container"><span class="toc-nav-number">3.</span> <span class="toc-nav-text">3. Etcd</span></a></li><li class="toc-nav-item toc-nav-level-3"><a class="toc-nav-link" href="#vip-container"><span class="toc-nav-number">4.</span> <span class="toc-nav-text">4. 初始化</span></a></li><li class="toc-nav-item toc-nav-level-3"><a class="toc-nav-link" href="#vip-container"><span class="toc-nav-number">5.</span> <span class="toc-nav-text">5. 控制循环</span></a></li><li class="toc-nav-item toc-nav-level-3"><a class="toc-nav-link" href="#vip-container"><span class="toc-nav-number">6.</span> <span class="toc-nav-text">6. Kubelet</span></a></li><li class="toc-nav-item toc-nav-level-3"><a class="toc-nav-link" href="#vip-container"><span class="toc-nav-number">7.</span> <span class="toc-nav-text">7. 总结</span></a></li><li class="toc-nav-item toc-nav-level-3"><a class="toc-nav-link" href="#vip-container"><span class="toc-nav-number">8.</span> <span class="toc-nav-text">8. 原文链接</span></a></li></ol>
         
         </div>
       </aside>

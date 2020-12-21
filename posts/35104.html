@@ -234,14 +234,14 @@
 
                 <div id="vip-container"><p>微服务作为一种全新的软件架构现在正变得越来越火。基本原因我觉得有两点：一方面软件系统越做越复杂，通过拆分将一个大系统解耦成一个个独立的子系统，我们就降低了整个系统的复杂性。另一方面，Kubernetes 的出现使得编排这么多子系统变得简单，可以说 Kubernetes 是目前为止微服务最好的载体。</p>
 <p>Kubernetes 解决了微服务运行时的环境问题，但对开发环境就不那么友好了。比方说如果我们要在本地开发调试一个服务 A，但服务 A 可能依赖服务B、C，而服务 B 又有一层依赖 D，我们就需要在本地把服务 B、C、D 都搭建起来才能调试服务 A。这显然是一个很痛苦的过程。</p>
-<p><img src="https://i.loli.net/2019/11/06/OXPumiy1AWHr3v9.png" alt=""></p>
+<p><img src="https://i.loli.net/2019/11/06/OXPumiy1AWHr3v9.png" alt></p>
 <p>业界有朋友用 <code>docker-compose</code> 来模拟集群中的场景。这个方案的不足之处在于它需要把 <code>Kubernetes</code> 的那一套逻辑用 <code>docker-compose.yml</code> 文件重写一遍，这给我们带来了维护成本。另一方面，有的时候依赖树太大，本地机器完全无法同时运行这么多服务。</p>
 <figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br></pre></td><td class="code"><pre><span class="line">ratesvc:</span><br><span class="line">  image: kubeapps&#x2F;ratesvc:latest</span><br><span class="line">  environment:</span><br><span class="line">    - JWT_KEY&#x3D;secret  # &lt;------------------------ 手工维护</span><br><span class="line">  command:</span><br><span class="line">    - &#x2F;ratesvc</span><br><span class="line">    - --mongo-url&#x3D;mongodb:&#x2F;&#x2F;root@mongodb  # &lt;---- 手工维护</span><br><span class="line">    - --mongo-database&#x3D;ratesvc</span><br><span class="line"></span><br><span class="line">mongodb:</span><br><span class="line">  image: bitnami&#x2F;mongodb:3</span><br><span class="line">  environment:</span><br><span class="line">    - MONGODB_ROOT_PASSWORD&#x3D;password123</span><br><span class="line"></span><br><span class="line">auth:</span><br><span class="line">  image: kubeapps&#x2F;oauth2-bitnami:latest</span><br><span class="line">  volumes:</span><br><span class="line">    - .&#x2F;config.yaml:&#x2F;config&#x2F;monocular.yaml  # &lt;-- 手工维护</span><br><span class="line">  ...</span><br><span class="line"></span><br><span class="line">volumnes:  # &lt;----------------------------------- 手工维护</span><br><span class="line">  monocular-data:</span><br></pre></td></tr></table></figure>
 <p>另一种解决方案就是我这里要介绍的 <code>Telepresence</code> 了，它能够在不修改程序代码的情况下，让本地应用程序无感的接入到 <code>Kubernetes</code> 集群中，这样你就可以直接在本地开发调试微服务了。</p>
-<h2 id="telepresence-简介">Telepresence 简介</h2>
+<h2><span id="telepresence-简介">Telepresence 简介</span></h2>
 <p><code>Telepresence</code> 是一个 <code>CNCF</code> 基金会下的项目。它的工作原理是在本地和 <code>Kubernetes</code> 集群中搭建一个透明的双向代理，这使得我们可以在本地用熟悉的 <code>IDE</code> 和调试工具来运行一个微服务，同时该服务还可以无缝的与 <code>Kubernetes</code> 集群中的其他服务进行交互，好像它就运行在这个集群中一样。</p>
 <p>这是一个 <code>Telepresence</code> 工作原理图，它将集群中的数据卷、环境变量、网络都代理到了本地（除了数据卷外，其他两个对应用程序来说都是透明的）：</p>
-<p><img src="https://i.loli.net/2019/11/06/79IMTeOFfJ8p5wb.png" alt=""></p>
+<p><img src="https://i.loli.net/2019/11/06/79IMTeOFfJ8p5wb.png" alt></p>
 <p>有了这些代理之后：</p>
 <ol>
 <li>
@@ -254,7 +254,7 @@
 <p>甚至集群中的服务还能直接访问到本地暴露出来的接口。</p>
 </li>
 </ol>
-<h2 id="telepresence-安装">Telepresence 安装</h2>
+<h2><span id="telepresence-安装">Telepresence 安装</span></h2>
 <p>这里只说一下如何在 <code>macOS</code> 下进行安装。</p>
 <figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">$ brew cask install osxfuse  <span class="comment"># required by sshfs to mount the pod's filesystem</span></span><br><span class="line">$ brew install datawire/blackbird/telepresence</span><br></pre></td></tr></table></figure>
 <blockquote>
@@ -262,10 +262,10 @@
 </blockquote>
 <p>如果官方的安装包没有覆盖到你的平台，其实也可以从源代码安装，因为它本身就是用 <code>Python 3</code> 写的，熟悉 <code>Python</code> 的朋友安装这个程序应该不难，我自己就在 <code>CentOS 7</code> 上安装成功了。</p>
 <a id="more"></a>
-<h2 id="telepresence-使用场景">Telepresence 使用场景</h2>
+<h2><span id="telepresence-使用场景">Telepresence 使用场景</span></h2>
 <p>假设我们有两个服务 A 和 B，服务 A 是依赖于服务 B 的。下面分两个场景来看看如何用 Telepresence 来调试 A 和 B。</p>
-<p><img src="https://i.loli.net/2019/11/06/Pgp2NtCk8IGvoX3.png" alt=""></p>
-<h3 id="调试服务-a">调试服务 A</h3>
+<p><img src="https://i.loli.net/2019/11/06/Pgp2NtCk8IGvoX3.png" alt></p>
+<h3><span id="调试服务-a">调试服务 A</span></h3>
 <p>服务 A 在本地运行，服务 B 运行在远端集群中。借助 <code>Telepresence</code> 搭建的代理，A 就能直接访问到 B。比方说我们的服务 B 是这样一个程序，它监听在 8000 端口上。每当有人访问时它就返回 <code>Hello, world!</code> 。</p>
 <figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">$ kubectl run service-b --image=datawire/hello-world --port=8000 --expose</span><br><span class="line">$ kubectl get service service-b</span><br><span class="line">NAME        CLUSTER-IP   EXTERNAL-IP   PORT(S)    AGE</span><br><span class="line">service-b   10.0.0.12    &lt;none&gt;        8000/TCP   1m</span><br></pre></td></tr></table></figure>
 <p>现在在本地用默认参数启动 <code>Telepresence</code> ，等它连接好集群：</p>
@@ -287,17 +287,17 @@
 <p>除此之外 <code>Telepresence</code> 还将远端的文件系统通过 <code>sshfs</code> 挂载到本地 <code>$TELEPRESENCE_ROOT</code> 下面（你也可以用参数 <code>--mount &lt;MOUNT_PATH&gt;</code> 指定挂载的路径）。这样，我们的应用程序就可以在本地访问到远程的文件系统：</p>
 <figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">$ ls <span class="variable">$TELEPRESENCE_ROOT</span>/var/run/secrets/kubernetes.io/serviceaccount</span><br><span class="line">ca.crt  namespace  token</span><br></pre></td></tr></table></figure>
 <p>如果我们退出 <code>Telepresence</code> 对应的 Shell，它也会做一些清理工作，比如取消本地 <code>VPN</code>、删除刚刚创建的 <code>Deployment</code> 等。</p>
-<h3 id="调试服务-b">调试服务 B</h3>
+<h3><span id="调试服务-b">调试服务 B</span></h3>
 <p>服务 B 与刚才的不同之处在于，它是被别人访问的，要调试它，首先得要有真实的访问流量。我们如何才能做到将别人对它的访问路由到本地来，从而实现在本地捕捉到集群中的流量呢？</p>
 <p>Telepresence 提供这样一个参数，<code>--swap-deployment &lt;DEPLOYMENT_NAME[:CONTAINER]&gt;</code>，用来将集群中的一个 <code>Deployment</code> 替换为本地的服务。对于上面的 <code>service-b</code>，我们可以这样替换：</p>
 <figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">$ telepresence --swap-deployment service-b --expose 8000:8000</span><br></pre></td></tr></table></figure>
 <p>这个时候集群中的服务 A 再想访问服务 B 的 8000 端口时，<code>Telepresence</code> 就会将这个请求转发到本地的 8000 端口。它的工作原理就是将集群中的 <code>service-b</code> 替换为 <code>Telepresence</code> 创建的 Proxy ，然后这个 Proxy 再将请求转发到本地客户端。</p>
 <p>即，将原始的网络：</p>
-<p><img src="https://i.loli.net/2019/11/06/x6NvdWSFQK4HXCJ.png" alt=""></p>
+<p><img src="https://i.loli.net/2019/11/06/x6NvdWSFQK4HXCJ.png" alt></p>
 <p>替换为这个结构：</p>
-<p><img src="https://i.loli.net/2019/11/06/ATgkiv1X3jGy8Wn.png" alt=""></p>
+<p><img src="https://i.loli.net/2019/11/06/ATgkiv1X3jGy8Wn.png" alt></p>
 <p>这样我们就有机会在本地查看具体的请求数据，调试逻辑，以及生成新的回复。</p>
-<h2 id="总结">总结</h2>
+<h2><span id="总结">总结</span></h2>
 <p>这篇文章里我先提出了微服务开发中一个常见的问题，然后介绍了 <code>Telepresence</code> 项目，并且举例说明了怎样用它来调试两种常见的微服务场景。当然，Telepresence 还在不断的演进，本文中使用的是 v0.101 版本，后续版本很可能有些不一样的地方，也欢迎大家不断指正。</p>
 <blockquote>
 <p>来源：喵叔没话说</p>
@@ -377,7 +377,7 @@
         <div id="toc" class="toc-article">
         <strong class="toc-title">Contents</strong>
         
-          <ol class="toc-nav"><li class="toc-nav-item toc-nav-level-2"><a class="toc-nav-link" href="#telepresence-简介"><span class="toc-nav-number">1.</span> <span class="toc-nav-text">Telepresence 简介</span></a></li><li class="toc-nav-item toc-nav-level-2"><a class="toc-nav-link" href="#telepresence-安装"><span class="toc-nav-number">2.</span> <span class="toc-nav-text">Telepresence 安装</span></a></li><li class="toc-nav-item toc-nav-level-2"><a class="toc-nav-link" href="#telepresence-使用场景"><span class="toc-nav-number">3.</span> <span class="toc-nav-text">Telepresence 使用场景</span></a><ol class="toc-nav-child"><li class="toc-nav-item toc-nav-level-3"><a class="toc-nav-link" href="#调试服务-a"><span class="toc-nav-number">3.1.</span> <span class="toc-nav-text">调试服务 A</span></a></li><li class="toc-nav-item toc-nav-level-3"><a class="toc-nav-link" href="#调试服务-b"><span class="toc-nav-number">3.2.</span> <span class="toc-nav-text">调试服务 B</span></a></li></ol></li><li class="toc-nav-item toc-nav-level-2"><a class="toc-nav-link" href="#总结"><span class="toc-nav-number">4.</span> <span class="toc-nav-text">总结</span></a></li></ol>
+          <ol class="toc-nav"><li class="toc-nav-item toc-nav-level-2"><a class="toc-nav-link" href="#vip-container"><span class="toc-nav-number">1.</span> <span class="toc-nav-text">Telepresence 简介</span></a></li><li class="toc-nav-item toc-nav-level-2"><a class="toc-nav-link" href="#vip-container"><span class="toc-nav-number">2.</span> <span class="toc-nav-text">Telepresence 安装</span></a></li><li class="toc-nav-item toc-nav-level-2"><a class="toc-nav-link" href="#vip-container"><span class="toc-nav-number">3.</span> <span class="toc-nav-text">Telepresence 使用场景</span></a><ol class="toc-nav-child"><li class="toc-nav-item toc-nav-level-3"><a class="toc-nav-link" href="#vip-container"><span class="toc-nav-number">3.1.</span> <span class="toc-nav-text">调试服务 A</span></a></li><li class="toc-nav-item toc-nav-level-3"><a class="toc-nav-link" href="#vip-container"><span class="toc-nav-number">3.2.</span> <span class="toc-nav-text">调试服务 B</span></a></li></ol></li><li class="toc-nav-item toc-nav-level-2"><a class="toc-nav-link" href="#vip-container"><span class="toc-nav-number">4.</span> <span class="toc-nav-text">总结</span></a></li></ol>
         
         </div>
       </aside>

@@ -234,7 +234,7 @@
 
                 <div id="vip-container"><p><code>xargs</code> 是 Unix 系统的一个很有用的命令，但是常常被忽视，很多人不了解它的用法。</p>
 <p>本文将介绍如何使用这个命令。</p>
-<h2 id="标准输入与管道命令">标准输入与管道命令</h2>
+<h2><span id="标准输入与管道命令">标准输入与管道命令</span></h2>
 <p>Unix 命令都带有参数，有些命令可以接受&quot;标准输入&quot;（stdin）作为参数。</p>
 <figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">$ cat &#x2F;etc&#x2F;passwd | grep root</span><br></pre></td></tr></table></figure>
 <p>上面的代码使用了管道命令（|）。管道命令的作用，是将左侧命令（cat /etc/passwd）的标准输出转换为标准输入，提供给右侧命令（grep root）作为参数。</p>
@@ -244,7 +244,7 @@
 <figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">$ echo &quot;hello world&quot; | echo</span><br></pre></td></tr></table></figure>
 <p>上面的代码不会有输出。因为管道右侧的 echo 不接受管道传来的标准输入作为参数。</p>
 <a id="more"></a>
-<h2 id="xargs-命令的作用">xargs 命令的作用</h2>
+<h2><span id="xargs-命令的作用">xargs 命令的作用</span></h2>
 <p><code>xargs</code> 命令的作用，是将标准输入转为命令行参数。</p>
 <figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">$ echo &quot;hello world&quot; | xargs echo</span><br><span class="line">hello world</span><br></pre></td></tr></table></figure>
 <p>上面的代码将管道左侧的标准输入，转为命令行参数 hello world，传给第二个 echo 命令。</p>
@@ -254,7 +254,7 @@
 <p>xargs 的作用在于，大多数命令（比如 rm、mkdir、ls ）与管道一起使用时，都需要 <code>xargs</code> 将标准输入转为命令行参数。</p>
 <figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">$ echo &quot;one two three&quot; | xargs mkdir</span><br></pre></td></tr></table></figure>
 <p>上面的代码等同于 <code>mkdir one two three</code>。如果不加 <code>xargs</code> 就会报错，提示 <code>mkdir</code> 缺少操作参数。</p>
-<h2 id="xargs-的单独使用">xargs 的单独使用</h2>
+<h2><span id="xargs-的单独使用">xargs 的单独使用</span></h2>
 <p>xargs 后面的命令默认是 echo。</p>
 <figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">$ xargs</span><br><span class="line"># 等同于</span><br><span class="line">$ xargs echo</span><br></pre></td></tr></table></figure>
 <p>大多数时候，xargs 命令都是跟管道一起使用的。但是，它也可以单独使用。</p>
@@ -263,21 +263,21 @@
 <p>再看一个例子。</p>
 <figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">$ xargs find -name</span><br><span class="line">&quot;*.txt&quot;</span><br><span class="line">.&#x2F;foo.txt</span><br><span class="line">.&#x2F;hello.txt</span><br></pre></td></tr></table></figure>
 <p>上面的例子输入 <code>xargs find -name</code> 以后，命令行会等待用户输入所要搜索的文件。用户输入 <code>&quot;*.txt&quot;</code>，表示搜索当前目录下的所有 TXT 文件，然后按下 <code>Ctrl+d</code>，表示输入结束。这时就相当执行 <code>find -name *.txt</code>。</p>
-<h2 id="-d-参数与分隔符">-d 参数与分隔符</h2>
+<h2><span id="-d-参数与分隔符">-d 参数与分隔符</span></h2>
 <p>默认情况下，xargs将换行符和空格作为分隔符，把标准输入分解成一个个命令行参数。</p>
 <figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">$ echo &quot;one two three&quot; | xargs mkdir</span><br></pre></td></tr></table></figure>
 <p>上面代码中，mkdir 会新建三个子目录，因为 <code>xargs</code> 将 one two three 分解成三个命令行参数，执行 mkdir one two three。</p>
 <p><code>-d</code> 参数可以更改分隔符。</p>
 <figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">$ echo -e &quot;a\tb\tc&quot; | xargs -d &quot;\t&quot; echo</span><br><span class="line">a b c</span><br></pre></td></tr></table></figure>
 <p>上面的命令指定制表符 <code>\t</code> 作为分隔符，所以 a\tb\tc 就转换成了三个命令行参数。echo 命令的 <code>-e</code> 参数表示解释转义字符。</p>
-<h2 id="-p-参数-t-参数">-p 参数，-t 参数</h2>
+<h2><span id="-p-参数-t-参数">-p 参数，-t 参数</span></h2>
 <p>使用 <code>xargs</code> 命令以后，由于存在转换参数过程，有时需要确认一下到底执行的是什么命令。</p>
 <p><code>-p</code> 参数打印出要执行的命令，询问用户是否要执行。</p>
 <figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">$ echo &#39;one two three&#39; | xargs -p touch</span><br><span class="line">touch one two three ?...</span><br></pre></td></tr></table></figure>
 <p>上面的命令执行以后，会打印出最终要执行的命令，让用户确认。用户按下回车以后，才会真正执行。</p>
 <p><code>-t</code> 参数则是打印出最终要执行的命令，然后直接执行，不需要用户确认。</p>
 <figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">$ echo &#39;one two three&#39; | xargs -t rm</span><br><span class="line">rm one two three</span><br></pre></td></tr></table></figure>
-<h2 id="-0-参数与-find-命令">-0 参数与 find 命令</h2>
+<h2><span id="-0-参数与-find-命令">-0 参数与 find 命令</span></h2>
 <p>由于 xargs 默认将空格作为分隔符，所以不太适合处理文件名，因为文件名可能包含空格。</p>
 <p><code>find</code> 命令有一个特别的参数 -print0，指定输出的文件列表以 null 分隔。然后，xargs 命令的 <code>-0</code> 参数表示用 null 当作分隔符。</p>
 <figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">$ find &#x2F;path -type f -print0 | xargs -0 rm</span><br></pre></td></tr></table></figure>
@@ -285,7 +285,7 @@
 <p>还有一个原因，使得 <code>xargs</code> 特别适合 <code>find</code> 命令。有些命令（比如 <code>rm</code>）一旦参数过多会报错 “参数列表过长”，而无法执行，改用 <code>xargs</code> 就没有这个问题，因为它对每个参数执行一次命令。</p>
 <figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">$ find . -name &quot;*.txt&quot; | xargs grep &quot;abc&quot;</span><br></pre></td></tr></table></figure>
 <p>上面命令找出所有 TXT 文件以后，对每个文件搜索一次是否包含字符串 abc。</p>
-<h2 id="-l-参数">-L 参数</h2>
+<h2><span id="-l-参数">-L 参数</span></h2>
 <p>如果标准输入包含多行，<code>-L</code> 参数指定多少行作为一个命令行参数。</p>
 <figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">$ xargs find -name</span><br><span class="line">&quot;*.txt&quot;   </span><br><span class="line">&quot;*.md&quot;</span><br><span class="line">find: paths must precede expression: &#96;*.md&#39;</span><br></pre></td></tr></table></figure>
 <p>上面命令同时将 “*.txt” 和 *.md 两行作为命令行参数，传给 <code>find</code> 命令导致报错。</p>
@@ -295,7 +295,7 @@
 <p>下面是另一个例子。</p>
 <figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">$ echo -e &quot;a\nb\nc&quot; | xargs -L 1 echo</span><br><span class="line">a</span><br><span class="line">b</span><br><span class="line">c</span><br></pre></td></tr></table></figure>
 <p>上面代码指定每行运行一次 <code>echo</code> 命令，所以 <code>echo</code> 命令执行了三次，输出了三行。</p>
-<h2 id="-n-参数">-n 参数</h2>
+<h2><span id="-n-参数">-n 参数</span></h2>
 <p><code>-L</code> 参数虽然解决了多行的问题，但是有时用户会在同一行输入多项。</p>
 <figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">$ xargs find -name</span><br><span class="line">&quot;*.txt&quot; &quot;*.md&quot;</span><br><span class="line">find: paths must precede expression: &#96;*.md&#39;</span><br></pre></td></tr></table></figure>
 <p>上面的命令将同一行的两项作为命令行参数，导致报错。</p>
@@ -305,17 +305,17 @@
 <p>下面是另一个例子。</p>
 <figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">$ echo &#123;0..9&#125; | xargs -n 2 echo</span><br><span class="line">0 1</span><br><span class="line">2 3</span><br><span class="line">4 5</span><br><span class="line">6 7</span><br><span class="line">8 9</span><br></pre></td></tr></table></figure>
 <p>上面命令指定，每两个参数运行一次 echo 命令。所以，10 个阿拉伯数字运行了五次 echo 命令，输出了五行。</p>
-<h2 id="-i-参数">-I 参数</h2>
+<h2><span id="-i-参数">-I 参数</span></h2>
 <p>如果 <code>xargs</code> 要将命令行参数传给多个命令，可以使用 <code>-I</code> 参数。</p>
 <p><code>-I</code> 指定每一项命令行参数的替代字符串。</p>
 <figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line">$ cat foo.txt</span><br><span class="line">one</span><br><span class="line">two</span><br><span class="line">three</span><br><span class="line"></span><br><span class="line">$ cat foo.txt | xargs -I file sh -c &#39;echo file; mkdir file&#39;</span><br><span class="line">one </span><br><span class="line">two</span><br><span class="line">three</span><br><span class="line"></span><br><span class="line">$ ls </span><br><span class="line">one two three</span><br></pre></td></tr></table></figure>
 <p>上面代码中，foo.txt 是一个三行的文本文件。我们希望对每一项命令行参数，执行两个命令（echo 和 mkdir），使用 -I file 表示 file 是命令行参数的替代字符串。执行命令时，具体的参数会替代掉 echo file; mkdir file 里面的两个 file。</p>
-<h2 id="max-procs-参数">–max-procs 参数</h2>
+<h2><span id="max-procs-参数">–max-procs 参数</span></h2>
 <p><code>xargs</code> 默认只用一个进程执行命令。如果命令要执行多次，必须等上一次执行完，才能执行下一次。</p>
 <p><code>--max-procs</code> 参数指定同时用多少个进程并行执行命令。<code>--max-procs 2</code> 表示同时最多使用两个进程，<code>--max-procs 0</code> 表示不限制进程数。</p>
 <figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">$ docker ps -q | xargs -n 1 --max-procs 0 docker kill</span><br></pre></td></tr></table></figure>
 <p>上面命令表示，同时关闭尽可能多的 Docker 容器，这样运行速度会快很多。</p>
-<h2 id="参考链接">参考链接</h2>
+<h2><span id="参考链接">参考链接</span></h2>
 <ol>
 <li>
 <p>Linux and Unix xargs command tutorial with examples, George Ornbo</p>
@@ -402,7 +402,7 @@
         <div id="toc" class="toc-article">
         <strong class="toc-title">Contents</strong>
         
-          <ol class="toc-nav"><li class="toc-nav-item toc-nav-level-2"><a class="toc-nav-link" href="#标准输入与管道命令"><span class="toc-nav-number">1.</span> <span class="toc-nav-text">标准输入与管道命令</span></a></li><li class="toc-nav-item toc-nav-level-2"><a class="toc-nav-link" href="#xargs-命令的作用"><span class="toc-nav-number">2.</span> <span class="toc-nav-text">xargs 命令的作用</span></a></li><li class="toc-nav-item toc-nav-level-2"><a class="toc-nav-link" href="#xargs-的单独使用"><span class="toc-nav-number">3.</span> <span class="toc-nav-text">xargs 的单独使用</span></a></li><li class="toc-nav-item toc-nav-level-2"><a class="toc-nav-link" href="#-d-参数与分隔符"><span class="toc-nav-number">4.</span> <span class="toc-nav-text">-d 参数与分隔符</span></a></li><li class="toc-nav-item toc-nav-level-2"><a class="toc-nav-link" href="#-p-参数-t-参数"><span class="toc-nav-number">5.</span> <span class="toc-nav-text">-p 参数，-t 参数</span></a></li><li class="toc-nav-item toc-nav-level-2"><a class="toc-nav-link" href="#-0-参数与-find-命令"><span class="toc-nav-number">6.</span> <span class="toc-nav-text">-0 参数与 find 命令</span></a></li><li class="toc-nav-item toc-nav-level-2"><a class="toc-nav-link" href="#-l-参数"><span class="toc-nav-number">7.</span> <span class="toc-nav-text">-L 参数</span></a></li><li class="toc-nav-item toc-nav-level-2"><a class="toc-nav-link" href="#-n-参数"><span class="toc-nav-number">8.</span> <span class="toc-nav-text">-n 参数</span></a></li><li class="toc-nav-item toc-nav-level-2"><a class="toc-nav-link" href="#-i-参数"><span class="toc-nav-number">9.</span> <span class="toc-nav-text">-I 参数</span></a></li><li class="toc-nav-item toc-nav-level-2"><a class="toc-nav-link" href="#max-procs-参数"><span class="toc-nav-number">10.</span> <span class="toc-nav-text">–max-procs 参数</span></a></li><li class="toc-nav-item toc-nav-level-2"><a class="toc-nav-link" href="#参考链接"><span class="toc-nav-number">11.</span> <span class="toc-nav-text">参考链接</span></a></li></ol>
+          <ol class="toc-nav"><li class="toc-nav-item toc-nav-level-2"><a class="toc-nav-link" href="#vip-container"><span class="toc-nav-number">1.</span> <span class="toc-nav-text">标准输入与管道命令</span></a></li><li class="toc-nav-item toc-nav-level-2"><a class="toc-nav-link" href="#vip-container"><span class="toc-nav-number">2.</span> <span class="toc-nav-text">xargs 命令的作用</span></a></li><li class="toc-nav-item toc-nav-level-2"><a class="toc-nav-link" href="#vip-container"><span class="toc-nav-number">3.</span> <span class="toc-nav-text">xargs 的单独使用</span></a></li><li class="toc-nav-item toc-nav-level-2"><a class="toc-nav-link" href="#vip-container"><span class="toc-nav-number">4.</span> <span class="toc-nav-text">-d 参数与分隔符</span></a></li><li class="toc-nav-item toc-nav-level-2"><a class="toc-nav-link" href="#vip-container"><span class="toc-nav-number">5.</span> <span class="toc-nav-text">-p 参数，-t 参数</span></a></li><li class="toc-nav-item toc-nav-level-2"><a class="toc-nav-link" href="#vip-container"><span class="toc-nav-number">6.</span> <span class="toc-nav-text">-0 参数与 find 命令</span></a></li><li class="toc-nav-item toc-nav-level-2"><a class="toc-nav-link" href="#vip-container"><span class="toc-nav-number">7.</span> <span class="toc-nav-text">-L 参数</span></a></li><li class="toc-nav-item toc-nav-level-2"><a class="toc-nav-link" href="#vip-container"><span class="toc-nav-number">8.</span> <span class="toc-nav-text">-n 参数</span></a></li><li class="toc-nav-item toc-nav-level-2"><a class="toc-nav-link" href="#vip-container"><span class="toc-nav-number">9.</span> <span class="toc-nav-text">-I 参数</span></a></li><li class="toc-nav-item toc-nav-level-2"><a class="toc-nav-link" href="#vip-container"><span class="toc-nav-number">10.</span> <span class="toc-nav-text">–max-procs 参数</span></a></li><li class="toc-nav-item toc-nav-level-2"><a class="toc-nav-link" href="#vip-container"><span class="toc-nav-number">11.</span> <span class="toc-nav-text">参考链接</span></a></li></ol>
         
         </div>
       </aside>

@@ -235,23 +235,23 @@
                 <div id="vip-container"><p>GitHub Actions 是 GitHub 的持续集成服务，于 2018 年 10 月推出。</p>
 <p>这些天，我一直在试用，觉得它非常强大，有创意，比 Travis CI 玩法更多。</p>
 <p>本文是一个简单教程，演示如何使用 GitHub Actions 自动发布一个 React 应用到 GitHub Pages。</p>
-<h2 id="github-actions-是什么">GitHub Actions 是什么？</h2>
+<h2><span id="github-actions-是什么">GitHub Actions 是什么？</span></h2>
 <p>大家知道，持续集成由很多操作组成，比如抓取代码、运行测试、登录远程服务器，发布到第三方服务等等。GitHub 把这些操作就称为 actions。</p>
 <p>很多操作在不同项目里面是类似的，完全可以共享。GitHub 注意到了这一点，想出了一个很妙的点子，允许开发者把每个操作写成独立的脚本文件，存放到代码仓库，使得其他开发者可以引用。</p>
 <p>如果你需要某个 action，不必自己写复杂的脚本，直接引用他人写好的 action 即可，整个持续集成过程，就变成了一个 actions 的组合。这就是 GitHub Actions 最特别的地方。</p>
 <p>GitHub 做了一个官方市场，可以搜索到他人提交的 actions。另外，还有一个 awesome actions 的仓库，也可以找到不少 action。</p>
-<p><img src="https://www.wangbase.com/blogimg/asset/201909/bg2019091105.jpg" alt=""></p>
+<p><img src="https://www.wangbase.com/blogimg/asset/201909/bg2019091105.jpg" alt></p>
 <p>上面说了，每个 action 就是一个独立脚本，因此可以做成代码仓库，使用 userName/repoName 的语法引用 action。比如，actions/setup-node 就表示 <a href="http://github.com/actions/setup-node" target="_blank" rel="noopener">github.com/actions/setup-node</a> 这个仓库，它代表一个 action，作用是安装 Node.js。事实上，GitHub 官方的 actions 都放在 <a href="http://github.com/actions" target="_blank" rel="noopener">github.com/actions</a> 里面。</p>
 <p>既然 actions 是代码仓库，当然就有版本的概念，用户可以引用某个具体版本的 action。下面都是合法的 action 引用，用的就是 Git 的指针概念，详见官方文档。</p>
 <figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">actions&#x2F;setup-node@74bc508 # 指向一个 commit</span><br><span class="line">actions&#x2F;setup-node@v1.0    # 指向一个标签</span><br><span class="line">actions&#x2F;setup-node@master  # 指向一个分支</span><br></pre></td></tr></table></figure>
 <a id="more"></a>
-<h2 id="基本概念">基本概念</h2>
+<h2><span id="基本概念">基本概念</span></h2>
 <p>GitHub Actions 有一些自己的术语。</p>
 <p>（1）workflow （工作流程）：持续集成一次运行的过程，就是一个 workflow。</p>
 <p>（2）job （任务）：一个 workflow 由一个或多个 jobs 构成，含义是一次持续集成的运行，可以完成多个任务。</p>
 <p>（3）step（步骤）：每个 job 由多个 step 构成，一步步完成。</p>
 <p>（4）action （动作）：每个 step 可以依次执行一个或多个命令（action）。</p>
-<h2 id="workflow-文件">workflow 文件</h2>
+<h2><span id="workflow-文件">workflow 文件</span></h2>
 <p>GitHub Actions 的配置文件叫做 workflow 文件，存放在代码仓库的 .github/workflows 目录。</p>
 <p>workflow 文件采用 YAML 格式，文件名可以任意取，但是后缀名统一为 .yml，比如 foo.yml。一个库可以有多个 workflow 文件。GitHub 只要发现 .github/workflows 目录里面有 .yml 文件，就会自动运行该文件。</p>
 <p>workflow 文件的配置字段非常多，详见官方文档。下面是一些基本字段。</p>
@@ -310,13 +310,13 @@
 <p>下面是一个完整的 workflow 文件的范例。</p>
 <figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br></pre></td><td class="code"><pre><span class="line">name: Greeting from Mona</span><br><span class="line">on: push</span><br><span class="line"></span><br><span class="line">jobs:</span><br><span class="line">  my-job:</span><br><span class="line">    name: My Job</span><br><span class="line">    runs-on: ubuntu-latest</span><br><span class="line">    steps:</span><br><span class="line">    - name: Print a greeting</span><br><span class="line">      env:</span><br><span class="line">        MY_VAR: Hi there! My name is</span><br><span class="line">        FIRST_NAME: Mona</span><br><span class="line">        MIDDLE_NAME: The</span><br><span class="line">        LAST_NAME: Octocat</span><br><span class="line">      run: |</span><br><span class="line">        echo $MY_VAR $FIRST_NAME $MIDDLE_NAME $LAST_NAME.</span><br></pre></td></tr></table></figure>
 <p>上面代码中，steps 字段只包括一个步骤。该步骤先注入四个环境变量，然后执行一条 Bash 命令。</p>
-<h2 id="实例react-项目发布到-github-pages">实例：React 项目发布到 GitHub Pages</h2>
+<h2><span id="实例react-项目发布到-github-pages">实例：React 项目发布到 GitHub Pages</span></h2>
 <p>下面是一个实例，通过 GitHub Actions 构建一个 React 项目，并发布到 GitHub Pages。最终代码都在这个仓库里面，发布后的参考网址为 <a href="http://ruanyf.github.io/github-actions-demo%E3%80%82" target="_blank" rel="noopener">ruanyf.github.io/github-actions-demo。</a></p>
 <p>第一步，GitHub Actions 目前还处在测试阶段，需要到这个网址申请测试资格。申请以后，可能需要几天才能通过。据说，2019 年 11 月就会放开。</p>
 <p>获得资格后，仓库顶部的菜单会出现 Actions 一项。</p>
-<p><img src="https://www.wangbase.com/blogimg/asset/201909/bg2019091106.jpg" alt=""></p>
+<p><img src="https://www.wangbase.com/blogimg/asset/201909/bg2019091106.jpg" alt></p>
 <p>第二步，这个示例需要将构建成果发到 GitHub 仓库，因此需要 GitHub 密钥。按照官方文档，生成一个密钥。然后，将这个密钥储存到当前仓库的 Settings/Secrets 里面。</p>
-<p><img src="https://www.wangbase.com/blogimg/asset/201909/bg2019091107.jpg" alt=""></p>
+<p><img src="https://www.wangbase.com/blogimg/asset/201909/bg2019091107.jpg" alt></p>
 <p>上图是储存秘密的环境变量的地方。环境变量的名字可以随便起，这里用的是 ACCESS_TOKEN。如果你不用这个名字，后面脚本里的变量名也要跟着改。</p>
 <p>第三步，本地计算机使用 create-react-app，生成一个标准的 React 应用。</p>
 <figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">$ npx create-react-app github-actions-demo</span><br><span class="line">$ cd github-actions-demo</span><br></pre></td></tr></table></figure>
@@ -343,11 +343,11 @@
 </ol>
 <p>第五步，保存上面的文件后，将整个仓库推送到 GitHub。</p>
 <p>GitHub 发现了 workflow 文件以后，就会自动运行。你可以在网站上实时查看运行日志，日志默认保存 30 天。</p>
-<p><img src="https://www.wangbase.com/blogimg/asset/201909/bg2019091108.jpg" alt=""></p>
+<p><img src="https://www.wangbase.com/blogimg/asset/201909/bg2019091108.jpg" alt></p>
 <p>等到 workflow 运行结束，访问 GitHub Page，会看到构建成果已经发上网了。</p>
-<p><img src="https://www.wangbase.com/blogimg/asset/201909/bg2019091109.jpg" alt=""></p>
+<p><img src="https://www.wangbase.com/blogimg/asset/201909/bg2019091109.jpg" alt></p>
 <p>以后，每次修改后推送源码，GitHub Actions 都会自动运行，将构建产物发布到网页。</p>
-<h2 id="参考链接">参考链接</h2>
+<h2><span id="参考链接">参考链接</span></h2>
 <ol>
 <li>
 <p>GitHub Pages 官方文档</p>
@@ -437,7 +437,7 @@
         <div id="toc" class="toc-article">
         <strong class="toc-title">Contents</strong>
         
-          <ol class="toc-nav"><li class="toc-nav-item toc-nav-level-2"><a class="toc-nav-link" href="#github-actions-是什么"><span class="toc-nav-number">1.</span> <span class="toc-nav-text">GitHub Actions 是什么？</span></a></li><li class="toc-nav-item toc-nav-level-2"><a class="toc-nav-link" href="#基本概念"><span class="toc-nav-number">2.</span> <span class="toc-nav-text">基本概念</span></a></li><li class="toc-nav-item toc-nav-level-2"><a class="toc-nav-link" href="#workflow-文件"><span class="toc-nav-number">3.</span> <span class="toc-nav-text">workflow 文件</span></a></li><li class="toc-nav-item toc-nav-level-2"><a class="toc-nav-link" href="#实例react-项目发布到-github-pages"><span class="toc-nav-number">4.</span> <span class="toc-nav-text">实例：React 项目发布到 GitHub Pages</span></a></li><li class="toc-nav-item toc-nav-level-2"><a class="toc-nav-link" href="#参考链接"><span class="toc-nav-number">5.</span> <span class="toc-nav-text">参考链接</span></a></li></ol>
+          <ol class="toc-nav"><li class="toc-nav-item toc-nav-level-2"><a class="toc-nav-link" href="#vip-container"><span class="toc-nav-number">1.</span> <span class="toc-nav-text">GitHub Actions 是什么？</span></a></li><li class="toc-nav-item toc-nav-level-2"><a class="toc-nav-link" href="#vip-container"><span class="toc-nav-number">2.</span> <span class="toc-nav-text">基本概念</span></a></li><li class="toc-nav-item toc-nav-level-2"><a class="toc-nav-link" href="#vip-container"><span class="toc-nav-number">3.</span> <span class="toc-nav-text">workflow 文件</span></a></li><li class="toc-nav-item toc-nav-level-2"><a class="toc-nav-link" href="#vip-container"><span class="toc-nav-number">4.</span> <span class="toc-nav-text">实例：React 项目发布到 GitHub Pages</span></a></li><li class="toc-nav-item toc-nav-level-2"><a class="toc-nav-link" href="#vip-container"><span class="toc-nav-number">5.</span> <span class="toc-nav-text">参考链接</span></a></li></ol>
         
         </div>
       </aside>

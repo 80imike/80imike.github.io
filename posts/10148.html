@@ -101,9 +101,9 @@
                     <div class="post-heading">
                         <div class="tags">
                             
-                              <a class="tag" href="/tags/#Linux" title="Linux">Linux</a>
-                            
                               <a class="tag" href="/tags/#Docker" title="Docker">Docker</a>
+                            
+                              <a class="tag" href="/tags/#Linux" title="Linux">Linux</a>
                             
                               <a class="tag" href="/tags/#Kubernetes" title="Kubernetes">Kubernetes</a>
                             
@@ -232,26 +232,26 @@
                 col-md-10 col-md-offset-1
                 post-container">
 
-                <div id="vip-container"><h2 id="1-kata-解决什么问题">1. Kata 解决什么问题</h2>
+                <div id="vip-container"><h2><span id="1-kata-解决什么问题">1. Kata 解决什么问题</span></h2>
 <p>安全性和隔离性是 Kata Container 显著区别于 Docker Container 的地方。</p>
 <p>Kata Container 来源于 Intel Clear Containers 和 Hyper runV 项目的合并。Intel Clear Containers 借助 Intel VT-x 技术使用轻量级虚拟机提供容器，解决安全性问题，同时性能优异。而 Hyper runV 对标的是 Docker 的 runc ，提供容器的运行时，遵循 OCI runtime 规范。</p>
-<h2 id="2-kubernetes-中的-kata">2. Kubernetes 中的 Kata</h2>
-<h3 id="21-oci-和-cri-o">2.1 OCI 和 CRI-O</h3>
+<h2><span id="2-kubernetes-中的-kata">2. Kubernetes 中的 Kata</span></h2>
+<h3><span id="21-oci-和-cri-o">2.1 OCI 和 CRI-O</span></h3>
 <p>OCI 标准是为了避免容器标准被 Docker 独家挟持而出现的。</p>
 <p>CRI 标准将 Kubelet 与运行时解耦，实现 CRI 标准的容器管理程序都可以用于 Pod 创建。</p>
 <p>CRI-O 插件同时实现了 CRI 和 OCI 标准，可以用于替换 Containerd 直接与 runV 等 OCI runtime 对接。</p>
 <p>如下图：</p>
-<p><img src="https://www.hi-linux.com/img/linux/k8s-kata01.jpg" alt=""></p>
-<h3 id="22-kata-与-containerd">2.2 Kata 与 Containerd</h3>
+<p><img src="https://www.hi-linux.com/img/linux/k8s-kata01.jpg" alt></p>
+<h3><span id="22-kata-与-containerd">2.2 Kata 与 Containerd</span></h3>
 <p>为了兼容 OCI 标准，Docker 将管理运行时的功能从 Docker Daemon 中剥离出来，形成了 Containerd 。在运行容器时，可以不用 Docker 的 runc ，而替换为 kata-runtime 。</p>
-<p><img src="https://www.hi-linux.com/img/linux/k8s-kata02.jpg" alt=""></p>
-<h3 id="23-kata-与-kuberntes-的集成">2.3 Kata 与 Kuberntes 的集成</h3>
+<p><img src="https://www.hi-linux.com/img/linux/k8s-kata02.jpg" alt></p>
+<h3><span id="23-kata-与-kuberntes-的集成">2.3 Kata 与 Kuberntes 的集成</span></h3>
 <p>如下图，Kata 主要替换的是 OCI runtime 层，其他部分与基于 Docker runc 的 Kubernetes 并无差异。同时，基于 kata-runtime 的 Pod 和基于 runc 的 Pod 可以共存于集群之中。</p>
-<p><img src="https://www.hi-linux.com/img/linux/k8s-kata03.jpg" alt=""></p>
+<p><img src="https://www.hi-linux.com/img/linux/k8s-kata03.jpg" alt></p>
 <p>目前的主要问题是，Kata 不支持 host 网络。而 Kubernetes 中，etcd、nodelocaldns、kube-apiserver、kube-scheduler、metrics-server、node-exporter、kube-proxy、calico、kube-controller-manager 等，也就是 Static Pod 和 Daemonset 都会使用 host 网络。所以在安装部署时，依然使用 runc 作为默认的运行时，而将 kata-runtime 作为可选的运行时给特定的负载使用。</p>
 <a id="more"></a>
-<h2 id="3-kubernetes-集群集成-kata">3. Kubernetes 集群集成 Kata</h2>
-<h3 id="31-安装-kubernetes-集群">3.1 安装 Kubernetes 集群</h3>
+<h2><span id="3-kubernetes-集群集成-kata">3. Kubernetes 集群集成 Kata</span></h2>
+<h3><span id="31-安装-kubernetes-集群">3.1 安装 Kubernetes 集群</span></h3>
 <p>使用 Kubeadm 安装集群非常方便，可以参考之前的文档 使用 Kubeadm 安装 Kubernetes 集群 。</p>
 <p>也可以直接参考官方文档，<code>https://kubernetes.io/docs/setup/production-environment/tools/kubeadm/install-kubeadm/</code> 。</p>
 <p>由于，Kata 需要硬件虚拟化支持，IaaS 厂商一般没有开启相关的功能。我使用的是物理机，只能使用国内的网络。下面的脚本，可以用来提前下载相关镜像。</p>
@@ -267,10 +267,10 @@
 <li>查看安装的 Kubernetes 版本</li>
 </ul>
 <figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">$ kubectl version</span><br><span class="line"></span><br><span class="line">Client Version: version.Info&#123;Major:&quot;1&quot;, Minor:&quot;17&quot;, GitVersion:&quot;v1.17.9&quot;, GitCommit:&quot;4fb7ed12476d57b8437ada90b4f93b17ffaeed99&quot;, GitTreeState:&quot;clean&quot;, BuildDate:&quot;2020-07-15T16:18:16Z&quot;, GoVersion:&quot;go1.13.9&quot;, Compiler:&quot;gc&quot;, Platform:&quot;linux&#x2F;amd64&quot;&#125;</span><br><span class="line">Server Version: version.Info&#123;Major:&quot;1&quot;, Minor:&quot;17&quot;, GitVersion:&quot;v1.17.9&quot;, GitCommit:&quot;4fb7ed12476d57b8437ada90b4f93b17ffaeed99&quot;, GitTreeState:&quot;clean&quot;, BuildDate:&quot;2020-07-15T16:10:45Z&quot;, GoVersion:&quot;go1.13.9&quot;, Compiler:&quot;gc&quot;, Platform:&quot;linux&#x2F;amd64&quot;&#125;</span><br></pre></td></tr></table></figure>
-<h3 id="32-安装-kata-命令行工具">3.2 安装 Kata 命令行工具</h3>
+<h3><span id="32-安装-kata-命令行工具">3.2 安装 Kata 命令行工具</span></h3>
 <p>以 CentOS 操作系统为例：</p>
 <figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">$ source &#x2F;etc&#x2F;os-release</span><br><span class="line">$ yum -y install yum-utils</span><br><span class="line">$ ARCH&#x3D;$(arch)</span><br><span class="line">$ BRANCH&#x3D;&quot;$&#123;BRANCH:-master&#125;&quot;</span><br><span class="line">$ yum-config-manager --add-repo &quot;http:&#x2F;&#x2F;download.opensuse.org&#x2F;repositories&#x2F;home:&#x2F;katacontainers:&#x2F;releases:&#x2F;$&#123;ARCH&#125;:&#x2F;$&#123;BRANCH&#125;&#x2F;CentOS_$&#123;VERSION_ID&#125;&#x2F;home:katacontainers:releases:$&#123;ARCH&#125;:$&#123;BRANCH&#125;.repo&quot;</span><br><span class="line">$ yum -y install kata-runtime kata-proxy kata-shim</span><br></pre></td></tr></table></figure>
-<h3 id="33-检测硬件是否支持-kata">3.3 检测硬件是否支持 Kata</h3>
+<h3><span id="33-检测硬件是否支持-kata">3.3 检测硬件是否支持 Kata</span></h3>
 <p>Kata 对硬件的要求需要满足以下任意条件：</p>
 <ul>
 <li>Intel VT-x technology.</li>
@@ -281,7 +281,7 @@
 <p>安装完 kata-runtime 之后，执行检测命令：</p>
 <figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">$ kata-runtime kata-check</span><br><span class="line"></span><br><span class="line">System is capable of running Kata Containers</span><br><span class="line">System can currently create Kata Containers</span><br></pre></td></tr></table></figure>
 <p>这里的输出表示，运行环境支持 Kata Containers 。</p>
-<h3 id="34-配置并测试-docker">3.4 配置并测试 Docker</h3>
+<h3><span id="34-配置并测试-docker">3.4 配置并测试 Docker</span></h3>
 <ul>
 <li>配置 kata-runtime 参数</li>
 </ul>
@@ -293,7 +293,7 @@
 <p>测试 Kata 是否安装成功</p>
 <figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line">$ docker run --runtime&#x3D;kata-runtime  busybox uname -a</span><br><span class="line"></span><br><span class="line">Linux 249a23f53475 5.4.60-65.1.container #1 SMP Thu Jan 1 00:00:00 UTC 1970 x86_64 GNU&#x2F;Linux</span><br><span class="line"></span><br><span class="line">$  docker run busybox uname -a</span><br><span class="line"></span><br><span class="line">Linux b4812ed8990c 3.10.0-1127.el7.x86_64 #1 SMP Tue Mar 31 23:36:51 UTC 2020 x86_64 GNU&#x2F;Linux</span><br></pre></td></tr></table></figure>
 <p>kata-runtime 容器使用的内核版本与宿主机不同，这就说明 kata-runtime 配置成功了。</p>
-<h3 id="35-配置-kubelet">3.5 配置 Kubelet</h3>
+<h3><span id="35-配置-kubelet">3.5 配置 Kubelet</span></h3>
 <ul>
 <li>新增配置文件</li>
 </ul>
@@ -303,7 +303,7 @@
 </ul>
 <figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">$ systemctl daemon-reload</span><br><span class="line">$ systemctl restart kubelet</span><br></pre></td></tr></table></figure>
 <p>这里使用的是 containerd 。如果使用 CRI-O ，配置会不一样。</p>
-<h3 id="36-给-kubernetes-提供-kata-runtime">3.6 给 Kubernetes 提供 kata-runtime</h3>
+<h3><span id="36-给-kubernetes-提供-kata-runtime">3.6 给 Kubernetes 提供 kata-runtime</span></h3>
 <p>通过直接创建 Container 可以使用 kata-runtime 。但在集群中，我们该如何告诉 Kubernetes 哪些负载需要使用 kata-runtime 呢？根据不同的版本，Kata 提供了不同的方式。</p>
 <p>首先都需要生成 containerd 配置文件</p>
 <figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">$ containerd config default &gt; &#x2F;etc&#x2F;containerd&#x2F;config.toml</span><br></pre></td></tr></table></figure>
@@ -323,8 +323,8 @@
 <figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">[plugins.cri.containerd.untrusted_workload_runtime]</span><br><span class="line">  runtime_type &#x3D; &quot;io.containerd.runtime.v1.linux&quot;</span><br><span class="line">  runtime_engine &#x3D; &quot;&#x2F;usr&#x2F;bin&#x2F;kata-runtime&quot;</span><br></pre></td></tr></table></figure>
 <p>最后，都需要重启 containerd。</p>
 <figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">$ containerd systemctl daemon-reload</span><br><span class="line">$ systemctl restart containerd</span><br></pre></td></tr></table></figure>
-<h2 id="4-使用-kata-runtime">4. 使用 kata-runtime</h2>
-<h3 id="41-runtimeclass-方式">4.1 RuntimeClass 方式</h3>
+<h2><span id="4-使用-kata-runtime">4. 使用 kata-runtime</span></h2>
+<h3><span id="41-runtimeclass-方式">4.1 RuntimeClass 方式</span></h3>
 <ul>
 <li>创建 RuntimeClass</li>
 </ul>
@@ -337,11 +337,11 @@
 <figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">$ kubectl apply -f kata-pod.yaml</span><br></pre></td></tr></table></figure>
 <p>查看负载</p>
 <figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">$  kata-runtime list</span><br></pre></td></tr></table></figure>
-<h3 id="42-untrusted_workload_runtime-的方式">4.2 untrusted_workload_runtime 的方式</h3>
+<h3><span id="42-untrusted_workload_runtime-的方式">4.2 untrusted_workload_runtime 的方式</span></h3>
 <p>untrusted_workload_runtime 使用 annotations 告诉 Kubernetes 集群哪些负载需要使用 kata-runtime。</p>
 <figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br></pre></td><td class="code"><pre><span class="line">annotations:</span><br><span class="line">  io.kubernetes.cri.untrusted-workload: &quot;true&quot;</span><br><span class="line">下面是一个示例 kata-pod-untrusted.yaml</span><br><span class="line"></span><br><span class="line">apiVersion: v1</span><br><span class="line">kind: Pod</span><br><span class="line">metadata:</span><br><span class="line">  name: kata-nginx-untrusted</span><br><span class="line">  annotations:</span><br><span class="line">    io.kubernetes.cri.untrusted-workload: &quot;true&quot;</span><br><span class="line">spec:</span><br><span class="line">  containers:</span><br><span class="line">  - name: nginx</span><br><span class="line">    image: nginx</span><br><span class="line">    ports:</span><br><span class="line">    - containerPort: 80</span><br></pre></td></tr></table></figure>
 <figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">$ kubectl apply -f kata-pod-untrusted.yaml</span><br></pre></td></tr></table></figure>
-<h2 id="5-参考">5. 参考</h2>
+<h2><span id="5-参考">5. 参考</span></h2>
 <ol>
 <li><a href="https://github.com/kata-containers/documentation/blob/master/install/centos-installation-guide.md" target="_blank" rel="noopener">https://github.com/kata-containers/documentation/blob/master/install/centos-installation-guide.md</a></li>
 <li><a href="https://ustack.io/2019-11-21-container%E7%9B%B8%E5%85%B3%E6%A6%82%E5%BF%B5%E6%A2%B3%E7%90%86.html" target="_blank" rel="noopener">https://ustack.io/2019-11-21-container相关概念梳理.html</a></li>
@@ -423,7 +423,7 @@
         <div id="toc" class="toc-article">
         <strong class="toc-title">Contents</strong>
         
-          <ol class="toc-nav"><li class="toc-nav-item toc-nav-level-2"><a class="toc-nav-link" href="#1-kata-解决什么问题"><span class="toc-nav-number">1.</span> <span class="toc-nav-text">1. Kata 解决什么问题</span></a></li><li class="toc-nav-item toc-nav-level-2"><a class="toc-nav-link" href="#2-kubernetes-中的-kata"><span class="toc-nav-number">2.</span> <span class="toc-nav-text">2. Kubernetes 中的 Kata</span></a><ol class="toc-nav-child"><li class="toc-nav-item toc-nav-level-3"><a class="toc-nav-link" href="#21-oci-和-cri-o"><span class="toc-nav-number">2.1.</span> <span class="toc-nav-text">2.1 OCI 和 CRI-O</span></a></li><li class="toc-nav-item toc-nav-level-3"><a class="toc-nav-link" href="#22-kata-与-containerd"><span class="toc-nav-number">2.2.</span> <span class="toc-nav-text">2.2 Kata 与 Containerd</span></a></li><li class="toc-nav-item toc-nav-level-3"><a class="toc-nav-link" href="#23-kata-与-kuberntes-的集成"><span class="toc-nav-number">2.3.</span> <span class="toc-nav-text">2.3 Kata 与 Kuberntes 的集成</span></a></li></ol></li><li class="toc-nav-item toc-nav-level-2"><a class="toc-nav-link" href="#3-kubernetes-集群集成-kata"><span class="toc-nav-number">3.</span> <span class="toc-nav-text">3. Kubernetes 集群集成 Kata</span></a><ol class="toc-nav-child"><li class="toc-nav-item toc-nav-level-3"><a class="toc-nav-link" href="#31-安装-kubernetes-集群"><span class="toc-nav-number">3.1.</span> <span class="toc-nav-text">3.1 安装 Kubernetes 集群</span></a></li><li class="toc-nav-item toc-nav-level-3"><a class="toc-nav-link" href="#32-安装-kata-命令行工具"><span class="toc-nav-number">3.2.</span> <span class="toc-nav-text">3.2 安装 Kata 命令行工具</span></a></li><li class="toc-nav-item toc-nav-level-3"><a class="toc-nav-link" href="#33-检测硬件是否支持-kata"><span class="toc-nav-number">3.3.</span> <span class="toc-nav-text">3.3 检测硬件是否支持 Kata</span></a></li><li class="toc-nav-item toc-nav-level-3"><a class="toc-nav-link" href="#34-配置并测试-docker"><span class="toc-nav-number">3.4.</span> <span class="toc-nav-text">3.4 配置并测试 Docker</span></a></li><li class="toc-nav-item toc-nav-level-3"><a class="toc-nav-link" href="#35-配置-kubelet"><span class="toc-nav-number">3.5.</span> <span class="toc-nav-text">3.5 配置 Kubelet</span></a></li><li class="toc-nav-item toc-nav-level-3"><a class="toc-nav-link" href="#36-给-kubernetes-提供-kata-runtime"><span class="toc-nav-number">3.6.</span> <span class="toc-nav-text">3.6 给 Kubernetes 提供 kata-runtime</span></a></li></ol></li><li class="toc-nav-item toc-nav-level-2"><a class="toc-nav-link" href="#4-使用-kata-runtime"><span class="toc-nav-number">4.</span> <span class="toc-nav-text">4. 使用 kata-runtime</span></a><ol class="toc-nav-child"><li class="toc-nav-item toc-nav-level-3"><a class="toc-nav-link" href="#41-runtimeclass-方式"><span class="toc-nav-number">4.1.</span> <span class="toc-nav-text">4.1 RuntimeClass 方式</span></a></li><li class="toc-nav-item toc-nav-level-3"><a class="toc-nav-link" href="#42-untrusted_workload_runtime-的方式"><span class="toc-nav-number">4.2.</span> <span class="toc-nav-text">4.2 untrusted_workload_runtime 的方式</span></a></li></ol></li><li class="toc-nav-item toc-nav-level-2"><a class="toc-nav-link" href="#5-参考"><span class="toc-nav-number">5.</span> <span class="toc-nav-text">5. 参考</span></a></li></ol>
+          <ol class="toc-nav"><li class="toc-nav-item toc-nav-level-2"><a class="toc-nav-link" href="#vip-container"><span class="toc-nav-number">1.</span> <span class="toc-nav-text">1. Kata 解决什么问题</span></a></li><li class="toc-nav-item toc-nav-level-2"><a class="toc-nav-link" href="#vip-container"><span class="toc-nav-number">2.</span> <span class="toc-nav-text">2. Kubernetes 中的 Kata</span></a><ol class="toc-nav-child"><li class="toc-nav-item toc-nav-level-3"><a class="toc-nav-link" href="#vip-container"><span class="toc-nav-number">2.1.</span> <span class="toc-nav-text">2.1 OCI 和 CRI-O</span></a></li><li class="toc-nav-item toc-nav-level-3"><a class="toc-nav-link" href="#vip-container"><span class="toc-nav-number">2.2.</span> <span class="toc-nav-text">2.2 Kata 与 Containerd</span></a></li><li class="toc-nav-item toc-nav-level-3"><a class="toc-nav-link" href="#vip-container"><span class="toc-nav-number">2.3.</span> <span class="toc-nav-text">2.3 Kata 与 Kuberntes 的集成</span></a></li></ol></li><li class="toc-nav-item toc-nav-level-2"><a class="toc-nav-link" href="#vip-container"><span class="toc-nav-number">3.</span> <span class="toc-nav-text">3. Kubernetes 集群集成 Kata</span></a><ol class="toc-nav-child"><li class="toc-nav-item toc-nav-level-3"><a class="toc-nav-link" href="#vip-container"><span class="toc-nav-number">3.1.</span> <span class="toc-nav-text">3.1 安装 Kubernetes 集群</span></a></li><li class="toc-nav-item toc-nav-level-3"><a class="toc-nav-link" href="#vip-container"><span class="toc-nav-number">3.2.</span> <span class="toc-nav-text">3.2 安装 Kata 命令行工具</span></a></li><li class="toc-nav-item toc-nav-level-3"><a class="toc-nav-link" href="#vip-container"><span class="toc-nav-number">3.3.</span> <span class="toc-nav-text">3.3 检测硬件是否支持 Kata</span></a></li><li class="toc-nav-item toc-nav-level-3"><a class="toc-nav-link" href="#vip-container"><span class="toc-nav-number">3.4.</span> <span class="toc-nav-text">3.4 配置并测试 Docker</span></a></li><li class="toc-nav-item toc-nav-level-3"><a class="toc-nav-link" href="#vip-container"><span class="toc-nav-number">3.5.</span> <span class="toc-nav-text">3.5 配置 Kubelet</span></a></li><li class="toc-nav-item toc-nav-level-3"><a class="toc-nav-link" href="#vip-container"><span class="toc-nav-number">3.6.</span> <span class="toc-nav-text">3.6 给 Kubernetes 提供 kata-runtime</span></a></li></ol></li><li class="toc-nav-item toc-nav-level-2"><a class="toc-nav-link" href="#vip-container"><span class="toc-nav-number">4.</span> <span class="toc-nav-text">4. 使用 kata-runtime</span></a><ol class="toc-nav-child"><li class="toc-nav-item toc-nav-level-3"><a class="toc-nav-link" href="#vip-container"><span class="toc-nav-number">4.1.</span> <span class="toc-nav-text">4.1 RuntimeClass 方式</span></a></li><li class="toc-nav-item toc-nav-level-3"><a class="toc-nav-link" href="#vip-container"><span class="toc-nav-number">4.2.</span> <span class="toc-nav-text">4.2 untrusted_workload_runtime 的方式</span></a></li></ol></li><li class="toc-nav-item toc-nav-level-2"><a class="toc-nav-link" href="#vip-container"><span class="toc-nav-number">5.</span> <span class="toc-nav-text">5. 参考</span></a></li></ol>
         
         </div>
       </aside>
@@ -443,9 +443,9 @@
                     <h5><a href="/tags/">FEATURED TAGS</a></h5>
                     <div class="tags">
                        
-                          <a class="tag" href="/tags/#Linux" title="Linux">Linux</a>
-                        
                           <a class="tag" href="/tags/#Docker" title="Docker">Docker</a>
+                        
+                          <a class="tag" href="/tags/#Linux" title="Linux">Linux</a>
                         
                           <a class="tag" href="/tags/#Kubernetes" title="Kubernetes">Kubernetes</a>
                         

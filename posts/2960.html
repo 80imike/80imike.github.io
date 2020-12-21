@@ -232,11 +232,11 @@
                 col-md-10 col-md-offset-1
                 post-container">
 
-                <div id="vip-container"><h2 id="译者序">译者序</h2>
+                <div id="vip-container"><h2><span id="译者序">译者序</span></h2>
 <p>本文翻译自 2008 年的一篇帖子 The TTY demystified.</p>
 <p>由于译者水平有限，本文不免存在遗漏或错误之处。如有疑问，请查阅原文。</p>
 <p>以下是译文。</p>
-<h2 id="目录">目录</h2>
+<h2><span id="目录">目录</span></h2>
 <ol>
 <li>
 <p>历史</p>
@@ -269,39 +269,39 @@
 <p>TTY 子系统是 Linux 乃至 Unix 家族中最核心的设计之一。</p>
 <p>但不幸的是，TTY 的重要性经常被低估，而且网上也很难找到不错的介绍性文章。而我认为，对 Linux 中的 TTY 有一些基本了解对于开发者和高级用户来说是非常有帮助的。</p>
 <p>但要注意：接下来你将看到的东西并不是非常优雅。事实上，TTY 子系统 —— 虽然从用户的角度来非常好用 —— 是很多特殊场景杂糅在一起的结果。而要理解为什么会变成这样， 我们需要从历史说起。</p>
-<h2 id="1-历史">1. 历史</h2>
+<h2><span id="1-历史">1. 历史</span></h2>
 <p>1869，人类发明了股票自动报价机（stock ticker）。它是一个用于跨长距离实时传 递股票价格的电子-机械设备，由一个打字机（typewriter）、一对很长的电缆（a long pair of wires）和一个报价用的磁带打印机（tape printer）组成。后来，这个概念逐渐 进化成速度更快的、基于 ASCII 码的电传打印机（teletype）。电传打印机曾通过一个称 为 Telex 的网络实现全球互联，用于传递商业电报，但它们并没有连接到任何计算机（ computers）。</p>
-<p><img src="https://arthurchiao.github.io/assets/img/tty-demystified/oldschool.jpg" alt=""></p>
+<p><img src="https://arthurchiao.github.io/assets/img/tty-demystified/oldschool.jpg" alt></p>
 <p>20 世纪 40 年代的真实电传打印机（teletypes）</p>
 <p>在同一时期，计算机 —— 虽然仍是很大很原始的机器，但能处理多任务（multitask）—— 开始变得越来越强大，足以实现与用户的实时交互。当命令行（command line）最终取代 了老式的批处理模型（batch processing model）后，人们直接将电传打印机用作了计算 机的输入和输出设备（input and output devices），因为这些设备在市场上很容易买到。</p>
 <p>但此时面临的一个问题是：市场上有大量的电传打印机模型，所有模型之间都有一些细 微差别，因此就需要某种层面的软件中间层来屏蔽这些差异。Unix 世界中的方式是** 让操作系统内核来处理所有的低层（low-level）细节，例如 word 长度、波特率（baud rate）、流控（flow control）、奇偶校验（parity）、基本的行编辑（line editing）功 能所用的控制码等等。而 20 世纪 70 年代随着例如 VT-100 这样的固态视频终端（solid state video terminals）的出现而变成为现实的光标炫酷移动、彩色输入和其他高级特 性，则交给应用（application）来控制**。</p>
 <p>如今在我们的世界中，物理电传打印机和视频终端事实上已经绝迹了。除非你去参观某个博 物馆或者硬件爱好者的私藏，否则你能看到的所有 TTY 很可能都是仿真（模拟）的视频 终端（emulated video terminals）——用软件去模拟真实硬件。但我们将会看到，这些传 统的钢铁浇筑的怪兽仍然潜伏在表面的平静之下。</p>
 <a id="more"></a>
-<h2 id="2-使用场景">2. 使用场景</h2>
-<p><img src="https://arthurchiao.github.io/assets/img/tty-demystified/case1.png" alt=""></p>
+<h2><span id="2-使用场景">2. 使用场景</span></h2>
+<p><img src="https://arthurchiao.github.io/assets/img/tty-demystified/case1.png" alt></p>
 <p>用户（通过一个物理电传打印机）在一个终端上输入（打字）。这个终端通过一对电缆连接 到计算机上的一个 UART（Universal Asynchronous Receiver and Transmitter，通用异步收发器）。操作系统中安装了 UART 驱动，能够处理字节的物理传输，包括奇偶校验和流控。在一个简陋的系统中，UART 驱动会将收到的字节直接发送给某个应用进程 。但是，以上方式缺少下列必备特性：</p>
-<h3 id="21-行编辑line-editing">2.1 行编辑（Line editing）</h3>
+<h3><span id="21-行编辑line-editing">2.1 行编辑（Line editing）</span></h3>
 <p>大部分用户都难免在打字时犯错，因此退格键（backspace key）是很有必要的。 这个功能当然可以由应用自己实现，但按照 Unix 的设计哲学，应用应该越简单越好。因此 ，为了方便，操作系统提供了一个编辑缓冲区（editing buffer）以及一些基本 的编辑命令（退格、擦除单词、清除行、重新打印），这些功能在 line discipline（行 规程）中是默认开启的。</p>
 <p><strong>Line discipline</strong></p>
 <p>高级应用可以选择关闭这些特性，只要将 line discipline 从默认（或 canonical） 模式改为 raw 模式就行了。大部分交互式应用（编辑器、邮件用户 agent、shell，以及 所有依赖 curses 或 readline 的程序）都运行在 raw 模式，自己来处理所有的行编辑 命令。line discipline 还包含了字符回显（character echoing）和回车/换行（ carriage returns and linefeeds）自动转换的功能。如果你愿意，可以将其想象成内核 中的 sed(1)。</p>
 <p>出于某些偶然的原因，内核提供了多种 line discipline。但在任何时刻，对于某个给 定的串行设备，内核只会 attach 其中的一种到这个设备。默认的 discipline 叫 N_TTY（位于 drivers/char/n_tty.c，如果你喜欢刨根究底）。其他几种 disciplines 用于不同目的，例如管理包交换数据（packet switched data，例如 ppp, IrDA, serial mice 等等），但这些超出了本文的范围。</p>
-<h3 id="22-会话管理session-management">2.2 会话管理（Session management）</h3>
+<h3><span id="22-会话管理session-management">2.2 会话管理（Session management）</span></h3>
 <p>用户可能希望同时运行多个程序，在不同时刻 和不同的程序交互。如果一个程序进入无限循环，用户可能会杀掉或挂起这个程序。 后台（background）启动的程序如果执行到需要向终端写数据的地方，需要被挂起。与此类似，用户输入只应当被重定向到前台程序（foreground program）。操作系统在 TTY 驱动（drivers/char/tty_io.c）中实现了这些特性。</p>
 <p>我们说一个操作系统进程“活着”（alive）时（有执行上下文），意味着这个进程能够执行 动作（perform actions）。TTY 驱动并没有活着；用面向对象的术语来说，TTY 驱动是一 个被动对象（passive object）。它有一些数据字段和方法，但只有当 它在某个进程或某个内核中断处理函数的上下文中被调用时，它才能够执行。同样的，line discipline 也是一个被动实体（passive entity）。</p>
 <p>UART 驱动、line discipline 实例和 TTY 驱动三者组成一个 TTY 设备， 有时简称为 TTY。用户进程能够通过操作 /dev 目录下的相应设备文件来改变 TTY 设备的行为。进程需要对设备文件有写权限，因此当一个用户登陆到某个特定的 TTY 时 ，该用户必须成为相应设备文件的 owner。传统上这是通过 login(1) 程序实现的 ，该程序需要以 root 特权执行。</p>
 <p>前面图中的物理线路当然也可以是一个长距离电话线路：</p>
-<p><img src="https://arthurchiao.github.io/assets/img/tty-demystified/case2.png" alt=""></p>
+<p><img src="https://arthurchiao.github.io/assets/img/tty-demystified/case2.png" alt></p>
 <p>在这张图中，除了系统此时也需要处理调制解调器（modem）的 hangup 情况之外，其他方 面跟前一张没有太大区别。</p>
 <p>接下来我们来看一个典型的桌面系统。下图展示的是 Linux console 是如何工作的：</p>
-<p><img src="https://arthurchiao.github.io/assets/img/tty-demystified/case3.png" alt=""></p>
+<p><img src="https://arthurchiao.github.io/assets/img/tty-demystified/case3.png" alt></p>
 <p>TTY 驱动和 line discipline 的行为和前面例子中的一样，但其中不再涉及 UART 或物理 终端。与前面不同的地方在于，现在多了一个软件仿真的视频终端（一个复杂的状态机，包 括一个字符帧缓冲区和一些图形字符属性），渲染到一个 VGA 显示器。</p>
 <p>控制台（console）子系统某种程度上比较刻板。如果我们将终端仿真放到用户空间（ userland），事情就会变得更加灵活（和抽象）。下面是 xterm(1) 及其衍生版本如何工作的：</p>
-<p><img src="https://arthurchiao.github.io/assets/img/tty-demystified/case4.png" alt=""></p>
+<p><img src="https://arthurchiao.github.io/assets/img/tty-demystified/case4.png" alt></p>
 <p>为了方便将终端模拟移到用户空间且同时保持 TTY 子系统（会话管理和 line discipline）的完整性，人们引入了伪终端（pseudo terminal）或称 pty。 你也许已经猜到了，当在伪终端内运行伪终端时（running pseudo terminals inside pseudo terminals），事情会变得更加复杂，例如 screen(1) 或 ssh(1)。</p>
 <p>现在让我们退后一步，来看一看这些东西是如何适配到进程模型的。</p>
-<h2 id="3-进程">3. 进程</h2>
+<h2><span id="3-进程">3. 进程</span></h2>
 <p>一个 Linux 进程可以处于以下几种状态之一：</p>
-<p><img src="https://arthurchiao.github.io/assets/img/tty-demystified/linuxprocess.png" alt=""></p>
+<p><img src="https://arthurchiao.github.io/assets/img/tty-demystified/linuxprocess.png" alt></p>
 <ul>
 <li>
 <p>R: 运行中或可运行（Running or runnable (on run queue)）</p>
@@ -333,13 +333,13 @@
 </li>
 </ul>
 <p>这些属性用于作业控制（job control）。</p>
-<h2 id="4-作业jobs和会话">4. 作业（Jobs）和会话</h2>
+<h2><span id="4-作业jobs和会话">4. 作业（Jobs）和会话</span></h2>
 <p>当你按下 ^Z 键，或使用 &amp; 在后台启动一个程序时，就是在进行作业控制。</p>
 <p>作业和进程组的概念是一样的（A job is the same as a process group）。shell 内 置的命令，例如 jobs、fg、bg 等等可以用于管理一个会话内已有的作业。每个 session 都是由一个 session leader 管理的，这个 session leader 就是 shell —— 通过一个复杂的信号协议和系统调用来和内核紧密协作。</p>
 <p>下面的例子展示了进程、作业和会话之间的关系：</p>
-<p><img src="https://arthurchiao.github.io/assets/img/tty-demystified/exampleterm.png" alt=""></p>
+<p><img src="https://arthurchiao.github.io/assets/img/tty-demystified/exampleterm.png" alt></p>
 <p>上图中的 shell 交互对应下面的这些进程：</p>
-<p><img src="https://arthurchiao.github.io/assets/img/tty-demystified/examplediagram.png" alt=""></p>
+<p><img src="https://arthurchiao.github.io/assets/img/tty-demystified/examplediagram.png" alt></p>
 <p>以及下面这些内核结构：</p>
 <ul>
 <li>TTY Driver (/dev/pts/0)</li>
@@ -354,7 +354,7 @@
 <p>这里的基本思想是：every pipeline is a job（每条流水线都是一个作业），因为每个 pipeline 内的进程都需要被同时操控（stopped, resumed, killed）。这也是为什么能够 用 kill(2) 向一整个进程组发送信号的原因。默认情况下，fork(2) 会将新创建出来 的子进程放到与其父进程相同的进程组，因此，例如一个 ^C 键就会同时影响到父子进程 。但 shell 有些不同，作为其 session leader 职责的一部分，它每次创建一个 pipeline 的时候都会创建一个新的进程组。</p>
 <p>TTY 驱动跟踪记录前台进程组 ID（foreground process group id），但只会以被动的方 式跟踪。当有必要时，session leader 必须显式更新这项信息。类似地，TTY 驱动 也会以被动的方式跟踪所连接的终端的尺寸大小（size），但这个信息必须由终端模拟器甚 至用户来显式更新。</p>
 <p>前面的图中可以看到，几个不同进程都将 /dev/pts/0 attach 到了它们的标准输入。但 只有前台任务（ls | sort pipeline）会从 TTY 接收输入。类似地，只有前台作业是允 许写到 TTY 设备的（在默认配置下）。如果图中的 cat 进程试图写到该 TTY，内核会通过一个信号挂起它。</p>
-<h2 id="5-简单粗暴的信号机制">5. 简单粗暴的信号机制</h2>
+<h2><span id="5-简单粗暴的信号机制">5. 简单粗暴的信号机制</span></h2>
 <p>现在让我们来更加近距离地看看内核中的 TTY 驱动、line discipline 和 UART 驱动 是如何与用户空间进程通信的。</p>
 <p>UNIX 文件，包括 TTY 设备文件，都可以被读取或写入，以及通过神奇的 ioctl(2)（ UNIX 中的瑞士军刀）系统调用进一步操作，内核中已经为 TTY 设备实现了很多相关的 ioctl 操作。但是，ioctl 请求必须从进程（向内核）发起，因此当内核（主动）希望异步地与应用进行通信时，ioctl 就不适用了。</p>
 <p>在《银河系漫游指南》中， Douglas Adams 描述了一个极其迟钝的星球，上面居住了一群 意志消沉的人以及一种带有锋利牙齿的动物，后者与前者交谈的方式就是用力撕咬他们的大 腿。这与 UNIX 非常相似，因为内核与进程通信的方式就是向进程发送能使之瘫痪或致命的信号。进程可能会捕获其中某些信号，然后尝试解决遇到的问题，但大部分信号都是没 有被捕获的。</p>
@@ -517,7 +517,7 @@
 </li>
 </ul>
 <p>前面提到，TTY 设备会跟踪记录终端的尺寸（size），但这个信息需要手动更新。 当终端尺寸发送变化时，TTY 设备会向前台作业发送该信号。行为良好的交互式应用， 例如编辑器，会对此作出响应：从 TTY 设备获取新的终端尺寸，然后根据该信息重绘自己。</p>
-<h2 id="6-一个例子">6. 一个例子</h2>
+<h2><span id="6-一个例子">6. 一个例子</span></h2>
 <p>设想你在用自己的（基于终端的）编辑器编辑某个文件。光标当前位于屏幕中央，编辑器正 忙于执行某些 CPU 密集型任务，例如在一个大文件中执行搜索或替换操作。现在假设你按 下了^Z 键。因为 line discipline 已经配置了捕获此字符（^Z 是单个字节，ASCII 码 为 26），因此你无需等待编辑器完成它正在执行的任务然后开始从 TTY 设备读取数据。</p>
 <p>此时的情况是，line discipline 子系统会立即向前台进程组发送 SIGTSTP 信号。 这个进程组中包括编辑器进程，以及它创建出来的任何子进程。</p>
 <p>编辑器为 SIGTSTP 进程注册了信号处理函数，因此内核此时开始执行该信号处理函数 的代码。该代码通过向 TTY 设备写入相应的控制序列（control sequences），将 光标移动到屏幕最后一行。由于编辑器仍然在前台，这个控制序列能够正常发送出去（给 TTY）。但之后，编辑器会给自己所在的进程组发送一个 SIGSTOP 信号。</p>
@@ -559,8 +559,8 @@
 </li>
 </ol>
 </blockquote>
-<h2 id="7-流控和阻塞式-io">7. 流控和阻塞式 I/O</h2>
-<p><img src="https://arthurchiao.github.io/assets/img/tty-demystified/dsc00043.jpg" alt=""></p>
+<h2><span id="7-流控和阻塞式-io">7. 流控和阻塞式 I/O</span></h2>
+<p><img src="https://arthurchiao.github.io/assets/img/tty-demystified/dsc00043.jpg" alt></p>
 <p>在 xterm 中执行 yes 命令，你会看到大量的 “yes” 一行一行地快速闪过。正常情况 下条，yes 进程产生 “yes” 输出的速度要远快于 xterm 应用解析这些行、更新帧缓冲 区、与 X server 通信来滚动窗口等等的速度。那么，这些进程之间是如何协作的呢？</p>
 <p>答案就是 blocking I/O（阻塞式输入/输出）。伪终端只能在其内核缓冲区中保存一定量 的数据，当缓冲区已经填满而 yes 程序仍然调用 write(2) 写入时，write(2) 会阻 塞，yes 进程会被移入可中断 sleep 状态，直到 xterm 进程读走了一部分缓存的数据。</p>
 <p>当 TTY 连接到的是串口（serial port）时，过程与此类似。yes 能够以很快的速度 发送数据，例如 9600 波特，但如果串口速度比这个低，内核缓冲区很快就会塞满，随后的 任何 write(2) 调用都会阻塞写进程（或者返回 EAGAIN 错误码 —— 如果进程请求的是非 阻塞 I/O）。</p>
@@ -577,14 +577,14 @@
 我不清楚 UNIX 的设计者为何发明 SIGTTOU 和 SIGTTIN 而不是依靠 blocking I/O， 我尽己所能猜到的原因是：负责着作业控制（job control）的 TTY 驱动，设计用于监控和 操作全部作业，而不是作业内的单个进程。</p>
 </li>
 </ul>
-<h2 id="8-配置-tty-设备">8. 配置 TTY 设备</h2>
-<p><img src="https://arthurchiao.github.io/assets/img/tty-demystified/cockpit.jpg" alt=""></p>
+<h2><span id="8-配置-tty-设备">8. 配置 TTY 设备</span></h2>
+<p><img src="https://arthurchiao.github.io/assets/img/tty-demystified/cockpit.jpg" alt></p>
 <p>要确定当前 shell 的 TTY，可以通过我们前面介绍的 ps l 命令，或者直接运行 tty(1) 命令。</p>
 <p>一个进程可能会通过 ioctl(2) 读取或修改一个已经打开的 TTY 设备。相应的 API 在 tty_ioctl(4) 中作了描述。由于这是 Linux 应用和内核之间的二进制接口的一部分， 因此它在不同的 Linux 版本之间是保持稳定的。但是，这个接口是不可移植的，若想编 写可移植的程序，应用应当使用 termios(3) man page 中提供的 POSIX wrapper。</p>
 <p>这里我不会深入介绍 termios(3) 接口，但如果你正在编写 C 程序，涉及到捕获 ^C、 关闭行编辑或字符回显、修改串口的波特率、关闭流控等等工作，那你就需要去阅读前面提到的 man page。</p>
 <p>另外还有一个命令行工具 stty(1)，用于操纵 TTY 设备。它使用了 termios(3) API。</p>
 <p>我们来试试！</p>
-<h3 id="tty-配置选项">TTY 配置选项</h3>
+<h3><span id="tty-配置选项">TTY 配置选项</span></h3>
 <p><code>stty -a</code> 打印所有配置项。默认打印的是当前 shell 所 attach 的 TTY 设备配置项，但 可以通过 -F 指定其他设备。</p>
 <figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line">$ stty -a</span><br><span class="line">speed 38400 baud; rows 73; columns 238; line &#x3D; 0;</span><br><span class="line">intr &#x3D; ^C; quit &#x3D; ^\; erase &#x3D; ^?; kill &#x3D; ^U; eof &#x3D; ^D; eol &#x3D; &lt;undef&gt;; eol2 &#x3D; &lt;undef&gt;; swtch &#x3D; &lt;undef&gt;; start &#x3D; ^Q; stop &#x3D; ^S; susp &#x3D; ^Z; rprnt &#x3D; ^R; werase &#x3D; ^W; lnext &#x3D; ^V; flush &#x3D; ^O; min &#x3D; 1; time &#x3D; 0;</span><br><span class="line">-parenb -parodd cs8 -hupcl -cstopb cread -clocal -crtscts</span><br><span class="line">-ignbrk brkint ignpar -parmrk -inpck -istrip -inlcr -igncr icrnl ixon -ixoff -iuclc -ixany imaxbel -iutf8</span><br><span class="line">opost -olcuc -ocrnl onlcr -onocr -onlret -ofill -ofdel nl0 cr0 tab0 bs0 vt0 ff0</span><br><span class="line">isig icanon iexten echo echoe echok -echonl -noflsh -xcase -tostop -echoprt echoctl echoke</span><br></pre></td></tr></table></figure>
 <p>以上选项中，某些是 UART 参数；某些影响 line discipline，某些用于作业控制。我们先 来看第一行：</p>
@@ -623,21 +623,21 @@
 </ul>
 </li>
 </ul>
-<h3 id="修改窗口尺寸">修改窗口尺寸</h3>
+<h3><span id="修改窗口尺寸">修改窗口尺寸</span></h3>
 <p>尝试下面的例子：开启一个 xterm。记录下它的 TTY 设备（执行 tty 命令查看）以及尺 寸（执行 stty -a 命令查看）。在 xterm 中启动 vim（或其他全屏终端应用）。编辑器会询问 TTY 设 备当前的终端尺寸，以填充整个窗口。</p>
 <p>现在，在另一个 shell 窗口中执行：</p>
 <figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">$ stty -F X rows Y</span><br></pre></td></tr></table></figure>
 <p>其中 X 是 TTY 设备，Y 是终端高度的一半。这条命令会更新内核内存中的 TTY 配置数据 ，并触发向编辑器发送一个 SIGWINCH 信号；vim 收到信号会立即重绘自身，结果是编辑 器的高度减半。</p>
-<h3 id="修改-sigint-对应的控制字符">修改 SIGINT 对应的控制字符</h3>
+<h3><span id="修改-sigint-对应的控制字符">修改 SIGINT 对应的控制字符</span></h3>
 <p>stty -a 命令的输出中，第二行列出了所有的特殊字符。</p>
 <p>打开一个新 xterm 然后尝试：</p>
 <figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">$ stty intr o</span><br></pre></td></tr></table></figure>
 <p>现在输入字符 o —— 而不是原来默认的 ^C —— 会触发发送 SIGINT 信号给前台作业。</p>
 <p>你可以运行着某个命令，例如 cat，然后验证此时 ^C 是不能终止其执行的。然后，再试试输入 hello 给 cat。</p>
-<h3 id="退格键无法使用">退格键无法使用</h3>
+<h3><span id="退格键无法使用">退格键无法使用</span></h3>
 <p>某些场合下，你可能会在某个 UNIX 系统上遇到退格键无法使用的情况。</p>
 <p>发生这种情况是因为终端模拟器发送的退格码（不管是 ASCII 8 还是 127）与 TTY 设备中的擦除设置（erase setting）不匹配。要解决这个问题，通常需要输入 stty 擦除 ^H（ASCII 8）或 stty erase ^?（ASCII 127）。但请记住，某些终端应用使 用 readline，它们会将 line discipline 置于 raw 模式，这些应用不会受此影响。</p>
-<h3 id="tty-开关项">TTY 开关项</h3>
+<h3><span id="tty-开关项">TTY 开关项</span></h3>
 <p>最后，stty -a 列出了一系列的开关。这些开关并没有先后顺序。某些与 UART 相关，某 些影响 line discipline 行为，某些用于流控，某些用于作业控制。有减号（-）表示该 开关当前是关闭的；否则就是打开的。所有开关都在 stty(1) man page 中有解释，因此 这里只是简要介绍几个：</p>
 <p>icanon 打开/关闭 canonical (line-based) 模式。尝试在一个新 xterm 内运行：</p>
 <figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">$ stty -icanon; cat</span><br></pre></td></tr></table></figure>
@@ -651,7 +651,7 @@
 <figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">stty -tostop; (sleep 5; echo hello, world) &amp;</span><br></pre></td></tr></table></figure>
 <p>以上命令会重新打开输入回显功能；5 秒之后，后台作业发送 hello, world 给终端，此 时不管你正在输入什么，这句话都会打印出来。</p>
 <p>最后，stty sane 会将 TTY 设备恢复到某个合理的配置。</p>
-<h2 id="9-结束语">9. 结束语</h2>
+<h2><span id="9-结束语">9. 结束语</span></h2>
 <p>本文提供了 TTY 驱动和 line discipline 相关的知识，以及它们和终端、行编辑及作业控 制的联系，希望这些内容足够读者对它们有一个了解。更多信息请参考前面提到的几个 man page，以及 glibc 手册（info libc，”Job Control”）。</p>
 <p>最后，感谢阅读！</p>
 <blockquote>
@@ -728,7 +728,7 @@
         <div id="toc" class="toc-article">
         <strong class="toc-title">Contents</strong>
         
-          <ol class="toc-nav"><li class="toc-nav-item toc-nav-level-2"><a class="toc-nav-link" href="#译者序"><span class="toc-nav-number">1.</span> <span class="toc-nav-text">译者序</span></a></li><li class="toc-nav-item toc-nav-level-2"><a class="toc-nav-link" href="#目录"><span class="toc-nav-number">2.</span> <span class="toc-nav-text">目录</span></a></li><li class="toc-nav-item toc-nav-level-2"><a class="toc-nav-link" href="#1-历史"><span class="toc-nav-number">3.</span> <span class="toc-nav-text">1. 历史</span></a></li><li class="toc-nav-item toc-nav-level-2"><a class="toc-nav-link" href="#2-使用场景"><span class="toc-nav-number">4.</span> <span class="toc-nav-text">2. 使用场景</span></a><ol class="toc-nav-child"><li class="toc-nav-item toc-nav-level-3"><a class="toc-nav-link" href="#21-行编辑line-editing"><span class="toc-nav-number">4.1.</span> <span class="toc-nav-text">2.1 行编辑（Line editing）</span></a></li><li class="toc-nav-item toc-nav-level-3"><a class="toc-nav-link" href="#22-会话管理session-management"><span class="toc-nav-number">4.2.</span> <span class="toc-nav-text">2.2 会话管理（Session management）</span></a></li></ol></li><li class="toc-nav-item toc-nav-level-2"><a class="toc-nav-link" href="#3-进程"><span class="toc-nav-number">5.</span> <span class="toc-nav-text">3. 进程</span></a></li><li class="toc-nav-item toc-nav-level-2"><a class="toc-nav-link" href="#4-作业jobs和会话"><span class="toc-nav-number">6.</span> <span class="toc-nav-text">4. 作业（Jobs）和会话</span></a></li><li class="toc-nav-item toc-nav-level-2"><a class="toc-nav-link" href="#5-简单粗暴的信号机制"><span class="toc-nav-number">7.</span> <span class="toc-nav-text">5. 简单粗暴的信号机制</span></a></li><li class="toc-nav-item toc-nav-level-2"><a class="toc-nav-link" href="#6-一个例子"><span class="toc-nav-number">8.</span> <span class="toc-nav-text">6. 一个例子</span></a></li><li class="toc-nav-item toc-nav-level-2"><a class="toc-nav-link" href="#7-流控和阻塞式-io"><span class="toc-nav-number">9.</span> <span class="toc-nav-text">7. 流控和阻塞式 I&#x2F;O</span></a></li><li class="toc-nav-item toc-nav-level-2"><a class="toc-nav-link" href="#8-配置-tty-设备"><span class="toc-nav-number">10.</span> <span class="toc-nav-text">8. 配置 TTY 设备</span></a><ol class="toc-nav-child"><li class="toc-nav-item toc-nav-level-3"><a class="toc-nav-link" href="#tty-配置选项"><span class="toc-nav-number">10.1.</span> <span class="toc-nav-text">TTY 配置选项</span></a></li><li class="toc-nav-item toc-nav-level-3"><a class="toc-nav-link" href="#修改窗口尺寸"><span class="toc-nav-number">10.2.</span> <span class="toc-nav-text">修改窗口尺寸</span></a></li><li class="toc-nav-item toc-nav-level-3"><a class="toc-nav-link" href="#修改-sigint-对应的控制字符"><span class="toc-nav-number">10.3.</span> <span class="toc-nav-text">修改 SIGINT 对应的控制字符</span></a></li><li class="toc-nav-item toc-nav-level-3"><a class="toc-nav-link" href="#退格键无法使用"><span class="toc-nav-number">10.4.</span> <span class="toc-nav-text">退格键无法使用</span></a></li><li class="toc-nav-item toc-nav-level-3"><a class="toc-nav-link" href="#tty-开关项"><span class="toc-nav-number">10.5.</span> <span class="toc-nav-text">TTY 开关项</span></a></li></ol></li><li class="toc-nav-item toc-nav-level-2"><a class="toc-nav-link" href="#9-结束语"><span class="toc-nav-number">11.</span> <span class="toc-nav-text">9. 结束语</span></a></li></ol>
+          <ol class="toc-nav"><li class="toc-nav-item toc-nav-level-2"><a class="toc-nav-link" href="#vip-container"><span class="toc-nav-number">1.</span> <span class="toc-nav-text">译者序</span></a></li><li class="toc-nav-item toc-nav-level-2"><a class="toc-nav-link" href="#vip-container"><span class="toc-nav-number">2.</span> <span class="toc-nav-text">目录</span></a></li><li class="toc-nav-item toc-nav-level-2"><a class="toc-nav-link" href="#vip-container"><span class="toc-nav-number">3.</span> <span class="toc-nav-text">1. 历史</span></a></li><li class="toc-nav-item toc-nav-level-2"><a class="toc-nav-link" href="#vip-container"><span class="toc-nav-number">4.</span> <span class="toc-nav-text">2. 使用场景</span></a><ol class="toc-nav-child"><li class="toc-nav-item toc-nav-level-3"><a class="toc-nav-link" href="#vip-container"><span class="toc-nav-number">4.1.</span> <span class="toc-nav-text">2.1 行编辑（Line editing）</span></a></li><li class="toc-nav-item toc-nav-level-3"><a class="toc-nav-link" href="#vip-container"><span class="toc-nav-number">4.2.</span> <span class="toc-nav-text">2.2 会话管理（Session management）</span></a></li></ol></li><li class="toc-nav-item toc-nav-level-2"><a class="toc-nav-link" href="#vip-container"><span class="toc-nav-number">5.</span> <span class="toc-nav-text">3. 进程</span></a></li><li class="toc-nav-item toc-nav-level-2"><a class="toc-nav-link" href="#vip-container"><span class="toc-nav-number">6.</span> <span class="toc-nav-text">4. 作业（Jobs）和会话</span></a></li><li class="toc-nav-item toc-nav-level-2"><a class="toc-nav-link" href="#vip-container"><span class="toc-nav-number">7.</span> <span class="toc-nav-text">5. 简单粗暴的信号机制</span></a></li><li class="toc-nav-item toc-nav-level-2"><a class="toc-nav-link" href="#vip-container"><span class="toc-nav-number">8.</span> <span class="toc-nav-text">6. 一个例子</span></a></li><li class="toc-nav-item toc-nav-level-2"><a class="toc-nav-link" href="#vip-container"><span class="toc-nav-number">9.</span> <span class="toc-nav-text">7. 流控和阻塞式 I&#x2F;O</span></a></li><li class="toc-nav-item toc-nav-level-2"><a class="toc-nav-link" href="#vip-container"><span class="toc-nav-number">10.</span> <span class="toc-nav-text">8. 配置 TTY 设备</span></a><ol class="toc-nav-child"><li class="toc-nav-item toc-nav-level-3"><a class="toc-nav-link" href="#vip-container"><span class="toc-nav-number">10.1.</span> <span class="toc-nav-text">TTY 配置选项</span></a></li><li class="toc-nav-item toc-nav-level-3"><a class="toc-nav-link" href="#vip-container"><span class="toc-nav-number">10.2.</span> <span class="toc-nav-text">修改窗口尺寸</span></a></li><li class="toc-nav-item toc-nav-level-3"><a class="toc-nav-link" href="#vip-container"><span class="toc-nav-number">10.3.</span> <span class="toc-nav-text">修改 SIGINT 对应的控制字符</span></a></li><li class="toc-nav-item toc-nav-level-3"><a class="toc-nav-link" href="#vip-container"><span class="toc-nav-number">10.4.</span> <span class="toc-nav-text">退格键无法使用</span></a></li><li class="toc-nav-item toc-nav-level-3"><a class="toc-nav-link" href="#vip-container"><span class="toc-nav-number">10.5.</span> <span class="toc-nav-text">TTY 开关项</span></a></li></ol></li><li class="toc-nav-item toc-nav-level-2"><a class="toc-nav-link" href="#vip-container"><span class="toc-nav-number">11.</span> <span class="toc-nav-text">9. 结束语</span></a></li></ol>
         
         </div>
       </aside>

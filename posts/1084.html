@@ -231,7 +231,7 @@
                 post-container">
 
                 <div id="vip-container"><p>Upsync是新浪微博开源的基于Nginx实现动态配置的三方模块。<code>Nginx-Upsync-Module</code>的功能是拉取Consul的后端server的列表，并动态更新Nginx的路由信息。此模块不依赖于任何第三方模块。Consul作为Nginx的DB，利用Consul的KV服务，每个Nginx Work进程独立的去拉取各个upstream的配置，并更新各自的路由。</p>
-<h3 id="upsync模块工作原理">Upsync模块工作原理</h3>
+<h3><span id="upsync模块工作原理">Upsync模块工作原理</span></h3>
 <p>在Nginx的设计中，每一个upstream维护了一张静态路由表，存储了backend的ip、port以及其他的meta信息。每次请求到达后，会依据location检索路由表，然后依据具体的调度算法(如round robin )选择一个backend转发请求。但这张路由表是静态的，如果变更后，则必须reload，经常reload的话这对SLA有较大影响。</p>
 <p>为了达到减少reload的目的，大多通过动态更新维护路由表来解决这个问题。通常路由表的维护有Push与Pull两种方式。</p>
 <a id="more"></a>
@@ -240,7 +240,7 @@
 </ul>
 <p>通过Nginx API向Nginx发出请求,操作简单、便利。</p>
 <p>架构图如下</p>
-<p><img src="http://mmbiz.qpic.cn/mmbiz/8XkvNnTiapOMKPbl0l2HpfVsN8n01PWVicBSiatic0X4QsVYXzQVIXicQR9eW12VgCkUWce26ib1xKNdmBdiaqxVTJaicQ/640?wx_fmt=jpeg&amp;tp=webp&amp;wxfrom=5&amp;wx_lazy=1" alt=""></p>
+<p><img src="http://mmbiz.qpic.cn/mmbiz/8XkvNnTiapOMKPbl0l2HpfVsN8n01PWVicBSiatic0X4QsVYXzQVIXicQR9eW12VgCkUWce26ib1xKNdmBdiaqxVTJaicQ/640?wx_fmt=jpeg&amp;tp=webp&amp;wxfrom=5&amp;wx_lazy=1" alt></p>
 <p>http api除了操作简单、方便，而且实时性好；缺点是有多台Nginx时，不同Nginx路由表的一致性难于保证，如果某一条注册失败，便会造成服务配置的不一致，容错复杂。另外扩容Nginx服务器，需要从其他的Nginx中同步路由表。</p>
 <ul>
 <li>Pull方案</li>
@@ -248,12 +248,12 @@
 <p>路由表中所有的backend信息(含meta)存储到Consul，所有的Nginx从Consul拉取相关信息。有变更则更新路由表，利用Consul解决一致性问题，同时利用Consul的wait机制解决实时性问题。利用Consul的index进行增量摘取，解决带宽占用问题。</p>
 <p>在Consul中，一个K/V对代表一个backend信息，增加一个即视作扩容，减少一个即为缩容。调整meta信息，如权重，也可以达到动态流量调整的目的。</p>
 <p>架构图如下：</p>
-<p><img src="http://mmbiz.qpic.cn/mmbiz/8XkvNnTiapOMKPbl0l2HpfVsN8n01PWVicuJccSbpYT1HKf0a3ZHCTV5coDa9NnKnsLW5kfhsEqIMg1H8qBmhCnw/640?wx_fmt=jpeg&amp;tp=webp&amp;wxfrom=5&amp;wx_lazy=1" alt=""></p>
+<p><img src="http://mmbiz.qpic.cn/mmbiz/8XkvNnTiapOMKPbl0l2HpfVsN8n01PWVicuJccSbpYT1HKf0a3ZHCTV5coDa9NnKnsLW5kfhsEqIMg1H8qBmhCnw/640?wx_fmt=jpeg&amp;tp=webp&amp;wxfrom=5&amp;wx_lazy=1" alt></p>
 <ul>
 <li>基于动态路由的方案实现</li>
 </ul>
 <p>Upsync模块使用了第二种模式，通过拉取Consul的后端Server的列表，并动态更新Nginx的路由信息。Upsync模块工作流程图如下：</p>
-<p><img src="http://static.oschina.net/uploads/space/2016/0311/110607_oLSx_1774694.png" alt=""></p>
+<p><img src="http://static.oschina.net/uploads/space/2016/0311/110607_oLSx_1774694.png" alt></p>
 <p>每个Work进程定时的去Consul拉取相应upstream的配置，若Consul发现对应upstream的值没有变化，便会hang住这个请求五分钟(默认值)。在这五分钟内对此upstream的任何操作，都会立刻返回给Nginx对相应路由进行更新。</p>
 <p>upstream变更后，除了更新Nginx的缓存路由信息，还会把本upstream的后端server列表dump到本地，保持本地server信息与consul的一致性。</p>
 <p>除了注册／注销后端的server到consul，会更新到Nginx的upstream路由信息外，对后端server属性的修改也会同步到nginx的upstream路由。</p>
@@ -277,16 +277,16 @@
 <li>work进程每次更新都会把后端列表dump到本地，目的是降低对Consul的依赖性，即使在consul不可用时，也可以Reload Nginx。</li>
 </ol>
 <p>Nginx启动流程图如下：</p>
-<p><img src="http://mmbiz.qpic.cn/mmbiz/8XkvNnTiapOMKPbl0l2HpfVsN8n01PWVicibg7gG18fsAMQ6bIOunFMvsXzNhhHHibSt8QyVaOCkfK2LiaunTCf4NrQ/640?wx_fmt=jpeg&amp;tp=webp&amp;wxfrom=5&amp;wx_lazy=1" alt=""></p>
+<p><img src="http://mmbiz.qpic.cn/mmbiz/8XkvNnTiapOMKPbl0l2HpfVsN8n01PWVicibg7gG18fsAMQ6bIOunFMvsXzNhhHHibSt8QyVaOCkfK2LiaunTCf4NrQ/640?wx_fmt=jpeg&amp;tp=webp&amp;wxfrom=5&amp;wx_lazy=1" alt></p>
 <p>Nginx启动时，master进程首先会解析本地的配置文件，解析完成功，接着进行一系列的初始化，之后便会开始work进程的初始化。work初始化时会去Consul拉取配置，进行work进程upstream路由信息的更新，若拉取成功，便直接更新，若拉取失败，便会打开配置的dump后端列表的文件，提取之前dump下来的server信息，进行upstream路由的更新，之后便开始正常的提供服务。</p>
 <p>每次去拉取Consul都会设置连接超时，由于Consul在无更新的情况下默认会hang五分钟，所以响应超时配置时间应大于五分钟。大于五分钟之后，Consul依旧没有返回，便直接做超时处理。</p>
-<h3 id="upsync模块安装">Upsync模块安装</h3>
-<h4 id="安装consul">安装Consul</h4>
+<h3><span id="upsync模块安装">Upsync模块安装</span></h3>
+<h4><span id="安装consul">安装Consul</span></h4>
 <blockquote>
 <p>Consul是HashiCorp公司推出的开源工具，用于实现分布式系统的服务发现与配置。</p>
 </blockquote>
 <p>Upsync最新版本是支持ectd，这里用ectd做为后端存储。有关consule的讲解后面单独来讲。如果你还没有etcd环境，可参考「<a href="https://www.hi-linux.com/posts/40915.html">etcd使用入门</a>」一文搭建一个。</p>
-<h4 id="安装配置nginx">安装配置Nginx</h4>
+<h4><span id="安装配置nginx">安装配置Nginx</span></h4>
 <ul>
 <li>下载对应软件包</li>
 </ul>
@@ -322,11 +322,11 @@
 <figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br></pre></td><td class="code"><pre><span class="line">$ systemctl status  nginx.service</span><br><span class="line">● nginx.service - The NGINX HTTP and reverse proxy server</span><br><span class="line">   Loaded: loaded (&#x2F;lib&#x2F;systemd&#x2F;system&#x2F;nginx.service; disabled; vendor preset: enabled)</span><br><span class="line">   Active: active (running) since Mon 2017-05-08 10:58:06 CST; 1min 6s ago</span><br><span class="line">     Docs: http:&#x2F;&#x2F;nginx.org&#x2F;en&#x2F;docs&#x2F;</span><br><span class="line">  Process: 22966 ExecStart&#x3D;&#x2F;usr&#x2F;local&#x2F;nginx&#x2F;sbin&#x2F;nginx -c &#x2F;usr&#x2F;local&#x2F;nginx&#x2F;conf&#x2F;nginx.conf (code&#x3D;exited, status&#x3D;0&#x2F;SUCCESS)</span><br><span class="line">  Process: 22963 ExecStartPre&#x3D;&#x2F;usr&#x2F;local&#x2F;nginx&#x2F;sbin&#x2F;nginx -t -c &#x2F;usr&#x2F;local&#x2F;nginx&#x2F;conf&#x2F;nginx.conf (code&#x3D;exited, status&#x3D;0&#x2F;SUCCESS)</span><br><span class="line"> Main PID: 22971 (nginx)</span><br><span class="line">    Tasks: 6</span><br><span class="line">   Memory: 24.5M</span><br><span class="line">      CPU: 517ms</span><br><span class="line">   CGroup: &#x2F;system.slice&#x2F;nginx.service</span><br><span class="line">           ├─22971 nginx: master process &#x2F;usr&#x2F;local&#x2F;nginx&#x2F;sbin&#x2F;nginx -c &#x2F;usr&#x2F;local&#x2F;nginx&#x2F;conf&#x2F;nginx.con</span><br><span class="line">           ├─22972 nginx: worker process</span><br><span class="line">           ├─22973 nginx: worker process</span><br><span class="line">           ├─22974 nginx: worker process</span><br><span class="line">           ├─22975 nginx: worker process</span><br><span class="line">           └─22976 nginx: worker process</span><br><span class="line"></span><br><span class="line">May 08 10:58:06 dev-master-01 systemd[1]: Starting The NGINX HTTP and reverse proxy server...</span><br><span class="line">May 08 10:58:06 dev-master-01 nginx[22963]: nginx: the configuration file &#x2F;usr&#x2F;local&#x2F;nginx&#x2F;conf&#x2F;nginx.conf syntax is ok</span><br><span class="line">May 08 10:58:06 dev-master-01 nginx[22963]: nginx: configuration file &#x2F;usr&#x2F;local&#x2F;nginx&#x2F;conf&#x2F;nginx.conf test is successful</span><br><span class="line">May 08 10:58:06 dev-master-01 systemd[1]: Started The NGINX HTTP and reverse proxy server.</span><br></pre></td></tr></table></figure>
 <p>如果要单独查看Nginx服务日志，可以使用以下命令：</p>
 <figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">$ journalctl -f -u nginx.service</span><br></pre></td></tr></table></figure>
-<h3 id="验证upsync模块">验证Upsync模块</h3>
-<h4 id="启动一个web服务">启动一个Web服务</h4>
+<h3><span id="验证upsync模块">验证Upsync模块</span></h3>
+<h4><span id="启动一个web服务">启动一个Web服务</span></h4>
 <p>这里在Nginx默认站点目录，用Python启动一个SimpleHTTPServer进行验证。</p>
 <figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">$ cd &#x2F;usr&#x2F;local&#x2F;nginx&#x2F;html</span><br><span class="line">$ python -m SimpleHTTPServer 8080</span><br></pre></td></tr></table></figure>
-<h4 id="后端存储增加数据">后端存储增加数据</h4>
+<h4><span id="后端存储增加数据">后端存储增加数据</span></h4>
 <ul>
 <li>后端存储使用etcd</li>
 </ul>
@@ -343,25 +343,25 @@
 <figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">$ curl -X PUT http:&#x2F;&#x2F;192.168.2.210:8500&#x2F;v1&#x2F;kv&#x2F;upstreams&#x2F;test&#x2F;192.168.2.210:8080</span><br></pre></td></tr></table></figure>
 <p>删除一个后端服务器</p>
 <figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">$ curl -X DELETE http:&#x2F;&#x2F;192.168.2.210:8500&#x2F;v1&#x2F;kv&#x2F;upstreams&#x2F;test&#x2F;192.168.2.210:8080</span><br></pre></td></tr></table></figure>
-<h4 id="测试站点是否正常访问">测试站点是否正常访问</h4>
+<h4><span id="测试站点是否正常访问">测试站点是否正常访问</span></h4>
 <ul>
 <li>访问站点</li>
 </ul>
-<p><img src="https://www.hi-linux.com/img/linux/upsync1.png" alt=""></p>
+<p><img src="https://www.hi-linux.com/img/linux/upsync1.png" alt></p>
 <p>页面自动根据<code>proxy_pass http://test;</code>成功转到了后端服务器。</p>
 <ul>
 <li>访问upstream列表</li>
 </ul>
-<p><img src="https://www.hi-linux.com/img/linux/upsync2.png" alt=""></p>
+<p><img src="https://www.hi-linux.com/img/linux/upsync2.png" alt></p>
 <ul>
 <li>访问upstream状态</li>
 </ul>
-<p><img src="https://www.hi-linux.com/img/linux/upsync3.png" alt=""></p>
+<p><img src="https://www.hi-linux.com/img/linux/upsync3.png" alt></p>
 <ul>
 <li>查看添加的后端服务是否被dump到本地</li>
 </ul>
 <figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">$ cat &#x2F;usr&#x2F;local&#x2F;nginx&#x2F;conf&#x2F;servers&#x2F;servers_test.conf</span><br><span class="line">server 192.168.2.210:8080 weight&#x3D;1 max_fails&#x3D;2 fail_timeout&#x3D;10s;</span><br></pre></td></tr></table></figure>
-<h3 id="参考文档">参考文档</h3>
+<h3><span id="参考文档">参考文档</span></h3>
 <p><a href="http://www.google.com" target="_blank" rel="noopener">http://www.google.com</a><br>
 <a href="http://t.cn/Ra2WfSR" target="_blank" rel="noopener">http://t.cn/Ra2WfSR</a><br>
 <a href="https://my.oschina.net/liucao/blog/470344" target="_blank" rel="noopener">https://my.oschina.net/liucao/blog/470344</a><br>
@@ -438,7 +438,7 @@
         <div id="toc" class="toc-article">
         <strong class="toc-title">Contents</strong>
         
-          <ol class="toc-nav"><li class="toc-nav-item toc-nav-level-3"><a class="toc-nav-link" href="#upsync模块工作原理"><span class="toc-nav-number">1.</span> <span class="toc-nav-text">Upsync模块工作原理</span></a></li><li class="toc-nav-item toc-nav-level-3"><a class="toc-nav-link" href="#upsync模块安装"><span class="toc-nav-number">2.</span> <span class="toc-nav-text">Upsync模块安装</span></a><ol class="toc-nav-child"><li class="toc-nav-item toc-nav-level-4"><a class="toc-nav-link" href="#安装consul"><span class="toc-nav-number">2.1.</span> <span class="toc-nav-text">安装Consul</span></a></li><li class="toc-nav-item toc-nav-level-4"><a class="toc-nav-link" href="#安装配置nginx"><span class="toc-nav-number">2.2.</span> <span class="toc-nav-text">安装配置Nginx</span></a></li></ol></li><li class="toc-nav-item toc-nav-level-3"><a class="toc-nav-link" href="#验证upsync模块"><span class="toc-nav-number">3.</span> <span class="toc-nav-text">验证Upsync模块</span></a><ol class="toc-nav-child"><li class="toc-nav-item toc-nav-level-4"><a class="toc-nav-link" href="#启动一个web服务"><span class="toc-nav-number">3.1.</span> <span class="toc-nav-text">启动一个Web服务</span></a></li><li class="toc-nav-item toc-nav-level-4"><a class="toc-nav-link" href="#后端存储增加数据"><span class="toc-nav-number">3.2.</span> <span class="toc-nav-text">后端存储增加数据</span></a></li><li class="toc-nav-item toc-nav-level-4"><a class="toc-nav-link" href="#测试站点是否正常访问"><span class="toc-nav-number">3.3.</span> <span class="toc-nav-text">测试站点是否正常访问</span></a></li></ol></li><li class="toc-nav-item toc-nav-level-3"><a class="toc-nav-link" href="#参考文档"><span class="toc-nav-number">4.</span> <span class="toc-nav-text">参考文档</span></a></li></ol>
+          <ol class="toc-nav"><li class="toc-nav-item toc-nav-level-3"><a class="toc-nav-link" href="#vip-container"><span class="toc-nav-number">1.</span> <span class="toc-nav-text">Upsync模块工作原理</span></a></li><li class="toc-nav-item toc-nav-level-3"><a class="toc-nav-link" href="#vip-container"><span class="toc-nav-number">2.</span> <span class="toc-nav-text">Upsync模块安装</span></a><ol class="toc-nav-child"><li class="toc-nav-item toc-nav-level-4"><a class="toc-nav-link" href="#vip-container"><span class="toc-nav-number">2.1.</span> <span class="toc-nav-text">安装Consul</span></a></li><li class="toc-nav-item toc-nav-level-4"><a class="toc-nav-link" href="#vip-container"><span class="toc-nav-number">2.2.</span> <span class="toc-nav-text">安装配置Nginx</span></a></li></ol></li><li class="toc-nav-item toc-nav-level-3"><a class="toc-nav-link" href="#vip-container"><span class="toc-nav-number">3.</span> <span class="toc-nav-text">验证Upsync模块</span></a><ol class="toc-nav-child"><li class="toc-nav-item toc-nav-level-4"><a class="toc-nav-link" href="#vip-container"><span class="toc-nav-number">3.1.</span> <span class="toc-nav-text">启动一个Web服务</span></a></li><li class="toc-nav-item toc-nav-level-4"><a class="toc-nav-link" href="#vip-container"><span class="toc-nav-number">3.2.</span> <span class="toc-nav-text">后端存储增加数据</span></a></li><li class="toc-nav-item toc-nav-level-4"><a class="toc-nav-link" href="#vip-container"><span class="toc-nav-number">3.3.</span> <span class="toc-nav-text">测试站点是否正常访问</span></a></li></ol></li><li class="toc-nav-item toc-nav-level-3"><a class="toc-nav-link" href="#vip-container"><span class="toc-nav-number">4.</span> <span class="toc-nav-text">参考文档</span></a></li></ol>
         
         </div>
       </aside>

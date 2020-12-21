@@ -233,18 +233,18 @@
                 post-container">
 
                 <div id="vip-container"><p>本文将主要首先聊一聊数据库同步和迁移两个话题，之后将会围绕这 2 个话题介绍一下阿里云开源的基于 MongoDB 和 Redis 的数据同步&amp;迁移工具 MongoShake 和 RedisShake，最后介绍一些用户的使用案例。</p>
-<h2 id="1-同步">1. 同步</h2>
+<h2><span id="1-同步">1. 同步</span></h2>
 <p>现在大部分数据库都支持集群版的数据，也就是说一个逻辑单元中有多个 db 节点，不同节点之间通常通过复制的方式来实现数据的同步。比如 MySQL 的的基于 Binlog 的主从同步、Redis 的基于 Sync/Psync 机制的 AOF 主从同步、MongoDB 基于 oplog 的主从同步等等。这些机制支撑了一个单元下的数据冗余高可用和读写分离负载分担。</p>
 <p>但仅仅一个逻辑单元内的数据同步对于很多业务通常不够用，很多业务需要跨逻辑单元的数据同步的能力。例如：同城多机房、异地多数据中心同步等。容灾、多活是最常见的两种业务场景，扩展开来还可以有读写分离，负载分担等多种场景。</p>
 <p>现在越来越多的公司选择将基础业务部署到云上，那么这些能力都需要云厂商能够提供，以提高服务的质量，更好的为用户的业务服务。另外，最近混合云场景大热，其原因有多种，既有云厂商的原因，也有用户业务变化的原因，但这最终要求了从云下到云上，云上到云下，跨云不同云厂商之间的互相同步的能力。</p>
-<h3 id="11-容灾">1.1 容灾</h3>
+<h3><span id="11-容灾">1.1 容灾</span></h3>
 <p>容灾通常用于数据的备份，备份数据对外不提供服务，或者仅提供读服务。在机房发生故障的时候，备份数据库代替原数据库对外提供服务。一般来说，业务的服务治理模块发现原服务不可用后，选择代理层进行流量的转发，或者采用 DNS 进行切流。其机制基本类似，都是将发送到原数据库的流量转发到备份数据库。</p>
 <p>容灾系统对 RPO（故障恢复时间）和 RTO（恢复数据的时间点）都有要求。比如：故障要求 3 分钟内恢复，恢复的数据最多容忍丢失 1s，这些都需要数据同步和服务治理发现配合完成。如果 RPO 和 RTO 的要求很高，那么全量备份通常不可取。因为全量备份通常是定期的，比如一天一次，假如故障的时间恰好发生在全量备份之前，这意味着这接近一天的数据丢失了。数据只能恢复到一天之前。所以这就要求了具有一个实时增量的热备份能力。</p>
 <p>因为数据的全量和增量不断同步，例如：Redis 的 RDB 文件和 AOF 文件，如果 Redis 发生不可服务，这些 RDB + AOF 文件可以恢复成一个数据库继续提供服务。再譬如：MongoDB 的全量 Snapshot + Oplog 增量，也可以恢复成一个完整的数据库。</p>
 <p>另外，备份还可以分为逻辑备份和物理备份。逻辑备份通常指的是数据库的逻辑层面通过全量文件 + Binlog 文件来实现，而物理备份通常指引擎层面来进行备份。</p>
 <p>以上提到了关于备份，有很多划分种类。比如：冷热备份、冷热恢复、物理、逻辑备份、全量、增量备份等等，关于这些概念如果不清晰可以自行搜索一下。此外，我们在本小节的开头提到，备份还可以提供一个读服务，那对于这种场景来说，备份数据不能单单是一些文件，例如：RDB 文件，AOF 文件等，而需要是一个完整可服务的数据库，所以这种场景下，通常也需要是一个实时增量的热备份。</p>
 <a id="more"></a>
-<h3 id="12-多活">1.2 多活</h3>
+<h3><span id="12-多活">1.2 多活</span></h3>
 <p>多活对于数据库层面来说，指的是跨逻辑单元的多个数据库同时对外提供服务，这些不同单元的数据库具有部分相同或者全部相同的数据。这通常用于解决因地域网络传输层面带来的问题，也就是异地多活。比如：业务层面在北京机房写入一条数据，要求在上海机房也能读到这条数据；同样反过来也可以，在上海机房写入的数据，在北京也能读到。</p>
 <p>多活的模式看起来很好，能解决很多业务层面的问题，但同时有很多问题和挑战：</p>
 <ol>
@@ -262,14 +262,14 @@
 <p>答案是否定的，因为数据同步是最终一致性，而最终一致性势必是有时间窗口的。在 B 库操作 set x=3 的时候，可能 A 库之前的 set x=2 语句还没有完成同步，那么先 set x=3，后同步 set x=2，结果目的端就变成了 2，而源端同步了set x=3 结果变成了3，这样数据就变成了不一致。</p>
 <p>当然我这里只是随便举个例子，还有很多不一致的情况。那么解决这种问题同样也需要两种手段，其一就是内核层面，其二就是业务配合。内核层面解决的比如 CRDT，其基于一个向量时钟来处理消息的分发，那么向量时钟也会带来冲突，对于冲突的处理需要借助一些手段，比如 last write win、客户端解决等等。而很多数据库本身对 CRDT 的支持很不够，所以这种方案有比较大的局限性。其二就是类似我在如何解决双向复制的问题里面讲到的，对业务流量进行分流解决，由业务保证不会在同步通道的两侧同时对一条数据进行操作。</p>
 <p>现在数据库层面的多活，大部分都是一种伪多活，通常都需要业务层面配合分流来解决。下面我在 MongoShake 和 RedisShake 章节，会对这种业务配合的方式进行展开讨论。</p>
-<h2 id="2-迁移">2. 迁移</h2>
+<h2><span id="2-迁移">2. 迁移</span></h2>
 <p>从广义来说，迁移应该算是同步的一种模式。同步侧重于增量，而迁移侧重于全量。迁移通常说的是数据库的搬迁，将源数据库搬迁到目的数据库，搬迁之后目的数据库代替源数据库继续提供服务，源数据库可以选择下线或者继续提供服务。</p>
 <p>迁移有多种场景，比如：同种数据库下异构模式迁移。例如：Redis 的主从版迁移到集群版；可以是数据库的升级迁移，比如：MongoDB 从 3.0 升级到 4.0；也可以是上云迁移，比如：云下的数据库迁移到云上，或者云上的迁移到云下等等。</p>
 <p>迁移的同时，源数据库可写可不写，不写的话稍微简单一些。迁移往往不需要迁移增量，只需要做全量迁移即可，但这通常需要业务停写，很多业务难以接受。可写的话比较符合大部分业务场景，但对迁移的链路就需要有个全量+增量迁移的能力。等迁移完毕，用户可以对迁移后的数据进行校验，发现没问题了，等待一个业务时间点进行一次闪断切流，将流量分发到目的端，数据就完成了迁移，源数据库就可以下线了。</p>
 <p>上述我提到了，迁移可以用于云下到云上，云上到云下这种混合云场景的迁移。但现在对于很多云厂商来说，从云上到云下的迁移可能比云下到云上的迁移困难一些，因为云上到云下的同步需要能够从云上拉取数据。对于一些数据库来说，这些拉取的权限很可能没有开放。例如：Redis 的Sync 迁移，需要源端开放 Sync/Psync 权限，而很多云厂商出于安全角度考虑是不支持的。这就对迁移工具提出了另一个挑战，而应对这个挑战的方式要么就是云厂商支持这种模式，要么就是换一种其他迁移方式。对于阿里云来说，已经开放了用户的复制权限，使得用户可以通过 Sync/Psync 进行数据的拉取。另外，RedisShake 本身也支持了其他绕过 Sync/Psync 的同步迁移方式，后续我都会介绍。</p>
-<h2 id="3-mongoshake-amp-redisshake同步迁移工具">3. MongoShake &amp; RedisShake同步迁移工具</h2>
+<h2><span id="3-mongoshake-amp-redisshake同步迁移工具">3. MongoShake &amp; RedisShake同步迁移工具</span></h2>
 <p>阿里云开源了 MongoShake 和 RedisShake，可以用于 MongoDB 和 Redis 的同步和迁移，进一步实现用户对灾备和多活的需求。</p>
-<h3 id="31-mongoshake">3.1 MongoShake</h3>
+<h3><span id="31-mongoshake">3.1 MongoShake</span></h3>
 <p>MongoShake 的同步是基于 Oplog 实现的，v1.5 版本开始支持全量同步。其内部具体实现细节可以参考我在云栖社区上写的文章，本小节主要从功能和应用场景来进行介绍。</p>
 <p>项目地址：<a href="https://github.com/alibaba/MongoShake" target="_blank" rel="noopener">https://github.com/alibaba/MongoShake</a></p>
 <p>首先介绍一下主要的功能：</p>
@@ -294,8 +294,8 @@
 <li>Cache 的反向同步。可以通过日志分析的结果，知道哪些 Cache 可以被淘汰，哪些 Cache 可以进行预加载，从而反向推动 Cache 的更新。</li>
 </ul>
 <p>以上只是简单列举了几种应用场景，如果你有不同的玩法或者不同的业务需求，也欢迎跟我联系，MongoShake 产品还在持续迭代更新中，后续还会有很多有用且好玩的特性会进行持续添加。</p>
-<p><img src="https://i.loli.net/2019/08/09/kNoKiMGI6bcRrqa.png" alt=""></p>
-<h3 id="32-redisshake">3.2 RedisShake</h3>
+<p><img src="https://i.loli.net/2019/08/09/kNoKiMGI6bcRrqa.png" alt></p>
+<h3><span id="32-redisshake">3.2 RedisShake</span></h3>
 <p>RedisShake 的同步是基于向源 Redis 发送 Sync/Psync 命令，然后实现全量+增量拉取并回放来实现的。同样，具体细节介绍请参考我在云栖社区发表的博客，本文主要从功能角度进行介绍。</p>
 <p>项目地址：<a href="https://github.com/alibaba/RedisShake" target="_blank" rel="noopener">https://github.com/alibaba/RedisShake</a></p>
 <p>RedisShake 目前主要有以下 5 大功能：</p>
@@ -306,38 +306,38 @@
 <li>Sync：支持数据同步，源端可以是单节点 Redis、主从Redis、集群Redis，也支持 Codis，目的端同样也可以是各种模式的 Redis。</li>
 <li>Rump：支持对源端进行 Key 扫描并全量迁移。这个主要是应对一些云厂商没有开放 Sync/Psync 权限的情况下，进行全量迁移的场景。</li>
 </ol>
-<p><img src="https://i.loli.net/2019/08/09/fKhs5ZMg4zCaqWV.png" alt=""></p>
+<p><img src="https://i.loli.net/2019/08/09/fKhs5ZMg4zCaqWV.png" alt></p>
 <p>RedisShake 的 Sync 模式是目前使用最为广泛的模式，其通过 RDB 全量并发同步。以及增量异步写入的方式来提高同步的性能，理论上可以达到毫秒级别的同步延迟。此外，用户还可以根据 redis-full-check 来进行数据同步后的一致性校验，保证数据的正确性。</p>
 <p>RedisShake 的场景以同步为主，如果用户有特定的需求，也欢迎告知我们，比如类似 MongoShake 的离线计算等场景。目前 RedisShake 处于刚开源阶段，功能点迭代比较快，欢迎大家关注。</p>
-<h2 id="4-使用案例">4. 使用案例</h2>
+<h2><span id="4-使用案例">4. 使用案例</span></h2>
 <p>本节主要介绍一下用户根据我们的 MongoShake 和 RedisShake 的使用案例</p>
-<h3 id="41-高德地图">4.1 高德地图</h3>
+<h3><span id="41-高德地图">4.1 高德地图</span></h3>
 <p>高德地图 App 是国内首屈一指的地图及导航应用，阿里云 MongoDB 数据库服务为该应用提供了部分功能的存储支撑，存储亿级别数据。现在高德地图使用国内双中心的策略，通过地理位置等信息路由最近中心提升服务质量，业务方(高德地图)通过用户路由到三个城市数据中心，如下图所示，机房数据之间无依赖计算。</p>
-<p><img src="https://i.loli.net/2019/08/09/EASsIxyfTDZtN16.png" alt=""></p>
+<p><img src="https://i.loli.net/2019/08/09/EASsIxyfTDZtN16.png" alt></p>
 <p>这三个城市地理上从北到南横跨了整个中国 ，这对多数据中心如何做好复制、容灾提出了挑战。如果某个地域的机房、网络出现问题，可以平滑的将流量切换到另一个地方，做到用户几乎无感知？</p>
 <p>目前我们的策略是，拓扑采用机房两两互联方式，每个机房的数据都将同步到另外两个机房。然后通过高德的路由层，将用户请求路由到不同的数据中心，读写均发送在同一个数据中心，保证一定的事务性。然后再通过 MongoShake，双向异步复制两个数据中心的数据，这样保证每个数据中心都有全量的数据(保证最终一致性) 。如下图所示：</p>
-<p><img src="https://i.loli.net/2019/08/09/aDrv7UtbeT1gWlV.png" alt=""></p>
+<p><img src="https://i.loli.net/2019/08/09/aDrv7UtbeT1gWlV.png" alt></p>
 <p>任意机房出现问题，另两个机房中的一个可以通过切换后提供读写服务。下图展示了城市 1 和城市 2 机房的同步情况。</p>
-<p><img src="https://i.loli.net/2019/08/09/nsPJ1QOCfc6ugN2.png" alt=""></p>
+<p><img src="https://i.loli.net/2019/08/09/nsPJ1QOCfc6ugN2.png" alt></p>
 <p>遇到某个单元不能访问的问题，通过 MongoShake 对外开放的 Restful 管理接口，可以获得各个机房的同步偏移量和时间戳，通过判断采集和写入值即可判断异步复制是否在某个时间点已经完成。再配合业务方的 DNS 切流，切走单元流量并保证原有单元的请求在新单元是可以读写的，如下图所示。</p>
-<p><img src="https://i.loli.net/2019/08/09/ea85kKC37IlRLmn.png" alt=""></p>
-<h3 id="42-某跨境电商">4.2 某跨境电商</h3>
+<p><img src="https://i.loli.net/2019/08/09/ea85kKC37IlRLmn.png" alt></p>
+<h3><span id="42-某跨境电商">4.2 某跨境电商</span></h3>
 <p>某跨境电商在中国和海外分别部署了 2 套 MongoDB，其中海外主库上提供读写服务，同时用户希望把海外的数据拉到国内进行离线计算，以及承担一部分读流量，以下是该用户采用 MongoShake 搭建的链路方案：</p>
-<p><img src="https://i.loli.net/2019/08/09/CN3eg8iyEQrGO25.png" alt=""></p>
-<h3 id="43-某著名游戏厂商">4.3 某著名游戏厂商</h3>
+<p><img src="https://i.loli.net/2019/08/09/CN3eg8iyEQrGO25.png" alt></p>
+<h3><span id="43-某著名游戏厂商">4.3 某著名游戏厂商</span></h3>
 <p>某著名游戏厂商采用了 MongoShake 搭建了异地容灾链路。用户在 2 个机房分别部署了 2 套应用，正常情况下用户流量通过北向的 DNS/SLB 只访问主应用，然后再访问到主 MongoDB，数据通过 MongoShake 在 2 个机房的数据库之间进行同步，一旦机房 1 不可用，DNS/SLB 将用户流量切换到备上，然后继续对外提供读写服务。</p>
-<p><img src="https://i.loli.net/2019/08/09/xDhOKETynsgk15W.png" alt=""></p>
-<h3 id="44-采用-shake-的开源多活方案">4.4 采用 Shake 的开源多活方案</h3>
+<p><img src="https://i.loli.net/2019/08/09/xDhOKETynsgk15W.png" alt></p>
+<h3><span id="44-采用-shake-的开源多活方案">4.4 采用 Shake 的开源多活方案</span></h3>
 <p>这里是我们给出的根据 Shake 创建多活的方案，包括 MongoShake 和 RedisShake。</p>
 <p>上文我们介绍在开源 MongoDB 下，可以根据控制流量分发来达到多活的需求。比如下面这个图，用户需要编写一个 Proxy进行流量分发（红色框）部分流量，比如对 a, b 库的写操作分发到左边的 DB，对 c 库的写操作分发到右边的 DB，源库到目的库的 Shake 链路只同步 a, b 库（ MongoShake 和 RedisShake 均提供按库过滤功能），目的库到源库的 Shake 链路只同步 c 库。这样就解决了环形复制的问题。</p>
 <p>总结来说，也就是写流量通过 Proxy 进行固定策略的分发，而读流量可以随意分发到任意 DB。</p>
-<p><img src="https://i.loli.net/2019/08/09/u6815w2OgrnkYSL.png" alt=""></p>
-<h3 id="45-采用-shake-的级联同步方案">4.5 采用 Shake 的级联同步方案</h3>
+<p><img src="https://i.loli.net/2019/08/09/u6815w2OgrnkYSL.png" alt></p>
+<h3><span id="45-采用-shake-的级联同步方案">4.5 采用 Shake 的级联同步方案</span></h3>
 <p>这个是一个全球的部署的用户采用 Shake 搭建的全球混合云级联方案的示例图。有些数据库位于云上，有些位于云下，Shake 提供了混合云不同云环境的同步，还可以直接级联方式的集群同步。</p>
-<p><img src="https://i.loli.net/2019/08/09/LW5otfE23GCPZ4I.png" alt=""></p>
-<h2 id="5-总结">5. 总结</h2>
+<p><img src="https://i.loli.net/2019/08/09/LW5otfE23GCPZ4I.png" alt></p>
+<h2><span id="5-总结">5. 总结</span></h2>
 <p>总结主要介绍了一下数据库同步和迁移的场景，然后结合功能和应用场景介绍了下我们开源的两款 Shake 工具。目前，我们的 Shake 工具还在持续功能迭代中，欢迎关注我们的 Github，有任何问题欢迎在 Github 上进行提问，也欢迎分享你们的使用场景，以帮助我们更好的完善产品。</p>
-<h2 id="6-参考">6. 参考</h2>
+<h2><span id="6-参考">6. 参考</span></h2>
 <ol>
 <li><a href="https://github.com/alibaba/MongoShake" target="_blank" rel="noopener">https://github.com/alibaba/MongoShake</a></li>
 <li><a href="https://github.com/alibaba/RedisShake" target="_blank" rel="noopener">https://github.com/alibaba/RedisShake</a></li>
@@ -424,7 +424,7 @@
         <div id="toc" class="toc-article">
         <strong class="toc-title">Contents</strong>
         
-          <ol class="toc-nav"><li class="toc-nav-item toc-nav-level-2"><a class="toc-nav-link" href="#1-同步"><span class="toc-nav-number">1.</span> <span class="toc-nav-text">1. 同步</span></a><ol class="toc-nav-child"><li class="toc-nav-item toc-nav-level-3"><a class="toc-nav-link" href="#11-容灾"><span class="toc-nav-number">1.1.</span> <span class="toc-nav-text">1.1 容灾</span></a></li><li class="toc-nav-item toc-nav-level-3"><a class="toc-nav-link" href="#12-多活"><span class="toc-nav-number">1.2.</span> <span class="toc-nav-text">1.2 多活</span></a></li></ol></li><li class="toc-nav-item toc-nav-level-2"><a class="toc-nav-link" href="#2-迁移"><span class="toc-nav-number">2.</span> <span class="toc-nav-text">2. 迁移</span></a></li><li class="toc-nav-item toc-nav-level-2"><a class="toc-nav-link" href="#3-mongoshake-amp-redisshake同步迁移工具"><span class="toc-nav-number">3.</span> <span class="toc-nav-text">3. MongoShake &amp; RedisShake同步迁移工具</span></a><ol class="toc-nav-child"><li class="toc-nav-item toc-nav-level-3"><a class="toc-nav-link" href="#31-mongoshake"><span class="toc-nav-number">3.1.</span> <span class="toc-nav-text">3.1 MongoShake</span></a></li><li class="toc-nav-item toc-nav-level-3"><a class="toc-nav-link" href="#32-redisshake"><span class="toc-nav-number">3.2.</span> <span class="toc-nav-text">3.2 RedisShake</span></a></li></ol></li><li class="toc-nav-item toc-nav-level-2"><a class="toc-nav-link" href="#4-使用案例"><span class="toc-nav-number">4.</span> <span class="toc-nav-text">4. 使用案例</span></a><ol class="toc-nav-child"><li class="toc-nav-item toc-nav-level-3"><a class="toc-nav-link" href="#41-高德地图"><span class="toc-nav-number">4.1.</span> <span class="toc-nav-text">4.1 高德地图</span></a></li><li class="toc-nav-item toc-nav-level-3"><a class="toc-nav-link" href="#42-某跨境电商"><span class="toc-nav-number">4.2.</span> <span class="toc-nav-text">4.2 某跨境电商</span></a></li><li class="toc-nav-item toc-nav-level-3"><a class="toc-nav-link" href="#43-某著名游戏厂商"><span class="toc-nav-number">4.3.</span> <span class="toc-nav-text">4.3 某著名游戏厂商</span></a></li><li class="toc-nav-item toc-nav-level-3"><a class="toc-nav-link" href="#44-采用-shake-的开源多活方案"><span class="toc-nav-number">4.4.</span> <span class="toc-nav-text">4.4 采用 Shake 的开源多活方案</span></a></li><li class="toc-nav-item toc-nav-level-3"><a class="toc-nav-link" href="#45-采用-shake-的级联同步方案"><span class="toc-nav-number">4.5.</span> <span class="toc-nav-text">4.5 采用 Shake 的级联同步方案</span></a></li></ol></li><li class="toc-nav-item toc-nav-level-2"><a class="toc-nav-link" href="#5-总结"><span class="toc-nav-number">5.</span> <span class="toc-nav-text">5. 总结</span></a></li><li class="toc-nav-item toc-nav-level-2"><a class="toc-nav-link" href="#6-参考"><span class="toc-nav-number">6.</span> <span class="toc-nav-text">6. 参考</span></a></li></ol>
+          <ol class="toc-nav"><li class="toc-nav-item toc-nav-level-2"><a class="toc-nav-link" href="#vip-container"><span class="toc-nav-number">1.</span> <span class="toc-nav-text">1. 同步</span></a><ol class="toc-nav-child"><li class="toc-nav-item toc-nav-level-3"><a class="toc-nav-link" href="#vip-container"><span class="toc-nav-number">1.1.</span> <span class="toc-nav-text">1.1 容灾</span></a></li><li class="toc-nav-item toc-nav-level-3"><a class="toc-nav-link" href="#vip-container"><span class="toc-nav-number">1.2.</span> <span class="toc-nav-text">1.2 多活</span></a></li></ol></li><li class="toc-nav-item toc-nav-level-2"><a class="toc-nav-link" href="#vip-container"><span class="toc-nav-number">2.</span> <span class="toc-nav-text">2. 迁移</span></a></li><li class="toc-nav-item toc-nav-level-2"><a class="toc-nav-link" href="#vip-container"><span class="toc-nav-number">3.</span> <span class="toc-nav-text">3. MongoShake &amp; RedisShake同步迁移工具</span></a><ol class="toc-nav-child"><li class="toc-nav-item toc-nav-level-3"><a class="toc-nav-link" href="#vip-container"><span class="toc-nav-number">3.1.</span> <span class="toc-nav-text">3.1 MongoShake</span></a></li><li class="toc-nav-item toc-nav-level-3"><a class="toc-nav-link" href="#vip-container"><span class="toc-nav-number">3.2.</span> <span class="toc-nav-text">3.2 RedisShake</span></a></li></ol></li><li class="toc-nav-item toc-nav-level-2"><a class="toc-nav-link" href="#vip-container"><span class="toc-nav-number">4.</span> <span class="toc-nav-text">4. 使用案例</span></a><ol class="toc-nav-child"><li class="toc-nav-item toc-nav-level-3"><a class="toc-nav-link" href="#vip-container"><span class="toc-nav-number">4.1.</span> <span class="toc-nav-text">4.1 高德地图</span></a></li><li class="toc-nav-item toc-nav-level-3"><a class="toc-nav-link" href="#vip-container"><span class="toc-nav-number">4.2.</span> <span class="toc-nav-text">4.2 某跨境电商</span></a></li><li class="toc-nav-item toc-nav-level-3"><a class="toc-nav-link" href="#vip-container"><span class="toc-nav-number">4.3.</span> <span class="toc-nav-text">4.3 某著名游戏厂商</span></a></li><li class="toc-nav-item toc-nav-level-3"><a class="toc-nav-link" href="#vip-container"><span class="toc-nav-number">4.4.</span> <span class="toc-nav-text">4.4 采用 Shake 的开源多活方案</span></a></li><li class="toc-nav-item toc-nav-level-3"><a class="toc-nav-link" href="#vip-container"><span class="toc-nav-number">4.5.</span> <span class="toc-nav-text">4.5 采用 Shake 的级联同步方案</span></a></li></ol></li><li class="toc-nav-item toc-nav-level-2"><a class="toc-nav-link" href="#vip-container"><span class="toc-nav-number">5.</span> <span class="toc-nav-text">5. 总结</span></a></li><li class="toc-nav-item toc-nav-level-2"><a class="toc-nav-link" href="#vip-container"><span class="toc-nav-number">6.</span> <span class="toc-nav-text">6. 参考</span></a></li></ol>
         
         </div>
       </aside>

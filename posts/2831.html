@@ -234,7 +234,7 @@
 
                 <div id="vip-container"><p><code>Git</code> 版本管理时，往往需要撤销某些操作。</p>
 <p>本文介绍几种最主要的情况，给出详细的解释。更多的命令可以参考《<a href="https://mp.weixin.qq.com/s?__biz=MzI3MTI2NzkxMA==&amp;mid=2247483821&amp;idx=1&amp;sn=37a2d147d25cea5efc424736bfb01dc8&amp;chksm=eac52084ddb2a9922e1962d30347f2593014dd45de91ba8464539b04a79906b28fa1c450336d&amp;token=630135187&amp;lang=zh_CN#rd" target="_blank" rel="noopener">常用 Git 命令清单</a>》一文。</p>
-<h2 id="一-撤销提交">一、撤销提交</h2>
+<h2><span id="一-撤销提交">一、撤销提交</span></h2>
 <p>一种常见的场景是，提交代码以后，你突然意识到这个提交有问题，应该撤销掉，这时执行下面的命令就可以了。</p>
 <figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">$ git revert HEAD</span><br></pre></td></tr></table></figure>
 <p>上面命令的原理是，在当前提交后面，新增一次提交，抵消掉上一次提交导致的所有变化。它不会改变过去的历史，所以是首选方式，没有任何丢失代码的风险。</p>
@@ -246,28 +246,28 @@
 <li><code>--no-commit</code>：只抵消暂存区和工作区的文件变化，不产生新的提交。</li>
 </ul>
 <a id="more"></a>
-<h2 id="二-丢弃提交">二、丢弃提交</h2>
+<h2><span id="二-丢弃提交">二、丢弃提交</span></h2>
 <p>如果希望以前的提交在历史中彻底消失，而不是被抵消掉，可以使用 <code>git reset</code> 命令，丢弃掉某个提交之后的所有提交。</p>
 <figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">$ git reset [last good SHA]</span><br></pre></td></tr></table></figure>
 <p><code>git reset</code> 的原理是，让最新提交的指针回到以前某个时点，该时点之后的提交都从历史中消失。</p>
 <p>默认情况下，<code>git reset</code> 不改变工作区的文件（但会改变暂存区），<code>--hard</code> 参数可以让工作区里面的文件也回到以前的状态。</p>
 <figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">$ git reset --hard [last good SHA]</span><br></pre></td></tr></table></figure>
 <p>执行 <code>git reset</code> 命令之后，如果想找回那些丢弃掉的提交，可以使用 <code>git reflog</code> 命令，具体做法参考这里。不过，这种做法有时效性，时间长了可能找不回来。</p>
-<h2 id="三-替换上一次提交">三、替换上一次提交</h2>
+<h2><span id="三-替换上一次提交">三、替换上一次提交</span></h2>
 <p>提交以后，发现提交信息写错了，这时可以使用 <code>git commit</code> 命令的 <code>--amend</code>  参数，可以修改上一次的提交信息。</p>
 <figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">$ git commit --amend -m <span class="string">"Fixes bug #42"</span></span><br></pre></td></tr></table></figure>
 <p>它的原理是产生一个新的提交对象，替换掉上一次提交产生的提交对象。</p>
 <p>这时如果暂存区有发生变化的文件，会一起提交到仓库。所以，<code>--amend</code> 不仅可以修改提交信息，还可以整个把上一次提交替换掉。</p>
-<h2 id="四-撤销工作区的文件修改">四、撤销工作区的文件修改</h2>
+<h2><span id="四-撤销工作区的文件修改">四、撤销工作区的文件修改</span></h2>
 <p>如果工作区的某个文件被改乱了，但还没有提交，可以用 <code>git checkout</code> 命令找回本次修改之前的文件。</p>
 <figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">$ git checkout -- [filename]</span><br></pre></td></tr></table></figure>
 <p>它的原理是先找暂存区，如果该文件有暂存的版本，则恢复该版本，否则恢复上一次提交的版本。</p>
 <p>注意，工作区的文件变化一旦被撤销，就无法找回了。</p>
-<h2 id="五-从暂存区撤销文件">五、从暂存区撤销文件</h2>
+<h2><span id="五-从暂存区撤销文件">五、从暂存区撤销文件</span></h2>
 <p>如果不小心把一个文件添加到暂存区，可以用下面的命令撤销。</p>
 <figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">$ git rm --cached [filename]</span><br></pre></td></tr></table></figure>
 <p>上面的命令不影响已经提交的内容。</p>
-<h2 id="六-撤销当前分支的变化">六、撤销当前分支的变化</h2>
+<h2><span id="六-撤销当前分支的变化">六、撤销当前分支的变化</span></h2>
 <p>你在当前分支上做了几次提交，突然发现放错了分支，这几个提交本应该放到另一个分支。</p>
 <figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># 新建一个 feature 分支，指向当前最新的提交</span></span><br><span class="line"><span class="comment"># 注意，这时依然停留在当前分支</span></span><br><span class="line">$ git branch feature</span><br><span class="line"></span><br><span class="line"><span class="comment"># 切换到这几次提交之前的状态</span></span><br><span class="line">$ git reset --hard [当前分支此前的最后一次提交]</span><br><span class="line"></span><br><span class="line"><span class="comment"># 切换到 feature 分支</span></span><br><span class="line">$ git checkout feature</span><br></pre></td></tr></table></figure>
 <p>上面的操作等于是撤销当前分支的变化，将这些变化放到一个新建的分支。</p>
@@ -345,7 +345,7 @@
         <div id="toc" class="toc-article">
         <strong class="toc-title">Contents</strong>
         
-          <ol class="toc-nav"><li class="toc-nav-item toc-nav-level-2"><a class="toc-nav-link" href="#一-撤销提交"><span class="toc-nav-number">1.</span> <span class="toc-nav-text">一、撤销提交</span></a></li><li class="toc-nav-item toc-nav-level-2"><a class="toc-nav-link" href="#二-丢弃提交"><span class="toc-nav-number">2.</span> <span class="toc-nav-text">二、丢弃提交</span></a></li><li class="toc-nav-item toc-nav-level-2"><a class="toc-nav-link" href="#三-替换上一次提交"><span class="toc-nav-number">3.</span> <span class="toc-nav-text">三、替换上一次提交</span></a></li><li class="toc-nav-item toc-nav-level-2"><a class="toc-nav-link" href="#四-撤销工作区的文件修改"><span class="toc-nav-number">4.</span> <span class="toc-nav-text">四、撤销工作区的文件修改</span></a></li><li class="toc-nav-item toc-nav-level-2"><a class="toc-nav-link" href="#五-从暂存区撤销文件"><span class="toc-nav-number">5.</span> <span class="toc-nav-text">五、从暂存区撤销文件</span></a></li><li class="toc-nav-item toc-nav-level-2"><a class="toc-nav-link" href="#六-撤销当前分支的变化"><span class="toc-nav-number">6.</span> <span class="toc-nav-text">六、撤销当前分支的变化</span></a></li></ol>
+          <ol class="toc-nav"><li class="toc-nav-item toc-nav-level-2"><a class="toc-nav-link" href="#vip-container"><span class="toc-nav-number">1.</span> <span class="toc-nav-text">一、撤销提交</span></a></li><li class="toc-nav-item toc-nav-level-2"><a class="toc-nav-link" href="#vip-container"><span class="toc-nav-number">2.</span> <span class="toc-nav-text">二、丢弃提交</span></a></li><li class="toc-nav-item toc-nav-level-2"><a class="toc-nav-link" href="#vip-container"><span class="toc-nav-number">3.</span> <span class="toc-nav-text">三、替换上一次提交</span></a></li><li class="toc-nav-item toc-nav-level-2"><a class="toc-nav-link" href="#vip-container"><span class="toc-nav-number">4.</span> <span class="toc-nav-text">四、撤销工作区的文件修改</span></a></li><li class="toc-nav-item toc-nav-level-2"><a class="toc-nav-link" href="#vip-container"><span class="toc-nav-number">5.</span> <span class="toc-nav-text">五、从暂存区撤销文件</span></a></li><li class="toc-nav-item toc-nav-level-2"><a class="toc-nav-link" href="#vip-container"><span class="toc-nav-number">6.</span> <span class="toc-nav-text">六、撤销当前分支的变化</span></a></li></ol>
         
         </div>
       </aside>

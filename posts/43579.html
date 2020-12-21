@@ -232,15 +232,15 @@
 
                 <div id="vip-container"><p>在MySQL复制中，如何忽略slave节点上发生的主键冲突、数据不存在等错误。</p>
 <p>在MySQL复制中，如果slave节点上遇到错误，比如数据不存在或者主键冲突等错误时，想要忽略这些错误，可以采用以下几种方法：</p>
-<h3 id="1-未启用gtid模式时">1、未启用GTID模式时</h3>
+<h3><span id="1-未启用gtid模式时">1、未启用GTID模式时</span></h3>
 <p>只需通过设定 SQL_SLAVE_SKIP_COUNTER 的值，即可忽略一些复制事件。例如：<a id="more"></a></p>
-<h4 id="需要先关闭slave服务">需要先关闭SLAVE服务</h4>
+<h4><span id="需要先关闭slave服务">需要先关闭SLAVE服务</span></h4>
 <figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">root@imysql.com [<span class="built_in">test</span>]&gt; STOP SLAVE;</span><br></pre></td></tr></table></figure>
-<h4 id="忽略n个事件event通常一个sql是一个事件">忽略N个事件（event），通常一个SQL是一个事件</h4>
+<h4><span id="忽略n个事件event通常一个sql是一个事件">忽略N个事件（event），通常一个SQL是一个事件</span></h4>
 <figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">root@imysql.com [<span class="built_in">test</span>]&gt; SET SQL_SLAVE_SKIP_COUNTER=N;</span><br></pre></td></tr></table></figure>
-<h4 id="再次启动slave服务">再次启动SLAVE服务</h4>
+<h4><span id="再次启动slave服务">再次启动SLAVE服务</span></h4>
 <figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">root@imysql.com [<span class="built_in">test</span>]&gt; START SLAVE;</span><br></pre></td></tr></table></figure>
-<h3 id="2-启用gtid模式时">2、启用GTID模式时</h3>
+<h3><span id="2-启用gtid模式时">2、启用GTID模式时</span></h3>
 <p>启用GTID，想要忽略某些错误事件就稍微麻烦一点点了。<br>
 首先，我们需要先查看当前SLAVE复制的进度：</p>
 <figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">mysql&gt; SHOW SLAVE STATUS\G</span><br></pre></td></tr></table></figure>
@@ -250,12 +250,12 @@
 <p>这时候，我们需要手工调整SLAVE已清除的GTID列表 GTID_PURGED，人为通知SLAVE哪些事务已经被清除了，后续可以忽略：</p>
 <figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">root@imysql.com [<span class="built_in">test</span>]&gt; STOP SLAVE;</span><br><span class="line">root@imysql.com [<span class="built_in">test</span>]&gt; RESET MASTER;</span><br><span class="line">root@imysql.com [<span class="built_in">test</span>]&gt; SET @@GLOBAL.GTID_PURGED = “3a16ef7a-75f5-11e4-8960-deadeb54b599:1-283,f2b6c829-9c87-11e4-84e8-deadeb54b599:1-32”;</span><br><span class="line">root@imysql.com [<span class="built_in">test</span>]&gt; START SLAVE;</span><br></pre></td></tr></table></figure>
 <p>上面这些命令的用意是，忽略 f2b6c829-9c87-11e4-84e8-deadeb54b599:32 这个GTID事务，下一次事务接着从 33 这个GTID开始，即可跳过上述错误。</p>
-<h3 id="3-无论是否启用gtid使用pt-slave-restart工具">3、无论是否启用GTID，使用pt-slave-restart工具</h3>
+<h3><span id="3-无论是否启用gtid使用pt-slave-restart工具">3、无论是否启用GTID，使用pt-slave-restart工具</span></h3>
 <p>首先不得不说，percona toolkit工具集对DBA而言实在太方便了。pt-slave-restart工具的作用是监视某些特定的复制错误，然后忽略，并且再次启动SLAVE进程(Watch and restart MySQL replication after errors)。<br>
 简单用法示例：</p>
-<h4 id="忽略所有1062错误并再次启动slave进程">忽略所有1062错误，并再次启动SLAVE进程</h4>
+<h4><span id="忽略所有1062错误并再次启动slave进程">忽略所有1062错误，并再次启动SLAVE进程</span></h4>
 <figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">[yejr@imysql.com ]<span class="comment"># pt-slave-resetart -S./mysql.sock —error-numbers=1062</span></span><br></pre></td></tr></table></figure>
-<h4 id="检查到错误信息只要包含-testyejr就一概忽略并再次启动slave进程">检查到错误信息只要包含 test.yejr，就一概忽略，并再次启动SLAVE进程</h4>
+<h4><span id="检查到错误信息只要包含-testyejr就一概忽略并再次启动slave进程">检查到错误信息只要包含 test.yejr，就一概忽略，并再次启动SLAVE进程</span></h4>
 <figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">[yejr@imysql.com ]<span class="comment"># pt-slave-resetart -S./mysql.sock —error-text=”test.yejr”</span></span><br></pre></td></tr></table></figure>
 <p>综上，我们虽然可以利用工具来快速忽略复制错误，但还是要掌握如何人为忽略复制错误的方法，在没有工具的时候也能了然于胸。</p>
 <p>转载自：<a href="http://imysql.com/2015/09/07/mysql-faq-howto-ignore-replication-errors.shtml" target="_blank" rel="noopener">http://imysql.com/2015/09/07/mysql-faq-howto-ignore-replication-errors.shtml</a></p>
@@ -330,7 +330,7 @@
         <div id="toc" class="toc-article">
         <strong class="toc-title">Contents</strong>
         
-          <ol class="toc-nav"><li class="toc-nav-item toc-nav-level-3"><a class="toc-nav-link" href="#1-未启用gtid模式时"><span class="toc-nav-number">1.</span> <span class="toc-nav-text">1、未启用GTID模式时</span></a><ol class="toc-nav-child"><li class="toc-nav-item toc-nav-level-4"><a class="toc-nav-link" href="#需要先关闭slave服务"><span class="toc-nav-number">1.1.</span> <span class="toc-nav-text">需要先关闭SLAVE服务</span></a></li><li class="toc-nav-item toc-nav-level-4"><a class="toc-nav-link" href="#忽略n个事件event通常一个sql是一个事件"><span class="toc-nav-number">1.2.</span> <span class="toc-nav-text">忽略N个事件（event），通常一个SQL是一个事件</span></a></li><li class="toc-nav-item toc-nav-level-4"><a class="toc-nav-link" href="#再次启动slave服务"><span class="toc-nav-number">1.3.</span> <span class="toc-nav-text">再次启动SLAVE服务</span></a></li></ol></li><li class="toc-nav-item toc-nav-level-3"><a class="toc-nav-link" href="#2-启用gtid模式时"><span class="toc-nav-number">2.</span> <span class="toc-nav-text">2、启用GTID模式时</span></a></li><li class="toc-nav-item toc-nav-level-3"><a class="toc-nav-link" href="#3-无论是否启用gtid使用pt-slave-restart工具"><span class="toc-nav-number">3.</span> <span class="toc-nav-text">3、无论是否启用GTID，使用pt-slave-restart工具</span></a><ol class="toc-nav-child"><li class="toc-nav-item toc-nav-level-4"><a class="toc-nav-link" href="#忽略所有1062错误并再次启动slave进程"><span class="toc-nav-number">3.1.</span> <span class="toc-nav-text">忽略所有1062错误，并再次启动SLAVE进程</span></a></li><li class="toc-nav-item toc-nav-level-4"><a class="toc-nav-link" href="#检查到错误信息只要包含-testyejr就一概忽略并再次启动slave进程"><span class="toc-nav-number">3.2.</span> <span class="toc-nav-text">检查到错误信息只要包含 test.yejr，就一概忽略，并再次启动SLAVE进程</span></a></li></ol></li></ol>
+          <ol class="toc-nav"><li class="toc-nav-item toc-nav-level-3"><a class="toc-nav-link" href="#vip-container"><span class="toc-nav-number">1.</span> <span class="toc-nav-text">1、未启用GTID模式时</span></a><ol class="toc-nav-child"><li class="toc-nav-item toc-nav-level-4"><a class="toc-nav-link" href="#vip-container"><span class="toc-nav-number">1.1.</span> <span class="toc-nav-text">需要先关闭SLAVE服务</span></a></li><li class="toc-nav-item toc-nav-level-4"><a class="toc-nav-link" href="#vip-container"><span class="toc-nav-number">1.2.</span> <span class="toc-nav-text">忽略N个事件（event），通常一个SQL是一个事件</span></a></li><li class="toc-nav-item toc-nav-level-4"><a class="toc-nav-link" href="#vip-container"><span class="toc-nav-number">1.3.</span> <span class="toc-nav-text">再次启动SLAVE服务</span></a></li></ol></li><li class="toc-nav-item toc-nav-level-3"><a class="toc-nav-link" href="#vip-container"><span class="toc-nav-number">2.</span> <span class="toc-nav-text">2、启用GTID模式时</span></a></li><li class="toc-nav-item toc-nav-level-3"><a class="toc-nav-link" href="#vip-container"><span class="toc-nav-number">3.</span> <span class="toc-nav-text">3、无论是否启用GTID，使用pt-slave-restart工具</span></a><ol class="toc-nav-child"><li class="toc-nav-item toc-nav-level-4"><a class="toc-nav-link" href="#vip-container"><span class="toc-nav-number">3.1.</span> <span class="toc-nav-text">忽略所有1062错误，并再次启动SLAVE进程</span></a></li><li class="toc-nav-item toc-nav-level-4"><a class="toc-nav-link" href="#vip-container"><span class="toc-nav-number">3.2.</span> <span class="toc-nav-text">检查到错误信息只要包含 test.yejr，就一概忽略，并再次启动SLAVE进程</span></a></li></ol></li></ol>
         
         </div>
       </aside>

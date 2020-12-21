@@ -238,20 +238,20 @@
 </blockquote>
 <p>例如 FaaS 架构，开发者可以完全不用考虑服务器，构建并运行应用程序和服务。还有面向开源架构的的云原生技术，与提供 MySQL, Redis 云服务类似，提供基于 Spring Cloud、Dubbo、HSF 等开源微服务架构的应用管理服务，开发者无需考虑部署、监控、运维的问题。</p>
 <p>微博也一直在致力于推动基础设施云原生化，我们围绕 Kubernetes 构建面向容器的云原生基础设施，形成了物理数据中心加多个公有云的混合云 Kubernetes 平台，提供秒级伸缩能力。构建开箱即用的 CI/CD 体系，依托云原生伸缩能力，保证大量的 Job 稳定运行，让开发人员摆脱代码发布泥沼。接下介绍这几方面的实践经验。</p>
-<h2 id="物理数据中心-kubernetes-化">物理数据中心 Kubernetes 化</h2>
+<h2><span id="物理数据中心-kubernetes-化">物理数据中心 Kubernetes 化</span></h2>
 <p>面向单机器的基础设施架构已经无法发挥云的最大优势。把容器按照服务颗粒度进行管理，每个服务对应一组虚拟机，虽然基础运维通过 IaaS 层抽象得到了极大简化，但是业务的运维成本依然很高，业务 SRE 需要维护复杂的设备配置脚本，管理不同服务设备配置的差异性，需要 7 * 24 小时对故障设备进行干预。而且资源利用率无法最大化，服务池是按设备划分，一个新设备添加到服务池后只能被这个服务使用，它的冗余的计算能力并不能为其他服务使用。另外不同业务容器运行在不同的机器上，容器网络架构更关注性能而非隔离性，通常会采用 Host 模式，这也提高了服务混合部署的运维成本。</p>
 <p>基础设施只有形成集群，才能最大程度发挥容器的良好隔离、资源分配与编排管理的优势。目前 Kubernetes 已经容器编排系统的事实标准，提供面向应用的容器集群部署和管理系统，消除物理（虚拟）机，网络和存储基础设施的负担。同时 CNCF 推出一致性认证，推动各公有云厂商提供标准的 Kubernetes 服务，这就确保通过 Kubernetes 部署的应用在不同云厂商之间具有可迁移性，避免被厂商锁定。</p>
 <p>之前提到微博的容器会独占物理机的网络协议栈，虽然能够做到网络效率的最大化，但是会导致多容器部署时出现端口冲突，无法满足 Kubernetes 动态编排的需求。为了解决端口冲突问题，我们首先测试了 vxlan 网络架构，因为其数据平面需要进行封装、解封操作，网络性能损耗超过5%，并不满足微博后端服务对网络性能的要求。最后我们评估可行的网络方案有两种 MacVlan 和 Calico BGP。</p>
 <p>其中 MacVlan 成熟稳定，通过机房上联交换机改为 Vlan Trunk 模式，在物理机上创建 MacVlan 网卡子接口，通过 CNI 插件将虚拟网卡插入 Pause 容器中，实现容器网络与物理网络打通。容器的网络通信直接通过 MacVlan 物理子接口，发出的报文在网卡上打 VlanTag，数据平面基本没有性能损耗。控制平面因需要对所有上联交换机进行 Vlan Trunk 改造，工作量较大，所以这个方案仅针对高配物理机所在网络进行了改造。</p>
 <p>Calico BGP 是可以同时实现数据平面 0 损耗与控制平面自动化的容器网络解决方案。与 MacVlan 实现的扁平二层网络不同，Calico 在每个节点上部署 BGP Client 与 Reflector 实现了一个扁平的三层网络，每个节点发布的路由状态由 Felix 维护。不过由于 Felix 采用 iptables 实现路由 ACLs 功能，对性能存在一定影响。因为物理数据中心不面向外部用户开放，所以 ACLs 功能对微博是可以去除的，我们对 Calico 进行了优化，去除 iptables 依赖。</p>
-<p><img src="https://catrixs.github.io/images/calico_acls.png" alt=""></p>
+<p><img src="https://catrixs.github.io/images/calico_acls.png" alt></p>
 <p>微博也主动回馈 Kubernetes 社区，也包括为 Kubernetes 代码库做贡献，例如修复多租户下网络隔离TC资源泄露问题。</p>
 <p>之前的运维是面向物理机的，所以物理机上存在很多运维工具，如日志推送、域名解析、时钟同步、定时任务等。业务通过 Kubernetes 编排后，以上的功能都需要进行容器化改造。例如在容器中使用 systemd 会涉及到提权问题，在实践过程中发现用 systemd 如果权限控制不当会造成容器被 Kill 的情况。所以我们单独开发了兼容 linux crontab 语法的定时任务工具 gorun，把这个工具集成在了运维容器里面。</p>
 <p>因为业务容器会产生大量日志，出于 I/O 性能考虑，同时为了方便快速定位，日志会存储于本地 PVC 中，支持配额管理，避免一个容器把磁盘写满。运维基础设施容器通过监听文件，对老旧日志进行压缩清理，性能 Profile 日志会在本地进行统计计算后通过 UDP 协议推送到 Graphite 或 Prometheus。对于关键日志，会通过 Flume 推送到 Kafka 集群，而且支持失败重传，保证日志的一致性。</p>
-<p><img src="https://catrixs.github.io/images/pod_log.jpg" alt=""></p>
+<p><img src="https://catrixs.github.io/images/pod_log.jpg" alt></p>
 <p>通过对运维容器化后，所有业务 Pod 都具备相同的运维能力，形成标准化的监控报警、运维决策、流量切换、服务降级，异常封杀、日志查询的服务保障体系，服务可运维性大幅度提升。</p>
 <a id="more"></a>
-<h2 id="容器编排">容器编排</h2>
+<h2><span id="容器编排">容器编排</span></h2>
 <p>Kubernetes 的 Deployment 支持 Pod 自我修复，滚动升级和回滚，扩容和缩容，这些特性都是云原生基础设施必备的。但是 Kubernetes 设计原则中对集群的管理尤其是服务升级过程中保持“无损”升级，对 Deployment 进行滚动升级，会创建新 Pod 替换老 Pod，以保证 Deployment 中 Pod 的副本数量。原有里面的IP地址和滚动升级之前的IP地址是不会相同的。而如果集群够大，一次滚动发布就会导致负载均衡变更 （集群副本数／滚动发布步长）次。对于微博服务来说，频繁变更会导致这个负载均衡辖下，所以后端实例的接口不稳定。</p>
 <p>微博实现了常备 Pod 的 In-place Rolling Updates 功能，根据业务冗余度及业务实际需要来调整上线的步长，上线过程中保持容器的IP不变，减少在上线过程中业务的抖动。因为业务的启动需要一定时间，不能按照容器启停来做步长控制，我们利用 Kubernetes 容器生命周期管理的 liveness/readiness probe 实现容器提供服务的状态，避免了上线过程中容器大面积重启的问题。同时优化了 Kubernetes 的 postStar 的原生实现，因为原生里面只调用一次，不管成功与否都会杀掉容器，改成不成功会按照指定的次数或时间进行重试。IP 的静态分配使用 Calico CNI 实现：</p>
 <figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">apiVersion: v1</span><br><span class="line">kind: Pod</span><br><span class="line">metadata:</span><br><span class="line">  name: wb_service</span><br><span class="line">  annotations:</span><br><span class="line">      &quot;cni.projectcalico.org&#x2F;ipAddrs&quot;: &quot;[\&quot;10.142.0.50\&quot;]&quot;</span><br></pre></td></tr></table></figure>
@@ -288,7 +288,7 @@
 </li>
 </ol>
 <p>Helm 可以解决这些问题。Helm 把 Kubernetes 资源（如Pods, Deployments, Services等) 打包到一个 Chart 中，实现可配置的发布是通过模板加配置文件，动态生成资源清单文件。</p>
-<h2 id="弹性伸缩">弹性伸缩</h2>
+<h2><span id="弹性伸缩">弹性伸缩</span></h2>
 <p>在云时代，弹性已经成为新常态。而且微博的社交媒体属性，不可提前预期的突发峰值是家常便饭，所以基础设施不但需要具备弹性，而且需要具备在短时间内提供足够资源的能力。Kubernetes 基于容器技术在启动时间方面比虚拟机更具优势，省去了虚拟机创建、环境初始化、配置管理等诸多环节，直接拉起业务 Pod，扩容时间可以从分钟级缩短到秒级。</p>
 <p>而且峰值流量突发时，运维、开发同学可能是在吃饭、睡觉、休假，这个时候靠人为干预肯定是来不及的，所以系统需要自动做出扩容决策。对于复杂的分布式系统，实现自动决策需要解决两个问题，一个是容量决策，一个是依赖关系。Kubernetes 的 HPA (Horizontal Pod Autoscaling) 可以根据 Metric 自动伸缩一个 Deployment 中的 Pod 数量。HPA 由一个控制循环实现，循环周期由 horizontal-pod-autoscaler-sync-period 标志指定（默认是 30 秒）。在每个周期内，查询 HPA 中定义的资源利用率。并且在扩容前会有一个冷静期，一般是 5 分钟（可通过horizontal-pod-autoscaler-downscale-stabilization参数设置），然后通过下面的公式进行扩缩容：</p>
 <figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">desired &#x3D; ceil[current * ( currentMetric &#x2F; desiredMetric )]</span><br></pre></td></tr></table></figure>
@@ -311,7 +311,7 @@
 <p>干预不但要支持快速伸缩，还应支持快速优雅降级，为服务扩容争取时间</p>
 </li>
 </ol>
-<h2 id="cicd">CI/CD</h2>
+<h2><span id="cicd">CI/CD</span></h2>
 <p>云计算技术的普及，研发流程也随之变化，越来越多的组织和团队开始接受 DevOps 理念。持续集成（CI）和持续交付（CD）是 DevOps 的基石。但是 CI/CD 在实际落地过程中存在诸多困难，导致实际效果不理想。以 CI 为例，开发同学应该对“顺利的话，会有大约 100 个失败的测试” 这种情形并不陌生。由于开发环境与测试环境并不一致等诸多因素，CI 经常出现不相干的偶发失败，长此以往开发同学会默认选择忽略 CI 环节的报错警告，最终导致 CI/CD 沦为一句口号。</p>
 <p>利用云原生的声明性基础架构，可以将应用系统的和应用程序存放在 Git 的版本控制库中，每个开发人员都可以提交拉取请求代码，轻松在 Kubernetes 上部署应用程序和运维任务，开发人员可以更高效地将注意力集中在创建新功能而不是运维相关任务上。基于 Git 的持续交付流水线，有诸多优势和特点：</p>
 <ol>
@@ -327,9 +327,9 @@
 </ol>
 <p>目前大多数 CI/CD 工具都使用基于推送的模型。基于推送的流水线意味着代码从 CI 系统开始，通过一系列构建测试等最终生成镜像，最后手动使用 “kubectl” 将部署到 Kubernetes 集群。程序员是最不喜欢开发流程被打断，多个系统间的切换会极大影响程序员的开发效率。所以我们通过 CI 和 IDE 结合，把 CI 流程融入到开发自测环节中，让程序员可以进行面向 CI 的测试驱动开发，提高对交付代码质量的信心。</p>
 <p>CI/CD 流水线是围绕程序员经常使用的 GitLab 构建，程序员可以对 Merge Request 的 CI 结果一目了然，避免了在多个系统间来回切换。每次代码提交都要执行基于分支的完整 CI 流程，借助云原生的弹性能力和共享存储，解决了大量并发的 Job 的计算资源瓶颈，同时缓解了 Job 间共享数据的带宽压力以及网络传输延时。</p>
-<p><img src="https://catrixs.github.io/images/ci_cd.png" alt=""></p>
+<p><img src="https://catrixs.github.io/images/ci_cd.png" alt></p>
 <p>持续部署要比持续集成更加复杂。部署流程中依赖人工的环节非常多，例如灰度是由运维部署到生产环境部分机器，验证需要依靠开发和运维同学经验检查新版本各项指标是否正常，滚动发布与回滚也需要运维同学全程干预。金丝雀部署可以有效规避风险，在生产环境的基础设施中小范围的部署新的应用代码，如果没有错误，新版本才逐渐推广到整个服务，而不用一次性从老版本切换到新版本。不过如何验证没有错误是比较有挑战的，微服务依赖复杂、部署范围广、指标维度多，是最易出错，最耗时的环节。我们针对这个问题，开发了智能时序数据异常识别服务，覆盖操作系统，JVM，资源 SLA，业务 SLA 的上千维度指标。它不但可以自动准确识别异常识别，性能衰减等人工经验能够发现的问题，也能够识别如资源不合理访问等人工很难察觉的问题。现在的 CD 流程包含部署、集成测试、金丝雀验证、滚动发布、回滚自动化环节。</p>
-<h2 id="weibo-mesh">Weibo Mesh</h2>
+<h2><span id="weibo-mesh">Weibo Mesh</span></h2>
 <p>Service Mesh 并不是什么新的技术，它所关注的高性能、高可用、服务发现和治理等有服务化的一天就已经存在，社区也不乏这方面的最佳实践。不过之前主要是两种方式，一种是微服务 RPC 框架形式，例如 Motan, gRPC, Thrift, Dubbo 等。传统微服务框架有诸多弊端：</p>
 <ol>
 <li>
@@ -341,7 +341,7 @@
 </ol>
 <p>还有一种是集中式 Proxy 形式，例如 Nginx, Twemproxy, SQL Proxy 等。虽然 Proxy 的形式一定程度上解决了胖客户端的问题，没有了升级问题，多语言可以统一接入。但是在性能方面的损耗，对于耗时较长的请求来说还可以接受，但这在服务间调用这种毫秒级请求时，性能是不能容忍的，而且服务的拆分势必导致整个体系内耗时随着微服务规模的扩大而剧增，而且 Proxy 本身很容易成为整个系统中的瓶颈点。所以经常可以看到后端服务是同时使用 Proxy 和 RPC 的情况。</p>
 <p>而 Cloud Native 会催生出如此火爆的 Service Mesh，最主要的因素是 Kubernetes 使基础设施的标准化，大家发现之前这些很重的 RPC 框架可以抽离出来，原本需要增加维护的复杂性被 Kubernetes 解决掉了，跨语言、服务治理等收益凸显出来。而且 Mesh 的 SideCard 形式，相比 Proxy 在请求耗时方面优势也相当明显。</p>
-<p><img src="https://philcalcado.com/img/service-mesh/6-b.png" alt=""></p>
+<p><img src="https://philcalcado.com/img/service-mesh/6-b.png" alt></p>
 <p>图片来自：Pattern: Service Mesh</p>
 <p>微博将 Motan RPC 胖客户端实现的治理功能下沉到 Agent 上，服务注册和发现依赖微博自研 Vintage 命名和配置服务，对服务的订阅和发现来建立服务间依赖的逻辑网络。业务与 的通信协议保持一致，Agent 支持 HTTP 和 RPC 的调用，业务只需把原有的调用指向 Agent 即可，不需要改造业务代码。在跨语言通信协议设计方面，Google 的 Protocol Buffers（pb）序列化能够提供优秀的跨语言序列化能力，但是在一是老旧 HTTP 迁移到 pb 协议的改造成本过高，二是部分语言（例如 PHP） 在做复杂 pb 对象序列化时性能比较差，甚至比 json 序列化还要慢 3 倍左右。微博实现了全新语言无关的通信协议 Motan2 和跨语言友好的数据序列化协议 Simple 来应对跨语言。</p>
 <p>除了代理 Service 的能力外，Mesh 体系提供了缓存、队列等服务化代理，业务方可以与依赖缓存、队列资源治理解耦的能力。可以大幅提高那些治理能力比较薄弱的业务和语言的架构水平。随着云原生技术的日趋完善，会有越来越多的基础设施从原有的 SDK 中抽象出来。未来数据库访问会以 Database Mesh 形式提供访问，封装数据分片、读写分离、从库负载均衡、熔断、链路采集能力，例如 Google Cloud SQL 提供本地 Proxy，业务方无需将 IP 地址列入白名单或配置 SSL，即可安全地访问 Cloud SQL。</p>
@@ -423,7 +423,7 @@
         <div id="toc" class="toc-article">
         <strong class="toc-title">Contents</strong>
         
-          <ol class="toc-nav"><li class="toc-nav-item toc-nav-level-2"><a class="toc-nav-link" href="#物理数据中心-kubernetes-化"><span class="toc-nav-number">1.</span> <span class="toc-nav-text">物理数据中心 Kubernetes 化</span></a></li><li class="toc-nav-item toc-nav-level-2"><a class="toc-nav-link" href="#容器编排"><span class="toc-nav-number">2.</span> <span class="toc-nav-text">容器编排</span></a></li><li class="toc-nav-item toc-nav-level-2"><a class="toc-nav-link" href="#弹性伸缩"><span class="toc-nav-number">3.</span> <span class="toc-nav-text">弹性伸缩</span></a></li><li class="toc-nav-item toc-nav-level-2"><a class="toc-nav-link" href="#cicd"><span class="toc-nav-number">4.</span> <span class="toc-nav-text">CI&#x2F;CD</span></a></li><li class="toc-nav-item toc-nav-level-2"><a class="toc-nav-link" href="#weibo-mesh"><span class="toc-nav-number">5.</span> <span class="toc-nav-text">Weibo Mesh</span></a></li></ol>
+          <ol class="toc-nav"><li class="toc-nav-item toc-nav-level-2"><a class="toc-nav-link" href="#vip-container"><span class="toc-nav-number">1.</span> <span class="toc-nav-text">物理数据中心 Kubernetes 化</span></a></li><li class="toc-nav-item toc-nav-level-2"><a class="toc-nav-link" href="#vip-container"><span class="toc-nav-number">2.</span> <span class="toc-nav-text">容器编排</span></a></li><li class="toc-nav-item toc-nav-level-2"><a class="toc-nav-link" href="#vip-container"><span class="toc-nav-number">3.</span> <span class="toc-nav-text">弹性伸缩</span></a></li><li class="toc-nav-item toc-nav-level-2"><a class="toc-nav-link" href="#vip-container"><span class="toc-nav-number">4.</span> <span class="toc-nav-text">CI&#x2F;CD</span></a></li><li class="toc-nav-item toc-nav-level-2"><a class="toc-nav-link" href="#vip-container"><span class="toc-nav-number">5.</span> <span class="toc-nav-text">Weibo Mesh</span></a></li></ol>
         
         </div>
       </aside>

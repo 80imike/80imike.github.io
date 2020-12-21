@@ -238,7 +238,7 @@
 <figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="built_in">alias</span> gpall=<span class="string">"find . -maxdepth 3 -name .git -type d | rev | cut -c 6- | rev | xargs -I &#123;&#125; git -C &#123;&#125; pull"</span></span><br></pre></td></tr></table></figure>
 <p>之后，直接执行 <code>gpall</code> 即可。</p>
 <p>好了，我们进入正题。</p>
-<h2 id="维护多个-git-仓库的需求">维护多个 Git 仓库的需求</h2>
+<h2><span id="维护多个-git-仓库的需求">维护多个 Git 仓库的需求</span></h2>
 <p>维护多个 Git 仓库不容易。我在我存放 GitHub 仓库的目录下运行了一下 <code>tree</code>：</p>
 <pre><code>.
 ├── AIP_BackEnd
@@ -257,11 +257,11 @@
 </code></pre>
 <p>103 个目录……我自己 <code>Documents/GitHub</code> 文件夹下就有这么多 Git 仓库，一个一个去更新真的很费事情。如何批量更新 GitHub 本地仓库呢？其实就是一个遍历目录，对匹配到的 Git 仓库在其当前分支下执行 <code>git pull</code> 的需求嘛，很简单。</p>
 <a id="more"></a>
-<h2 id="解决方法">解决方法</h2>
+<h2><span id="解决方法">解决方法</span></h2>
 <p>在 Medium 上面，我找到了一个相当优雅的脚本。前面这个脚本已经分享给各位了，我们重新看一下：</p>
 <figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">find . -maxdepth 3 -name .git -<span class="built_in">type</span> d | rev | cut -c 6- | rev | xargs -I &#123;&#125; git -C &#123;&#125; pull</span><br></pre></td></tr></table></figure>
 <p>可以发现，这一长串命令，事实上就是前面的命令执行结果通过「管道」输出至后面的命令作为输入，也就是命令中 <code>|</code> 的功能。我们一段一段看一下这个命令具体都干了什么。</p>
-<h3 id="用-find-搜索目录下全部-git-文件夹">用 <code>find</code> 搜索目录下全部 <code>.git/</code> 文件夹</h3>
+<h3><span id="用-find-搜索目录下全部-git-文件夹">用 <code>find</code> 搜索目录下全部 <code>.git/</code> 文件夹</span></h3>
 <p>每个 Git 文件夹里面一定有 <code>.git</code> 的目录，我们只需要找到 <code>.git</code> 文件夹既可以找到 Git 目录。</p>
 <figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">find . -maxdepth 3 -name .git -<span class="built_in">type</span> d</span><br></pre></td></tr></table></figure>
 <p>这里，我们就使用了 <code>find</code> 的命令，详见：<a href="https://www.gnu.org/software/findutils/manual/html_mono/find.html" target="_blank" rel="noopener">GNU - Finding Files</a>。我们将命令分解来看：</p>
@@ -273,7 +273,7 @@
 </ul>
 <p><img src="https://i.loli.net/2019/10/29/IVMEzwDqGpXK8me.png" alt="搜索 .git 文件夹"></p>
 <p>一目了然，我们下面就这样对每个命令进行分解和解释。</p>
-<h3 id="裁剪出我们要的-git-文件夹所在路径">裁剪出我们要的 <code>.git</code> 文件夹所在路径</h3>
+<h3><span id="裁剪出我们要的-git-文件夹所在路径">裁剪出我们要的 <code>.git</code> 文件夹所在路径</span></h3>
 <p>上面我们解析出来的路径，每个路径后面都包含一个 <code>.git</code>，我们需要统一将这个 <code>.git</code> 从字符串中删掉，这样才能一起对给定目录执行 <code>git pull</code>。第二步我们进行目录的裁剪。</p>
 <figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">... | rev | cut -c 6- | rev | ...</span><br></pre></td></tr></table></figure>
 <p>可以发现，这里我们有三部分命令。我们依次对命令进行解析：</p>
@@ -283,13 +283,13 @@
 <li><code>rev</code>：将处理好的字符串反转回来</li>
 </ol>
 <p><img src="https://i.loli.net/2019/10/29/KDFIBpGXTmcz8qv.png" alt="裁剪路径"></p>
-<h3 id="利用-xargs-执行带参数的-git-pull">利用 <code>xargs</code> 执行带参数的 <code>git pull</code></h3>
+<h3><span id="利用-xargs-执行带参数的-git-pull">利用 <code>xargs</code> 执行带参数的 <code>git pull</code></span></h3>
 <p>上一步，我们已经提取出来所有包含 <code>.git</code> 的文件夹，现在我们需要批量的执行 <code>git pull</code> 来统一拉取仓库。</p>
 <figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">xargs -I &#123;&#125; git -C &#123;&#125; pull</span><br></pre></td></tr></table></figure>
 <p>由于 <code>git</code> 并不支持传入目录等参数，因此我们需要借助于 <code>xargs</code> 来给 <code>git</code> 传入拉取路径。上面的命令简明易懂，就相当于 <code>xargs</code> 告诉 <code>git</code> 拉取以上目录下的全部 Git 仓库。我们来看一看效果：</p>
 <p><img src="https://i.loli.net/2019/10/29/oCxk1O9SEP34RhW.gif" alt="脚本效果"></p>
 <p>b(￣▽￣)d 👍 成功~</p>
-<h1 id="references">📚 References</h1>
+<h1><span id="references">📚 References</span></h1>
 <ul>
 <li><a href="https://medium.com/@codenameyau/updating-multiple-repos-with-one-command-9768c8cdfe46" target="_blank" rel="noopener">Updating Multiple Repos With One Command</a></li>
 <li><a href="http://www.ruanyifeng.com/blog/2019/08/xargs-tutorial.html" target="_blank" rel="noopener">xargs 命令教程</a></li>
@@ -368,7 +368,7 @@
         <div id="toc" class="toc-article">
         <strong class="toc-title">Contents</strong>
         
-          <ol class="toc-nav"><li class="toc-nav-item toc-nav-level-2"><a class="toc-nav-link" href="#维护多个-git-仓库的需求"><span class="toc-nav-number">1.</span> <span class="toc-nav-text">维护多个 Git 仓库的需求</span></a></li><li class="toc-nav-item toc-nav-level-2"><a class="toc-nav-link" href="#解决方法"><span class="toc-nav-number">2.</span> <span class="toc-nav-text">解决方法</span></a><ol class="toc-nav-child"><li class="toc-nav-item toc-nav-level-3"><a class="toc-nav-link" href="#用-find-搜索目录下全部-git-文件夹"><span class="toc-nav-number">2.1.</span> <span class="toc-nav-text">用 find 搜索目录下全部 .git&#x2F; 文件夹</span></a></li><li class="toc-nav-item toc-nav-level-3"><a class="toc-nav-link" href="#裁剪出我们要的-git-文件夹所在路径"><span class="toc-nav-number">2.2.</span> <span class="toc-nav-text">裁剪出我们要的 .git 文件夹所在路径</span></a></li><li class="toc-nav-item toc-nav-level-3"><a class="toc-nav-link" href="#利用-xargs-执行带参数的-git-pull"><span class="toc-nav-number">2.3.</span> <span class="toc-nav-text">利用 xargs 执行带参数的 git pull</span></a></li></ol></li></ol></li><li class="toc-nav-item toc-nav-level-1"><a class="toc-nav-link" href="#references"><span class="toc-nav-number"></span> <span class="toc-nav-text">📚 References</span></a>
+          <ol class="toc-nav"><li class="toc-nav-item toc-nav-level-2"><a class="toc-nav-link" href="#vip-container"><span class="toc-nav-number">1.</span> <span class="toc-nav-text">维护多个 Git 仓库的需求</span></a></li><li class="toc-nav-item toc-nav-level-2"><a class="toc-nav-link" href="#vip-container"><span class="toc-nav-number">2.</span> <span class="toc-nav-text">解决方法</span></a><ol class="toc-nav-child"><li class="toc-nav-item toc-nav-level-3"><a class="toc-nav-link" href="#vip-container"><span class="toc-nav-number">2.1.</span> <span class="toc-nav-text">用 find 搜索目录下全部 .git&#x2F; 文件夹</span></a></li><li class="toc-nav-item toc-nav-level-3"><a class="toc-nav-link" href="#vip-container"><span class="toc-nav-number">2.2.</span> <span class="toc-nav-text">裁剪出我们要的 .git 文件夹所在路径</span></a></li><li class="toc-nav-item toc-nav-level-3"><a class="toc-nav-link" href="#vip-container"><span class="toc-nav-number">2.3.</span> <span class="toc-nav-text">利用 xargs 执行带参数的 git pull</span></a></li></ol></li></ol></li><li class="toc-nav-item toc-nav-level-1"><a class="toc-nav-link" href="#vip-container"><span class="toc-nav-number"></span> <span class="toc-nav-text">📚 References</span></a>
         
         </div>
       </aside>

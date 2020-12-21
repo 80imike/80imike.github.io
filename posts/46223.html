@@ -233,20 +233,20 @@
                 post-container">
 
                 <div id="vip-container"><p>本文将记录为什么最终没有采用 <code>Helm</code> 而是选择了 <code>Kustomize</code> 作为 <code>Kubernetes</code> 应用的部署工具。</p>
-<h2 id="使用各种项目管理之前的情况">使用各种项目管理之前的情况</h2>
+<h2><span id="使用各种项目管理之前的情况">使用各种项目管理之前的情况</span></h2>
 <p>首先说说之前的痛点。我们虽然不是个大公司，可是这代码也是越敲越多，服务也是越做越全。零零总总也有十几个项目要管理了。然后我们同样有多套部署环境：内网环境，预生产环境，生产环境。那么针对每一个环境几乎都要有一套 <code>Kubernetes</code> 的 YAML 文件，但是各个仅仅是稍有不同。</p>
 <p>然后我们自己的 <code>CI</code> 是将构建好的 <code>Docker</code> 镜像放到 <code>Registry</code> 里面。</p>
 <p>那么，每次更新的镜像之后就是通过人手工去部署一下，绝大多数情况就是修改一下镜像的 <code>Tag</code>，但是由于每个环境的 YAML 略有区别，那么如果我需要在不同环境切换的时候就需要来回修改这些 YAML 文件，一不小心写错了就只能怪自己手残。然而这种部署方式虽然在 <code>Kubernetes</code> 之下就是改改 YAML 就好了，但是依然感觉很是原始。</p>
-<h2 id="希望有什么改善">希望有什么改善</h2>
+<h2><span id="希望有什么改善">希望有什么改善</span></h2>
 <p>仔细想想，自己的需求就是这么几个：</p>
 <ol>
 <li>有一个统一的模板可以管理一个项目的 <code>Kubernetes</code> 部署结构</li>
 <li>有某种方式可以管理不同环境之间微小的差异</li>
 <li>每次更新基本就是修改镜像的标签然后部署，那么有没有什么简单的办法实现之，而不是让我每次都去修改 YAML 文件</li>
 </ol>
-<h2 id="针对-helm-的调研">针对 Helm 的调研</h2>
+<h2><span id="针对-helm-的调研">针对 Helm 的调研</span></h2>
 <p>既然都说 <code>Helm</code> 是 <code>Kubernetes</code> 的包管理工具，那么我就先去尝试了一下 <code>Helm</code>。</p>
-<p><img src="https://i.loli.net/2019/08/14/4bFXOTAy3ILzWQ1.jpg" alt=""></p>
+<p><img src="https://i.loli.net/2019/08/14/4bFXOTAy3ILzWQ1.jpg" alt></p>
 <blockquote>
 <p>Helm 是 Deis 开发的一个用于 Kubernetes 应用的包管理工具，主要用来管理 Charts。有点类似于 Ubuntu 中的 APT 或 CentOS 中的 YUM。</p>
 <p>Helm Chart 是用来封装 Kubernetes 原生应用程序的一系列 YAML 文件。可以在你部署应用的时候自定义应用程序的一些 Metadata，以便于应用程序的分发。</p>
@@ -256,19 +256,19 @@
 <p>更多 <code>Helm</code> 的介绍可参考 「<a href="https://mp.weixin.qq.com/s?__biz=MzI3MTI2NzkxMA==&amp;mid=2247486154&amp;idx=1&amp;sn=becd5dd0fadfe0b6072f5dfdc6fdf786&amp;chksm=eac52be3ddb2a2f555b8b1028db97aa3e92d0a4880b56f361e4b11cd252771147c44c08c8913&amp;token=2022032653&amp;lang=zh_CN#rd" target="_blank" rel="noopener">Helm 入门指南</a>」 一文。</p>
 <p>简单的看了看，<code>Helm</code> 给我一种大而无当的感觉：它真的是一个做包管理工具的，复杂的 <code>Go Template</code> 体系以及需要单独存放的 <code>Charts</code> 让我感觉其更适合对标 <code>Ubuntu</code> 的 <code>APT</code> 或者 <code>macOS</code> 的 <code>Brew</code>。它更像是对外提供一个复杂的可以依据各种配置信息生成适合于不同环境的软件发布包，而不是用于我们这种轻量级的部署配置管理的。所以我就放弃使用 <code>Helm</code> 了。</p>
 <a id="more"></a>
-<h2 id="针对-kustomize-的调研">针对 Kustomize 的调研</h2>
+<h2><span id="针对-kustomize-的调研">针对 Kustomize 的调研</span></h2>
 <p>在这个时候我想起来了在之前 <code>Github Trending</code> 看到的另外一个用户做 <code>Kubernetes</code> 配置的工具 <code>Kustomize</code>。简单的说，它就是一个简化 <code>Kubernetes</code> YAML 编写的工具。它提供了两个重要的功能恰好满足了我的需求。</p>
 <blockquote>
 <p>Kustomize 是一个新晋选手，只有一个 CLI 工具。在 Kubernetes 1.14 之后，甚至这唯一的工具也成为 kubectl 的一部分。</p>
 <p>Kustomize 放弃了对模板的要求，改用 Base + Overlay 的方式对应用的原始 YAML 进行派生。Overlay，顾名思义，就是覆盖。Kustomize 的 Overlay 可以在 Base 的基础上，通过对 resource、generator、transformer 等的定义，形成新的应用定义，不论 Base 还是 Overlay，都可以通过 kustomize build 生成有效的 YAML。</p>
 </blockquote>
-<h3 id="kustomize-的特色">Kustomize 的特色</h3>
+<h3><span id="kustomize-的特色">Kustomize 的特色</span></h3>
 <ol>
 <li>功能简单清晰，kubectl 直接支持。</li>
 <li>不考虑派生，仅作为应用的 YAML 组织方式也很有帮助。</li>
 <li>自身支持插件。</li>
 </ol>
-<h3 id="继承和-patch">继承和 Patch</h3>
+<h3><span id="继承和-patch">继承和 Patch</span></h3>
 <p><code>Kustomize</code> 可以设置如下的层次：</p>
 <figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line">├── base</span><br><span class="line">│   ├── deployment.yaml</span><br><span class="line">│   ├── kustomization.yaml</span><br><span class="line">│   └── service.yaml</span><br><span class="line">└── overlays</span><br><span class="line">    └── stg</span><br><span class="line">        ├── ingress.yaml</span><br><span class="line">        └── kustomization.yaml</span><br></pre></td></tr></table></figure>
 <p>其中 base 里保存各个环境所有的公有配置 <code>base/kustomization.yaml</code>:</p>
@@ -277,23 +277,23 @@
 <figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">bases:</span><br><span class="line">- ..&#x2F;..&#x2F;base</span><br><span class="line"></span><br><span class="line">resources:</span><br><span class="line">- ingress.yaml</span><br></pre></td></tr></table></figure>
 <p>可以看到 stg 下继承了 base 的配置，并且添加了 ingress.yaml 配置。同时，<code>Kustomize</code> 不仅仅支持文件级别的 patch，还支持对一个文件某些字段的 patch。</p>
 <p>如下图所示，replica_count.yaml 只包含了有关 replicas 的部分即可，在执行 <code>kustomize build</code> 之后就可以将这部分覆盖默认的配置。</p>
-<p><img src="https://i.loli.net/2019/08/14/cFlArJSXfEj67Kp.jpg" alt=""></p>
-<h3 id="edit-命令">edit 命令</h3>
+<p><img src="https://i.loli.net/2019/08/14/cFlArJSXfEj67Kp.jpg" alt></p>
+<h3><span id="edit-命令">edit 命令</span></h3>
 <p><code>Kustomize</code> 提供了一个命令行方法对镜像 Tag 进行修改：</p>
 <figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">$ kustomize edit set imagetag xxx:94c269ec</span><br></pre></td></tr></table></figure>
 <p>如果想更方便的使用，你还可以这么做：</p>
 <figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">$ export NEWTAG&#x3D;94c269ec</span><br><span class="line">$ kustomize edit set imagetag xxx:$NEWTAG</span><br></pre></td></tr></table></figure>
 <p>那么每次都去 <code>ctrl-r</code> 修改这个 <code>export</code> 然后再 <code>ctrl-r</code> 找到第二条命令执行一下就好了。虽然它还是修改了 kustomization.yaml 但是我觉得比打开编辑器改要舒服一些。</p>
-<h2 id="kustomize-额外加分项">Kustomize 额外加分项</h2>
-<h3 id="轻量级">轻量级</h3>
+<h2><span id="kustomize-额外加分项">Kustomize 额外加分项</span></h2>
+<h3><span id="轻量级">轻量级</span></h3>
 <p>相对 <code>Helm</code>，<code>Kustomize</code> 依然保留了对 <code>kubectl apply -f</code> 命令的支持，仅仅作为一个命令行工具；不像 <code>Helm</code> 还需要在 <code>K8s</code> 里面部署一个 <code>Tiller</code> 可谓是非常的轻量级了。</p>
-<h3 id="对-secret-和-configmap-的支持">对 Secret 和 Configmap 的支持</h3>
+<h3><span id="对-secret-和-configmap-的支持">对 Secret 和 Configmap 的支持</span></h3>
 <p>分别举例说明：</p>
 <figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br></pre></td><td class="code"><pre><span class="line">bases:</span><br><span class="line">- ..&#x2F;..&#x2F;base</span><br><span class="line"></span><br><span class="line">configMapGenerator:</span><br><span class="line">- literals:</span><br><span class="line">  - STORAGE.DATASETUPLOADURL&#x3D;https:&#x2F;&#x2F;xxx&#x2F;files&#x2F;datasets</span><br><span class="line">  - STORAGE.CODEUPLOADURL&#x3D;https:&#x2F;&#x2F;xxx&#x2F;files&#x2F;codes</span><br><span class="line">  - LIVELOG_PREFIX&#x3D;https:&#x2F;&#x2F;xxx&#x2F;jobs</span><br><span class="line">  name: storage-server</span><br><span class="line"></span><br><span class="line">resources:</span><br><span class="line">- ingress.yaml</span><br><span class="line"></span><br><span class="line">imageTags:</span><br><span class="line">- name: xxx</span><br><span class="line">  newTag: dc12c4d7</span><br></pre></td></tr></table></figure>
 <figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line">resources:</span><br><span class="line">- deployment.yaml</span><br><span class="line"></span><br><span class="line">secretGenerator:</span><br><span class="line">- name: notification-service</span><br><span class="line">  commands:</span><br><span class="line">    SHORT_MESSAGE_API_KEY: &quot;bash -c &#39;echo -n $SHORT_MESSAGE_API_KEY&#39;&quot;</span><br><span class="line">    MG_API_KEY: &quot;bash -c &#39;echo -n $MG_API_KEY&#39;&quot;</span><br><span class="line">  type: Opaque</span><br><span class="line"></span><br><span class="line">generatorOptions:</span><br><span class="line">  disableNameSuffixHash: true</span><br></pre></td></tr></table></figure>
 <p><code>secretGenerator</code> 和 <code>configMapGenerator</code> 可以以更灵活的方式生成 <code>configmap</code> 和 <code>secret</code>，相对来说更方便吧。</p>
 <p>然后注意看我 <code>configMapGenerator</code> 的例子，<code>echo -n $xxx</code> 是会有问题的，一定要使用 <code>&quot;bash -c 'echo -n $SHORT_MESSAGE_API_KEY'&quot;</code> 的命令。</p>
-<h2 id="kustomize-和-helm-的区别">Kustomize 和 Helm 的区别</h2>
+<h2><span id="kustomize-和-helm-的区别">Kustomize 和 Helm 的区别</span></h2>
 <p>我认为他们的区别主要在工作流程上：</p>
 <ol>
 <li>
@@ -322,10 +322,10 @@
 <li>直接在新的 Overlay 中写入 Ingress Resource</li>
 <li>使用内置的 image transformer 替换原有镜像</li>
 </ul>
-<h2 id="结论">结论</h2>
+<h2><span id="结论">结论</span></h2>
 <p>要公开发布一个较为复杂的应用，编写良好的 Chart 能给用户很大帮助，用户通过对 values.yaml 的阅读，就能对这种复杂的部署产生一个较为深入的认识。</p>
 <p>如果是常见的业务应用，因为不同部署之间的差异不大，用 Kustomize 可能会是一个更好的选择。</p>
-<h2 id="参考文档">参考文档</h2>
+<h2><span id="参考文档">参考文档</span></h2>
 <ol>
 <li><a href="https://www.google.com" target="_blank" rel="noopener">https://www.google.com</a></li>
 <li><a href="https://aisensiy.github.io/2018/11/27/helm-and-kustomize/" target="_blank" rel="noopener">https://aisensiy.github.io/2018/11/27/helm-and-kustomize/</a></li>
@@ -402,7 +402,7 @@
         <div id="toc" class="toc-article">
         <strong class="toc-title">Contents</strong>
         
-          <ol class="toc-nav"><li class="toc-nav-item toc-nav-level-2"><a class="toc-nav-link" href="#使用各种项目管理之前的情况"><span class="toc-nav-number">1.</span> <span class="toc-nav-text">使用各种项目管理之前的情况</span></a></li><li class="toc-nav-item toc-nav-level-2"><a class="toc-nav-link" href="#希望有什么改善"><span class="toc-nav-number">2.</span> <span class="toc-nav-text">希望有什么改善</span></a></li><li class="toc-nav-item toc-nav-level-2"><a class="toc-nav-link" href="#针对-helm-的调研"><span class="toc-nav-number">3.</span> <span class="toc-nav-text">针对 Helm 的调研</span></a></li><li class="toc-nav-item toc-nav-level-2"><a class="toc-nav-link" href="#针对-kustomize-的调研"><span class="toc-nav-number">4.</span> <span class="toc-nav-text">针对 Kustomize 的调研</span></a><ol class="toc-nav-child"><li class="toc-nav-item toc-nav-level-3"><a class="toc-nav-link" href="#kustomize-的特色"><span class="toc-nav-number">4.1.</span> <span class="toc-nav-text">Kustomize 的特色</span></a></li><li class="toc-nav-item toc-nav-level-3"><a class="toc-nav-link" href="#继承和-patch"><span class="toc-nav-number">4.2.</span> <span class="toc-nav-text">继承和 Patch</span></a></li><li class="toc-nav-item toc-nav-level-3"><a class="toc-nav-link" href="#edit-命令"><span class="toc-nav-number">4.3.</span> <span class="toc-nav-text">edit 命令</span></a></li></ol></li><li class="toc-nav-item toc-nav-level-2"><a class="toc-nav-link" href="#kustomize-额外加分项"><span class="toc-nav-number">5.</span> <span class="toc-nav-text">Kustomize 额外加分项</span></a><ol class="toc-nav-child"><li class="toc-nav-item toc-nav-level-3"><a class="toc-nav-link" href="#轻量级"><span class="toc-nav-number">5.1.</span> <span class="toc-nav-text">轻量级</span></a></li><li class="toc-nav-item toc-nav-level-3"><a class="toc-nav-link" href="#对-secret-和-configmap-的支持"><span class="toc-nav-number">5.2.</span> <span class="toc-nav-text">对 Secret 和 Configmap 的支持</span></a></li></ol></li><li class="toc-nav-item toc-nav-level-2"><a class="toc-nav-link" href="#kustomize-和-helm-的区别"><span class="toc-nav-number">6.</span> <span class="toc-nav-text">Kustomize 和 Helm 的区别</span></a></li><li class="toc-nav-item toc-nav-level-2"><a class="toc-nav-link" href="#结论"><span class="toc-nav-number">7.</span> <span class="toc-nav-text">结论</span></a></li><li class="toc-nav-item toc-nav-level-2"><a class="toc-nav-link" href="#参考文档"><span class="toc-nav-number">8.</span> <span class="toc-nav-text">参考文档</span></a></li></ol>
+          <ol class="toc-nav"><li class="toc-nav-item toc-nav-level-2"><a class="toc-nav-link" href="#vip-container"><span class="toc-nav-number">1.</span> <span class="toc-nav-text">使用各种项目管理之前的情况</span></a></li><li class="toc-nav-item toc-nav-level-2"><a class="toc-nav-link" href="#vip-container"><span class="toc-nav-number">2.</span> <span class="toc-nav-text">希望有什么改善</span></a></li><li class="toc-nav-item toc-nav-level-2"><a class="toc-nav-link" href="#vip-container"><span class="toc-nav-number">3.</span> <span class="toc-nav-text">针对 Helm 的调研</span></a></li><li class="toc-nav-item toc-nav-level-2"><a class="toc-nav-link" href="#vip-container"><span class="toc-nav-number">4.</span> <span class="toc-nav-text">针对 Kustomize 的调研</span></a><ol class="toc-nav-child"><li class="toc-nav-item toc-nav-level-3"><a class="toc-nav-link" href="#vip-container"><span class="toc-nav-number">4.1.</span> <span class="toc-nav-text">Kustomize 的特色</span></a></li><li class="toc-nav-item toc-nav-level-3"><a class="toc-nav-link" href="#vip-container"><span class="toc-nav-number">4.2.</span> <span class="toc-nav-text">继承和 Patch</span></a></li><li class="toc-nav-item toc-nav-level-3"><a class="toc-nav-link" href="#vip-container"><span class="toc-nav-number">4.3.</span> <span class="toc-nav-text">edit 命令</span></a></li></ol></li><li class="toc-nav-item toc-nav-level-2"><a class="toc-nav-link" href="#vip-container"><span class="toc-nav-number">5.</span> <span class="toc-nav-text">Kustomize 额外加分项</span></a><ol class="toc-nav-child"><li class="toc-nav-item toc-nav-level-3"><a class="toc-nav-link" href="#vip-container"><span class="toc-nav-number">5.1.</span> <span class="toc-nav-text">轻量级</span></a></li><li class="toc-nav-item toc-nav-level-3"><a class="toc-nav-link" href="#vip-container"><span class="toc-nav-number">5.2.</span> <span class="toc-nav-text">对 Secret 和 Configmap 的支持</span></a></li></ol></li><li class="toc-nav-item toc-nav-level-2"><a class="toc-nav-link" href="#vip-container"><span class="toc-nav-number">6.</span> <span class="toc-nav-text">Kustomize 和 Helm 的区别</span></a></li><li class="toc-nav-item toc-nav-level-2"><a class="toc-nav-link" href="#vip-container"><span class="toc-nav-number">7.</span> <span class="toc-nav-text">结论</span></a></li><li class="toc-nav-item toc-nav-level-2"><a class="toc-nav-link" href="#vip-container"><span class="toc-nav-number">8.</span> <span class="toc-nav-text">参考文档</span></a></li></ol>
         
         </div>
       </aside>

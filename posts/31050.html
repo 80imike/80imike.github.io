@@ -232,20 +232,20 @@
                 col-md-10 col-md-offset-1
                 post-container">
 
-                <div id="vip-container"><h2 id="译者序">译者序</h2>
+                <div id="vip-container"><h2><span id="译者序">译者序</span></h2>
 <p>本文翻译自 2015 年的一篇英文博客 A Deep Dive into Iptables and Netfilter Architecture 。</p>
 <p>这篇对 iptables 和 netfilter 的设计和原理介绍比较全面，美中不足的是没有那张 内核协议栈各 hook 点位置和 iptables 规则优先级的经典配图，这里补充如下（来自 Wikipedia ）：</p>
-<p><img src="https://arthurchiao.github.io/assets/img/deep-dive-into-iptables-netfilter/Netfilter-packet-flow.svg" alt=""></p>
+<p><img src="https://arthurchiao.github.io/assets/img/deep-dive-into-iptables-netfilter/Netfilter-packet-flow.svg" alt></p>
 <p>由于译者水平有限，本文不免存在遗漏或错误之处。如有疑问，请查阅原文：<a href="https://www.digitalocean.com/community/tutorials/a-deep-dive-into-iptables-and-netfilter-architecture" target="_blank" rel="noopener">https://www.digitalocean.com/community/tutorials/a-deep-dive-into-iptables-and-netfilter-architecture</a> 。</p>
 <p>以下是译文。</p>
-<h2 id="前言">前言</h2>
+<h2><span id="前言">前言</span></h2>
 <p>防火墙是保护服务器和基础设施安全的重要工具。在 Linux 生态系统中，iptables 是使 用很广泛的防火墙工具之一，它基于内核的包过滤框架（packet filtering framework） netfilter。如果管理员或用户不了解这些系统的架构，那可能就无法创建出可靠的防火墙策略，一方面是因为 iptables 的语法颇有挑战性，另外一方面是 netfilter 框架内部相互交织而变得错综复杂。</p>
 <p>本文将带领读者深入理解 iptables 框架，让那些需要创建防火墙策略的用户对它有一个 更全面的认识。我们会讨论 iptables 是如何与 netfilter 交互的，几个组件是如何组织 成一个全面的过滤和矫正系统（a comprehensive filtering and mangling system）的。</p>
-<h2 id="1-iptables-和-netfilter-是什么">1. IPTables 和 Netfilter 是什么？</h2>
+<h2><span id="1-iptables-和-netfilter-是什么">1. IPTables 和 Netfilter 是什么？</span></h2>
 <p>Linux 上最常用的防火墙工具是 iptables。iptables 与协议栈内有包过滤功能的 hook 交 互来完成工作。这些内核 hook 构成了 netfilter 框架。</p>
 <p>每个进入网络系统的包（接收或发送）在经过协议栈时都会触发这些 hook，程序 可以通过注册 hook 函数的方式在一些关键路径上处理网络流量。iptables 相关的内核模 块在这些 hook 点注册了处理函数，因此可以通过配置 iptables 规则来使得网络流量符合防火墙规则。</p>
-<h2 id="2-netfilter-hooks">2. Netfilter Hooks</h2>
-<p><img src="https://www.ichenfu.com/images/netfilter_packet_flow.png" alt=""></p>
+<h2><span id="2-netfilter-hooks">2. Netfilter Hooks</span></h2>
+<p><img src="https://www.ichenfu.com/images/netfilter_packet_flow.png" alt></p>
 <p>netfilter 提供了 5 个 hook 点。包经过协议栈时会触发内核模块注册在这里的处理函数 。触发哪个 hook 取决于包的方向（是发送还是接收）、包的目的地址、以及包在上一个 hook 点是被丢弃还是拒绝等等。</p>
 <p>下面几个 hook 是内核协议栈中已经定义好的：</p>
 <ul>
@@ -266,7 +266,7 @@
 </li>
 </ul>
 <p><strong>注册处理函数时必须提供优先级</strong>，以便 hook 触发时能按照 优先级高低调用处理函数。这使得<strong>多个模块（或者同一内核模块的多个实例）可以在同一 hook 点注册，并且有确定的处理顺序</strong>。内核模块会依次被调用，每次返回一个结果给 netfilter 框架，提示该对这个包做什么操作。</p>
-<h2 id="3-iptables-表和链tables-and-chains">3. IPTables 表和链（Tables and Chains）</h2>
+<h2><span id="3-iptables-表和链tables-and-chains">3. IPTables 表和链（Tables and Chains）</span></h2>
 <p>iptables 使用 table 来组织规则，根据<strong>用来做什么类型的判断</strong>（the type of decisions they are used to make）标准，将规则分为不同 table。例如，如果规则是处理网络地址转换的，那会放到 nat table；如果是判断是否允许包继续向前，那可能会放到 filter table。</p>
 <p>在每个 table 内部，规则被进一步组织成 chain，<strong>内置的 chain 是由内置的 hook 触发 的</strong>。chain 基本上能决定（basically determin）规则<strong>何时</strong>被匹配。</p>
 <p>下面可以看出，内置的 chain 名字和 netfilter hook 名字是一一对应的：</p>
@@ -289,33 +289,33 @@
 </ul>
 <p>chain 使管理员可以控制在<strong>包的传输路径上哪个点</strong>（where in a packet’s delivery path）应用策略。因为每个 table 有多个 chain，因此一个 table 可以在处理过程中的多 个地方施加影响。<strong>特定类型的规则只在协议栈的特定点有意义，因此并不是每个 table 都 会在内核的每个 hook 注册 chain。</strong></p>
 <p>内核一共只有 5 个 netfilter hook，因此不同 table 的 chain 最终都是注册到这几个点 。例如，有三个 table 有 PRETOUTING chain。当这些 chain 注册到对应的 NF_IP_PRE_ROUTING hook 点时，它们需要指定优先级，应该依次调用哪个 table 的 PRETOUTING chain，优先级从高到低。我们一会就会看到 chain 的优先级问题。</p>
-<h2 id="4-table-种类">4. table 种类</h2>
+<h2><span id="4-table-种类">4. table 种类</span></h2>
 <p>先来看看 iptables 提供的 table 类型。这些 table 是按规则类型区分的。</p>
-<h3 id="41-filter-table">4.1 Filter Table</h3>
+<h3><span id="41-filter-table">4.1 Filter Table</span></h3>
 <p>filter table 是最常用的 table 之一，<strong>用于判断是否允许一个包通过</strong>。</p>
 <p>在防火墙领域，这通常称作“过滤”包（”filtering” packets）。这个 table 提供了防火墙的一些常见功能。</p>
-<h3 id="42-nat-table">4.2 NAT Table</h3>
+<h3><span id="42-nat-table">4.2 NAT Table</span></h3>
 <p>nat table 用于实现网络地址转换规则。</p>
 <p>当包进入协议栈的时候，这些规则决定是否以及如何修改包的源/目的地址，以改变包被 路由时的行为。nat table 通常用于将包路由到无法直接访问的网络。</p>
-<h3 id="43-mangle-table">4.3 Mangle Table</h3>
+<h3><span id="43-mangle-table">4.3 Mangle Table</span></h3>
 <p>mangle （修正）table 用于<strong>修改包的 IP 头</strong>。</p>
 <p>例如，可以修改包的 TTL，增加或减少包可以经过的跳数。</p>
 <p>这个 table 还可以对包打<strong>只在内核内有效的</strong>“标记”（internal kernel “mark”），后 续的 table 或工具处理的时候可以用到这些标记。标记不会修改包本身，只是在包的内核表示上做标记。</p>
-<h3 id="44-raw-table">4.4 Raw Table</h3>
+<h3><span id="44-raw-table">4.4 Raw Table</span></h3>
 <p><strong>iptables 防火墙是有状态的</strong>：对每个包进行判断的时候是<strong>依赖已经判断过的包</strong>。</p>
 <p>建立在 netfilter 之上的连接跟踪（connection tracking）特性<strong>使得 iptables 将包看作已有的连接或会话的一部分</strong>，而不是一个由独立、不相关的包组成的流。连接跟踪逻辑在包到达网络接口之后很快就应用了。</p>
 <p>raw table 定义的功能非常有限，其<strong>唯一目的就是提供一个让包绕过连接跟踪的框架</strong>。</p>
 <a id="more"></a>
-<h3 id="45-security-table">4.5 Security Table</h3>
+<h3><span id="45-security-table">4.5 Security Table</span></h3>
 <p>security table 的作用是给包打上 SELinux 标记，以此影响 SELinux 或其他可以解读 SELinux 安全上下文的系统处理包的行为。这些标记可以基于单个包，也可以基于连接。</p>
-<h2 id="5-每种-table-实现的-chain">5. 每种 table 实现的 chain</h2>
+<h2><span id="5-每种-table-实现的-chain">5. 每种 table 实现的 chain</span></h2>
 <p>前面已经分别讨论了 table 和 chain，接下来看每个 table 里各有哪些 chain。另外，我 们还将讨论注册到同一 hook 的不同 chain 的优先级问题。例如，如果三个 table 都有 PRETOUTING chain，那应该按照什么顺序调用它们呢？</p>
 <p>下面的表格展示了 table 和 chain 的关系。横向是 table， 纵向是 chain，Y 表示 这个 table 里面有这个 chain。例如，第二行表示 raw table 有 PRETOUTING 和 OUTPUT 两个 chain。具体到每列，从上倒下的顺序就是 netfilter hook 触发的时候，（对应 table 的）chain 被调用的顺序。</p>
 <p>有几点需要说明一下。在下面的图中，nat table 被细分成了 DNAT （修改目的地址） 和 SNAT（修改源地址），以更方便地展示他们的优先级。另外，我们添加了路由决策点 和连接跟踪点，以使得整个过程更完整全面：</p>
-<p><img src="https://i.loli.net/2019/12/18/al3zYrkmGU5D6FS.png" alt=""></p>
+<p><img src="https://i.loli.net/2019/12/18/al3zYrkmGU5D6FS.png" alt></p>
 <p><strong>当一个包触发 netfilter hook 时，处理过程将沿着列从上向下执行</strong>。 触发哪个 hook （列）和包的方向（ingress/egress）、路由判断、过滤条件等相关。</p>
 <p>特定事件会导致 table 的 chain 被跳过。例如，只有每个连接的第一个包会去匹配 NAT 规则，对这个包的动作会应用于此连接后面的所有包。到这个连接的应答包会被自动应用反方向的 NAT 规则。</p>
-<h3 id="chain-遍历优先级">Chain 遍历优先级</h3>
+<h3><span id="chain-遍历优先级">Chain 遍历优先级</span></h3>
 <p>假设服务器知道如何路由数据包，而且防火墙允许数据包传输，下面就是不同场景下包的游 走流程：</p>
 <ul>
 <li>
@@ -329,12 +329,12 @@
 </li>
 </ul>
 <p><strong>综合前面讨论的 table 顺序问题，我们可以看到对于一个收到的、目的是本机的包</strong>： 首先依次经过 PRETOUTING chain 上面的 raw、mangle、nat table；然后依次经 过 INPUT chain 的 mangle、filter、security、nat table，然后才会到达本机的某个 socket。</p>
-<h2 id="6-iptables-规则">6. IPTables 规则</h2>
+<h2><span id="6-iptables-规则">6. IPTables 规则</span></h2>
 <p>规则放置在特定 table 的特定 chain 里面。当 chain 被调用的时候，包会依次匹配 chain 里面的规则。每条规则都有一个匹配部分和一个动作部分。</p>
-<h3 id="61-匹配">6.1 匹配</h3>
+<h3><span id="61-匹配">6.1 匹配</span></h3>
 <p>规则的匹配部分指定了一些条件，包必须满足这些条件才会和相应的将要执行的动作（“ target”）进行关联。</p>
 <p>匹配系统非常灵活，还可以通过 iptables extension 大大扩展其功能。规则可以匹配<strong>协议类型、目的或源地址、目的或源端口、目的或源网段、接收或发送的接口（网卡）、协议头、连接状态</strong>等等条件。这些综合起来，能够组合成非常复杂的规则来区分不同的网络流量。</p>
-<h3 id="62-目标">6.2 目标</h3>
+<h3><span id="62-目标">6.2 目标</span></h3>
 <p>包符合某种规则的条件而触发的动作（action）叫做目标（target）。目标分为两种类型：</p>
 <ul>
 <li>
@@ -345,16 +345,16 @@
 </li>
 </ul>
 <p>每个规则可以跳转到哪个 target 依上下文而定，例如，table 和 chain 可能会设置 target 可用或不可用。规则里激活的 extensions 和匹配条件也影响 target 的可用性。</p>
-<h2 id="7-跳转到用户自定义-chain">7. 跳转到用户自定义 chain</h2>
+<h2><span id="7-跳转到用户自定义-chain">7. 跳转到用户自定义 chain</span></h2>
 <p>这里要介绍一种特殊的非终止目标：跳转目标（jump target）。jump target 是跳转到其 他 chain 继续处理的动作。我们已经讨论了很多内置的 chain，它们和调用它们的 netfilter hook 紧密联系在一起。然而，iptables 也支持管理员创建他们自己的用于管理目的的 chain。</p>
 <p>向用户自定义 chain 添加规则和向内置的 chain 添加规则的方式是相同的。<strong>不同的地方在于，用户定义的 chain 只能通过从另一个规则跳转（jump）到它，因为它们没有注册到 netfilter hook</strong>。</p>
 <p>用户定义的 chain 可以看作是对调用它的 chain 的扩展。例如，用户定义的 chain 在结 束的时候，可以返回 netfilter hook，也可以继续跳转到其他自定义 chain。</p>
 <p>这种设计使框架具有强大的分支功能，使得管理员可以组织更大更复杂的网络规则。</p>
-<h2 id="8-iptables-和连接跟踪">8. IPTables 和连接跟踪</h2>
+<h2><span id="8-iptables-和连接跟踪">8. IPTables 和连接跟踪</span></h2>
 <p>在讨论 raw table 和 匹配连接状态的时候，我们介绍了构建在 netfilter 之上的连 接跟踪系统。连接跟踪系统使得 iptables 基于连接上下文而不是单个包来做出规则判断，给 iptables 提供了有状态操作的功能。</p>
 <p>连接跟踪在包进入协议栈之后很快（very soon）就开始工作了。在给包分配连接之前所做 的工作非常少，只有检查 raw table 和一些基本的完整性检查。</p>
 <p>跟踪系统将包和已有的连接进行比较，如果包所属的连接已经存在就更新连接状态，否则就创建一个新连接。如果 raw table 的某个 chain 对包标记为目标是 NOTRACK，那这个包会跳过连接跟踪系统。</p>
-<h3 id="连接的状态">连接的状态</h3>
+<h3><span id="连接的状态">连接的状态</span></h3>
 <p>连接跟踪系统中的连接状态有：</p>
 <ul>
 <li>
@@ -380,7 +380,7 @@
 </li>
 </ul>
 <p>这些状态可以定位到连接生命周期内部，管理员可以编写出更加细粒度、适用范围更大、更安全的规则。</p>
-<h2 id="9-总结">9. 总结</h2>
+<h2><span id="9-总结">9. 总结</span></h2>
 <p>netfilter 包过滤框架和 iptables 防火墙是 Linux 服务器上大部分防火墙解决方案的基础。netfilter 的内核 hook 和协议栈足够紧密，提供了包经过系统时的强大控制功能。 iptables 防火墙基于这些功能提供了一个灵活的、可扩展的、将策略需求转化到内核的方法。理解了这些不同部分是如何联系到一起的，就可以使用它们控制和保护你的的服务器环境。</p>
 <p>想了解更多 iptables 使用方式，参考这个教程。</p>
 <blockquote>
@@ -457,7 +457,7 @@
         <div id="toc" class="toc-article">
         <strong class="toc-title">Contents</strong>
         
-          <ol class="toc-nav"><li class="toc-nav-item toc-nav-level-2"><a class="toc-nav-link" href="#译者序"><span class="toc-nav-number">1.</span> <span class="toc-nav-text">译者序</span></a></li><li class="toc-nav-item toc-nav-level-2"><a class="toc-nav-link" href="#前言"><span class="toc-nav-number">2.</span> <span class="toc-nav-text">前言</span></a></li><li class="toc-nav-item toc-nav-level-2"><a class="toc-nav-link" href="#1-iptables-和-netfilter-是什么"><span class="toc-nav-number">3.</span> <span class="toc-nav-text">1. IPTables 和 Netfilter 是什么？</span></a></li><li class="toc-nav-item toc-nav-level-2"><a class="toc-nav-link" href="#2-netfilter-hooks"><span class="toc-nav-number">4.</span> <span class="toc-nav-text">2. Netfilter Hooks</span></a></li><li class="toc-nav-item toc-nav-level-2"><a class="toc-nav-link" href="#3-iptables-表和链tables-and-chains"><span class="toc-nav-number">5.</span> <span class="toc-nav-text">3. IPTables 表和链（Tables and Chains）</span></a></li><li class="toc-nav-item toc-nav-level-2"><a class="toc-nav-link" href="#4-table-种类"><span class="toc-nav-number">6.</span> <span class="toc-nav-text">4. table 种类</span></a><ol class="toc-nav-child"><li class="toc-nav-item toc-nav-level-3"><a class="toc-nav-link" href="#41-filter-table"><span class="toc-nav-number">6.1.</span> <span class="toc-nav-text">4.1 Filter Table</span></a></li><li class="toc-nav-item toc-nav-level-3"><a class="toc-nav-link" href="#42-nat-table"><span class="toc-nav-number">6.2.</span> <span class="toc-nav-text">4.2 NAT Table</span></a></li><li class="toc-nav-item toc-nav-level-3"><a class="toc-nav-link" href="#43-mangle-table"><span class="toc-nav-number">6.3.</span> <span class="toc-nav-text">4.3 Mangle Table</span></a></li><li class="toc-nav-item toc-nav-level-3"><a class="toc-nav-link" href="#44-raw-table"><span class="toc-nav-number">6.4.</span> <span class="toc-nav-text">4.4 Raw Table</span></a></li><li class="toc-nav-item toc-nav-level-3"><a class="toc-nav-link" href="#45-security-table"><span class="toc-nav-number">6.5.</span> <span class="toc-nav-text">4.5 Security Table</span></a></li></ol></li><li class="toc-nav-item toc-nav-level-2"><a class="toc-nav-link" href="#5-每种-table-实现的-chain"><span class="toc-nav-number">7.</span> <span class="toc-nav-text">5. 每种 table 实现的 chain</span></a><ol class="toc-nav-child"><li class="toc-nav-item toc-nav-level-3"><a class="toc-nav-link" href="#chain-遍历优先级"><span class="toc-nav-number">7.1.</span> <span class="toc-nav-text">Chain 遍历优先级</span></a></li></ol></li><li class="toc-nav-item toc-nav-level-2"><a class="toc-nav-link" href="#6-iptables-规则"><span class="toc-nav-number">8.</span> <span class="toc-nav-text">6. IPTables 规则</span></a><ol class="toc-nav-child"><li class="toc-nav-item toc-nav-level-3"><a class="toc-nav-link" href="#61-匹配"><span class="toc-nav-number">8.1.</span> <span class="toc-nav-text">6.1 匹配</span></a></li><li class="toc-nav-item toc-nav-level-3"><a class="toc-nav-link" href="#62-目标"><span class="toc-nav-number">8.2.</span> <span class="toc-nav-text">6.2 目标</span></a></li></ol></li><li class="toc-nav-item toc-nav-level-2"><a class="toc-nav-link" href="#7-跳转到用户自定义-chain"><span class="toc-nav-number">9.</span> <span class="toc-nav-text">7. 跳转到用户自定义 chain</span></a></li><li class="toc-nav-item toc-nav-level-2"><a class="toc-nav-link" href="#8-iptables-和连接跟踪"><span class="toc-nav-number">10.</span> <span class="toc-nav-text">8. IPTables 和连接跟踪</span></a><ol class="toc-nav-child"><li class="toc-nav-item toc-nav-level-3"><a class="toc-nav-link" href="#连接的状态"><span class="toc-nav-number">10.1.</span> <span class="toc-nav-text">连接的状态</span></a></li></ol></li><li class="toc-nav-item toc-nav-level-2"><a class="toc-nav-link" href="#9-总结"><span class="toc-nav-number">11.</span> <span class="toc-nav-text">9. 总结</span></a></li></ol>
+          <ol class="toc-nav"><li class="toc-nav-item toc-nav-level-2"><a class="toc-nav-link" href="#vip-container"><span class="toc-nav-number">1.</span> <span class="toc-nav-text">译者序</span></a></li><li class="toc-nav-item toc-nav-level-2"><a class="toc-nav-link" href="#vip-container"><span class="toc-nav-number">2.</span> <span class="toc-nav-text">前言</span></a></li><li class="toc-nav-item toc-nav-level-2"><a class="toc-nav-link" href="#vip-container"><span class="toc-nav-number">3.</span> <span class="toc-nav-text">1. IPTables 和 Netfilter 是什么？</span></a></li><li class="toc-nav-item toc-nav-level-2"><a class="toc-nav-link" href="#vip-container"><span class="toc-nav-number">4.</span> <span class="toc-nav-text">2. Netfilter Hooks</span></a></li><li class="toc-nav-item toc-nav-level-2"><a class="toc-nav-link" href="#vip-container"><span class="toc-nav-number">5.</span> <span class="toc-nav-text">3. IPTables 表和链（Tables and Chains）</span></a></li><li class="toc-nav-item toc-nav-level-2"><a class="toc-nav-link" href="#vip-container"><span class="toc-nav-number">6.</span> <span class="toc-nav-text">4. table 种类</span></a><ol class="toc-nav-child"><li class="toc-nav-item toc-nav-level-3"><a class="toc-nav-link" href="#vip-container"><span class="toc-nav-number">6.1.</span> <span class="toc-nav-text">4.1 Filter Table</span></a></li><li class="toc-nav-item toc-nav-level-3"><a class="toc-nav-link" href="#vip-container"><span class="toc-nav-number">6.2.</span> <span class="toc-nav-text">4.2 NAT Table</span></a></li><li class="toc-nav-item toc-nav-level-3"><a class="toc-nav-link" href="#vip-container"><span class="toc-nav-number">6.3.</span> <span class="toc-nav-text">4.3 Mangle Table</span></a></li><li class="toc-nav-item toc-nav-level-3"><a class="toc-nav-link" href="#vip-container"><span class="toc-nav-number">6.4.</span> <span class="toc-nav-text">4.4 Raw Table</span></a></li><li class="toc-nav-item toc-nav-level-3"><a class="toc-nav-link" href="#vip-container"><span class="toc-nav-number">6.5.</span> <span class="toc-nav-text">4.5 Security Table</span></a></li></ol></li><li class="toc-nav-item toc-nav-level-2"><a class="toc-nav-link" href="#vip-container"><span class="toc-nav-number">7.</span> <span class="toc-nav-text">5. 每种 table 实现的 chain</span></a><ol class="toc-nav-child"><li class="toc-nav-item toc-nav-level-3"><a class="toc-nav-link" href="#vip-container"><span class="toc-nav-number">7.1.</span> <span class="toc-nav-text">Chain 遍历优先级</span></a></li></ol></li><li class="toc-nav-item toc-nav-level-2"><a class="toc-nav-link" href="#vip-container"><span class="toc-nav-number">8.</span> <span class="toc-nav-text">6. IPTables 规则</span></a><ol class="toc-nav-child"><li class="toc-nav-item toc-nav-level-3"><a class="toc-nav-link" href="#vip-container"><span class="toc-nav-number">8.1.</span> <span class="toc-nav-text">6.1 匹配</span></a></li><li class="toc-nav-item toc-nav-level-3"><a class="toc-nav-link" href="#vip-container"><span class="toc-nav-number">8.2.</span> <span class="toc-nav-text">6.2 目标</span></a></li></ol></li><li class="toc-nav-item toc-nav-level-2"><a class="toc-nav-link" href="#vip-container"><span class="toc-nav-number">9.</span> <span class="toc-nav-text">7. 跳转到用户自定义 chain</span></a></li><li class="toc-nav-item toc-nav-level-2"><a class="toc-nav-link" href="#vip-container"><span class="toc-nav-number">10.</span> <span class="toc-nav-text">8. IPTables 和连接跟踪</span></a><ol class="toc-nav-child"><li class="toc-nav-item toc-nav-level-3"><a class="toc-nav-link" href="#vip-container"><span class="toc-nav-number">10.1.</span> <span class="toc-nav-text">连接的状态</span></a></li></ol></li><li class="toc-nav-item toc-nav-level-2"><a class="toc-nav-link" href="#vip-container"><span class="toc-nav-number">11.</span> <span class="toc-nav-text">9. 总结</span></a></li></ol>
         
         </div>
       </aside>

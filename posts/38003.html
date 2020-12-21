@@ -232,19 +232,19 @@
 
                 <div id="vip-container"><p>在「<a href="https://mp.weixin.qq.com/s?__biz=MzI3MTI2NzkxMA==&amp;mid=2247485889&amp;idx=1&amp;sn=59e2b7a643db49d36471521bc86615e4&amp;chksm=eac528e8ddb2a1fe469a1474ca48fe896c3a5cd2dc192c91b7e2a97bbdde6b4475fa059060e2#rd" target="_blank" rel="noopener">Nginx 发布支持动态配置的开源 Web 服务器 Nginx Unit</a>」 一文中我们对 Nginx Unit 的基本特性做了一个介绍。</p>
 <p>今天我们用一个典型的 PHP 应用 WordPress 为例，来介绍下如何在 Nginx Unit 下部署一个应用。</p>
-<h3 id="架构概述">架构概述</h3>
+<h3><span id="架构概述">架构概述</span></h3>
 <p>WordPress 是一个相当标准的三层 Web 应用程序，它包括必须由 PHP 处理器执行的 PHP 脚本以及必须由 Web 服务器交付的静态文件。下图为一个简单的 WordPress 应用程序的架构：</p>
-<p><img src="https://www.hi-linux.com/img/linux/nginx-unit-wp-01.png" alt=""></p>
+<p><img src="https://www.hi-linux.com/img/linux/nginx-unit-wp-01.png" alt></p>
 <a id="more"></a>
 <p>本文系统基础环境以 Ubuntu 16.04 为例，如果你使用的是其它发行版本也基本类似，这里就不展开讲解了。</p>
-<h3 id="安装-mysql">安装 MySQL</h3>
+<h3><span id="安装-mysql">安装 MySQL</span></h3>
 <p>WordPress 安装的关键要素之一就是存储用户帐户和站点数据的数据库，这里我们使用 MySQL 。</p>
 <ul>
 <li>安装和配置 MySQL</li>
 </ul>
 <figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">$ sudo apt-get install mysql-server</span><br></pre></td></tr></table></figure>
 <p>输入新的 MySQL 的 root 用户的密码：</p>
-<p><img src="https://www.hi-linux.com/img/linux/nginx-unit-wp-02.png" alt=""></p>
+<p><img src="https://www.hi-linux.com/img/linux/nginx-unit-wp-02.png" alt></p>
 <ul>
 <li>运行 MySQL 配置工具</li>
 </ul>
@@ -261,7 +261,7 @@
 <blockquote>
 <p>这里创建的用于连接数据的用户名为：wordpress，密码为：000000</p>
 </blockquote>
-<h3 id="安装-wordpress">安装 WordPress</h3>
+<h3><span id="安装-wordpress">安装 WordPress</span></h3>
 <ul>
 <li>安装 WordPress</li>
 </ul>
@@ -281,10 +281,10 @@
 <blockquote>
 <p>这里使用的是 www-data 用户，这个用户是要在后面配置到 Nginx Unit 的应用配置文件里的 。</p>
 </blockquote>
-<h3 id="安装-php">安装 PHP</h3>
+<h3><span id="安装-php">安装 PHP</span></h3>
 <p>安装 WordPress 需要的 PHP 环境和相关 PHP 扩展，这里我们安装比较新的 PHP 7.0 版本：</p>
 <figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">$ sudo apt-get install -y php7.0 php7.0-common php7.0-mbstring php7.0-gd php7.0-intl php7.0-xml php7.0-mysql php7.0-mcrypt</span><br></pre></td></tr></table></figure>
-<h3 id="安装-nginx-unit">安装 Nginx Unit</h3>
+<h3><span id="安装-nginx-unit">安装 Nginx Unit</span></h3>
 <p>Nginx Unit 支持多种安装方式，这里我们通过预编译包来安装。</p>
 <figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line"># 导入验证 Nginx 仓库的签名密钥</span><br><span class="line">$ sudo curl -C - https:&#x2F;&#x2F;nginx.org&#x2F;keys&#x2F;nginx_signing.key | sudo apt-key add -</span><br><span class="line"></span><br><span class="line"># 增加 Nginx Unit 仓库源</span><br><span class="line">$ sudo cat &gt;&gt; &#x2F;etc&#x2F;apt&#x2F;sources.list.d&#x2F;nginx-unit.list &lt;&lt; EOF</span><br><span class="line">deb https:&#x2F;&#x2F;packages.nginx.org&#x2F;unit&#x2F;ubuntu&#x2F; $(lsb_release -sc) unit</span><br><span class="line">deb-src https:&#x2F;&#x2F;packages.nginx.org&#x2F;unit&#x2F;ubuntu&#x2F; $(lsb_release -sc) unit</span><br><span class="line">EOF</span><br><span class="line"></span><br><span class="line"># 安装 Nginx Unit</span><br><span class="line">$ sudo apt-get update</span><br><span class="line">$ sudo apt-get install unit</span><br></pre></td></tr></table></figure>
 <p>安装 Nginx Unit 的扩展模块</p>
@@ -297,14 +297,14 @@
 <blockquote>
 <p>如果出现 phpinfo 页面的原始 HTML 代码，则表示 Nginx Unit 安装正确。</p>
 </blockquote>
-<h3 id="配置-nginx-unit">配置 Nginx Unit</h3>
+<h3><span id="配置-nginx-unit">配置 Nginx Unit</span></h3>
 <p>为 WordPress 创建一个 Nginx Unit 的应用配置文件，该应用配置文件仅用作 Nginx Unit 动态加载用。</p>
 <p>此配置文件会创建两个 Nginx Unit 应用程序，每一个应用程序对应一个 URL 方案，两个 URL 分别对应的是 WordPress Web 页面和 WordPress 的后台管理面板。</p>
 <figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br></pre></td><td class="code"><pre><span class="line">$ sudo vim &#x2F;var&#x2F;www&#x2F;wordpress&#x2F;wordpress.config</span><br><span class="line"></span><br><span class="line">&#123;</span><br><span class="line">    &quot;listeners&quot;: &#123;</span><br><span class="line">        &quot;127.0.0.1:8090&quot;: &#123;</span><br><span class="line">            &quot;application&quot;: &quot;script_index_php&quot;</span><br><span class="line">        &#125;,</span><br><span class="line">        &quot;127.0.0.1:8091&quot;: &#123;</span><br><span class="line">            &quot;application&quot;: &quot;direct_php&quot;</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;,</span><br><span class="line"></span><br><span class="line">    &quot;applications&quot;: &#123;</span><br><span class="line">        &quot;script_index_php&quot;: &#123;</span><br><span class="line">            &quot;type&quot;: &quot;php&quot;,</span><br><span class="line">            &quot;processes&quot;: &#123;</span><br><span class="line">                &quot;max&quot;: 20,</span><br><span class="line">                &quot;spare&quot;: 5</span><br><span class="line">            &#125;,</span><br><span class="line">            &quot;user&quot;: &quot;www-data&quot;,</span><br><span class="line">            &quot;group&quot;: &quot;www-data&quot;,</span><br><span class="line">            &quot;root&quot;: &quot;&#x2F;var&#x2F;www&#x2F;wordpress&quot;,</span><br><span class="line">            &quot;script&quot;: &quot;index.php&quot;</span><br><span class="line">        &#125;,</span><br><span class="line">        &quot;direct_php&quot;: &#123;</span><br><span class="line">            &quot;type&quot;: &quot;php&quot;,</span><br><span class="line">            &quot;processes&quot;: &#123;</span><br><span class="line">                &quot;max&quot;: 5,</span><br><span class="line">                &quot;spare&quot;: 0</span><br><span class="line">            &#125;,</span><br><span class="line">            &quot;user&quot;: &quot;www-data&quot;,</span><br><span class="line">            &quot;group&quot;: &quot;www-data&quot;,</span><br><span class="line">            &quot;root&quot;: &quot;&#x2F;var&#x2F;www&#x2F;wordpress&quot;,</span><br><span class="line">            &quot;index&quot;: &quot;index.php&quot;</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
 <p>通过 curl 向 Nginx Unit 提交配置文件</p>
 <figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">$ curl -X PUT -d @&#x2F;var&#x2F;www&#x2F;wordpress&#x2F;wordpress.config --unix-socket &#x2F;run&#x2F;control.unit.sock http:&#x2F;&#x2F;localhost&#x2F;config</span><br><span class="line">&#123;</span><br><span class="line">	&quot;success&quot;: &quot;Reconfiguration done.&quot;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
 <p>这里只介绍了最基本的 API 用法，实际上基于 Nginx Unit API 可以完成很多工作，具体参考 <a href="https://unit.nginx.org/configuration/" target="_blank" rel="noopener">NGINX Unit 官方文档</a>。</p>
-<h3 id="通过-nginx-整合-nginx-unit">通过 Nginx 整合 Nginx Unit</h3>
+<h3><span id="通过-nginx-整合-nginx-unit">通过 Nginx 整合 Nginx Unit</span></h3>
 <p>把 Nginx 和 Nginx Unit 整合到一起，可以实现动静分离。让 Nginx 处理所有的静态资源请求，而与 PHP 相关的动态请求都转由 Nginx Unit 来处理。</p>
 <ul>
 <li>安装 Nginx</li>
@@ -325,8 +325,8 @@
 <p>最后验证并加载配置文件：</p>
 <figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">$ sudo nginx -t</span><br><span class="line">nginx: the configuration file &#x2F;etc&#x2F;nginx&#x2F;nginx.conf syntax is ok</span><br><span class="line">nginx: configuration file &#x2F;etc&#x2F;nginx&#x2F;nginx.conf test is successful</span><br><span class="line"></span><br><span class="line">$ sudo nginx -s reload</span><br></pre></td></tr></table></figure>
 <p>如果一切正常，在浏览器中访问主机 IP 就会出现 WordPress 的安装页面。</p>
-<p><img src="https://www.hi-linux.com/img/linux/nginx-unit-wp-03.png" alt=""></p>
-<h3 id="参考文档">参考文档</h3>
+<p><img src="https://www.hi-linux.com/img/linux/nginx-unit-wp-03.png" alt></p>
+<h3><span id="参考文档">参考文档</span></h3>
 <p><a href="https://www.google.com" target="_blank" rel="noopener">https://www.google.com</a><br>
 <a href="http://t.cn/R3k71cq" target="_blank" rel="noopener">http://t.cn/R3k71cq</a><br>
 <a href="http://t.cn/R3kLoXD" target="_blank" rel="noopener">http://t.cn/R3kLoXD</a></p>
@@ -401,7 +401,7 @@
         <div id="toc" class="toc-article">
         <strong class="toc-title">Contents</strong>
         
-          <ol class="toc-nav"><li class="toc-nav-item toc-nav-level-3"><a class="toc-nav-link" href="#架构概述"><span class="toc-nav-number">1.</span> <span class="toc-nav-text">架构概述</span></a></li><li class="toc-nav-item toc-nav-level-3"><a class="toc-nav-link" href="#安装-mysql"><span class="toc-nav-number">2.</span> <span class="toc-nav-text">安装 MySQL</span></a></li><li class="toc-nav-item toc-nav-level-3"><a class="toc-nav-link" href="#安装-wordpress"><span class="toc-nav-number">3.</span> <span class="toc-nav-text">安装 WordPress</span></a></li><li class="toc-nav-item toc-nav-level-3"><a class="toc-nav-link" href="#安装-php"><span class="toc-nav-number">4.</span> <span class="toc-nav-text">安装 PHP</span></a></li><li class="toc-nav-item toc-nav-level-3"><a class="toc-nav-link" href="#安装-nginx-unit"><span class="toc-nav-number">5.</span> <span class="toc-nav-text">安装 Nginx Unit</span></a></li><li class="toc-nav-item toc-nav-level-3"><a class="toc-nav-link" href="#配置-nginx-unit"><span class="toc-nav-number">6.</span> <span class="toc-nav-text">配置 Nginx Unit</span></a></li><li class="toc-nav-item toc-nav-level-3"><a class="toc-nav-link" href="#通过-nginx-整合-nginx-unit"><span class="toc-nav-number">7.</span> <span class="toc-nav-text">通过 Nginx 整合 Nginx Unit</span></a></li><li class="toc-nav-item toc-nav-level-3"><a class="toc-nav-link" href="#参考文档"><span class="toc-nav-number">8.</span> <span class="toc-nav-text">参考文档</span></a></li></ol>
+          <ol class="toc-nav"><li class="toc-nav-item toc-nav-level-3"><a class="toc-nav-link" href="#vip-container"><span class="toc-nav-number">1.</span> <span class="toc-nav-text">架构概述</span></a></li><li class="toc-nav-item toc-nav-level-3"><a class="toc-nav-link" href="#vip-container"><span class="toc-nav-number">2.</span> <span class="toc-nav-text">安装 MySQL</span></a></li><li class="toc-nav-item toc-nav-level-3"><a class="toc-nav-link" href="#vip-container"><span class="toc-nav-number">3.</span> <span class="toc-nav-text">安装 WordPress</span></a></li><li class="toc-nav-item toc-nav-level-3"><a class="toc-nav-link" href="#vip-container"><span class="toc-nav-number">4.</span> <span class="toc-nav-text">安装 PHP</span></a></li><li class="toc-nav-item toc-nav-level-3"><a class="toc-nav-link" href="#vip-container"><span class="toc-nav-number">5.</span> <span class="toc-nav-text">安装 Nginx Unit</span></a></li><li class="toc-nav-item toc-nav-level-3"><a class="toc-nav-link" href="#vip-container"><span class="toc-nav-number">6.</span> <span class="toc-nav-text">配置 Nginx Unit</span></a></li><li class="toc-nav-item toc-nav-level-3"><a class="toc-nav-link" href="#vip-container"><span class="toc-nav-number">7.</span> <span class="toc-nav-text">通过 Nginx 整合 Nginx Unit</span></a></li><li class="toc-nav-item toc-nav-level-3"><a class="toc-nav-link" href="#vip-container"><span class="toc-nav-number">8.</span> <span class="toc-nav-text">参考文档</span></a></li></ol>
         
         </div>
       </aside>

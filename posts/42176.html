@@ -232,7 +232,7 @@
 
                 <div id="vip-container"><p>用Nginx给网站做反向代理和负载均衡是广泛使用的一种Web服务器部署技术。不仅能够保证后端服务器的隐蔽性，还可以提高网站部署灵活性。</p>
 <p>今天我们来讲一下，如何用Nginx给WebSocket服务器实现反向代理和负载均衡。</p>
-<h3 id="什么是反向代理和负载均衡">什么是反向代理和负载均衡</h3>
+<h3><span id="什么是反向代理和负载均衡">什么是反向代理和负载均衡</span></h3>
 <ul>
 <li>
 <p>反向代理(Reverse Proxy)方式是指以代理服务器来接受Internet上的连接请求，然后将请求转发给内部网络上的服务器。并将内部服务器上得到的结果返回给Internet上请求连接的客户端，此时代理服务器对外就表现为一个服务器。</p>
@@ -242,14 +242,14 @@
 </li>
 </ul>
 <a id="more"></a>
-<h3 id="什么是websocket">什么是WebSocket</h3>
+<h3><span id="什么是websocket">什么是WebSocket</span></h3>
 <p>WebSocket协议相比较于HTTP协议成功握手后可以多次进行通讯，直到连接被关闭。但是WebSocket中的握手和HTTP中的握手兼容，它使用HTTP中的Upgrade协议头将连接从HTTP升级到WebSocket。这使得WebSocket程序可以更容易的使用现已存在的基础设施。</p>
 <p>WebSocket工作在HTTP的80和443端口并使用前缀<code>ws://</code>或者<code>wss://</code>进行协议标注，在建立连接时使用HTTP/1.1的101状态码进行协议切换，当前标准不支持两个客户端之间不借助HTTP直接建立Websocket连接。</p>
 <p>更多Websocket的介绍可参考「<a href="http://t.cn/RaT8tNb" target="_blank" rel="noopener">WebSocket教程</a>」一文。</p>
-<h3 id="创建基于node的websocket服务">创建基于Node的WebSocket服务</h3>
+<h3><span id="创建基于node的websocket服务">创建基于Node的WebSocket服务</span></h3>
 <p>Nginx在官方博客上给出了一个实践样例「<a href="https://www.nginx.com/blog/websocket-nginx/" target="_blank" rel="noopener">Using Nginx as a Websocket Proxy</a>」，我们以这个例子来演示WebSocket的交互过程。</p>
 <p>这个例子中将会使用到nodejs的一个WebSocket的ws模块。</p>
-<h4 id="安装nodejs和npm">安装node.js和npm</h4>
+<h4><span id="安装nodejs和npm">安装node.js和npm</span></h4>
 <ul>
 <li>Debian/Ubuntu</li>
 </ul>
@@ -258,27 +258,27 @@
 <li>RHEL/CentOS</li>
 </ul>
 <figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">$ yum install nodejs npm</span><br></pre></td></tr></table></figure>
-<h4 id="创建nodejs软链">创建nodejs软链</h4>
+<h4><span id="创建nodejs软链">创建nodejs软链</span></h4>
 <p>在Ubuntu上创建一个名叫node软链。Centos默认为node，不用在单独创建了。</p>
 <figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"># 如果不创建，后面运行wscat时Ubuntu环境中会报错。</span><br><span class="line">$ ln -s &#x2F;usr&#x2F;bin&#x2F;nodejs &#x2F;usr&#x2F;bin&#x2F;node</span><br></pre></td></tr></table></figure>
-<h4 id="安装ws和wscat模块">安装ws和wscat模块</h4>
+<h4><span id="安装ws和wscat模块">安装ws和wscat模块</span></h4>
 <p><code>ws</code>是nodejs的WebSocket实现，我们借助它来搭建简单的WebSocket Echo Server。<code>wscat</code>是一个可执行的WebSocket客户端，用来调试WebSocket服务是否正常。</p>
 <figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">$ npm install ws wscat</span><br></pre></td></tr></table></figure>
 <p>如果访问官方仓库比较慢的话，可用淘宝提供的镜像服务。</p>
 <figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">$ npm --registry&#x3D;https:&#x2F;&#x2F;registry.npm.taobao.org install ws wscat</span><br></pre></td></tr></table></figure>
-<h4 id="创建一个简单的服务端">创建一个简单的服务端</h4>
+<h4><span id="创建一个简单的服务端">创建一个简单的服务端</span></h4>
 <p>这个简单的服务端实现的是向客户端返回客户端发送的消息。</p>
 <figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line">$ vim server.js</span><br><span class="line"></span><br><span class="line">console.log(&quot;Server started&quot;);</span><br><span class="line">var Msg &#x3D; &#39;&#39;;</span><br><span class="line">var WebSocketServer &#x3D; require(&#39;ws&#39;).Server</span><br><span class="line">    , wss &#x3D; new WebSocketServer(&#123;port: 8010&#125;);</span><br><span class="line">    wss.on(&#39;connection&#39;, function(ws) &#123;</span><br><span class="line">        ws.on(&#39;message&#39;, function(message) &#123;</span><br><span class="line">        console.log(&#39;Received from client: %s&#39;, message);</span><br><span class="line">        ws.send(&#39;Server received from client: &#39; + message);</span><br><span class="line">    &#125;);</span><br><span class="line"> &#125;);</span><br></pre></td></tr></table></figure>
 <p>运行这个简单的<code>echo</code>服务</p>
 <figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">$ node server.js</span><br><span class="line">Server started</span><br></pre></td></tr></table></figure>
 <p>验证服务端是否正常启动</p>
 <figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">$ netstat  -tlunp|grep 8010</span><br><span class="line">tcp6       0      0 :::8010                 :::*                    LISTEN      23864&#x2F;nodejs</span><br></pre></td></tr></table></figure>
-<h4 id="使用wscat做为客户端测试">使用wscat做为客户端测试</h4>
+<h4><span id="使用wscat做为客户端测试">使用wscat做为客户端测试</span></h4>
 <p><code>wscat</code>命令默认安装当前用户目录<code>node_modules/wscat/</code>目录，我这里的位置是<code>/root/node_modules/wscat/bin/wscat</code>。</p>
 <p>输入任意内容进行测试，得到相同返回则说明运行正常。</p>
 <figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line">$ cd &#x2F;root&#x2F;node_modules&#x2F;wscat&#x2F;bin&#x2F;</span><br><span class="line">$ .&#x2F;wscat --connect ws:&#x2F;&#x2F;127.0.0.1:8010</span><br><span class="line"></span><br><span class="line">connected (press CTRL+C to quit)</span><br><span class="line">&gt; Hello</span><br><span class="line">&lt; Server received from client: Hello</span><br><span class="line"></span><br><span class="line">&gt; Welcome to www.hi-linux.com</span><br><span class="line">&lt; Server received from client: Welcome to www.hi-linux.com</span><br></pre></td></tr></table></figure>
-<h3 id="使用nginx对websocket进行反向代理">使用Nginx对WebSocket进行反向代理</h3>
-<h4 id="安装nginx">安装Nginx</h4>
+<h3><span id="使用nginx对websocket进行反向代理">使用Nginx对WebSocket进行反向代理</span></h3>
+<h4><span id="安装nginx">安装Nginx</span></h4>
 <ul>
 <li>下载对应软件包</li>
 </ul>
@@ -288,7 +288,7 @@
 <li>编译安装Nginx</li>
 </ul>
 <figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">$ apt-get install libreadline-dev libncurses5-dev libpcre3-dev libssl-dev perl make build-essential</span><br><span class="line">$ tar xzvf nginx-1.9.2.tar.gz</span><br><span class="line">$ cd nginx-1.9.2</span><br><span class="line">$ .&#x2F;configure</span><br><span class="line">$ make &amp;&amp; make install</span><br></pre></td></tr></table></figure>
-<h4 id="配置nginx">配置Nginx</h4>
+<h4><span id="配置nginx">配置Nginx</span></h4>
 <ul>
 <li>修改Nginx主配置文件</li>
 </ul>
@@ -318,7 +318,7 @@
 </ul>
 <p>WebSocket是端对端的，所以当一个代理服务器从客户端拦截一个Upgrade请求，它需要去发送它自己的Upgrade请求到后端服务器，也包括合适的头。</p>
 <p>因为WebSocket是一个长连接，不像HTTP那样是典型的短连接，所以反向代理服务器需要允许连接保持着打开，而不是在它们看起来空闲时就将它们关闭。</p>
-<h3 id="参考文档">参考文档</h3>
+<h3><span id="参考文档">参考文档</span></h3>
 <p><a href="http://www.google.com" target="_blank" rel="noopener">http://www.google.com</a><br>
 <a href="http://t.cn/RaTxJl9" target="_blank" rel="noopener">http://t.cn/RaTxJl9</a><br>
 <a href="https://github.com/animetosho/Nyuu/issues/14" target="_blank" rel="noopener">https://github.com/animetosho/Nyuu/issues/14</a><br>
@@ -395,7 +395,7 @@
         <div id="toc" class="toc-article">
         <strong class="toc-title">Contents</strong>
         
-          <ol class="toc-nav"><li class="toc-nav-item toc-nav-level-3"><a class="toc-nav-link" href="#什么是反向代理和负载均衡"><span class="toc-nav-number">1.</span> <span class="toc-nav-text">什么是反向代理和负载均衡</span></a></li><li class="toc-nav-item toc-nav-level-3"><a class="toc-nav-link" href="#什么是websocket"><span class="toc-nav-number">2.</span> <span class="toc-nav-text">什么是WebSocket</span></a></li><li class="toc-nav-item toc-nav-level-3"><a class="toc-nav-link" href="#创建基于node的websocket服务"><span class="toc-nav-number">3.</span> <span class="toc-nav-text">创建基于Node的WebSocket服务</span></a><ol class="toc-nav-child"><li class="toc-nav-item toc-nav-level-4"><a class="toc-nav-link" href="#安装nodejs和npm"><span class="toc-nav-number">3.1.</span> <span class="toc-nav-text">安装node.js和npm</span></a></li><li class="toc-nav-item toc-nav-level-4"><a class="toc-nav-link" href="#创建nodejs软链"><span class="toc-nav-number">3.2.</span> <span class="toc-nav-text">创建nodejs软链</span></a></li><li class="toc-nav-item toc-nav-level-4"><a class="toc-nav-link" href="#安装ws和wscat模块"><span class="toc-nav-number">3.3.</span> <span class="toc-nav-text">安装ws和wscat模块</span></a></li><li class="toc-nav-item toc-nav-level-4"><a class="toc-nav-link" href="#创建一个简单的服务端"><span class="toc-nav-number">3.4.</span> <span class="toc-nav-text">创建一个简单的服务端</span></a></li><li class="toc-nav-item toc-nav-level-4"><a class="toc-nav-link" href="#使用wscat做为客户端测试"><span class="toc-nav-number">3.5.</span> <span class="toc-nav-text">使用wscat做为客户端测试</span></a></li></ol></li><li class="toc-nav-item toc-nav-level-3"><a class="toc-nav-link" href="#使用nginx对websocket进行反向代理"><span class="toc-nav-number">4.</span> <span class="toc-nav-text">使用Nginx对WebSocket进行反向代理</span></a><ol class="toc-nav-child"><li class="toc-nav-item toc-nav-level-4"><a class="toc-nav-link" href="#安装nginx"><span class="toc-nav-number">4.1.</span> <span class="toc-nav-text">安装Nginx</span></a></li><li class="toc-nav-item toc-nav-level-4"><a class="toc-nav-link" href="#配置nginx"><span class="toc-nav-number">4.2.</span> <span class="toc-nav-text">配置Nginx</span></a></li></ol></li><li class="toc-nav-item toc-nav-level-3"><a class="toc-nav-link" href="#参考文档"><span class="toc-nav-number">5.</span> <span class="toc-nav-text">参考文档</span></a></li></ol>
+          <ol class="toc-nav"><li class="toc-nav-item toc-nav-level-3"><a class="toc-nav-link" href="#vip-container"><span class="toc-nav-number">1.</span> <span class="toc-nav-text">什么是反向代理和负载均衡</span></a></li><li class="toc-nav-item toc-nav-level-3"><a class="toc-nav-link" href="#vip-container"><span class="toc-nav-number">2.</span> <span class="toc-nav-text">什么是WebSocket</span></a></li><li class="toc-nav-item toc-nav-level-3"><a class="toc-nav-link" href="#vip-container"><span class="toc-nav-number">3.</span> <span class="toc-nav-text">创建基于Node的WebSocket服务</span></a><ol class="toc-nav-child"><li class="toc-nav-item toc-nav-level-4"><a class="toc-nav-link" href="#vip-container"><span class="toc-nav-number">3.1.</span> <span class="toc-nav-text">安装node.js和npm</span></a></li><li class="toc-nav-item toc-nav-level-4"><a class="toc-nav-link" href="#vip-container"><span class="toc-nav-number">3.2.</span> <span class="toc-nav-text">创建nodejs软链</span></a></li><li class="toc-nav-item toc-nav-level-4"><a class="toc-nav-link" href="#vip-container"><span class="toc-nav-number">3.3.</span> <span class="toc-nav-text">安装ws和wscat模块</span></a></li><li class="toc-nav-item toc-nav-level-4"><a class="toc-nav-link" href="#vip-container"><span class="toc-nav-number">3.4.</span> <span class="toc-nav-text">创建一个简单的服务端</span></a></li><li class="toc-nav-item toc-nav-level-4"><a class="toc-nav-link" href="#vip-container"><span class="toc-nav-number">3.5.</span> <span class="toc-nav-text">使用wscat做为客户端测试</span></a></li></ol></li><li class="toc-nav-item toc-nav-level-3"><a class="toc-nav-link" href="#vip-container"><span class="toc-nav-number">4.</span> <span class="toc-nav-text">使用Nginx对WebSocket进行反向代理</span></a><ol class="toc-nav-child"><li class="toc-nav-item toc-nav-level-4"><a class="toc-nav-link" href="#vip-container"><span class="toc-nav-number">4.1.</span> <span class="toc-nav-text">安装Nginx</span></a></li><li class="toc-nav-item toc-nav-level-4"><a class="toc-nav-link" href="#vip-container"><span class="toc-nav-number">4.2.</span> <span class="toc-nav-text">配置Nginx</span></a></li></ol></li><li class="toc-nav-item toc-nav-level-3"><a class="toc-nav-link" href="#vip-container"><span class="toc-nav-number">5.</span> <span class="toc-nav-text">参考文档</span></a></li></ol>
         
         </div>
       </aside>

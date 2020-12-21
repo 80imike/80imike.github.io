@@ -103,9 +103,9 @@
                             
                               <a class="tag" href="/tags/#技巧" title="技巧">技巧</a>
                             
-                              <a class="tag" href="/tags/#Linux" title="Linux">Linux</a>
-                            
                               <a class="tag" href="/tags/#Docker" title="Docker">Docker</a>
+                            
+                              <a class="tag" href="/tags/#Linux" title="Linux">Linux</a>
                             
                         </div>
                         <h1>如何在 Docker 中使用 Docker</h1>
@@ -232,30 +232,30 @@
                 col-md-10 col-md-offset-1
                 post-container">
 
-                <div id="vip-container"><h2 id="1-典型适用场景">1. 典型适用场景</h2>
+                <div id="vip-container"><h2><span id="1-典型适用场景">1. 典型适用场景</span></h2>
 <p>在 CI 中，通常会有一个 CI Engine 负责解析流程，控制整个构建过程，而将真正的构建交给 Agent 去完成。例如，Jenkins 、GitLab 均是如此。</p>
 <p>如下图, 连接 CI Engine 的 Agent, 种类很多。这是为了满足不同项目对构建环境的要求。</p>
-<p><img src="https://www.hi-linux.com/img/linux/dind01.png" alt=""></p>
+<p><img src="https://www.hi-linux.com/img/linux/dind01.png" alt></p>
 <p>同时 Agent 是动态的，构建时才需要，构建完成时即销毁。CI 非常适合实践容器、Serverless 等技术，因此在生产过程中 Agent 经常是容器化的。</p>
 <p>那么问题就来了？如果 CI Engine 也是容器化的，在容器中如何使用 Agent 容器去构建呢？如果 Agent 已经是容器化的，那么在 Agent 上如何构建镜像呢？这就是本篇将给出的回答，如何在 Docker 中使用 Docker。</p>
 <a id="more"></a>
-<h2 id="2-两种使用模式">2. 两种使用模式</h2>
+<h2><span id="2-两种使用模式">2. 两种使用模式</span></h2>
 <p>我们需要知道 Docker 以 C/S 模式工作，主要分为两个部分，Docker CLI 和 Docker Daemon 。Docker CLI ，也就是客户端，提供给用户命令行操作 Docker，例如 docker create/images/ps 等。Docker Damon ，也就是守护进程，负责接受用户指令，维护容器的生命周期。</p>
-<h3 id="21-docker-in-docker">2.1 Docker in Docker</h3>
+<h3><span id="21-docker-in-docker">2.1 Docker in Docker</span></h3>
 <p>Docker in Docker ，以下简称 DinD 。</p>
-<p><img src="https://www.hi-linux.com/img/linux/dind02.png" alt=""></p>
+<p><img src="https://www.hi-linux.com/img/linux/dind02.png" alt></p>
 <p>如上图，可以在 Container 中直接运行一个 Docker Daemon ，然后使用 Container 中的 Docker CLI 工具操作容器。</p>
 <p>这种方式下，容器中的 Docker Daemon 完全独立于外部，具有良好的隔离特性。看起来，Container 类似一个 VM ，但 DinD 的作者自己也不是很推荐。</p>
 <p>主要原因还是安全问题。DinD 需要以特权模式启动，这种嵌套会带来潜在的安全风险。</p>
 <p>这种方式下，响应命令的容器嵌套于使用 docker 命令的容器。</p>
-<h3 id="22-docker-outside-of-docker">2.2 Docker outside of Docker</h3>
+<h3><span id="22-docker-outside-of-docker">2.2 Docker outside of Docker</span></h3>
 <p>Docker outside of Docker ，以下简称 DooD 。</p>
-<p><img src="https://www.hi-linux.com/img/linux/dind03.png" alt=""></p>
+<p><img src="https://www.hi-linux.com/img/linux/dind03.png" alt></p>
 <p>如上图，Docker 以 C/S 模式工作，使用时用户关注的是 C 端，而生命周期的管理在 S 端。</p>
 <p>因此，只需要将 Container 的外部 Docker Daemon 服务挂载到 Container 。让 Container 误以为本地运行了 Docker Daemon，使用 Docker CLI 命令操作时，外部的 Docker Daemon 会响应请求。</p>
 <p>这种方式下，响应命令的容器与使用 docker 命令的容器处于同一层级。</p>
-<h2 id="3-docker-环境下的演示">3. Docker 环境下的演示</h2>
-<h3 id="31-dind">3.1 DinD</h3>
+<h2><span id="3-docker-环境下的演示">3. Docker 环境下的演示</span></h2>
+<h3><span id="31-dind">3.1 DinD</span></h3>
 <ul>
 <li>运行 DinD 容器</li>
 </ul>
@@ -275,7 +275,7 @@
 <p>键入 exit 退出容器，通过主机上的 Docker Daemon</p>
 <figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">$ docker images |grep fa4651c24a18</span><br></pre></td></tr></table></figure>
 <p>符合预期。DinD 使用的是独立的 Docker Daemon，对外部的实例没有直接影响。</p>
-<h3 id="32-dood">3.2 DooD</h3>
+<h3><span id="32-dood">3.2 DooD</span></h3>
 <ul>
 <li>运行一个容器</li>
 </ul>
@@ -295,8 +295,8 @@
 <p>键入 exit 退出容器，通过主机上的 Docker Daemon</p>
 <figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">$ docker images |grep robotframework</span><br><span class="line">shaowenchen&#x2F;docker-robotframework                              latest                         d99cfa7ee716        12 months ago       1.5GB</span><br></pre></td></tr></table></figure>
 <p>符合预期。DooD 方式直接使用的外部 Docker Daemon。</p>
-<h2 id="4-kubernetes-环境下的演示">4. Kubernetes 环境下的演示</h2>
-<h3 id="41-dind">4.1 DinD</h3>
+<h2><span id="4-kubernetes-环境下的演示">4. Kubernetes 环境下的演示</span></h2>
+<h3><span id="41-dind">4.1 DinD</span></h3>
 <ul>
 <li>创建一个 dind.yaml 文件，内容如下:</li>
 </ul>
@@ -318,7 +318,7 @@
 </ul>
 <figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">$ docker pull nginx</span><br><span class="line">$ docker images</span><br><span class="line">REPOSITORY          TAG                 IMAGE ID            CREATED             SIZE</span><br><span class="line">nginx               latest              daee903b4e43        3 days ago          133MB</span><br></pre></td></tr></table></figure>
 <p>符合预期，这里仅显示了刚拉取的 Nginx 的镜像，完全独立于主机的 Docker Daemon。</p>
-<h3 id="42-dood">4.2 DooD</h3>
+<h3><span id="42-dood">4.2 DooD</span></h3>
 <ul>
 <li>创建一个 dood.yaml 文件，内容如下:</li>
 </ul>
@@ -340,7 +340,7 @@
 </ul>
 <figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">$ docker images |wc</span><br><span class="line">69       482      8509</span><br></pre></td></tr></table></figure>
 <p>符合预期，这里 Docker 命令使用的就是外部的 Docker Daemon。</p>
-<h2 id="5-参考">5. 参考</h2>
+<h2><span id="5-参考">5. 参考</span></h2>
 <ol>
 <li><a href="https://medium.com/better-programming/about-var-run-docker-sock-3bfd276e12fd" target="_blank" rel="noopener">https://medium.com/better-programming/about-var-run-docker-sock-3bfd276e12fd</a></li>
 <li><a href="https://github.com/jpetazzo/dind" target="_blank" rel="noopener">https://github.com/jpetazzo/dind</a></li>
@@ -419,7 +419,7 @@
         <div id="toc" class="toc-article">
         <strong class="toc-title">Contents</strong>
         
-          <ol class="toc-nav"><li class="toc-nav-item toc-nav-level-2"><a class="toc-nav-link" href="#1-典型适用场景"><span class="toc-nav-number">1.</span> <span class="toc-nav-text">1. 典型适用场景</span></a></li><li class="toc-nav-item toc-nav-level-2"><a class="toc-nav-link" href="#2-两种使用模式"><span class="toc-nav-number">2.</span> <span class="toc-nav-text">2. 两种使用模式</span></a><ol class="toc-nav-child"><li class="toc-nav-item toc-nav-level-3"><a class="toc-nav-link" href="#21-docker-in-docker"><span class="toc-nav-number">2.1.</span> <span class="toc-nav-text">2.1 Docker in Docker</span></a></li><li class="toc-nav-item toc-nav-level-3"><a class="toc-nav-link" href="#22-docker-outside-of-docker"><span class="toc-nav-number">2.2.</span> <span class="toc-nav-text">2.2 Docker outside of Docker</span></a></li></ol></li><li class="toc-nav-item toc-nav-level-2"><a class="toc-nav-link" href="#3-docker-环境下的演示"><span class="toc-nav-number">3.</span> <span class="toc-nav-text">3. Docker 环境下的演示</span></a><ol class="toc-nav-child"><li class="toc-nav-item toc-nav-level-3"><a class="toc-nav-link" href="#31-dind"><span class="toc-nav-number">3.1.</span> <span class="toc-nav-text">3.1 DinD</span></a></li><li class="toc-nav-item toc-nav-level-3"><a class="toc-nav-link" href="#32-dood"><span class="toc-nav-number">3.2.</span> <span class="toc-nav-text">3.2 DooD</span></a></li></ol></li><li class="toc-nav-item toc-nav-level-2"><a class="toc-nav-link" href="#4-kubernetes-环境下的演示"><span class="toc-nav-number">4.</span> <span class="toc-nav-text">4. Kubernetes 环境下的演示</span></a><ol class="toc-nav-child"><li class="toc-nav-item toc-nav-level-3"><a class="toc-nav-link" href="#41-dind"><span class="toc-nav-number">4.1.</span> <span class="toc-nav-text">4.1 DinD</span></a></li><li class="toc-nav-item toc-nav-level-3"><a class="toc-nav-link" href="#42-dood"><span class="toc-nav-number">4.2.</span> <span class="toc-nav-text">4.2 DooD</span></a></li></ol></li><li class="toc-nav-item toc-nav-level-2"><a class="toc-nav-link" href="#5-参考"><span class="toc-nav-number">5.</span> <span class="toc-nav-text">5. 参考</span></a></li></ol>
+          <ol class="toc-nav"><li class="toc-nav-item toc-nav-level-2"><a class="toc-nav-link" href="#vip-container"><span class="toc-nav-number">1.</span> <span class="toc-nav-text">1. 典型适用场景</span></a></li><li class="toc-nav-item toc-nav-level-2"><a class="toc-nav-link" href="#vip-container"><span class="toc-nav-number">2.</span> <span class="toc-nav-text">2. 两种使用模式</span></a><ol class="toc-nav-child"><li class="toc-nav-item toc-nav-level-3"><a class="toc-nav-link" href="#vip-container"><span class="toc-nav-number">2.1.</span> <span class="toc-nav-text">2.1 Docker in Docker</span></a></li><li class="toc-nav-item toc-nav-level-3"><a class="toc-nav-link" href="#vip-container"><span class="toc-nav-number">2.2.</span> <span class="toc-nav-text">2.2 Docker outside of Docker</span></a></li></ol></li><li class="toc-nav-item toc-nav-level-2"><a class="toc-nav-link" href="#vip-container"><span class="toc-nav-number">3.</span> <span class="toc-nav-text">3. Docker 环境下的演示</span></a><ol class="toc-nav-child"><li class="toc-nav-item toc-nav-level-3"><a class="toc-nav-link" href="#vip-container"><span class="toc-nav-number">3.1.</span> <span class="toc-nav-text">3.1 DinD</span></a></li><li class="toc-nav-item toc-nav-level-3"><a class="toc-nav-link" href="#vip-container"><span class="toc-nav-number">3.2.</span> <span class="toc-nav-text">3.2 DooD</span></a></li></ol></li><li class="toc-nav-item toc-nav-level-2"><a class="toc-nav-link" href="#vip-container"><span class="toc-nav-number">4.</span> <span class="toc-nav-text">4. Kubernetes 环境下的演示</span></a><ol class="toc-nav-child"><li class="toc-nav-item toc-nav-level-3"><a class="toc-nav-link" href="#vip-container"><span class="toc-nav-number">4.1.</span> <span class="toc-nav-text">4.1 DinD</span></a></li><li class="toc-nav-item toc-nav-level-3"><a class="toc-nav-link" href="#vip-container"><span class="toc-nav-number">4.2.</span> <span class="toc-nav-text">4.2 DooD</span></a></li></ol></li><li class="toc-nav-item toc-nav-level-2"><a class="toc-nav-link" href="#vip-container"><span class="toc-nav-number">5.</span> <span class="toc-nav-text">5. 参考</span></a></li></ol>
         
         </div>
       </aside>
@@ -441,9 +441,9 @@
                        
                           <a class="tag" href="/tags/#技巧" title="技巧">技巧</a>
                         
-                          <a class="tag" href="/tags/#Linux" title="Linux">Linux</a>
-                        
                           <a class="tag" href="/tags/#Docker" title="Docker">Docker</a>
+                        
+                          <a class="tag" href="/tags/#Linux" title="Linux">Linux</a>
                         
                     </div>
                 </section>

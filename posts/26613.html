@@ -233,12 +233,12 @@
                 <div id="vip-container"><p>众所周知，在 <code>Linux</code> 系统下，只允许 <code>Root</code> 用户运行的程序才可以使用特权端口 ( <code>1024</code> 以下的端口 )。如果在普通用户下使用特权端口将会报错。</p>
 <p>在一些特定的环境下，我们可能考虑到程序运行在 <code>Root</code> 帐户下，可能会给 <code>Linux</code> 系统带来安全风险。希望能让普通用户启动的程序运行在特权端口上，比如：Web 服务器。</p>
 <p>那如何能够让普通用户启动的程序运行在特权端口呢？本文将介绍一些方法，让你能够解决这个问题。</p>
-<h2 id="通过设置-cap_net_bind_service-实现">通过设置 CAP_NET_BIND_SERVICE 实现</h2>
+<h2><span id="通过设置-cap_net_bind_service-实现">通过设置 CAP_NET_BIND_SERVICE 实现</span></h2>
 <p><code>Linux</code> 内核从 2.6.24 版本开始就有了能力的概念，这使得普通用户也能够做只有超级用户才能完成的工作。</p>
 <p>使用 <code>setcap</code> 命令让指定程序拥有绑定端口的能力，这样即使程序运行在普通用户下，也能够绑定到 1024 以下的特权端口上。</p>
 <figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"># 给指定程序设置 CAP_NET_BIND_SERVICE 能力</span><br><span class="line">$ setcap cap_net_bind_service&#x3D;+eip &#x2F;path&#x2F;to&#x2F;application</span><br></pre></td></tr></table></figure>
 <p>下面我们来看一个实例，以 <code>Nginx</code> 为例：</p>
-<p><img src="https://www.hi-linux.com/img/linux/setcap.jpg" alt=""></p>
+<p><img src="https://www.hi-linux.com/img/linux/setcap.jpg" alt></p>
 <p>如果你的程序不再需要使用这个能力，你可以使用以下命令来清除。</p>
 <figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">$ setcap -r &#x2F;path&#x2F;to&#x2F;application</span><br></pre></td></tr></table></figure>
 <blockquote>
@@ -252,7 +252,7 @@
 </ol>
 </blockquote>
 <a id="more"></a>
-<h2 id="通过端口转发实现">通过端口转发实现</h2>
+<h2><span id="通过端口转发实现">通过端口转发实现</span></h2>
 <p>如果要运行的程序有权限监听其他端口，那么这个方法是可以使用的。首先让程序运行在普通用户下，并绑定高于 1024 的端口。在确保能正常工作的时候，我们将通过端口转发将低端口的请求转到应用所在的高端口，从而实现普通用户启动的程序绑定到低端口。要使用此方法可以使用下面的方式。</p>
 <ol>
 <li>配置内核参数以启用转发功能</li>
@@ -268,7 +268,7 @@
 <p>这里我们使用 <code>Iptables</code> 来配置的转发规则，以实现端口转发到程序所在的端口。</p>
 <figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"># 将 80 端口转发到 8088</span><br><span class="line">$ iptables -F -t nat</span><br><span class="line">$ iptables -t nat -A PREROUTING -p tcp --dport 80 -j DNAT --to:8088</span><br></pre></td></tr></table></figure>
 <p>此种方法能够比较好的达到我们的目的，我们的程序可以通过普通用户来运行，并能够对外提供低端口号的服务。</p>
-<h2 id="通过-authbind-实现">通过 authbind 实现</h2>
+<h2><span id="通过-authbind-实现">通过 authbind 实现</span></h2>
 <p><code>authbind</code> 是一个支持普通用户就能绑定系统特权端口的程序，你只需要使用 <code>authbind</code> 程序来调用需要使用特权端口的程序就可以了。</p>
 <ol>
 <li>安装 authbind</li>
@@ -294,11 +294,11 @@
 <p>在你要启动的命令前加上 <code>authbind --deep</code> 命令即可。例如：要用 test 这个普通用户启动 <code>Nginx</code> 并绑定在 80 端口，只需执行以下命令即可：</p>
 <figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">$ authbind --deep &quot;&#x2F;usr&#x2F;bin&#x2F;nginx&quot; -c &quot;&#x2F;etc&#x2F;nginx&#x2F;nginx.conf&quot;</span><br></pre></td></tr></table></figure>
 <p>我们也可以直接在 IP 地址上直接绑定端口，只需在 <code>byaddr</code> 目录下建立 <code>ip:port</code> 文件就可以了。</p>
-<h2 id="通过-setuid-实现">通过 SetUID 实现</h2>
+<h2><span id="通过-setuid-实现">通过 SetUID 实现</span></h2>
 <p><code>SetUID</code> 这一特性可以让只有普通用户权限的应用程序用 Root 权限来运行，我们可以看到系统下 <code>/usr/bin/passwd</code> 这个文件，就使用了 <code>SetUID</code>。这样就使得系统的每个普通用户都能用 <code>passwd</code> 来修改密码，因为修改密码需要更改 <code>/etc/passwd</code> 文件，而默认这个文件只有 Root 用户才有权限访问。</p>
 <figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"># 将程序的所有者更改为 root</span><br><span class="line">$ chown root.root &#x2F;path&#x2F;to&#x2F;application</span><br><span class="line"></span><br><span class="line"># 给程序设置 SetUID</span><br><span class="line">$ chmod u+s &#x2F;path&#x2F;to&#x2F;application</span><br></pre></td></tr></table></figure>
 <p>既然要使用普通用户运行程序，目的就是要降低程序本身给系统带来的安全风险。因此，本方法使用的时候需要特别谨慎，特别是当要执行的程序本身存在安全风险。</p>
-<h2 id="参考文档">参考文档</h2>
+<h2><span id="参考文档">参考文档</span></h2>
 <ol>
 <li><a href="https://www.cnblogs.com/chenjunjie12321/p/9226279.html" target="_blank" rel="noopener">https://www.cnblogs.com/chenjunjie12321/p/9226279.html</a></li>
 <li><a href="https://blog.csdn.net/Becivells/article/details/52842019" target="_blank" rel="noopener">https://blog.csdn.net/Becivells/article/details/52842019</a></li>
@@ -381,7 +381,7 @@
         <div id="toc" class="toc-article">
         <strong class="toc-title">Contents</strong>
         
-          <ol class="toc-nav"><li class="toc-nav-item toc-nav-level-2"><a class="toc-nav-link" href="#通过设置-cap_net_bind_service-实现"><span class="toc-nav-number">1.</span> <span class="toc-nav-text">通过设置 CAP_NET_BIND_SERVICE 实现</span></a></li><li class="toc-nav-item toc-nav-level-2"><a class="toc-nav-link" href="#通过端口转发实现"><span class="toc-nav-number">2.</span> <span class="toc-nav-text">通过端口转发实现</span></a></li><li class="toc-nav-item toc-nav-level-2"><a class="toc-nav-link" href="#通过-authbind-实现"><span class="toc-nav-number">3.</span> <span class="toc-nav-text">通过 authbind 实现</span></a></li><li class="toc-nav-item toc-nav-level-2"><a class="toc-nav-link" href="#通过-setuid-实现"><span class="toc-nav-number">4.</span> <span class="toc-nav-text">通过 SetUID 实现</span></a></li><li class="toc-nav-item toc-nav-level-2"><a class="toc-nav-link" href="#参考文档"><span class="toc-nav-number">5.</span> <span class="toc-nav-text">参考文档</span></a></li></ol>
+          <ol class="toc-nav"><li class="toc-nav-item toc-nav-level-2"><a class="toc-nav-link" href="#vip-container"><span class="toc-nav-number">1.</span> <span class="toc-nav-text">通过设置 CAP_NET_BIND_SERVICE 实现</span></a></li><li class="toc-nav-item toc-nav-level-2"><a class="toc-nav-link" href="#vip-container"><span class="toc-nav-number">2.</span> <span class="toc-nav-text">通过端口转发实现</span></a></li><li class="toc-nav-item toc-nav-level-2"><a class="toc-nav-link" href="#vip-container"><span class="toc-nav-number">3.</span> <span class="toc-nav-text">通过 authbind 实现</span></a></li><li class="toc-nav-item toc-nav-level-2"><a class="toc-nav-link" href="#vip-container"><span class="toc-nav-number">4.</span> <span class="toc-nav-text">通过 SetUID 实现</span></a></li><li class="toc-nav-item toc-nav-level-2"><a class="toc-nav-link" href="#vip-container"><span class="toc-nav-number">5.</span> <span class="toc-nav-text">参考文档</span></a></li></ol>
         
         </div>
       </aside>

@@ -236,7 +236,7 @@
 <p>在公司内部，我们的抗 DDoS 团队有时会被人们称作 “数据包丢弃者”。当其他团队为流经我们网络的流量做了很多令人兴奋的聪明玩意时，我们也很享受探索如何丢弃这些流量的新方法。</p>
 <p>能以最快速度丢掉网络包，对于抵抗 DDoS 攻击来说，是非常重要的。丢掉发送到我们服务器的数据包，和听上去一样简单，可以在很多层面上进行。每个技术都有他的优点和缺陷，在这篇 Blog 里，我们会一起看一下我们到目前为止用到的技术。</p>
 <a id="more"></a>
-<h2 id="试验台">试验台</h2>
+<h2><span id="试验台">试验台</span></h2>
 <p>为了说明方法的相对性能，我们将通过一些基准测试，这些测试是设计好的，可以得到一系列的数据。我们使用了一台 Intel 的服务器，这台机器有一块 10Gbps 网卡，机器的其他配置信息其实并不是很重要，因为这些测试的目标是为了显示出操作系统而不是硬件层面的限制。</p>
 <p>我们的测试设置如下：</p>
 <ul>
@@ -260,8 +260,8 @@
 <p>最后，我们要关闭 Intel Turbo Boost 特性：</p>
 <figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">echo 1 | sudo tee &#x2F;sys&#x2F;devices&#x2F;system&#x2F;cpu&#x2F;intel_pstate&#x2F;no_turbo</span><br></pre></td></tr></table></figure>
 <p>虽然 Turbo Boost 很好，而且可以提升至少 20% 的吞吐量，但是也会极大的影响测试结果的标准差，在开启状态下偏大达到了 ±1.5%，而关闭之后偏差下降到了 0.25%。</p>
-<p><img src="https://www.hi-linux.com/img/linux/network-1000-1.jpg" alt=""></p>
-<h2 id="第一阶段-在应用程序中丢弃包">第一阶段 在应用程序中丢弃包</h2>
+<p><img src="https://www.hi-linux.com/img/linux/network-1000-1.jpg" alt></p>
+<h2><span id="第一阶段-在应用程序中丢弃包">第一阶段 在应用程序中丢弃包</span></h2>
 <p>让我们从将数据包传递到应用程序并在用户空间代码中忽略它们的想法开始。 对于测试设置，首先需要确保 iptables 不会影响性能：</p>
 <figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">iptables -I PREROUTING -t mangle -d 198.18.0.12 -p udp --dport 1234 -j ACCEPT</span><br><span class="line">iptables -I PREROUTING -t raw -d 198.18.0.12 -p udp --dport 1234 -j ACCEPT</span><br><span class="line">iptables -I INPUT -t filter -d 198.18.0.12 -p udp --dport 1234 -j ACCEPT</span><br></pre></td></tr></table></figure>
 <p>应用程序的代码就是一个简单的循环，获取数据，然后直接丢弃：</p>
@@ -274,7 +274,7 @@
 <p>可以看到用户代码不是瓶颈，在 CPU #1 上有 27% sys + 2% userspace 的占用，但是 CPU #2 被网络软中断( SOFTIRQ )占用了 100%。</p>
 <p>需要说明的是，使用 recvmmsg(2) 很重要，在 Spectre 漏洞被发现的现在，系统调用的成本变得更加高了，我们使用了 4.14 版本的内核，并开启了 KPTI 和 Retpoline：</p>
 <figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line">$ tail -n +1 &#x2F;sys&#x2F;devices&#x2F;system&#x2F;cpu&#x2F;vulnerabilities&#x2F;*</span><br><span class="line">&#x3D;&#x3D;&gt; &#x2F;sys&#x2F;devices&#x2F;system&#x2F;cpu&#x2F;vulnerabilities&#x2F;meltdown &lt;&#x3D;&#x3D;</span><br><span class="line">Mitigation: PTI</span><br><span class="line">&#x3D;&#x3D;&gt; &#x2F;sys&#x2F;devices&#x2F;system&#x2F;cpu&#x2F;vulnerabilities&#x2F;spectre_v1 &lt;&#x3D;&#x3D;</span><br><span class="line">Mitigation: __user pointer sanitization</span><br><span class="line">&#x3D;&#x3D;&gt; &#x2F;sys&#x2F;devices&#x2F;system&#x2F;cpu&#x2F;vulnerabilities&#x2F;spectre_v2 &lt;&#x3D;&#x3D;</span><br><span class="line">Mitigation: Full generic retpoline, IBPB, IBRS_FW</span><br></pre></td></tr></table></figure>
-<h2 id="第二阶段-干掉-conntrack">第二阶段 干掉 conntrack</h2>
+<h2><span id="第二阶段-干掉-conntrack">第二阶段 干掉 conntrack</span></h2>
 <p>我们特别的设计了这个测试，用随机的原 IP 和端口，用来给 conntrack 层施加压力。这个可以通过查看 conntrack 数量的方式确认，在测试中，conntrack 数量达到最大：</p>
 <figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">$ conntrack -C</span><br><span class="line">2095202</span><br><span class="line">$ sysctl net.netfilter.nf_conntrack_max</span><br><span class="line">net.netfilter.nf_conntrack_max &#x3D; 2097152</span><br></pre></td></tr></table></figure>
 <p>也能从 dmesg 中看到 conntrack 日志：</p>
@@ -287,25 +287,25 @@
 <blockquote>
 <p>PS：通过 <code>SO_BUSY_POLL</code> 选项，我们可以将性能提升到 470k pps，但是这个是另一个话题了。</p>
 </blockquote>
-<h2 id="第三阶段-利用-bpf-进行丢包操作">第三阶段 利用 BPF 进行丢包操作</h2>
+<h2><span id="第三阶段-利用-bpf-进行丢包操作">第三阶段 利用 BPF 进行丢包操作</span></h2>
 <p>更进一步，为什么我们要在用户态进行丢包呢？虽然这个技术不常见，但是我们可以使用 setsockopt(SO_ATTACH_FILTER) 添加一个 cBPF 过滤器到一个 socket 上，让程序在内核态进行丢包操作。</p>
 <p>这里是代码，运行一下：</p>
 <figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">$ .&#x2F;bpf-drop</span><br><span class="line">packets&#x3D;0 bytes&#x3D;0</span><br></pre></td></tr></table></figure>
 <p>使用 BPF 进行丢弃操作（ cBPF 和 eBPF 有相似的性能），我们大致达到了 512kpps 的性能。所有的包都在 BPF 过滤器中丢弃了，由于依然需要使用到软中断，所以只是省掉了唤醒用户态程序的 CPU 消耗。</p>
-<h2 id="第四阶段-使用-iptables-在路由阶段结束后丢弃">第四阶段 使用 iptables 在路由阶段结束后丢弃</h2>
+<h2><span id="第四阶段-使用-iptables-在路由阶段结束后丢弃">第四阶段 使用 iptables 在路由阶段结束后丢弃</span></h2>
 <p>在下个阶段，我们可以简单的设置 iptables INPUT 规则来丢弃包：</p>
 <figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">iptables -I INPUT -d 198.18.0.12 -p udp --dport 1234 -j DROP</span><br></pre></td></tr></table></figure>
 <p>需要注意的是我们之前已经通过 <code>-j NOTRACK</code> 关闭了 conntrack，这两条规则实现了 608kbps 的性能。</p>
 <p>看下 iptables 的统计信息：</p>
 <figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">$ mmwatch &#39;iptables -L -v -n -x | head&#39;</span><br><span class="line">Chain INPUT (policy DROP 0 packets, 0 bytes)</span><br><span class="line">    pkts      bytes target     prot opt in     out     source               destination</span><br><span class="line">605.9k&#x2F;s    26.7m&#x2F;s DROP       udp  --  *      *       0.0.0.0&#x2F;0            198.18.0.12          udp dpt:1234</span><br></pre></td></tr></table></figure>
 <p>600kpps 不差了，但是我们能做到更好！</p>
-<h2 id="第五阶段-使用-iptables-在路由之前丢弃">第五阶段 使用 iptables 在路由之前丢弃</h2>
+<h2><span id="第五阶段-使用-iptables-在路由之前丢弃">第五阶段 使用 iptables 在路由之前丢弃</span></h2>
 <p>有一个更快的方法，就是在包路由之前丢弃，可以通过下面的命令：</p>
 <figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">iptables -I PREROUTING -t raw -d 198.18.0.12 -p udp --dport 1234 -j DROP</span><br></pre></td></tr></table></figure>
 <p>这个方法的性能高达 1.688 pps。</p>
 <p>这是非常明显的性能提升，我并不是特别明白多了一次路由差距这么大，要么是我们的路由层非常的复杂，或者在服务器的配置上有 bug。</p>
 <p>在任何情况下，通过 iptables 的 raw 表进行操作绝对是最快的方法。</p>
-<h2 id="第六阶段使用-nftables-在-conntrack-之前丢弃">第六阶段，使用 nftables 在 CONNTRACK 之前丢弃</h2>
+<h2><span id="第六阶段使用-nftables-在-conntrack-之前丢弃">第六阶段，使用 nftables 在 CONNTRACK 之前丢弃</span></h2>
 <p>iptables 在现在已经有点过时了，更新的玩意是 nftables，关于为什么 nftables 技术更优越，请参阅此视频。 由于许多原因，Nftables 承诺比老旧的 iptables 更快，其中有一个说法是 retpolines（没有间接跳跃的猜测）严重影响了 iptables 性能。</p>
 <p>由于这篇文章不是关于比较nftables和iptables的速度，让我们尝试一下我能想到的最快的方法：</p>
 <figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">nft add table netdev filter</span><br><span class="line">nft -- add chain netdev filter input &#123; type filter hook ingress device vlan100 priority -500 \; policy accept \; &#125;</span><br><span class="line">nft add rule netdev filter input ip daddr 198.18.0.0&#x2F;24 udp dport 1234 counter drop</span><br><span class="line">nft add rule netdev filter input ip6 daddr fd00::&#x2F;64 udp dport 1234 counter drop</span><br></pre></td></tr></table></figure>
@@ -313,14 +313,14 @@
 <figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line">$ mmwatch &#39;nft --handle list chain netdev filter input&#39;</span><br><span class="line">table netdev filter &#123;</span><br><span class="line">    chain input &#123;</span><br><span class="line">        type filter hook ingress device vlan100 priority -500; policy accept;</span><br><span class="line">        ip daddr 198.18.0.0&#x2F;24 udp dport 1234 counter packets    1.6m&#x2F;s bytes    69.6m&#x2F;s drop # handle 2</span><br><span class="line">        ip6 daddr fd00::&#x2F;64 udp dport 1234 counter packets 0 bytes 0 drop # handle 3</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
 <p>Nftables “ingress” Hook 性能卡在了 1.53 mpps。 这比 PREROUTING 层中的 iptables 稍慢。 这令人费解 - 理论上 ingress 在 PREROUTING 之前发生，所以应该更快。</p>
 <p>在我们的测试中 nftables 比 iptables 略慢，但不是很多。 Nftables 仍然更好。</p>
-<h2 id="第七阶段-利用-tc-的-ingress-策略丢包">第七阶段 利用 tc 的 ingress 策略丢包</h2>
+<h2><span id="第七阶段-利用-tc-的-ingress-策略丢包">第七阶段 利用 tc 的 ingress 策略丢包</span></h2>
 <p>有个比较令人震惊的事实是 tc (traffic control) 的 ingress hook 发生在 PREROUTING 之前。tc 可以并且确实能做到根据一定的标准来选择并丢弃数据包，但是做法确实比较 hacky，所以建议利用这个脚本进行设置，我们需要的是一个稍微复杂点的匹配，参考下面的命令：</p>
 <figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">tc qdisc add dev vlan100 ingress</span><br><span class="line">tc filter add dev vlan100 parent ffff: prio 4 protocol ip u32 match ip protocol 17 0xff match ip dport 1234 0xffff match ip dst 198.18.0.0&#x2F;24 flowid 1:1 action drop</span><br><span class="line">tc filter add dev vlan100 parent ffff: protocol ipv6 u32 match ip6 dport 1234 0xffff match ip6 dst fd00::&#x2F;64 flowid 1:1 action drop</span><br></pre></td></tr></table></figure>
 <p>可以验证：</p>
 <figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line">$ mmwatch &#39;tc -s filter  show dev vlan100  ingress&#39;</span><br><span class="line">filter parent ffff: protocol ip pref 4 u32 </span><br><span class="line">filter parent ffff: protocol ip pref 4 u32 fh 800: ht divisor 1 </span><br><span class="line">filter parent ffff: protocol ip pref 4 u32 fh 800::800 order 2048 key ht 800 bkt 0 flowid 1:1  (rule hit   1.8m&#x2F;s success   1.8m&#x2F;s)</span><br><span class="line">  match 00110000&#x2F;00ff0000 at 8 (success   1.8m&#x2F;s ) </span><br><span class="line">  match 000004d2&#x2F;0000ffff at 20 (success   1.8m&#x2F;s ) </span><br><span class="line">  match c612000c&#x2F;ffffffff at 16 (success   1.8m&#x2F;s ) </span><br><span class="line">        action order 1: gact action drop</span><br><span class="line">         random type none pass val 0</span><br><span class="line">         index 1 ref 1 bind 1 installed 1.0&#x2F;s sec</span><br><span class="line">        Action statistics:</span><br><span class="line">        Sent    79.7m&#x2F;s bytes   1.8m&#x2F;s pkt (dropped   1.8m&#x2F;s, overlimits 0 requeues 0) </span><br><span class="line">        backlog 0b 0p requeues 0</span><br></pre></td></tr></table></figure>
 <p>通过 tc 的 ingress hook 的 u32 匹配，可以让我们实现单核 1.8mpps 的丢包能力，这个很棒！</p>
 <p>但是，我们可以更快一点…</p>
-<h2 id="第八阶段-xdp_drop">第八阶段 XDP_DROP</h2>
+<h2><span id="第八阶段-xdp_drop">第八阶段 XDP_DROP</span></h2>
 <p>最后，终极武器是 XDP - eXpress Data Path。通过 XDP，我们可以在网络驱动层运行 eBPF 代码。最重要的是，这个阶段发生在分配 skbuff 内存之前，可以获得超高的速度。</p>
 <p>通常 XDP 项目包含两部分：</p>
 <ul>
@@ -341,19 +341,19 @@
 <p>然后通过 <code>ethtool -S</code> 查看网卡的统计信息：</p>
 <figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">$ mmwatch &#39;ethtool -S ext0|egrep &quot;rx&quot;|egrep -v &quot;: 0&quot;|egrep -v &quot;cache|csum&quot;&#39;</span><br><span class="line">     rx_out_of_buffer:     4.4m&#x2F;s</span><br><span class="line">     rx_xdp_drop:         10.1m&#x2F;s</span><br><span class="line">     rx2_xdp_drop:        10.1m&#x2F;s</span><br></pre></td></tr></table></figure>
 <p>利用 XDP ，我们实现了在单核上，每秒钟丢弃 1000 万个包！</p>
-<p><img src="https://www.hi-linux.com/img/linux/network-1000-2.jpg" alt=""></p>
-<h2 id="总结">总结</h2>
+<p><img src="https://www.hi-linux.com/img/linux/network-1000-2.jpg" alt></p>
+<h2><span id="总结">总结</span></h2>
 <p>我们在 IPv4 和 IPv6 上重复了实验，并画了这张图：</p>
-<p><img src="https://www.hi-linux.com/img/linux/network-1000-3.jpg" alt=""></p>
+<p><img src="https://www.hi-linux.com/img/linux/network-1000-3.jpg" alt></p>
 <p>总的来说在我们现在的设置下，IPv6 比 IPv4 要稍微慢一些，需要注意的是 IPv6 的包也稍微大了一些，所以这性能上的区别还是可以理解的。</p>
 <p>Linux 提供了很多过滤数据包的 Hook，每个都有不同的性能和易用性。</p>
 <p>对于应对 DDoS 的场景，在用户态的应用程序里处理这些数据包是合理的，通过调整应用程序，也可以获得不错的性能。</p>
 <p>而对于有随机源 IP 和端口的攻击，关闭 conntrack 的特性来获得性能提升也是值得的，但是 conntrack 在某些攻击情况下，还是很有用的。</p>
 <p>针对其他情况下，利用 Linux 的防火墙来作为抗 DDoS 的一部分还是很有意义的，在这种情况下要尽量利用 <code>-t raw PREROUTING</code> 这一层，因为这一层比 <code>filter</code> 表要快很多。</p>
 <p>对于要求更高的工作负载，我们还有 XDP，而且他很强大，下面是和上面相同的图表，但是加上了 XDP：</p>
-<p><img src="https://www.hi-linux.com/img/linux/network-1000-4.jpg" alt=""></p>
+<p><img src="https://www.hi-linux.com/img/linux/network-1000-4.jpg" alt></p>
 <p>如果需要重现这些数据，可以看看项目代码的 README。</p>
-<h2 id="参考文档">参考文档</h2>
+<h2><span id="参考文档">参考文档</span></h2>
 <ol>
 <li>
 <p><a href="https://blog.cloudflare.com/how-to-drop-10-million-packets/" target="_blank" rel="noopener">https://blog.cloudflare.com/how-to-drop-10-million-packets/</a></p>
@@ -460,7 +460,7 @@
         <div id="toc" class="toc-article">
         <strong class="toc-title">Contents</strong>
         
-          <ol class="toc-nav"><li class="toc-nav-item toc-nav-level-2"><a class="toc-nav-link" href="#试验台"><span class="toc-nav-number">1.</span> <span class="toc-nav-text">试验台</span></a></li><li class="toc-nav-item toc-nav-level-2"><a class="toc-nav-link" href="#第一阶段-在应用程序中丢弃包"><span class="toc-nav-number">2.</span> <span class="toc-nav-text">第一阶段 在应用程序中丢弃包</span></a></li><li class="toc-nav-item toc-nav-level-2"><a class="toc-nav-link" href="#第二阶段-干掉-conntrack"><span class="toc-nav-number">3.</span> <span class="toc-nav-text">第二阶段 干掉 conntrack</span></a></li><li class="toc-nav-item toc-nav-level-2"><a class="toc-nav-link" href="#第三阶段-利用-bpf-进行丢包操作"><span class="toc-nav-number">4.</span> <span class="toc-nav-text">第三阶段 利用 BPF 进行丢包操作</span></a></li><li class="toc-nav-item toc-nav-level-2"><a class="toc-nav-link" href="#第四阶段-使用-iptables-在路由阶段结束后丢弃"><span class="toc-nav-number">5.</span> <span class="toc-nav-text">第四阶段 使用 iptables 在路由阶段结束后丢弃</span></a></li><li class="toc-nav-item toc-nav-level-2"><a class="toc-nav-link" href="#第五阶段-使用-iptables-在路由之前丢弃"><span class="toc-nav-number">6.</span> <span class="toc-nav-text">第五阶段 使用 iptables 在路由之前丢弃</span></a></li><li class="toc-nav-item toc-nav-level-2"><a class="toc-nav-link" href="#第六阶段使用-nftables-在-conntrack-之前丢弃"><span class="toc-nav-number">7.</span> <span class="toc-nav-text">第六阶段，使用 nftables 在 CONNTRACK 之前丢弃</span></a></li><li class="toc-nav-item toc-nav-level-2"><a class="toc-nav-link" href="#第七阶段-利用-tc-的-ingress-策略丢包"><span class="toc-nav-number">8.</span> <span class="toc-nav-text">第七阶段 利用 tc 的 ingress 策略丢包</span></a></li><li class="toc-nav-item toc-nav-level-2"><a class="toc-nav-link" href="#第八阶段-xdp_drop"><span class="toc-nav-number">9.</span> <span class="toc-nav-text">第八阶段 XDP_DROP</span></a></li><li class="toc-nav-item toc-nav-level-2"><a class="toc-nav-link" href="#总结"><span class="toc-nav-number">10.</span> <span class="toc-nav-text">总结</span></a></li><li class="toc-nav-item toc-nav-level-2"><a class="toc-nav-link" href="#参考文档"><span class="toc-nav-number">11.</span> <span class="toc-nav-text">参考文档</span></a></li></ol>
+          <ol class="toc-nav"><li class="toc-nav-item toc-nav-level-2"><a class="toc-nav-link" href="#vip-container"><span class="toc-nav-number">1.</span> <span class="toc-nav-text">试验台</span></a></li><li class="toc-nav-item toc-nav-level-2"><a class="toc-nav-link" href="#vip-container"><span class="toc-nav-number">2.</span> <span class="toc-nav-text">第一阶段 在应用程序中丢弃包</span></a></li><li class="toc-nav-item toc-nav-level-2"><a class="toc-nav-link" href="#vip-container"><span class="toc-nav-number">3.</span> <span class="toc-nav-text">第二阶段 干掉 conntrack</span></a></li><li class="toc-nav-item toc-nav-level-2"><a class="toc-nav-link" href="#vip-container"><span class="toc-nav-number">4.</span> <span class="toc-nav-text">第三阶段 利用 BPF 进行丢包操作</span></a></li><li class="toc-nav-item toc-nav-level-2"><a class="toc-nav-link" href="#vip-container"><span class="toc-nav-number">5.</span> <span class="toc-nav-text">第四阶段 使用 iptables 在路由阶段结束后丢弃</span></a></li><li class="toc-nav-item toc-nav-level-2"><a class="toc-nav-link" href="#vip-container"><span class="toc-nav-number">6.</span> <span class="toc-nav-text">第五阶段 使用 iptables 在路由之前丢弃</span></a></li><li class="toc-nav-item toc-nav-level-2"><a class="toc-nav-link" href="#vip-container"><span class="toc-nav-number">7.</span> <span class="toc-nav-text">第六阶段，使用 nftables 在 CONNTRACK 之前丢弃</span></a></li><li class="toc-nav-item toc-nav-level-2"><a class="toc-nav-link" href="#vip-container"><span class="toc-nav-number">8.</span> <span class="toc-nav-text">第七阶段 利用 tc 的 ingress 策略丢包</span></a></li><li class="toc-nav-item toc-nav-level-2"><a class="toc-nav-link" href="#vip-container"><span class="toc-nav-number">9.</span> <span class="toc-nav-text">第八阶段 XDP_DROP</span></a></li><li class="toc-nav-item toc-nav-level-2"><a class="toc-nav-link" href="#vip-container"><span class="toc-nav-number">10.</span> <span class="toc-nav-text">总结</span></a></li><li class="toc-nav-item toc-nav-level-2"><a class="toc-nav-link" href="#vip-container"><span class="toc-nav-number">11.</span> <span class="toc-nav-text">参考文档</span></a></li></ol>
         
         </div>
       </aside>

@@ -231,7 +231,7 @@
                 post-container">
 
                 <div id="vip-container"><p>一般情况下，Kubernetes 的 Cluster Network 是属于私有网络，只能在 Cluster Network 内部才能访问部署的应用。那么如何才能将 Kubernetes 集群中的应用暴露到外部网络，为外部用户提供服务呢？本文就来讲一讲从外部网络访问 Kubernetes Cluster 中 Pod 和 Serivce 的几种常用的实现方式。</p>
-<h3 id="pod-和-service-的关系">Pod 和 Service 的关系</h3>
+<h3><span id="pod-和-service-的关系">Pod 和 Service 的关系</span></h3>
 <p>我们首先来了解一下 Kubernetes 中的 Pod 和 Service 的概念以及两者间的关系。</p>
 <p>Pod (容器组)，英文中 Pod 是豆荚的意思。从名字的含义可以看出，Pod 是一组有依赖关系的容器。Pod 是 Kubernetes 集群中最基本的资源对象，每个 Pod 由一个或多个业务容器和一个根容器 (Pause 容器) 组成。</p>
 <p>Kubernetes 为每个 Pod 分配了唯一的 IP（即：Pod IP），Pod 里的多个容器共享这个 IP。Pod 内的容器除了 IP，还共享相同的网络命名空间、端口、存储卷等，也就是说这些容器之间能通过 Localhost 来通信。Pod 包含的容器都会运行在同一个节点上，也可以同时启动多个相同的 Pod 用于 Failover 或者 Load balance。</p>
@@ -243,7 +243,7 @@
 <li>UserSpace</li>
 </ul>
 <p>UserSpace 是让 Kube-Proxy 在用户空间监听一个端口，所有的 Service 都转发到这个端口，然后 Kube-Proxy 在内部应用层对其进行转发。</p>
-<p><img src="https://www.hi-linux.com/img/linux/k8s-svc1.png" alt=""></p>
+<p><img src="https://www.hi-linux.com/img/linux/k8s-svc1.png" alt></p>
 <p>Kube-Proxy 会为每个 Service 随机监听一个端口 (Proxy Port)，并增加一条 IPtables 规则。从客户端到 ClusterIP:Port 的报文都会被重定向到 Proxy Port，Kube-Proxy 收到报文后，通过 Round Robin (轮询) 或者 Session Affinity（会话亲和力，即同一 Client IP 都走同一链路给同一 Pod 服务）分发给对应的 Pod。</p>
 <p>这种方式最大的缺点显然就是 UserSpace 会造成所有报文都走一遍用户态，造成整体性能下降，这种方在 Kubernetes 1.2 以后已经不再使用了。</p>
 <ul>
@@ -251,7 +251,7 @@
 </ul>
 <p>IPtables 方式完全由 IPtables 来实现，这种方式直接使用 IPtables 来做用户态入口，而真正提供服务的是内核的 Netilter。Kube-Proxy 只作为 Controller，这也是目前默认的方式。</p>
 <p>Kube-Proxy 的 IPtables 方式也是支持 Round Robin 和 Session Affinity 特性。</p>
-<p><img src="https://www.hi-linux.com/img/linux/k8s-svc2.png" alt=""></p>
+<p><img src="https://www.hi-linux.com/img/linux/k8s-svc2.png" alt></p>
 <p>Kube-Proxy 监听 Kubernetes Master 增加和删除 Service 以及 Endpoint 的消息。对于每一个 Service，Kube Proxy 创建相应的 IPtables 规则，并将发送到 Service Cluster IP 的流量转发到 Service 后端提供服务的 Pod 的相应端口上。</p>
 <blockquote>
 <p>注：虽然可以通过 Service 的 Cluster IP 和服务端口访问到后端 Pod 提供的服务，但该 Cluster IP 是 Ping 不通的。其原因是 Cluster IP 只是 IPtables 中的规则，并不对应到一个任何网络设备。IPVS 模式的 Cluster IP 是可以 Ping 通的。</p>
@@ -261,7 +261,7 @@
 </ul>
 <p>Kubernetes 从 1.8 开始增加了 IPVS 支持，IPVS 相对 IPtables 效率会更高一些。使用 IPVS 模式需要在运行 Kube-Proxy 的节点上安装 <code>ipvsadm</code>、<code>ipset</code> 工具包和加载 <code>ip_vs</code> 内核模块。</p>
 <p>当 Kube-Proxy 以 IPVS 代理模式启动时，Kube-Proxy 将验证节点上是否安装了 IPVS 模块，如果未安装，则 Kube-Proxy 将回退到 IPtables 代理模式。</p>
-<p><img src="https://www.hi-linux.com/img/linux/k8s-svc3.png" alt=""></p>
+<p><img src="https://www.hi-linux.com/img/linux/k8s-svc3.png" alt></p>
 <p>这种模式，Kube-Proxy 会监视 Kubernetes Service 对象 和 Endpoints，调用 Netlink 接口以相应地创建 IPVS 规则并定期与 Kubernetes Service 对象 和 Endpoints 对象同步 IPVS 规则，以确保 IPVS 状态与期望一致。访问服务时，流量将被重定向到其中一个后端 Pod。</p>
 <p>与 IPtables 类似，IPVS 基于 Netfilter 的 Hook 功能，但使用哈希表作为底层数据结构并在内核空间中工作。这意味着 IPVS 可以更快地重定向流量，并且在同步代理规则时具有更好的性能。此外，IPVS 为负载均衡算法提供了更多选项，例如：rr (轮询调度)、lc (最小连接数)、dh (目标哈希)、sh (源哈希)、sed (最短期望延迟)、nq(不排队调度)等。</p>
 <blockquote>
@@ -276,8 +276,8 @@
 <li>LoadBalancer</li>
 <li>Ingress</li>
 </ul>
-<h3 id="通过-pod-暴露">通过 Pod 暴露</h3>
-<h4 id="hostnetwork-true">hostNetwork: true</h4>
+<h3><span id="通过-pod-暴露">通过 Pod 暴露</span></h3>
+<h4><span id="hostnetwork-true">hostNetwork: true</span></h4>
 <p>这是一种直接定义 Pod 网络的方式。</p>
 <p>如果在 Pod 中使用 <code>hostNetwork:true</code> 配置的话，在这种 Pod 中运行的应用程序可以直接看到启动 Pod 主机的网络接口。在主机的所有网络接口上都可以访问到该应用程序，以下是使用主机网络的 Pod 的示例定义：</p>
 <figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line">apiVersion: v1</span><br><span class="line">kind: Pod</span><br><span class="line">metadata:</span><br><span class="line">  name: nginx-hostnetwork</span><br><span class="line">spec:</span><br><span class="line">  hostNetwork: true</span><br><span class="line">  containers:</span><br><span class="line">    - name: nginx-hostnetwork</span><br><span class="line">      image: nginx:1.7.9</span><br></pre></td></tr></table></figure>
@@ -288,7 +288,7 @@
 <p>将看到 Nginx 默认的欢迎页面，说明可以正常访问。</p>
 <p>注意：每次启动这个 Pod 的时候都可能被调度到不同的节点上，这样所有外部访问 Pod 所在节点主机的 IP 也就是不固定的，而且调度 Pod 的时候还需要考虑是否与宿主机上的端口冲突，因此一般情况下除非您知道需要某个特定应用占用特定宿主机上的特定端口时才使用 <code>hostNetwork: true</code> 的方式。</p>
 <p>这种 Pod 的网络模式有一个用处就是可以将网络插件包装在 Pod 中，然后部署在每个宿主机上，这样该 Pod 就可以控制该宿主机上的所有网络。</p>
-<h4 id="hostport">hostPort</h4>
+<h4><span id="hostport">hostPort</span></h4>
 <p>这也是一种直接定义 Pod 网络的方式。</p>
 <p><code>hostPort</code> 是直接将容器的端口与所调度的节点上的端口路由，这样用户就可以通过宿主机的IP加上 <code>&lt;hostPort&gt;</code> 来访问 Pod 了，如: <code>&lt;hostIP&gt;:&lt;hostPort&gt;</code>。</p>
 <figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line">apiVersion: v1</span><br><span class="line">kind: Pod</span><br><span class="line">metadata:</span><br><span class="line">  name: nginx-hostport</span><br><span class="line">spec:</span><br><span class="line">  containers:</span><br><span class="line">    - name: nginx-hostport</span><br><span class="line">      image: nginx:1.7.9</span><br><span class="line">      ports:</span><br><span class="line">        - containerPort: 80</span><br><span class="line">          hostPort: 8088</span><br></pre></td></tr></table></figure>
@@ -299,10 +299,10 @@
 <p>将看到 Nginx 默认的欢迎页面，说明可以正常访问。</p>
 <p>这种方式和 <code>hostNetwork: true</code> 有同一个缺点，因为 Pod 重新调度的时候该 Pod 被调度到的宿主机可能会变动，这样 <code>&lt;hostIP&gt;</code> 就变化了，用户必须自己维护一个 Pod 与所在宿主机的对应关系。</p>
 <p>这种网络方式可以用来做 <code>Ingress Controller</code>，外部流量都需要通过 Kubenretes 节点宿主机的 80 和 443 端口。</p>
-<h4 id="port-forward">Port Forward</h4>
+<h4><span id="port-forward">Port Forward</span></h4>
 <p>这是一种通过 <code>kubectl port-forward</code> 指令来实现数据转发的方法。<code>kubectl port-forward</code> 命令可以为 Pod 设置端口转发，通过在本机指定监听端口，访问这些端口的请求将会被转发到 Pod 的容器中对应的端口上。</p>
 <p>首先，我们来看下 Kubernetes Port Forward 这种方式的工作机制：</p>
-<p><img src="https://www.hi-linux.com/img/linux/k8s-svc4.png" alt=""></p>
+<p><img src="https://www.hi-linux.com/img/linux/k8s-svc4.png" alt></p>
 <p>使用 Kubectl 创建 Port Forward 后，Kubectl 会主动监听指定的本地端口。</p>
 <figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">$ kubectl port-forward pod-name local-port:container-port</span><br></pre></td></tr></table></figure>
 <p>当向 Local-Port 建立端口连接并向该端口发送数据时，数据流向会经过以下步骤：</p>
@@ -329,9 +329,9 @@
 <p>验证转发是否成功：</p>
 <figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line">$ curl http:&#x2F;&#x2F;127.0.0.1:8900</span><br><span class="line">......</span><br><span class="line">&lt;title&gt;Welcome to nginx!&lt;&#x2F;title&gt;</span><br><span class="line">&lt;body&gt;</span><br><span class="line">&lt;h1&gt;Welcome to nginx!&lt;&#x2F;h1&gt;</span><br><span class="line">&lt;p&gt;If you see this page, the nginx web server is successfully installed and</span><br><span class="line">working. Further configuration is required.&lt;&#x2F;p&gt;</span><br><span class="line">......</span><br></pre></td></tr></table></figure>
 <p>由于这种类型的转发端口是绑定在本地的，这种方式也仅适用于调试服务。</p>
-<h3 id="通过-service-暴露">通过 Service 暴露</h3>
+<h3><span id="通过-service-暴露">通过 Service 暴露</span></h3>
 <p>Service 的类型 ( ServiceType ) 决定了 Service 如何对外提供服务。根据类型不同服务可以只在 Kubernetes Cluster 中可见，也可以暴露到 Cluster 外部。Service 目前有三种类型：ClusterIP、NodePort 和 LoadBalancer。</p>
-<p><img src="https://www.hi-linux.com/img/linux/k8s-svc5.png" alt=""></p>
+<p><img src="https://www.hi-linux.com/img/linux/k8s-svc5.png" alt></p>
 <p>Service 中常见的三种端口的含义：</p>
 <ul>
 <li>port</li>
@@ -346,12 +346,12 @@
 </ul>
 <p>targetPort 是 Pod 里容器的端口，从 port 和 nodePort 上进入的数据最终会经过 Kube-Proxy 流入到后端 Pod 里容器的端口。如果 targetPort 没有被显式声明，那么会默认转发到 Service 接受请求的端口（和 port 端口的值一样）。</p>
 <p>总的来说，port 和 nodePort 都是 Service 的端口，前者暴露给集群内客户访问服务，后者暴露给集群外客户访问服务。从这两个端口到来的数据都需要经过反向代理 Kube-Proxy 流入后端 Pod 里容器的端口，从而到达 Pod 上的容器内。</p>
-<h4 id="clusterip">ClusterIP</h4>
+<h4><span id="clusterip">ClusterIP</span></h4>
 <p>ClusterIP 是 Service 的缺省类型，这种类型的服务会自动分配一个只能在集群内部可以访问的虚拟 IP，即：ClusterIP。ClusterIP 为你提供一个集群内部其它应用程序可以访问的服务，外部无法访问。ClusterIP 服务的 YAML 类似这样：</p>
 <figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line">apiVersion: v1</span><br><span class="line">kind: Service</span><br><span class="line">metadata:  </span><br><span class="line">  name: my-nginx</span><br><span class="line">selector:    </span><br><span class="line">  app: my-nginx</span><br><span class="line">spec:</span><br><span class="line">  type: ClusterIP</span><br><span class="line">  ports:  </span><br><span class="line">  - name: http</span><br><span class="line">    port: 80</span><br><span class="line">    targetPort: 80</span><br><span class="line">    protocol: TCP</span><br></pre></td></tr></table></figure>
 <p>虽然我们从集群外部不能直接访问一个 ClusterIP 服务，但是你可以使用 Kubernetes Proxy API 来访问它。</p>
 <p>Kubernetes Proxy API 是一种特殊的 API，Kube-APIServer 只是代理这类 API 的 HTTP 请求，然后将请求转发到某个节点上的 Kubelet 进程监听的端口上。最后实际是由该端口上的 REST API 响应请求。</p>
-<p><img src="https://www.hi-linux.com/img/linux/k8s-svc6.png" alt=""></p>
+<p><img src="https://www.hi-linux.com/img/linux/k8s-svc6.png" alt></p>
 <p>在 Master 节点上创建 Kubernetes API 的代理服务：</p>
 <figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">$ kubectl proxy --port&#x3D;8080</span><br></pre></td></tr></table></figure>
 <p><code>kubectl proxy</code> 默认是监听在 127.0.0.1 上的，如果你需要对外提供访问，可使用一些基本的安全机制。</p>
@@ -362,9 +362,9 @@
 <p>如果你需要直接访问一个 Pod，可以使用 <code>/api/v1/namespaces/&lt;NAMESPACE&gt;/pods/&lt;POD-NAME&gt;/proxy/</code>。</p>
 <figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br></pre></td><td class="code"><pre><span class="line"># 适用于 Kubernetes 1.10</span><br><span class="line"></span><br><span class="line">$ kubectl get pod</span><br><span class="line">NAME                        READY     STATUS    RESTARTS   AGE</span><br><span class="line">my-nginx-86555897f9-5p9c2   1&#x2F;1       Running   2          8d</span><br><span class="line">my-nginx-86555897f9-ws674   1&#x2F;1       Running   6          8d</span><br><span class="line"></span><br><span class="line">$ curl http:&#x2F;&#x2F;192.168.100.211:8080&#x2F;api&#x2F;v1&#x2F;namespaces&#x2F;default&#x2F;pods&#x2F;my-nginx-86555897f9-ws674&#x2F;proxy&#x2F;</span><br><span class="line"></span><br><span class="line">......</span><br><span class="line">&lt;title&gt;Welcome to nginx!&lt;&#x2F;title&gt;</span><br><span class="line"></span><br><span class="line">&lt;h1&gt;Welcome to nginx!&lt;&#x2F;h1&gt;</span><br><span class="line">&lt;p&gt;If you see this page, the nginx web server is successfully installed and</span><br><span class="line">working. Further configuration is required.&lt;&#x2F;p&gt;</span><br><span class="line">......</span><br></pre></td></tr></table></figure>
 <p>由于访问 Kubernetes Proxy API 要求使用已授权用户运行 kubectl ，因此不应该使用此方法将你的服务公开到公网上或将其用于生产，这种方法主要还是用于调试服务。</p>
-<h4 id="nodeport">NodePort</h4>
+<h4><span id="nodeport">NodePort</span></h4>
 <p>NodePort 在 Kubenretes 里是一个广泛应用的服务暴露方式。基于 ClusterIP 提供的功能，为 Service 在 Kubernetes 集群的每个节点上绑定一个端口，即 NodePort。集群外部可基于任何一个 <code>NodeIP:NodePort</code> 的形式来访问 Service。Service 在每个节点的 NodePort 端口上都是可用的。</p>
-<p><img src="https://www.hi-linux.com/img/linux/k8s-svc7.png" alt=""></p>
+<p><img src="https://www.hi-linux.com/img/linux/k8s-svc7.png" alt></p>
 <p>NodePort 服务与默认的 ClusterIP 服务在 YAML 定义上有两点区别：首先，type 是 NodePort。其次还有一个称为 nodePort 的参数用来指定在节点上打开哪个端口。 如果你不指定这个端口，它会选择一个随机端口。</p>
 <figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line">apiVersion: v1</span><br><span class="line">kind: Pod</span><br><span class="line">metadata:</span><br><span class="line">  name: my-nginx</span><br><span class="line">  labels:</span><br><span class="line">    name: my-nginx</span><br><span class="line">spec:</span><br><span class="line">  containers:</span><br><span class="line">    - name: my-nginx</span><br><span class="line">      image: nginx:1.7.9</span><br><span class="line">      ports:</span><br><span class="line">        - containerPort: 80</span><br></pre></td></tr></table></figure>
 <p><code>nodePort</code> 值的默认范围是 30000-32767，这个值是可以在 API Server 的配置文件中用 <code>--service-node-port-range</code> 来自定义。</p>
@@ -376,9 +376,9 @@
 <li>如果节点 IP 地址发生更改，则需要相应机制处理该问题。</li>
 </ul>
 <p>基于以上原因，NodePort 比较适用的场景为演示程序或临时应用，不建议在生产环境中使用这种方法对外暴露服务。</p>
-<h4 id="loadbalancer">LoadBalancer</h4>
+<h4><span id="loadbalancer">LoadBalancer</span></h4>
 <p>LoadBalancer 是基于 NodePort 和云服务供应商提供的外部负载均衡器，通过这个外部负载均衡器将外部请求转发到各个 <code>NodeIP:NodePort</code> 以实现对外暴露服务。</p>
-<p><img src="https://www.hi-linux.com/img/linux/k8s-svc8.png" alt=""></p>
+<p><img src="https://www.hi-linux.com/img/linux/k8s-svc8.png" alt></p>
 <p><code>LoadBalancer</code> 只能在 Service 上定义。LoadBalancer 是一些特定公有云提供的负载均衡器，需要特定的云服务商支持。比如：AWS、Azure、OpenStack 和 GCE (Google Container Engine) 。</p>
 <figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line">kind: Service</span><br><span class="line">apiVersion: v1</span><br><span class="line">metadata:</span><br><span class="line">  name: my-nginx</span><br><span class="line">spec:</span><br><span class="line">  type: LoadBalancer</span><br><span class="line">  ports:</span><br><span class="line">    - port: 80</span><br><span class="line">  selector:</span><br><span class="line">    name: my-nginx</span><br></pre></td></tr></table></figure>
 <p>查看服务：</p>
@@ -396,10 +396,10 @@
 <li>使用 NodePort 类型的 Service，需要在集群外部部署一个外部的负载均衡器。</li>
 <li>使用 LoadBalancer 类型的 Service，Kubernetes 必须运行在特定的云服务上。</li>
 </ul>
-<h3 id="通过-ingress-暴露">通过 Ingress 暴露</h3>
+<h3><span id="通过-ingress-暴露">通过 Ingress 暴露</span></h3>
 <p>与 Service 不同，Ingress 实际上不是一种服务。相反，它位于多个服务之前，充当集群中的智能路由器或入口点。</p>
 <p><code>Ingress</code> 是自 Kubernetes 1.1 版本后引入的资源类型。Ingress 支持将 Service 暴露到 Kubernetes 集群外，同时可以自定义 Service 的访问策略。Ingress 能够把 Service 配置成外网能够访问的 URL，也支持提供按域名访问的虚拟主机功能。例如，通过负载均衡器实现不同的二级域名到不同 Service 的访问。</p>
-<p><img src="https://www.hi-linux.com/img/linux/k8s-svc9.png" alt=""></p>
+<p><img src="https://www.hi-linux.com/img/linux/k8s-svc9.png" alt></p>
 <p>实际上 <code>Ingress</code> 只是一个统称，其由 <code>Ingress</code> 和 <code>Ingress Controller</code> 两部分组成。<code>Ingress</code> 用作将原来需要手动配置的规则抽象成一个 Ingress 对象，使用 YAML 格式的文件来创建和管理。<code>Ingress Controller</code> 用作通过与 Kubernetes API 交互，动态的去感知集群中 Ingress 规则变化。</p>
 <p>使用 <code>Ingress</code> 前必须要先部署 <code>Ingress Controller</code>，<code>Ingress Controller</code> 是以一种插件的形式提供。<code>Ingress Controller</code> 通常是部署在 Kubernetes 之上的 Docker 容器，<code>Ingress Controller</code> 的 Docker 镜像里包含一个像 Nginx 或 HAProxy 的负载均衡器和一个 <code>Ingress Controller</code>。<code>Ingress Controller</code> 会从 Kubernetes 接收所需的 <code>Ingress</code> 配置，然后动态生成一个 Nginx 或 HAProxy 配置文件，并重新启动负载均衡器进程以使更改生效。换句话说，<code>Ingress Controller</code> 是由 Kubernetes 管理的负载均衡器。</p>
 <blockquote>
@@ -409,7 +409,7 @@
 <figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br></pre></td><td class="code"><pre><span class="line">apiVersion: extensions&#x2F;v1beta1</span><br><span class="line">kind: Ingress</span><br><span class="line">metadata:</span><br><span class="line">  name: nginx-ingress</span><br><span class="line">spec:</span><br><span class="line">  backend:</span><br><span class="line">    serviceName: my-nginx-other</span><br><span class="line">    servicePort: 8080</span><br><span class="line">  rules:</span><br><span class="line">  - host: foo.mydomain.com</span><br><span class="line">    http:</span><br><span class="line">      paths:</span><br><span class="line">      - backend:</span><br><span class="line">          serviceName: my-nginx-foo</span><br><span class="line">          servicePort: 8080</span><br><span class="line">  - host: mydomain.com</span><br><span class="line">    http:</span><br><span class="line">      paths:</span><br><span class="line">      - path: &#x2F;bar&#x2F;*</span><br><span class="line">        backend:</span><br><span class="line">          serviceName: my-nginx-bar</span><br><span class="line">          servicePort: 8080</span><br></pre></td></tr></table></figure>
 <p>外部可通过 <code>foo.yourdomain.com</code> 或者 <code>mydomain.com/bar/</code> 两个不同 URL 来访问对应的后端服务，然后 <code>Ingress Controller</code> 直接将流量转发给后端 Pod，不需再经过 Kube-Proxy 的转发，这种方式比 LoadBalancer 更高效。</p>
 <p>总的来说 Ingress 是一个非常灵活和越来越得到厂商支持的服务暴露方式，包括：Nginx、HAProxy、Traefik、还有各种 Service Mesh，而其它服务暴露方式更适用于服务调试、特殊应用的部署。</p>
-<h3 id="参考文档">参考文档</h3>
+<h3><span id="参考文档">参考文档</span></h3>
 <p><a href="http://www.google.com" target="_blank" rel="noopener">http://www.google.com</a><br>
 <a href="http://t.cn/RdskHHt" target="_blank" rel="noopener">http://t.cn/RdskHHt</a><br>
 <a href="http://t.cn/RdskYv5" target="_blank" rel="noopener">http://t.cn/RdskYv5</a><br>
@@ -491,7 +491,7 @@
         <div id="toc" class="toc-article">
         <strong class="toc-title">Contents</strong>
         
-          <ol class="toc-nav"><li class="toc-nav-item toc-nav-level-3"><a class="toc-nav-link" href="#pod-和-service-的关系"><span class="toc-nav-number">1.</span> <span class="toc-nav-text">Pod 和 Service 的关系</span></a></li><li class="toc-nav-item toc-nav-level-3"><a class="toc-nav-link" href="#通过-pod-暴露"><span class="toc-nav-number">2.</span> <span class="toc-nav-text">通过 Pod 暴露</span></a><ol class="toc-nav-child"><li class="toc-nav-item toc-nav-level-4"><a class="toc-nav-link" href="#hostnetwork-true"><span class="toc-nav-number">2.1.</span> <span class="toc-nav-text">hostNetwork: true</span></a></li><li class="toc-nav-item toc-nav-level-4"><a class="toc-nav-link" href="#hostport"><span class="toc-nav-number">2.2.</span> <span class="toc-nav-text">hostPort</span></a></li><li class="toc-nav-item toc-nav-level-4"><a class="toc-nav-link" href="#port-forward"><span class="toc-nav-number">2.3.</span> <span class="toc-nav-text">Port Forward</span></a></li></ol></li><li class="toc-nav-item toc-nav-level-3"><a class="toc-nav-link" href="#通过-service-暴露"><span class="toc-nav-number">3.</span> <span class="toc-nav-text">通过 Service 暴露</span></a><ol class="toc-nav-child"><li class="toc-nav-item toc-nav-level-4"><a class="toc-nav-link" href="#clusterip"><span class="toc-nav-number">3.1.</span> <span class="toc-nav-text">ClusterIP</span></a></li><li class="toc-nav-item toc-nav-level-4"><a class="toc-nav-link" href="#nodeport"><span class="toc-nav-number">3.2.</span> <span class="toc-nav-text">NodePort</span></a></li><li class="toc-nav-item toc-nav-level-4"><a class="toc-nav-link" href="#loadbalancer"><span class="toc-nav-number">3.3.</span> <span class="toc-nav-text">LoadBalancer</span></a></li></ol></li><li class="toc-nav-item toc-nav-level-3"><a class="toc-nav-link" href="#通过-ingress-暴露"><span class="toc-nav-number">4.</span> <span class="toc-nav-text">通过 Ingress 暴露</span></a></li><li class="toc-nav-item toc-nav-level-3"><a class="toc-nav-link" href="#参考文档"><span class="toc-nav-number">5.</span> <span class="toc-nav-text">参考文档</span></a></li></ol>
+          <ol class="toc-nav"><li class="toc-nav-item toc-nav-level-3"><a class="toc-nav-link" href="#vip-container"><span class="toc-nav-number">1.</span> <span class="toc-nav-text">Pod 和 Service 的关系</span></a></li><li class="toc-nav-item toc-nav-level-3"><a class="toc-nav-link" href="#vip-container"><span class="toc-nav-number">2.</span> <span class="toc-nav-text">通过 Pod 暴露</span></a><ol class="toc-nav-child"><li class="toc-nav-item toc-nav-level-4"><a class="toc-nav-link" href="#vip-container"><span class="toc-nav-number">2.1.</span> <span class="toc-nav-text">hostNetwork: true</span></a></li><li class="toc-nav-item toc-nav-level-4"><a class="toc-nav-link" href="#vip-container"><span class="toc-nav-number">2.2.</span> <span class="toc-nav-text">hostPort</span></a></li><li class="toc-nav-item toc-nav-level-4"><a class="toc-nav-link" href="#vip-container"><span class="toc-nav-number">2.3.</span> <span class="toc-nav-text">Port Forward</span></a></li></ol></li><li class="toc-nav-item toc-nav-level-3"><a class="toc-nav-link" href="#vip-container"><span class="toc-nav-number">3.</span> <span class="toc-nav-text">通过 Service 暴露</span></a><ol class="toc-nav-child"><li class="toc-nav-item toc-nav-level-4"><a class="toc-nav-link" href="#vip-container"><span class="toc-nav-number">3.1.</span> <span class="toc-nav-text">ClusterIP</span></a></li><li class="toc-nav-item toc-nav-level-4"><a class="toc-nav-link" href="#vip-container"><span class="toc-nav-number">3.2.</span> <span class="toc-nav-text">NodePort</span></a></li><li class="toc-nav-item toc-nav-level-4"><a class="toc-nav-link" href="#vip-container"><span class="toc-nav-number">3.3.</span> <span class="toc-nav-text">LoadBalancer</span></a></li></ol></li><li class="toc-nav-item toc-nav-level-3"><a class="toc-nav-link" href="#vip-container"><span class="toc-nav-number">4.</span> <span class="toc-nav-text">通过 Ingress 暴露</span></a></li><li class="toc-nav-item toc-nav-level-3"><a class="toc-nav-link" href="#vip-container"><span class="toc-nav-number">5.</span> <span class="toc-nav-text">参考文档</span></a></li></ol>
         
         </div>
       </aside>

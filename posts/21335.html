@@ -233,22 +233,22 @@
                 post-container">
 
                 <div id="vip-container"><p>本文将展示如何使用 tcpdump 抓包，以及如何用 tcpdump 和 wireshark 分析网络流量。 文中的例子比较简单，适合作为入门参考。</p>
-<h2 id="1-基础环境准备">1. 基础环境准备</h2>
+<h2><span id="1-基础环境准备">1. 基础环境准备</span></h2>
 <p>为方便大家跟着上手练习，本文将搭建一个容器环境。</p>
-<h3 id="11-pull-docker-镜像">1.1 Pull Docker 镜像</h3>
+<h3><span id="11-pull-docker-镜像">1.1 Pull Docker 镜像</span></h3>
 <figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">$ sudo docker pull alpine:3.8</span><br></pre></td></tr></table></figure>
-<h3 id="12-运行容器">1.2 运行容器</h3>
+<h3><span id="12-运行容器">1.2 运行容器</span></h3>
 <figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">$ sudo docker run -d --name ctn-1 alpine:3.8 sleep 3600d</span><br><span class="line">$ sudo docker ps</span><br><span class="line">CONTAINER ID    IMAGE        COMMAND         CREATED        STATUS          PORTS  NAMES</span><br><span class="line">233bc36bde4b    alpine:3.8   &quot;sleep 3600d&quot;   1 minutes ago  Up 14 minutes           ctn-1</span><br></pre></td></tr></table></figure>
 <p>进入容器：</p>
 <figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">$ sudo docker exec -it ctn-1 sh</span><br></pre></td></tr></table></figure>
 <p>查看容器网络信息：</p>
 <figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">&#x2F; # ifconfig</span><br><span class="line">eth0      Link encap:Ethernet  HWaddr 02:42:AC:11:00:09</span><br><span class="line">          inet addr:172.17.0.9  Bcast:0.0.0.0  Mask:255.255.0.0</span><br></pre></td></tr></table></figure>
 <a id="more"></a>
-<h3 id="13-安装-tcpdump">1.3 安装 tcpdump</h3>
+<h3><span id="13-安装-tcpdump">1.3 安装 tcpdump</span></h3>
 <figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">&#x2F; # apk update</span><br><span class="line">&#x2F; # apk add tcpdump</span><br></pre></td></tr></table></figure>
-<h2 id="2-httptcp-抓包">2. HTTP/TCP 抓包</h2>
+<h2><span id="2-httptcp-抓包">2. HTTP/TCP 抓包</span></h2>
 <p>接下来我们用 wget 获取一个网站的首页文件（index.html），同时 tcpdump 抓包，对抓 到的网络流量进行分析。</p>
-<h3 id="21-http-请求下载测试页面">2.1 HTTP 请求：下载测试页面</h3>
+<h3><span id="21-http-请求下载测试页面">2.1 HTTP 请求：下载测试页面</span></h3>
 <p><a href="http://example.com" target="_blank" rel="noopener">example.com</a> 是一个测试网站，wget 是一个 linux 命令行工 具，可以下载网络文件。</p>
 <p>如下命令可以下载一个 <a href="http://example.com" target="_blank" rel="noopener">example.com</a> 网站的首页文件 index.html：</p>
 <figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">&#x2F; # wget http:&#x2F;&#x2F;example.com</span><br><span class="line">Connecting to example.com (93.184.216.34:80)</span><br><span class="line">index.html           100% |*****************************|  1270   0:00:00 ETA</span><br></pre></td></tr></table></figure>
@@ -276,7 +276,7 @@
 <p>TCP 断开连接的四次挥手</p>
 </li>
 </ol>
-<h3 id="22-抓包打到标准输出">2.2 抓包：打到标准输出</h3>
+<h3><span id="22-抓包打到标准输出">2.2 抓包：打到标准输出</span></h3>
 <p>用下面的 tcpdump 命令抓包，另一窗口执行 wget <a href="http://example.com" target="_blank" rel="noopener">http://example.com</a>，能看到如下类 似的输出。为了方便后面的讨论，这里将一些字段去掉了，并做了适当的对齐：</p>
 <figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br></pre></td><td class="code"><pre><span class="line">&#x2F; # tcpdump -n -S -i eth0 host example.com</span><br><span class="line">1  02:52:44.513700 IP 172.17.0.9.41038 &gt; 93.184.216.34.80: Flags [S] , seq 3310420140,                            length 0</span><br><span class="line">2  02:52:44.692890 IP 93.184.216.34.80 &gt; 172.17.0.9.41038: Flags [S.], seq 1353235534,            ack 3310420141, length 0</span><br><span class="line">3  02:52:44.692953 IP 172.17.0.9.41038 &gt; 93.184.216.34.80: Flags [.] ,                            ack 1353235535, length 0</span><br><span class="line">4  02:52:44.693009 IP 172.17.0.9.41038 &gt; 93.184.216.34.80: Flags [P.], seq 3310420141:3310420215, ack 1353235535, length 74: HTTP: GET &#x2F; HTTP&#x2F;1.1</span><br><span class="line">5  02:52:44.872266 IP 93.184.216.34.80 &gt; 172.17.0.9.41038: Flags [.] ,                            ack 3310420215, length 0</span><br><span class="line">6  02:52:44.873342 IP 93.184.216.34.80 &gt; 172.17.0.9.41038: Flags [.] , seq 1353235535:1353236983, ack 3310420215, length 1448: HTTP: HTTP&#x2F;1.1 200 OK</span><br><span class="line">7  02:52:44.873405 IP 172.17.0.9.41038 &gt; 93.184.216.34.80: Flags [.] ,                            ack 1353236983, length 0</span><br><span class="line">8  02:52:44.874533 IP 93.184.216.34.80 &gt; 172.17.0.9.41038: Flags [P.], seq 1353236983:1353237162, ack 3310420215, length 179: HTTP</span><br><span class="line">9  02:52:44.874560 IP 172.17.0.9.41038 &gt; 93.184.216.34.80: Flags [.] ,                            ack 1353237162, length 0</span><br><span class="line">10 02:52:44.874705 IP 172.17.0.9.41038 &gt; 93.184.216.34.80: Flags [F.], seq 3310420215,            ack 1353237162, length 0</span><br><span class="line">11 02:52:45.053732 IP 93.184.216.34.80 &gt; 172.17.0.9.41038: Flags [.] ,                            ack 3310420216, length 0</span><br><span class="line">12 02:52:45.607825 IP 93.184.216.34.80 &gt; 172.17.0.9.41038: Flags [F.], seq 1353237162,            ack 3310420216, length 0</span><br><span class="line">13 02:52:45.607869 IP 172.17.0.9.41038 &gt; 93.184.216.34.80: Flags [.] ,                            ack 1353237163, length 0</span><br></pre></td></tr></table></figure>
 <p>参数说明：</p>
@@ -295,13 +295,13 @@
 </li>
 </ul>
 <p>更多 tcpdump 的常用命令，可以参考tcpdump: An Incomplete Guide。</p>
-<h3 id="23-抓包存文件">2.3 抓包：存文件</h3>
+<h3><span id="23-抓包存文件">2.3 抓包：存文件</span></h3>
 <p>-w 命令可以将抓到的包写到文件，注意这和用重定向方式将输出写到文件是不同的。 后者写的只是标准输出打印的 LOG，而 -w 写的是原始包。</p>
 <figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">&#x2F; # tcpdump -i eth0 host example.com -w example.pcap</span><br><span class="line">^C</span><br><span class="line">13 packets captured</span><br><span class="line">13 packets received by filter</span><br><span class="line">0 packets dropped by kernel</span><br></pre></td></tr></table></figure>
 <p>生成的 pcap 文件可以用 tcpdump 或者 wireshark 之类的网络流量分析工具打开。</p>
-<h2 id="3-流量分析-tcpdump">3. 流量分析: tcpdump</h2>
+<h2><span id="3-流量分析-tcpdump">3. 流量分析: tcpdump</span></h2>
 <p>如果不指定输出的话，tcpdump 会直接将信息打到标准输出，就是我们上面看到的那样。从 这些输出里，我们看到很多信息。</p>
-<h3 id="31-每列说明">3.1 每列说明</h3>
+<h3><span id="31-每列说明">3.1 每列说明</span></h3>
 <p>第 1 列是为了讨论方便而加的行号，实际的 tcpdump 输出并没有这一列。接下来将用 # 号加数字表示第几个包，例如 #3 表示第 3 个包。</p>
 <p>接下来依次为：</p>
 <ul>
@@ -344,7 +344,7 @@
 <p>包的部分内容（ASCII）</p>
 </li>
 </ul>
-<h3 id="32-三次握手1~3">3.2 三次握手（1～3）</h3>
+<h3><span id="32-三次握手1~3">3.2 三次握手（1～3）</span></h3>
 <p>wget 是基于 HTTP 协议，因此它在下载文件之前，必定要和服务端建立一个连接。</p>
 <p>而 TCP 建立连接的过程就是著名的三次握手 [4]：</p>
 <ol>
@@ -405,7 +405,7 @@
 </li>
 </ol>
 <p>至此，三次握手完成。</p>
-<h3 id="33-正常数据传输">3.3 正常数据传输</h3>
+<h3><span id="33-正常数据传输">3.3 正常数据传输</span></h3>
 <p>三次握手完成后，client 和 server 开始 HTTP 通信，客户端通过 HTTP GET 方法下载 index.html。</p>
 <figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">4  02:52:44.693009 IP 172.17.0.9.41038 &gt; 93.184.216.34.80: Flags [P.], seq 3310420141:3310420215, ack 1353235535, length 74: HTTP: GET &#x2F; HTTP&#x2F;1.1</span><br><span class="line">5  02:52:44.872266 IP 93.184.216.34.80 &gt; 172.17.0.9.41038: Flags [.] ,                            ack 3310420215, length 0</span><br><span class="line">6  02:52:44.873342 IP 93.184.216.34.80 &gt; 172.17.0.9.41038: Flags [.] , seq 1353235535:1353236983, ack 3310420215, length 1448: HTTP: HTTP&#x2F;1.1 200 OK</span><br><span class="line">7  02:52:44.873405 IP 172.17.0.9.41038 &gt; 93.184.216.34.80: Flags [.] ,                            ack 1353236983, length 0</span><br><span class="line">8  02:52:44.874533 IP 93.184.216.34.80 &gt; 172.17.0.9.41038: Flags [P.], seq 1353236983:1353237162, ack 3310420215, length 179: HTTP</span><br><span class="line">9  02:52:44.874560 IP 172.17.0.9.41038 &gt; 93.184.216.34.80: Flags [.] ,                            ack 1353237162, length 0</span><br></pre></td></tr></table></figure>
 <p>这里可以看到：</p>
@@ -429,7 +429,7 @@
 <p>#9: client 对 server 的 #8 进行应答</p>
 </li>
 </ol>
-<h3 id="34-四次挥手">3.4 四次挥手</h3>
+<h3><span id="34-四次挥手">3.4 四次挥手</span></h3>
 <p>最后是四次挥手 [5]：</p>
 <ol>
 <li>
@@ -446,17 +446,17 @@
 </li>
 </ol>
 <figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">10 02:52:44.874705 IP 172.17.0.9.41038 &gt; 93.184.216.34.80: Flags [F.], seq 3310420215, ack 1353237162, length 0</span><br><span class="line">11 02:52:45.053732 IP 93.184.216.34.80 &gt; 172.17.0.9.41038: Flags [.] ,                 ack 3310420216, length 0</span><br><span class="line">12 02:52:45.607825 IP 93.184.216.34.80 &gt; 172.17.0.9.41038: Flags [F.], seq 1353237162, ack 3310420216, length 0</span><br><span class="line">13 02:52:45.607869 IP 172.17.0.9.41038 &gt; 93.184.216.34.80: Flags [.] ,                 ack 1353237163, length 0</span><br></pre></td></tr></table></figure>
-<h2 id="4-流量分析-wireshark">4. 流量分析: wireshark</h2>
+<h2><span id="4-流量分析-wireshark">4. 流量分析: wireshark</span></h2>
 <p>tcpdump 可以指定 -r 读取 pcap 文件，并以指定的格式输出包的信息，最后输出的内容 和上面看到的类似。我们上面的流量非常简单，所以看 tcpdump 的输出就够了。</p>
 <p>对于复杂的 pcap，例如，其中包含了上百个 IP 地址、上千个端口、上万个连接的 pcap， 通过 tcpdump 看输出可能就比较低效了。</p>
 <p>这时，wireshark 这样带图形用户界面，且功能强大的网 络流分析工具就派上了用场。</p>
 <p>wireshark 支持强大的过滤功能，支持按 IP、端口、协议、连接、TCP flag 以及它们的各 种组合进行过滤，然后进行分析，大大节省网络排障的时间。</p>
 <p>wireshark 官方维护了一个 sample pcap列表 ，我们拿 iperf-mptcp-0-0.pcap 作为例子来展示如何使用 wireshark。</p>
-<h3 id="41-追踪-tcp-流">4.1 追踪 TCP 流</h3>
+<h3><span id="41-追踪-tcp-流">4.1 追踪 TCP 流</span></h3>
 <p>下载后双击就可以用 wireshark 打开。看到有重传（TCP Retransmition）的包：</p>
-<p><img src="https://arthurchiao.github.io/assets/img/tcpdump-practice/retrans.jpg" alt=""></p>
+<p><img src="https://arthurchiao.github.io/assets/img/tcpdump-practice/retrans.jpg" alt></p>
 <p>在重传的包上，右键 -&gt; Follow -&gt; TCP Stream，会过滤出只属于这个连接的包：</p>
-<p><img src="https://arthurchiao.github.io/assets/img/tcpdump-practice/retrans-stream.jpg" alt=""></p>
+<p><img src="https://arthurchiao.github.io/assets/img/tcpdump-practice/retrans-stream.jpg" alt></p>
 <p>我们看到，这个连接只有 3 个包：</p>
 <ol>
 <li>
@@ -473,7 +473,7 @@
 </li>
 </ol>
 <p>因此，从这个抓包文件看，这次连接没有建立起来，而直接原因就是 client 没有收到 server 的应答包。要跟进这个问题，就需要在 server 端一起抓包，看应答包是否有发出来 。本文不对此展开。</p>
-<h3 id="42-过滤流">4.2 过滤流</h3>
+<h3><span id="42-过滤流">4.2 过滤流</span></h3>
 <p>上面的截图我们看到 wireshark 里有 tcp.stream eq 1，这其实就是其强大的过滤表达式。</p>
 <p>我们可以直接手写表达式，然后回车，符合条件的包就会显示出来。而且，在编辑表达式的 时候，wireshark 有自动提示，还是比较方便的。这些表达式和 tcpdump 的 filter 表达 式很类似，如果熟悉 tcpdump，那这里不会有太大困难。</p>
 <p>下面举一些例子：</p>
@@ -494,10 +494,10 @@
 <p>tcp.analysis.retransmission 过滤所有的重传包</p>
 </li>
 </ol>
-<h3 id="43-导出符合条件的包">4.3 导出符合条件的包</h3>
+<h3><span id="43-导出符合条件的包">4.3 导出符合条件的包</span></h3>
 <p>有时 pcap 文件太大，导致 wireshark 非常慢，而大部分数据包可能是不需要的。在这种情况 下，可以先用过滤条件筛选出感兴趣的包，然后 File -&gt; Export Specified Packets … ，弹出的对话框里，可以选择当前显示的包，或者某个指定区间的包另存为新 pcap。</p>
 <p>然后就可以关闭原来的 pcap，打开新的 pcap 进行分析。</p>
-<h2 id="5-总结">5. 总结</h2>
+<h2><span id="5-总结">5. 总结</span></h2>
 <p>tcpdump 和 wireshark 功能非常强大，组合起来更是网络排障的首选利器。这里介绍的内 容只是九牛一毛，更多的时候，你需要 tcpdump+wireshark+google。</p>
 <p><strong>References</strong></p>
 <ol>
@@ -594,7 +594,7 @@
         <div id="toc" class="toc-article">
         <strong class="toc-title">Contents</strong>
         
-          <ol class="toc-nav"><li class="toc-nav-item toc-nav-level-2"><a class="toc-nav-link" href="#1-基础环境准备"><span class="toc-nav-number">1.</span> <span class="toc-nav-text">1. 基础环境准备</span></a><ol class="toc-nav-child"><li class="toc-nav-item toc-nav-level-3"><a class="toc-nav-link" href="#11-pull-docker-镜像"><span class="toc-nav-number">1.1.</span> <span class="toc-nav-text">1.1 Pull Docker 镜像</span></a></li><li class="toc-nav-item toc-nav-level-3"><a class="toc-nav-link" href="#12-运行容器"><span class="toc-nav-number">1.2.</span> <span class="toc-nav-text">1.2 运行容器</span></a></li><li class="toc-nav-item toc-nav-level-3"><a class="toc-nav-link" href="#13-安装-tcpdump"><span class="toc-nav-number">1.3.</span> <span class="toc-nav-text">1.3 安装 tcpdump</span></a></li></ol></li><li class="toc-nav-item toc-nav-level-2"><a class="toc-nav-link" href="#2-httptcp-抓包"><span class="toc-nav-number">2.</span> <span class="toc-nav-text">2. HTTP&#x2F;TCP 抓包</span></a><ol class="toc-nav-child"><li class="toc-nav-item toc-nav-level-3"><a class="toc-nav-link" href="#21-http-请求下载测试页面"><span class="toc-nav-number">2.1.</span> <span class="toc-nav-text">2.1 HTTP 请求：下载测试页面</span></a></li><li class="toc-nav-item toc-nav-level-3"><a class="toc-nav-link" href="#22-抓包打到标准输出"><span class="toc-nav-number">2.2.</span> <span class="toc-nav-text">2.2 抓包：打到标准输出</span></a></li><li class="toc-nav-item toc-nav-level-3"><a class="toc-nav-link" href="#23-抓包存文件"><span class="toc-nav-number">2.3.</span> <span class="toc-nav-text">2.3 抓包：存文件</span></a></li></ol></li><li class="toc-nav-item toc-nav-level-2"><a class="toc-nav-link" href="#3-流量分析-tcpdump"><span class="toc-nav-number">3.</span> <span class="toc-nav-text">3. 流量分析: tcpdump</span></a><ol class="toc-nav-child"><li class="toc-nav-item toc-nav-level-3"><a class="toc-nav-link" href="#31-每列说明"><span class="toc-nav-number">3.1.</span> <span class="toc-nav-text">3.1 每列说明</span></a></li><li class="toc-nav-item toc-nav-level-3"><a class="toc-nav-link" href="#32-三次握手1~3"><span class="toc-nav-number">3.2.</span> <span class="toc-nav-text">3.2 三次握手（1～3）</span></a></li><li class="toc-nav-item toc-nav-level-3"><a class="toc-nav-link" href="#33-正常数据传输"><span class="toc-nav-number">3.3.</span> <span class="toc-nav-text">3.3 正常数据传输</span></a></li><li class="toc-nav-item toc-nav-level-3"><a class="toc-nav-link" href="#34-四次挥手"><span class="toc-nav-number">3.4.</span> <span class="toc-nav-text">3.4 四次挥手</span></a></li></ol></li><li class="toc-nav-item toc-nav-level-2"><a class="toc-nav-link" href="#4-流量分析-wireshark"><span class="toc-nav-number">4.</span> <span class="toc-nav-text">4. 流量分析: wireshark</span></a><ol class="toc-nav-child"><li class="toc-nav-item toc-nav-level-3"><a class="toc-nav-link" href="#41-追踪-tcp-流"><span class="toc-nav-number">4.1.</span> <span class="toc-nav-text">4.1 追踪 TCP 流</span></a></li><li class="toc-nav-item toc-nav-level-3"><a class="toc-nav-link" href="#42-过滤流"><span class="toc-nav-number">4.2.</span> <span class="toc-nav-text">4.2 过滤流</span></a></li><li class="toc-nav-item toc-nav-level-3"><a class="toc-nav-link" href="#43-导出符合条件的包"><span class="toc-nav-number">4.3.</span> <span class="toc-nav-text">4.3 导出符合条件的包</span></a></li></ol></li><li class="toc-nav-item toc-nav-level-2"><a class="toc-nav-link" href="#5-总结"><span class="toc-nav-number">5.</span> <span class="toc-nav-text">5. 总结</span></a></li></ol>
+          <ol class="toc-nav"><li class="toc-nav-item toc-nav-level-2"><a class="toc-nav-link" href="#vip-container"><span class="toc-nav-number">1.</span> <span class="toc-nav-text">1. 基础环境准备</span></a><ol class="toc-nav-child"><li class="toc-nav-item toc-nav-level-3"><a class="toc-nav-link" href="#vip-container"><span class="toc-nav-number">1.1.</span> <span class="toc-nav-text">1.1 Pull Docker 镜像</span></a></li><li class="toc-nav-item toc-nav-level-3"><a class="toc-nav-link" href="#vip-container"><span class="toc-nav-number">1.2.</span> <span class="toc-nav-text">1.2 运行容器</span></a></li><li class="toc-nav-item toc-nav-level-3"><a class="toc-nav-link" href="#vip-container"><span class="toc-nav-number">1.3.</span> <span class="toc-nav-text">1.3 安装 tcpdump</span></a></li></ol></li><li class="toc-nav-item toc-nav-level-2"><a class="toc-nav-link" href="#vip-container"><span class="toc-nav-number">2.</span> <span class="toc-nav-text">2. HTTP&#x2F;TCP 抓包</span></a><ol class="toc-nav-child"><li class="toc-nav-item toc-nav-level-3"><a class="toc-nav-link" href="#vip-container"><span class="toc-nav-number">2.1.</span> <span class="toc-nav-text">2.1 HTTP 请求：下载测试页面</span></a></li><li class="toc-nav-item toc-nav-level-3"><a class="toc-nav-link" href="#vip-container"><span class="toc-nav-number">2.2.</span> <span class="toc-nav-text">2.2 抓包：打到标准输出</span></a></li><li class="toc-nav-item toc-nav-level-3"><a class="toc-nav-link" href="#vip-container"><span class="toc-nav-number">2.3.</span> <span class="toc-nav-text">2.3 抓包：存文件</span></a></li></ol></li><li class="toc-nav-item toc-nav-level-2"><a class="toc-nav-link" href="#vip-container"><span class="toc-nav-number">3.</span> <span class="toc-nav-text">3. 流量分析: tcpdump</span></a><ol class="toc-nav-child"><li class="toc-nav-item toc-nav-level-3"><a class="toc-nav-link" href="#vip-container"><span class="toc-nav-number">3.1.</span> <span class="toc-nav-text">3.1 每列说明</span></a></li><li class="toc-nav-item toc-nav-level-3"><a class="toc-nav-link" href="#vip-container"><span class="toc-nav-number">3.2.</span> <span class="toc-nav-text">3.2 三次握手（1～3）</span></a></li><li class="toc-nav-item toc-nav-level-3"><a class="toc-nav-link" href="#vip-container"><span class="toc-nav-number">3.3.</span> <span class="toc-nav-text">3.3 正常数据传输</span></a></li><li class="toc-nav-item toc-nav-level-3"><a class="toc-nav-link" href="#vip-container"><span class="toc-nav-number">3.4.</span> <span class="toc-nav-text">3.4 四次挥手</span></a></li></ol></li><li class="toc-nav-item toc-nav-level-2"><a class="toc-nav-link" href="#vip-container"><span class="toc-nav-number">4.</span> <span class="toc-nav-text">4. 流量分析: wireshark</span></a><ol class="toc-nav-child"><li class="toc-nav-item toc-nav-level-3"><a class="toc-nav-link" href="#vip-container"><span class="toc-nav-number">4.1.</span> <span class="toc-nav-text">4.1 追踪 TCP 流</span></a></li><li class="toc-nav-item toc-nav-level-3"><a class="toc-nav-link" href="#vip-container"><span class="toc-nav-number">4.2.</span> <span class="toc-nav-text">4.2 过滤流</span></a></li><li class="toc-nav-item toc-nav-level-3"><a class="toc-nav-link" href="#vip-container"><span class="toc-nav-number">4.3.</span> <span class="toc-nav-text">4.3 导出符合条件的包</span></a></li></ol></li><li class="toc-nav-item toc-nav-level-2"><a class="toc-nav-link" href="#vip-container"><span class="toc-nav-number">5.</span> <span class="toc-nav-text">5. 总结</span></a></li></ol>
         
         </div>
       </aside>

@@ -233,9 +233,9 @@
                 post-container">
 
                 <div id="vip-container"><p>这两天因为内部 Kubernetes 的网络配置问题和同事交流了一下，由于内部使用了 Calico 网络，在内部 Pod 出网时有两种选择，使用 Nat 或者不使用 Nat。为此还经历了一番讨论，突然发现自己对 netfilter 包括其相关的很多概念还是比较模糊，所以查了查资料，尝试深入了解一下。</p>
-<h2 id="netfilter">Netfilter</h2>
+<h2><span id="netfilter">Netfilter</span></h2>
 <p>在网上找到了一张图，发现还是能比较清楚的描述整个netfilter架构的，来源来自http://xkr47.outerspace.dyndns.org，先把图贴出来：</p>
-<p><img src="https://www.ichenfu.com/images/netfilter_packet_flow.png" alt=""></p>
+<p><img src="https://www.ichenfu.com/images/netfilter_packet_flow.png" alt></p>
 <p>这张图更像是从 iptables chain 的角度去描述 netfilter 数据流，总的来说其实不太影响最终的理解，实际 netfilter 提供了 NF_IP_PRE_ROUTING、NF_IP_LOCAL_IN、NF_IP_FORWARD、NF_IP_LOCAL_OUT 和 NF_IP_POST_ROUTING 几个 HOOK 点，具体到图上：</p>
 <ul>
 <li><code>PREROUTING</code>： 对应 <code>NF_IP_PRE_ROUTING</code>，看名字就可以知道，该HOOK在收到数据包，进行路由判断之前触发；</li>
@@ -249,15 +249,15 @@
 </blockquote>
 <p>实际上 netfilter 最重要的就是提供这些 HOOK 点，针对图上的这些 HOOK 点，可以方便的注册各种处理逻辑来实现对包的处理，像常用的 LVS，也是利用了这一系列的 HOOK，来实现负载均衡功能。</p>
 <a id="more"></a>
-<h2 id="iptables">Iptables</h2>
+<h2><span id="iptables">Iptables</span></h2>
 <p>说完 netfilter 的基本信息，需要在具体说一下 iptables 的主要数据流，实际上 iptables 也是在 netfilter 上注册了一系列的 HOOK，并将这些 HOOK 通过几个 table 来管理，同样是针对上面的图，从 iptables table 这个角度来看，也可以很直观的看到iptables的所有表，到底都在 netfilter 的哪些阶段被注册了。在很的教程中，都喜欢以 table 维度来介绍数据流，个人觉得是没有从 hook 这个维度看起来清晰的。</p>
 <p>需要说明的是，因为 NAT 包含 SNAT（修改源地址）和 DNAT（修改目的地址），而这两种 NAT 发生作用的时间也是不一样的。在图上可以看到，DNAT 发生在 NF_IP_PRE_ROUTING 和 NF_IP_LOCAL_OUT 阶段，而 SNAT 发生在 NF_IP_POST_ROUTING 阶段，其实也很好理解，仔细想想就可以知道为什么是这样了。</p>
 <p>不过对于上图里，和实际不对应的地方，iptables 的 SNAT 其实也是可以在 INPUT 里实现的，而图上并没有画出来。</p>
-<h2 id="connection-tracking">Connection Tracking</h2>
+<h2><span id="connection-tracking">Connection Tracking</span></h2>
 <p>最后再说一下 Connection Tracking（连接跟踪），连接跟踪也是在 netfilter 上实现的，可以给 iptables 提供在连接的各个阶段对数据包进行操作的能力，也就是可以提供一个跟状态挂钩的服务（毕竟 TCP 链接是有状态的）。</p>
 <p>数据包进入网络栈后，只经过一些基本的检查，以及 raw 表操作之后，很快就会被连接追踪给追踪了。根据收到的包，可以根据实际情况针对性的修改追踪中的各种链接状态，当然连接追踪也是可以跳过的，只需要在 raw 表中操作数据包将数据包添加 NOTRACK 标记，那么连接跟踪将会不处理数据包和其连接。</p>
 <p>整体内容不是很多，也没有非常深入去了解所有的机制，特别是代码方面，但是一张图还是能提供非常多的信息，特别是对整体的架构了解帮助很大，具体到更多的应用，就额外再进行记录吧～</p>
-<h2 id="参考文档">参考文档</h2>
+<h2><span id="参考文档">参考文档</span></h2>
 <ol>
 <li>
 <p><a href="https://www.digitalocean.com/community/tutorials/a-deep-dive-into-iptables-and-netfilter-architecture" target="_blank" rel="noopener">https://www.digitalocean.com/community/tutorials/a-deep-dive-into-iptables-and-netfilter-architecture</a></p>
@@ -340,7 +340,7 @@
         <div id="toc" class="toc-article">
         <strong class="toc-title">Contents</strong>
         
-          <ol class="toc-nav"><li class="toc-nav-item toc-nav-level-2"><a class="toc-nav-link" href="#netfilter"><span class="toc-nav-number">1.</span> <span class="toc-nav-text">Netfilter</span></a></li><li class="toc-nav-item toc-nav-level-2"><a class="toc-nav-link" href="#iptables"><span class="toc-nav-number">2.</span> <span class="toc-nav-text">Iptables</span></a></li><li class="toc-nav-item toc-nav-level-2"><a class="toc-nav-link" href="#connection-tracking"><span class="toc-nav-number">3.</span> <span class="toc-nav-text">Connection Tracking</span></a></li><li class="toc-nav-item toc-nav-level-2"><a class="toc-nav-link" href="#参考文档"><span class="toc-nav-number">4.</span> <span class="toc-nav-text">参考文档</span></a></li></ol>
+          <ol class="toc-nav"><li class="toc-nav-item toc-nav-level-2"><a class="toc-nav-link" href="#vip-container"><span class="toc-nav-number">1.</span> <span class="toc-nav-text">Netfilter</span></a></li><li class="toc-nav-item toc-nav-level-2"><a class="toc-nav-link" href="#vip-container"><span class="toc-nav-number">2.</span> <span class="toc-nav-text">Iptables</span></a></li><li class="toc-nav-item toc-nav-level-2"><a class="toc-nav-link" href="#vip-container"><span class="toc-nav-number">3.</span> <span class="toc-nav-text">Connection Tracking</span></a></li><li class="toc-nav-item toc-nav-level-2"><a class="toc-nav-link" href="#vip-container"><span class="toc-nav-number">4.</span> <span class="toc-nav-text">参考文档</span></a></li></ol>
         
         </div>
       </aside>

@@ -232,10 +232,10 @@
 
                 <div id="vip-container"><p>flannel是CoreOS提供用于解决Dokcer集群跨主机通讯的覆盖网络工具。它的主要思路是：预先留出一个网段，每个主机使用其中一部分，然后每个容器被分配不同的ip；让所有的容器认为大家在同一个直连的网络，底层通过<code>UDP/VxLAN</code>等进行报文的封装和转发。</p>
 <p>flannel项目地址：<a href="https://github.com/coreos/flannel" target="_blank" rel="noopener">https://github.com/coreos/flannel</a></p>
-<h3 id="flannel架构介绍">flannel架构介绍</h3>
+<h3><span id="flannel架构介绍">flannel架构介绍</span></h3>
 <p>flannel默认使用8285端口作为<code>UDP</code>封装报文的端口，VxLan使用8472端口。</p>
 <a id="more"></a>
-<p><img src="https://www.hi-linux.com/img/linux/flannel-01.png" alt=""></p>
+<p><img src="https://www.hi-linux.com/img/linux/flannel-01.png" alt></p>
 <p>那么一条网络报文是怎么从一个容器发送到另外一个容器的呢？</p>
 <ol>
 <li>容器直接使用目标容器的ip访问，默认通过容器内部的eth0发送出去。</li>
@@ -249,7 +249,7 @@
 <li>查找路由表，发现对应容器的报文要交给<code>docker0</code>。</li>
 <li><code>docker0</code>找到连到自己的容器，把报文发送过去。</li>
 </ol>
-<h3 id="flannel安装配置">flannel安装配置</h3>
+<h3><span id="flannel安装配置">flannel安装配置</span></h3>
 <p><strong>环境准备</strong></p>
 <p>一共三台机器：一个etcd集群，三台机器安装flannel和Docker。</p>
 <table>
@@ -343,7 +343,7 @@
 <p>此时可以看到<code>docker0</code>的网卡ip地址已经处于<code>flannel</code>网卡网段之内。</p>
 <figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br></pre></td><td class="code"><pre><span class="line">$ ifconfig flannel0</span><br><span class="line">flannel0  Link encap:UNSPEC  HWaddr 00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00</span><br><span class="line">          inet addr:10.0.2.0  P-t-P:10.0.2.0  Mask:255.255.0.0</span><br><span class="line">          UP POINTOPOINT RUNNING NOARP MULTICAST  MTU:1472  Metric:1</span><br><span class="line">          RX packets:0 errors:0 dropped:0 overruns:0 frame:0</span><br><span class="line">          TX packets:0 errors:0 dropped:0 overruns:0 carrier:0</span><br><span class="line">          collisions:0 txqueuelen:500</span><br><span class="line">          RX bytes:0 (0.0 B)  TX bytes:0 (0.0 B)</span><br><span class="line"></span><br><span class="line">$ ifconfig docker0</span><br><span class="line">docker0   Link encap:Ethernet  HWaddr 02:42:cf:87:3c:f7</span><br><span class="line">          inet addr:10.0.2.1  Bcast:0.0.0.0  Mask:255.255.255.0</span><br><span class="line">          UP BROADCAST MULTICAST  MTU:1500  Metric:1</span><br><span class="line">          RX packets:0 errors:0 dropped:0 overruns:0 frame:0</span><br><span class="line">          TX packets:0 errors:0 dropped:0 overruns:0 carrier:0</span><br><span class="line">          collisions:0 txqueuelen:0</span><br><span class="line">          RX bytes:0 (0.0 B)  TX bytes:0 (0.0 B)</span><br></pre></td></tr></table></figure>
 <p>到此节点etcd1的flannel安装配置完成了，其它两节点按以上方法配置完成就行了。</p>
-<h3 id="测试flannel">测试flannel</h3>
+<h3><span id="测试flannel">测试flannel</span></h3>
 <p>三台机器都配置好了之后，我们在三台机器上分别开启一个docker容器，测试它们的网络是否可相互联通的。</p>
 <p><strong>etcd1</strong></p>
 <figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">$ docker run -it  busybox sh</span><br><span class="line"></span><br><span class="line"># 查看容器IP</span><br><span class="line">$ cat &#x2F;etc&#x2F;hosts</span><br><span class="line">10.0.2.2	9de86bfde6cc</span><br></pre></td></tr></table></figure>
@@ -361,7 +361,7 @@
 <figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br></pre></td><td class="code"><pre><span class="line">&#x2F; # ping -c3  10.0.5.2</span><br><span class="line">PING 10.0.5.2 (10.0.5.2): 56 data bytes</span><br><span class="line">64 bytes from 10.0.5.2: seq&#x3D;0 ttl&#x3D;60 time&#x3D;0.692 ms</span><br><span class="line">64 bytes from 10.0.5.2: seq&#x3D;1 ttl&#x3D;60 time&#x3D;0.565 ms</span><br><span class="line">64 bytes from 10.0.5.2: seq&#x3D;2 ttl&#x3D;60 time&#x3D;1.135 ms</span><br><span class="line"></span><br><span class="line">&#x2F; # ping -c3  10.0.6.2</span><br><span class="line">PING 10.0.6.2 (10.0.6.2): 56 data bytes</span><br><span class="line">64 bytes from 10.0.6.2: seq&#x3D;0 ttl&#x3D;60 time&#x3D;0.678 ms</span><br><span class="line">64 bytes from 10.0.6.2: seq&#x3D;1 ttl&#x3D;60 time&#x3D;0.907 ms</span><br><span class="line">64 bytes from 10.0.6.2: seq&#x3D;2 ttl&#x3D;60 time&#x3D;1.272 ms</span><br><span class="line"></span><br><span class="line">&#x2F; # ping -c3 10.0.2.2</span><br><span class="line">PING 10.0.2.2 (10.0.2.2): 56 data bytes</span><br><span class="line">64 bytes from 10.0.2.2: seq&#x3D;0 ttl&#x3D;60 time&#x3D;0.644 ms</span><br><span class="line">64 bytes from 10.0.2.2: seq&#x3D;1 ttl&#x3D;60 time&#x3D;0.915 ms</span><br><span class="line">64 bytes from 10.0.2.2: seq&#x3D;2 ttl&#x3D;60 time&#x3D;1.032 ms</span><br></pre></td></tr></table></figure>
 <p>测试容器到到跨宿主机容器遇到一个坑，开始怎么都不通，后找到原因是宿主机<code>iptables</code>给阻挡掉了。附：Ubuntu一键清除iptables规则脚本</p>
 <figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line">$ cat clear_iptables_rule.sh</span><br><span class="line"></span><br><span class="line">#!&#x2F;bin&#x2F;bash</span><br><span class="line"></span><br><span class="line">iptables -F</span><br><span class="line">iptables -X</span><br><span class="line">iptables -Z</span><br><span class="line">iptables -P INPUT ACCEPT</span><br><span class="line">iptables -P OUTPUT ACCEPT</span><br><span class="line">iptables -P FORWARD ACCEPT</span><br></pre></td></tr></table></figure>
-<h3 id="参考文档">参考文档</h3>
+<h3><span id="参考文档">参考文档</span></h3>
 <p><a href="http://www.google.com" target="_blank" rel="noopener">http://www.google.com</a><br>
 <a href="http://t.cn/RcnGQ02" target="_blank" rel="noopener">http://t.cn/RcnGQ02</a><br>
 <a href="http://t.cn/RXVHGpI" target="_blank" rel="noopener">http://t.cn/RXVHGpI</a><br>
@@ -440,7 +440,7 @@
         <div id="toc" class="toc-article">
         <strong class="toc-title">Contents</strong>
         
-          <ol class="toc-nav"><li class="toc-nav-item toc-nav-level-3"><a class="toc-nav-link" href="#flannel架构介绍"><span class="toc-nav-number">1.</span> <span class="toc-nav-text">flannel架构介绍</span></a></li><li class="toc-nav-item toc-nav-level-3"><a class="toc-nav-link" href="#flannel安装配置"><span class="toc-nav-number">2.</span> <span class="toc-nav-text">flannel安装配置</span></a></li><li class="toc-nav-item toc-nav-level-3"><a class="toc-nav-link" href="#测试flannel"><span class="toc-nav-number">3.</span> <span class="toc-nav-text">测试flannel</span></a></li><li class="toc-nav-item toc-nav-level-3"><a class="toc-nav-link" href="#参考文档"><span class="toc-nav-number">4.</span> <span class="toc-nav-text">参考文档</span></a></li></ol>
+          <ol class="toc-nav"><li class="toc-nav-item toc-nav-level-3"><a class="toc-nav-link" href="#vip-container"><span class="toc-nav-number">1.</span> <span class="toc-nav-text">flannel架构介绍</span></a></li><li class="toc-nav-item toc-nav-level-3"><a class="toc-nav-link" href="#vip-container"><span class="toc-nav-number">2.</span> <span class="toc-nav-text">flannel安装配置</span></a></li><li class="toc-nav-item toc-nav-level-3"><a class="toc-nav-link" href="#vip-container"><span class="toc-nav-number">3.</span> <span class="toc-nav-text">测试flannel</span></a></li><li class="toc-nav-item toc-nav-level-3"><a class="toc-nav-link" href="#vip-container"><span class="toc-nav-number">4.</span> <span class="toc-nav-text">参考文档</span></a></li></ol>
         
         </div>
       </aside>

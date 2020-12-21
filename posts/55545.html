@@ -101,9 +101,9 @@
                     <div class="post-heading">
                         <div class="tags">
                             
-                              <a class="tag" href="/tags/#Linux" title="Linux">Linux</a>
-                            
                               <a class="tag" href="/tags/#Docker" title="Docker">Docker</a>
+                            
+                              <a class="tag" href="/tags/#Linux" title="Linux">Linux</a>
                             
                         </div>
                         <h1>Docker 最佳实践之多阶段构建</h1>
@@ -234,7 +234,7 @@
 <blockquote>
 <p>Docker 多阶段构建是 17.05 以后引入的新特性，旨在解决编译和构建复杂的问题。因此要使用多阶段构建特性必须使用高于或等于 17.05 的 Docker。</p>
 </blockquote>
-<h3 id="多阶段构建出现之前">多阶段构建出现之前</h3>
+<h3><span id="多阶段构建出现之前">多阶段构建出现之前</span></h3>
 <ul>
 <li>构建镜像最具挑战性的一点是使镜像大小尽可能的小。Dockerfile 中的每条指令都为镜像添加了一个镜像层，您需要记住在移动到下一个镜像层之前清理任何不需要的组件。</li>
 <li>为了编写一个真正高效的 Dockerfile，传统上需要使用 Shell 技巧和其它逻辑来保持镜像层尽可能小，并确保每个镜像层都具有前一层所需的组件而不是其它任何东西。</li>
@@ -250,7 +250,7 @@
 <p><strong><a href="http://build.sh" target="_blank" rel="noopener">build.sh</a></strong></p>
 <figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">#!/bin/sh</span></span><br><span class="line"><span class="built_in">echo</span> Building alexellis2/href-counter:build</span><br><span class="line">docker build --build-arg https_proxy=<span class="variable">$https_proxy</span> --build-arg http_proxy=<span class="variable">$http_proxy</span> \  </span><br><span class="line">    -t alexellis2/href-counter:build . -f Dockerfile.build</span><br><span class="line">docker container create --name extract alexellis2/href-counter:build  </span><br><span class="line">docker container cp extract:/go/src/github.com/alexellis/href-counter/app ./app  </span><br><span class="line">docker container rm -f extract</span><br><span class="line"><span class="built_in">echo</span> Building alexellis2/href-counter:latest</span><br><span class="line">docker build --no-cache -t alexellis2/href-counter:latest .</span><br><span class="line">rm ./app</span><br></pre></td></tr></table></figure>
 <p>当您运行 <code>build.sh</code> 脚本时，它首先会构建第一个 Image 并从创建容器中复制编译好的程序到本地。然后在第二个 Image 中将构建好的程序运行起来。</p>
-<h3 id="使用多阶段构建">使用多阶段构建</h3>
+<h3><span id="使用多阶段构建">使用多阶段构建</span></h3>
 <p>从上面的过程中可以看到过程是非常复杂且容易出错的，多阶段构建的出现就大大简化了这种情况！</p>
 <p>对于多阶段构建，您可以在 Dockerfile 中使用多个 FROM 语句。每个 FROM 指令可以使用不同的基础镜像，并且每个 FROM 指令都会开始一个新的构建阶段。您可以选择性地将各构建阶段中的内容从一个阶段复制到另一个阶段，从而在最终 Image 中只留下您想要的内容。</p>
 <p>为了说明这是如何工作的，我们调整上述示例中的 Dockerfile 使用多阶段方式来构建。</p>
@@ -260,11 +260,11 @@
 <figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">$ docker build -t app:latest .</span><br></pre></td></tr></table></figure>
 <p>通过 <code>docker build</code> 构建后，最终结果是产生与之前相同大小的 Image，但复杂性显著降低。您不需要创建任何中间 Image，也不需要将任何编译结果临时提取到本地系统。</p>
 <p>哪它是如何工作的呢？关键就在 <code>COPY --from=0</code> 这个指令上。Dockerfile 中第二个 FROM 指令以 alpine:latest 为基础镜像开始了一个新的构建阶段，并通过 <code>COPY --from=0</code> 仅将前一阶段的构建文件复制到此阶段。前一构建阶段中产生的 Go SDK 和任何中间层都会在此阶段中被舍弃，而不是保存在最终 Image 中。</p>
-<h3 id="为多构建阶段命名">为多构建阶段命名</h3>
+<h3><span id="为多构建阶段命名">为多构建阶段命名</span></h3>
 <p>默认情况下，构建阶段是未命名的。您可以通过一个整数值来引用它们，默认是从第 0 个 FROM 指令开始的。 为了方便管理，您也可以通过向 FROM 指令添加 as NAME 来命名您的各个构建阶段。下面的示例就通过命名各个构建阶段并在 COPY 指令中使用名称来访问指定的构建阶段。</p>
 <p>这样做的好处就是即使稍后重新排序 Dockerfile 中的指令，COPY 指令一样能找到对应的构建阶段。</p>
 <figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line">FROM golang:1.7.3 as builder</span><br><span class="line">WORKDIR &#x2F;go&#x2F;src&#x2F;github.com&#x2F;alexellis&#x2F;href-counter&#x2F;</span><br><span class="line">RUN go get -d -v golang.org&#x2F;x&#x2F;net&#x2F;html  </span><br><span class="line">COPY app.go    .</span><br><span class="line">RUN CGO_ENABLED&#x3D;0 GOOS&#x3D;linux go build -a -installsuffix cgo -o app .</span><br><span class="line"></span><br><span class="line">FROM alpine:latest  </span><br><span class="line">RUN apk --no-cache add ca-certificates</span><br><span class="line">WORKDIR &#x2F;root&#x2F;</span><br><span class="line">COPY --from&#x3D;builder &#x2F;go&#x2F;src&#x2F;github.com&#x2F;alexellis&#x2F;href-counter&#x2F;app .</span><br><span class="line">CMD [&quot;.&#x2F;app&quot;]</span><br></pre></td></tr></table></figure>
-<h3 id="停在特定的构建阶段">停在特定的构建阶段</h3>
+<h3><span id="停在特定的构建阶段">停在特定的构建阶段</span></h3>
 <p>构建镜像时，不一定需要构建整个 Dockerfile 中每个阶段，您也可以指定需要构建的阶段。比如：您只构建 Dockerfile 中名为 builder 的阶段：</p>
 <figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">$ docker build --target builder -t alexellis2&#x2F;href-counter:latest .</span><br></pre></td></tr></table></figure>
 <p>此功能适合以下场景：</p>
@@ -273,7 +273,7 @@
 <li>在 Debug 阶段，启用所有程序调试模式或调试工具，而在生产阶段尽量精简。</li>
 <li>在 Testing 阶段，您的应用程序使用测试数据，但在生产阶段则使用生产数据。</li>
 </ul>
-<h3 id="使用外部镜像作为构建阶段">使用外部镜像作为构建阶段</h3>
+<h3><span id="使用外部镜像作为构建阶段">使用外部镜像作为构建阶段</span></h3>
 <p>使用多阶段构建时，您不仅可以从 Dockerfile 中创建的镜像中进行复制。您还可以使用 <code>COPY --from</code> 指令从单独的 Image 中复制，支持使用本地 Image 名称、本地或 Docker 注册中心可用的标记或标记 ID。</p>
 <figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">COPY --from&#x3D;nginx:latest &#x2F;etc&#x2F;nginx&#x2F;nginx.conf &#x2F;nginx.conf</span><br></pre></td></tr></table></figure>
 <blockquote>
@@ -350,7 +350,7 @@
         <div id="toc" class="toc-article">
         <strong class="toc-title">Contents</strong>
         
-          <ol class="toc-nav"><li class="toc-nav-item toc-nav-level-3"><a class="toc-nav-link" href="#多阶段构建出现之前"><span class="toc-nav-number">1.</span> <span class="toc-nav-text">多阶段构建出现之前</span></a></li><li class="toc-nav-item toc-nav-level-3"><a class="toc-nav-link" href="#使用多阶段构建"><span class="toc-nav-number">2.</span> <span class="toc-nav-text">使用多阶段构建</span></a></li><li class="toc-nav-item toc-nav-level-3"><a class="toc-nav-link" href="#为多构建阶段命名"><span class="toc-nav-number">3.</span> <span class="toc-nav-text">为多构建阶段命名</span></a></li><li class="toc-nav-item toc-nav-level-3"><a class="toc-nav-link" href="#停在特定的构建阶段"><span class="toc-nav-number">4.</span> <span class="toc-nav-text">停在特定的构建阶段</span></a></li><li class="toc-nav-item toc-nav-level-3"><a class="toc-nav-link" href="#使用外部镜像作为构建阶段"><span class="toc-nav-number">5.</span> <span class="toc-nav-text">使用外部镜像作为构建阶段</span></a></li></ol>
+          <ol class="toc-nav"><li class="toc-nav-item toc-nav-level-3"><a class="toc-nav-link" href="#vip-container"><span class="toc-nav-number">1.</span> <span class="toc-nav-text">多阶段构建出现之前</span></a></li><li class="toc-nav-item toc-nav-level-3"><a class="toc-nav-link" href="#vip-container"><span class="toc-nav-number">2.</span> <span class="toc-nav-text">使用多阶段构建</span></a></li><li class="toc-nav-item toc-nav-level-3"><a class="toc-nav-link" href="#vip-container"><span class="toc-nav-number">3.</span> <span class="toc-nav-text">为多构建阶段命名</span></a></li><li class="toc-nav-item toc-nav-level-3"><a class="toc-nav-link" href="#vip-container"><span class="toc-nav-number">4.</span> <span class="toc-nav-text">停在特定的构建阶段</span></a></li><li class="toc-nav-item toc-nav-level-3"><a class="toc-nav-link" href="#vip-container"><span class="toc-nav-number">5.</span> <span class="toc-nav-text">使用外部镜像作为构建阶段</span></a></li></ol>
         
         </div>
       </aside>
@@ -370,9 +370,9 @@
                     <h5><a href="/tags/">FEATURED TAGS</a></h5>
                     <div class="tags">
                        
-                          <a class="tag" href="/tags/#Linux" title="Linux">Linux</a>
-                        
                           <a class="tag" href="/tags/#Docker" title="Docker">Docker</a>
+                        
+                          <a class="tag" href="/tags/#Linux" title="Linux">Linux</a>
                         
                     </div>
                 </section>

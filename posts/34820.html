@@ -232,23 +232,23 @@
 
                 <div id="vip-container"><p>私有云裸金属架构（这里是相对云上环境来说，不是说无操作系统）上部署的 Kubernetes 集群，通常是无法使用 LoadBalancer 类型的 Service 的。因为 Kubernetes 本身没有为裸机群集提供网络负载均衡器（类型为 LoadBalancer 的服务）的实现。如果你的 Kubernetes 集群没有在公有云的 IaaS 平台（GCP，AWS，Azure …）上运行，则 LoadBalancers 将在创建时无限期地保持 “挂起” 状态，也就是说只有公有云厂商自家的 Kubernetes 支持 LoadBalancer 。</p>
 <p>为了从外部访问裸机 Kubernetes 群集，目前只能使用 <code>NodePort</code> 或 <code>Ingress</code> 的方法进行服务暴露。前者的缺点是每个暴露的服务需要占用所有节点的某个端口，后者的缺点是仅仅能支持 <code>HTTP</code> 协议。</p>
-<h2 id="什么是-metallb">什么是 MetalLB</h2>
+<h2><span id="什么是-metallb">什么是 MetalLB</span></h2>
 <p><code>MetalLB</code> 是一个负载均衡器，专门解决裸金属 Kubernetes 集群中无法使用 <code>LoadBalancer</code> 类型服务的痛点。<code>MetalLB</code> 使用标准化的路由协议，以便裸金属 Kubernetes 集群上的外部服务也尽可能地工作。即 MetalLB 能够帮助你在裸金属 Kubernetes 集群中创建 LoadBalancer 类型的 Kubernetes 服务，该项目发布于 2017 年底，当前处于 <code>Beta</code> 阶段。</p>
 <blockquote>
 <p>项目地址：<a href="https://github.com/danderson/metallb" target="_blank" rel="noopener">https://github.com/danderson/metallb</a></p>
 </blockquote>
-<h2 id="metallb-工作原理">MetalLB 工作原理</h2>
+<h2><span id="metallb-工作原理">MetalLB 工作原理</span></h2>
 <p>MetalLB 会在 Kubernetes 内运行，监控服务对象的变化，一旦监测到有新的 LoadBalancer 服务运行，并且没有可申请的负载均衡器之后，就会完成地址分配和外部声明两部分的工作。</p>
-<h3 id="地址分配">地址分配</h3>
+<h3><span id="地址分配">地址分配</span></h3>
 <p>在云环境中，当你请求一个负载均衡器时，云平台会自动分配一个负载均衡器的 IP 地址给你，应用程序通过此 IP 来访问经过负载均衡处理的服务。</p>
 <p>使用 MetalLB 时，MetalLB 会自己为用户的 LoadBalancer 类型 Service 分配 IP 地址，当然该 IP 地址不是凭空产生的，需要用户在配置中提供一个 IP 地址池，Metallb 将会在其中选取地址分配给服务。</p>
-<h3 id="外部声明">外部声明</h3>
+<h3><span id="外部声明">外部声明</span></h3>
 <p>MetalLB 将 IP 分配给某个服务后，它需要对外宣告此 IP 地址，并让外部主机可以路由到此 IP。</p>
 <p>MetalLB 支持两种声明模式：Layer 2（ ARP / NDP ）模式或者 BGP 模式。</p>
 <ol>
 <li>Layer 2 模式</li>
 </ol>
-<p><img src="https://kubernetes.github.io/ingress-nginx/images/baremetal/metallb.jpg" alt=""></p>
+<p><img src="https://kubernetes.github.io/ingress-nginx/images/baremetal/metallb.jpg" alt></p>
 <p>在任何以太网环境均可使用该模式。当在第二层工作时，将有一台机器获得 IP 地址（即服务的所有权）。MetalLB 使用标准的地址发现协议（对于 IPv4 是 ARP，对于 IPv6 是 NDP）宣告 IP 地址，使其在本地网路中可达。从 LAN 的角度来看，仅仅是某台机器多配置了一个 IP 地址。</p>
 <p>Layer 2 模式下，每个 Service 会有集群中的一个 Node 来负责。服务的入口流量全部经由单个节点，然后该节点的 Kube-Proxy 会把流量再转发给服务的 Pods。也就是说，该模式下 MetalLB 并没有真正提供负载均衡器。尽管如此，MetalLB 提供了故障转移功能，如果持有 IP 的节点出现故障，则默认 10 秒后即发生故障转移，IP 会被分配给其它健康的节点。</p>
 <p>Layer 2 模式的优缺点：</p>
@@ -291,8 +291,8 @@
 </li>
 </ul>
 <a id="more"></a>
-<h2 id="部署-metallb">部署 MetalLB</h2>
-<h3 id="环境要求">环境要求</h3>
+<h2><span id="部署-metallb">部署 MetalLB</span></h2>
+<h3><span id="环境要求">环境要求</span></h3>
 <p>根据部署模式不同，MetalLB 可能需要以下环境：</p>
 <ol>
 <li>
@@ -342,9 +342,9 @@
 <blockquote>
 <p>从 Kubernetes 1.9 开始, Kube-Proxy 除了支持默认的 Iptables 模式之外，还支持更高效的 IPVS 模式。MetalLB 可以在Kubenetes 1.13 或更高版本的 Kube-Proxy 中使用 IPVS 模式。但是,它尚未明确测试，因此风险自负。具体内容可参考：<a href="https://github.com/google/metallb/issues/153" target="_blank" rel="noopener">https://github.com/google/metallb/issues/153</a></p>
 </blockquote>
-<h3 id="安装-metallb">安装 MetalLB</h3>
+<h3><span id="安装-metallb">安装 MetalLB</span></h3>
 <p>安装 MetalLB 一共有两种方法：使用 Kubernetes YAML 文件或使用 Helm 包管理器。</p>
-<h4 id="使用-yaml-文件部署">使用 YAML 文件部署</h4>
+<h4><span id="使用-yaml-文件部署">使用 YAML 文件部署</span></h4>
 <figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"># 目前 MetalLB 最新版本为 0.8.1</span><br><span class="line">$ kubectl apply -f https:&#x2F;&#x2F;raw.githubusercontent.com&#x2F;google&#x2F;metallb&#x2F;v0.8.1&#x2F;manifests&#x2F;metallb.yaml</span><br></pre></td></tr></table></figure>
 <p>部署完成后，将在 <code>metallb-system</code> 命名空间下将 MetalLB 部署到集群。YAML 文件中主要包含以下一些组件：</p>
 <ol>
@@ -361,15 +361,15 @@
 <blockquote>
 <p>通过 YAML 安装文件部署并不包含 MetalLB 配置文件，但 MetalLB 的组件仍能启动，但在你定义和部署 <code>configmap</code> 之前将保持空闲状态 。</p>
 </blockquote>
-<h4 id="使用-helm-部署">使用 Helm 部署</h4>
+<h4><span id="使用-helm-部署">使用 Helm 部署</span></h4>
 <figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">$ helm install --name metallb stable&#x2F;metallb</span><br></pre></td></tr></table></figure>
 <p>如果你还不知道什么是 Helm，可以先参考 <a href="https://mp.weixin.qq.com/s?__biz=MzI3MTI2NzkxMA==&amp;mid=2247486154&amp;idx=1&amp;sn=becd5dd0fadfe0b6072f5dfdc6fdf786&amp;chksm=eac52be3ddb2a2f555b8b1028db97aa3e92d0a4880b56f361e4b11cd252771147c44c08c8913&amp;token=1182029777&amp;lang=zh_CN#rd" target="_blank" rel="noopener">「Helm 入门指南」</a> 一文。</p>
-<h2 id="配置-metallb">配置 MetalLB</h2>
+<h2><span id="配置-metallb">配置 MetalLB</span></h2>
 <p>MetalLB 安装完成后，我们还需要根据具体的地址和通告方式配置名为 <code>metallb-system/config</code> 的 ConfigMap。Controller 会读取该 ConfigMap，并重新加载配置。</p>
 <blockquote>
 <p>通过 Helm 安装时，MetalLB 读取的 ConfigMap 名为 metallb-config 。</p>
 </blockquote>
-<h3 id="配置-metallb-为二层模式">配置 MetalLB 为二层模式</h3>
+<h3><span id="配置-metallb-为二层模式">配置 MetalLB 为二层模式</span></h3>
 <p>第二层模式是最简单的配置方式：在许多情况下，您不需要任何特定于协议的配置，只需要 IP 地址。</p>
 <p>第二层模式不要求将 IP 绑定到工作节点的网络接口。它的工作原理是直接响应本地网络上的 ARP 请求，将机器的 MAC 地址提供给客户端。</p>
 <p>下面我们来看一个实际例子，我们将配置一个由 MetalLB 二层模式控制的外部 IP 段为 192.168.1.240 - 192.168.1.250。</p>
@@ -387,7 +387,7 @@
 <p>最后，我们通过 <code>curl http://192.168.0.10</code> 命令来验证下，发现可以正常显示 Nginx 的欢迎信息。</p>
 <figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line">&lt;!DOCTYPE html&gt;</span><br><span class="line">&lt;html&gt;</span><br><span class="line">&lt;head&gt;</span><br><span class="line">&lt;title&gt;Welcome to nginx!&lt;&#x2F;title&gt;</span><br><span class="line">................</span><br><span class="line">&lt;p&gt;&lt;em&gt;Thank you for using nginx.&lt;&#x2F;em&gt;&lt;&#x2F;p&gt;</span><br><span class="line">&lt;&#x2F;body&gt;</span><br><span class="line">&lt;&#x2F;html&gt;</span><br></pre></td></tr></table></figure>
 <p>至此，<code>MetalLB Layer 2</code> 模式的配置就结束了。</p>
-<h3 id="配置-metallb-为-bgp-模式">配置 MetalLB 为 BGP 模式</h3>
+<h3><span id="配置-metallb-为-bgp-模式">配置 MetalLB 为 BGP 模式</span></h3>
 <p>对于配置为具有一个 <code>BGP</code> 路由器和一个 IP 地址范围的 BGP 模式，你需要先准备好以下 4 条配置信息：</p>
 <ol>
 <li>
@@ -406,9 +406,9 @@
 <p>由于这种配置方式需要具备 BGP 功能的硬件路由器支持，目前我们环境中不具备此等条件。这里就简单说下 MetalLB 对应的配置方式，具体内容就不展开讲解了。</p>
 <p>由于前面已经安装了 MetalLB 的 <code>Controller</code> 和 <code>Speaker</code>，只是使用的是 Layer 2 模式。这里只需要改为 BGP 模式，我们修改 Configmap 中 Config 配置就可以了。</p>
 <figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br></pre></td><td class="code"><pre><span class="line"># 假如要为 MetalLB 提供范围 192.168.9.0&#x2F;24 和 AS 号 65009，并将其连接到 192.168.0.1 的 AS 号为 65000 的路由器。</span><br><span class="line">$ cat MetalLB-BGP-Config.yaml</span><br><span class="line"></span><br><span class="line">apiVersion: v1</span><br><span class="line">kind: ConfigMap</span><br><span class="line">metadata:</span><br><span class="line">  namespace: metallb-system</span><br><span class="line">  name: config</span><br><span class="line">data:</span><br><span class="line">  config: |</span><br><span class="line">    peers:</span><br><span class="line">    - peer-address: 192.168.0.1</span><br><span class="line">      peer-asn: 65000</span><br><span class="line">      my-asn: 65009</span><br><span class="line">    address-pools:</span><br><span class="line">    - name: default</span><br><span class="line">      protocol: bgp</span><br><span class="line">      addresses:</span><br><span class="line">      #- 192.168.0.10-192.168.0.100</span><br><span class="line">      - 192.168.9.0&#x2F;24</span><br></pre></td></tr></table></figure>
-<h2 id="总结">总结</h2>
+<h2><span id="总结">总结</span></h2>
 <p>本文简单介绍了 MetalLB 的用途以及 MetalLB 的两种部署模式：Layer 2 模式和 BGP 模式。在实际应用中，如果条件满足，推荐使用 BGP 模式。</p>
-<h2 id="参考资料">参考资料</h2>
+<h2><span id="参考资料">参考资料</span></h2>
 <ol>
 <li>
 <p><a href="http://www.google.com" target="_blank" rel="noopener">http://www.google.com</a></p>
@@ -512,7 +512,7 @@
         <div id="toc" class="toc-article">
         <strong class="toc-title">Contents</strong>
         
-          <ol class="toc-nav"><li class="toc-nav-item toc-nav-level-2"><a class="toc-nav-link" href="#什么是-metallb"><span class="toc-nav-number">1.</span> <span class="toc-nav-text">什么是 MetalLB</span></a></li><li class="toc-nav-item toc-nav-level-2"><a class="toc-nav-link" href="#metallb-工作原理"><span class="toc-nav-number">2.</span> <span class="toc-nav-text">MetalLB 工作原理</span></a><ol class="toc-nav-child"><li class="toc-nav-item toc-nav-level-3"><a class="toc-nav-link" href="#地址分配"><span class="toc-nav-number">2.1.</span> <span class="toc-nav-text">地址分配</span></a></li><li class="toc-nav-item toc-nav-level-3"><a class="toc-nav-link" href="#外部声明"><span class="toc-nav-number">2.2.</span> <span class="toc-nav-text">外部声明</span></a></li></ol></li><li class="toc-nav-item toc-nav-level-2"><a class="toc-nav-link" href="#部署-metallb"><span class="toc-nav-number">3.</span> <span class="toc-nav-text">部署 MetalLB</span></a><ol class="toc-nav-child"><li class="toc-nav-item toc-nav-level-3"><a class="toc-nav-link" href="#环境要求"><span class="toc-nav-number">3.1.</span> <span class="toc-nav-text">环境要求</span></a></li><li class="toc-nav-item toc-nav-level-3"><a class="toc-nav-link" href="#安装-metallb"><span class="toc-nav-number">3.2.</span> <span class="toc-nav-text">安装 MetalLB</span></a><ol class="toc-nav-child"><li class="toc-nav-item toc-nav-level-4"><a class="toc-nav-link" href="#使用-yaml-文件部署"><span class="toc-nav-number">3.2.1.</span> <span class="toc-nav-text">使用 YAML 文件部署</span></a></li><li class="toc-nav-item toc-nav-level-4"><a class="toc-nav-link" href="#使用-helm-部署"><span class="toc-nav-number">3.2.2.</span> <span class="toc-nav-text">使用 Helm 部署</span></a></li></ol></li></ol></li><li class="toc-nav-item toc-nav-level-2"><a class="toc-nav-link" href="#配置-metallb"><span class="toc-nav-number">4.</span> <span class="toc-nav-text">配置 MetalLB</span></a><ol class="toc-nav-child"><li class="toc-nav-item toc-nav-level-3"><a class="toc-nav-link" href="#配置-metallb-为二层模式"><span class="toc-nav-number">4.1.</span> <span class="toc-nav-text">配置 MetalLB 为二层模式</span></a></li><li class="toc-nav-item toc-nav-level-3"><a class="toc-nav-link" href="#配置-metallb-为-bgp-模式"><span class="toc-nav-number">4.2.</span> <span class="toc-nav-text">配置 MetalLB 为 BGP 模式</span></a></li></ol></li><li class="toc-nav-item toc-nav-level-2"><a class="toc-nav-link" href="#总结"><span class="toc-nav-number">5.</span> <span class="toc-nav-text">总结</span></a></li><li class="toc-nav-item toc-nav-level-2"><a class="toc-nav-link" href="#参考资料"><span class="toc-nav-number">6.</span> <span class="toc-nav-text">参考资料</span></a></li></ol>
+          <ol class="toc-nav"><li class="toc-nav-item toc-nav-level-2"><a class="toc-nav-link" href="#vip-container"><span class="toc-nav-number">1.</span> <span class="toc-nav-text">什么是 MetalLB</span></a></li><li class="toc-nav-item toc-nav-level-2"><a class="toc-nav-link" href="#vip-container"><span class="toc-nav-number">2.</span> <span class="toc-nav-text">MetalLB 工作原理</span></a><ol class="toc-nav-child"><li class="toc-nav-item toc-nav-level-3"><a class="toc-nav-link" href="#vip-container"><span class="toc-nav-number">2.1.</span> <span class="toc-nav-text">地址分配</span></a></li><li class="toc-nav-item toc-nav-level-3"><a class="toc-nav-link" href="#vip-container"><span class="toc-nav-number">2.2.</span> <span class="toc-nav-text">外部声明</span></a></li></ol></li><li class="toc-nav-item toc-nav-level-2"><a class="toc-nav-link" href="#vip-container"><span class="toc-nav-number">3.</span> <span class="toc-nav-text">部署 MetalLB</span></a><ol class="toc-nav-child"><li class="toc-nav-item toc-nav-level-3"><a class="toc-nav-link" href="#vip-container"><span class="toc-nav-number">3.1.</span> <span class="toc-nav-text">环境要求</span></a></li><li class="toc-nav-item toc-nav-level-3"><a class="toc-nav-link" href="#vip-container"><span class="toc-nav-number">3.2.</span> <span class="toc-nav-text">安装 MetalLB</span></a><ol class="toc-nav-child"><li class="toc-nav-item toc-nav-level-4"><a class="toc-nav-link" href="#vip-container"><span class="toc-nav-number">3.2.1.</span> <span class="toc-nav-text">使用 YAML 文件部署</span></a></li><li class="toc-nav-item toc-nav-level-4"><a class="toc-nav-link" href="#vip-container"><span class="toc-nav-number">3.2.2.</span> <span class="toc-nav-text">使用 Helm 部署</span></a></li></ol></li></ol></li><li class="toc-nav-item toc-nav-level-2"><a class="toc-nav-link" href="#vip-container"><span class="toc-nav-number">4.</span> <span class="toc-nav-text">配置 MetalLB</span></a><ol class="toc-nav-child"><li class="toc-nav-item toc-nav-level-3"><a class="toc-nav-link" href="#vip-container"><span class="toc-nav-number">4.1.</span> <span class="toc-nav-text">配置 MetalLB 为二层模式</span></a></li><li class="toc-nav-item toc-nav-level-3"><a class="toc-nav-link" href="#vip-container"><span class="toc-nav-number">4.2.</span> <span class="toc-nav-text">配置 MetalLB 为 BGP 模式</span></a></li></ol></li><li class="toc-nav-item toc-nav-level-2"><a class="toc-nav-link" href="#vip-container"><span class="toc-nav-number">5.</span> <span class="toc-nav-text">总结</span></a></li><li class="toc-nav-item toc-nav-level-2"><a class="toc-nav-link" href="#vip-container"><span class="toc-nav-number">6.</span> <span class="toc-nav-text">参考资料</span></a></li></ol>
         
         </div>
       </aside>

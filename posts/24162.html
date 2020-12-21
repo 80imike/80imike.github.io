@@ -230,7 +230,7 @@
                 col-md-10 col-md-offset-1
                 post-container">
 
-                <div id="vip-container"><h3 id="http2简介">HTTP/2简介</h3>
+                <div id="vip-container"><h3><span id="http2简介">HTTP/2简介</span></h3>
 <p><code>HTTP/2</code>（超文本传输协议第2版，最初命名为 HTTP 2.0），是HTTP协议的的第二个主要版本，使用于万维网。<code>HTTP/2</code> 是 HTTP 协议自 1999 年 HTTP 1.1 发布后的首个更新，主要基于 SPDY 协议。它由互联网工程任务组 (IETF) 的 <code>Hypertext Transfer Protocol Bis</code> (httpbis) 工作小组进行开发。该组织于2014年12月将 <code>HTTP/2</code> 标准提议递交至IESG进行讨论，于2015年2月17日被批准。<code>HTTP/2</code> 标准于2015年5月以 <code>RFC 7540</code> 正式发表。</p>
 <p><strong>HTTP/2优点</strong></p>
 <ul>
@@ -257,17 +257,17 @@
 </ul>
 <p><strong>为什么不是HTTP/1.2</strong></p>
 <p>为了实现 HTTP 工作组设定的性能目标，<code>HTTP/2</code> 引入了一个新的二进制分帧层，该层无法与之前的 <code>HTTP/1.x</code> 服务器和客户端向后兼容，因此协议的主版本提升到 <code>HTTP/2</code>。</p>
-<h3 id="在nginx上启用http2">在Nginx上启用HTTP/2</h3>
+<h3><span id="在nginx上启用http2">在Nginx上启用HTTP/2</span></h3>
 <p>在 Nginx 上 开启 <code>HTTP/2</code> 需要 Nginx 1.9.5 以上版本，并且需要 <code>OpenSSL</code> 版本在 1.0.2 以上。</p>
 <p>因为 <code>HTTP/2</code> 不仅需要Web服务器还需要一个扩展支持，目前可以用的有 <code>ALPN</code> 和 <code> NPN</code> 两种(Chrome 已经移除了对 <code>NPN</code> 的支持)。只有 OpenSSL 1.0.2 以上版本才开始支持 <code>ALPN</code> 。</p>
-<h4 id="升级openssl">升级OpenSSL</h4>
+<h4><span id="升级openssl">升级OpenSSL</span></h4>
 <p>如果你系统的 OpenSSL 版本低于 1.0.2，就必须先升级 OpenSSL 版本。通常 CentOS 系的版本会低一些，需要单独升级。这部分内容就不在本文展开讲了，后面单独写一篇 CentOS 下 OpenSSL 升级的文章。</p>
 <ul>
 <li>查看OpenSSL版本</li>
 </ul>
 <p>我这里的环境是Ubuntu 16.04，系统默认的 OpenSSL 版本是 1.0.2 的。</p>
 <figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">$ openssl version</span><br><span class="line">OpenSSL 1.0.2g  1 Mar 2016</span><br></pre></td></tr></table></figure>
-<h4 id="安装nginx">安装Nginx</h4>
+<h4><span id="安装nginx">安装Nginx</span></h4>
 <ul>
 <li>下载对应软件包</li>
 </ul>
@@ -281,13 +281,13 @@
 <li>验证Nginx和编译用到的OpenSSL版本</li>
 </ul>
 <figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">$ .&#x2F;nginx -V</span><br><span class="line">nginx version: nginx&#x2F;1.12.0</span><br><span class="line">built by gcc 5.4.0 20160609 (Ubuntu 5.4.0-6ubuntu1~16.04.4)</span><br><span class="line">built with OpenSSL 1.0.2g  1 Mar 2016</span><br><span class="line">TLS SNI support enabled</span><br><span class="line">configure arguments: --with-http_ssl_module --with-http_v2_module</span><br></pre></td></tr></table></figure>
-<h4 id="修改nginx配置">修改Nginx配置</h4>
+<h4><span id="修改nginx配置">修改Nginx配置</span></h4>
 <p>配置 Nginx 开启 <code>HTTP/2</code> 特别简单，在 <code>server</code> 配置段中的 <code>listen</code> 后增加 <code>http2</code> 即可。</p>
 <figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line">$ vim &#x2F;usr&#x2F;local&#x2F;nginx&#x2F;conf&#x2F;nginx.conf</span><br><span class="line"></span><br><span class="line">server &#123;</span><br><span class="line">  listen 443 ssl http2;</span><br><span class="line">  server_name www.hi-linux.com;</span><br><span class="line">  ...</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
 <p>重启 Nginx 后，让配置生效。</p>
 <figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">$ cd &#x2F;usr&#x2F;local&#x2F;nginx&#x2F;sbin</span><br><span class="line">$ .&#x2F;nginx -s reload</span><br></pre></td></tr></table></figure>
 <p>注意： <code>HTTP/2</code> 得在 HTTPS 下面工作，虽然 <code>HTTP/2</code> 本身可以在非 HTTPS 下面工作，但目前还没有浏览器支持！</p>
-<h4 id="验证http2">验证HTTP/2</h4>
+<h4><span id="验证http2">验证HTTP/2</span></h4>
 <p>验证 <code>HTTP/2</code> 是否已生效，可通过以下两种方法：</p>
 <ul>
 <li>
@@ -297,7 +297,7 @@
 <p>在 Chrome 浏览器中输入：: <code>chrome://net-internals/#http2</code> 便可以查看 HTTP/2 sessions。</p>
 </li>
 </ul>
-<h4 id="浏览器支持">浏览器支持</h4>
+<h4><span id="浏览器支持">浏览器支持</span></h4>
 <p>开启了 <code>HTTP/2</code> 以后，低版本浏览器也是可正常访问的！如果客户端不支持 <code>HTTP/2</code> Nginx 会自动向下兼容 <code>HTTP 1.1</code>。</p>
 <p>目前支持 <code>HTTP/2</code> 浏览器列表</p>
 <ul>
@@ -309,7 +309,7 @@
 </li>
 </ul>
 <p>更详细的浏览器列表可参考：<a href="http://caniuse.com/#feat=http2" target="_blank" rel="noopener">http://caniuse.com/#feat=http2</a></p>
-<h3 id="参考文档">参考文档</h3>
+<h3><span id="参考文档">参考文档</span></h3>
 <p><a href="http://www.google.com" target="_blank" rel="noopener">http://www.google.com</a><br>
 <a href="https://www.phpsong.com/2818.html" target="_blank" rel="noopener">https://www.phpsong.com/2818.html</a><br>
 <a href="https://zh.wikipedia.org/wiki/HTTP/2" target="_blank" rel="noopener">https://zh.wikipedia.org/wiki/HTTP/2</a><br>
@@ -385,7 +385,7 @@
         <div id="toc" class="toc-article">
         <strong class="toc-title">Contents</strong>
         
-          <ol class="toc-nav"><li class="toc-nav-item toc-nav-level-3"><a class="toc-nav-link" href="#http2简介"><span class="toc-nav-number">1.</span> <span class="toc-nav-text">HTTP&#x2F;2简介</span></a></li><li class="toc-nav-item toc-nav-level-3"><a class="toc-nav-link" href="#在nginx上启用http2"><span class="toc-nav-number">2.</span> <span class="toc-nav-text">在Nginx上启用HTTP&#x2F;2</span></a><ol class="toc-nav-child"><li class="toc-nav-item toc-nav-level-4"><a class="toc-nav-link" href="#升级openssl"><span class="toc-nav-number">2.1.</span> <span class="toc-nav-text">升级OpenSSL</span></a></li><li class="toc-nav-item toc-nav-level-4"><a class="toc-nav-link" href="#安装nginx"><span class="toc-nav-number">2.2.</span> <span class="toc-nav-text">安装Nginx</span></a></li><li class="toc-nav-item toc-nav-level-4"><a class="toc-nav-link" href="#修改nginx配置"><span class="toc-nav-number">2.3.</span> <span class="toc-nav-text">修改Nginx配置</span></a></li><li class="toc-nav-item toc-nav-level-4"><a class="toc-nav-link" href="#验证http2"><span class="toc-nav-number">2.4.</span> <span class="toc-nav-text">验证HTTP&#x2F;2</span></a></li><li class="toc-nav-item toc-nav-level-4"><a class="toc-nav-link" href="#浏览器支持"><span class="toc-nav-number">2.5.</span> <span class="toc-nav-text">浏览器支持</span></a></li></ol></li><li class="toc-nav-item toc-nav-level-3"><a class="toc-nav-link" href="#参考文档"><span class="toc-nav-number">3.</span> <span class="toc-nav-text">参考文档</span></a></li></ol>
+          <ol class="toc-nav"><li class="toc-nav-item toc-nav-level-3"><a class="toc-nav-link" href="#vip-container"><span class="toc-nav-number">1.</span> <span class="toc-nav-text">HTTP&#x2F;2简介</span></a></li><li class="toc-nav-item toc-nav-level-3"><a class="toc-nav-link" href="#vip-container"><span class="toc-nav-number">2.</span> <span class="toc-nav-text">在Nginx上启用HTTP&#x2F;2</span></a><ol class="toc-nav-child"><li class="toc-nav-item toc-nav-level-4"><a class="toc-nav-link" href="#vip-container"><span class="toc-nav-number">2.1.</span> <span class="toc-nav-text">升级OpenSSL</span></a></li><li class="toc-nav-item toc-nav-level-4"><a class="toc-nav-link" href="#vip-container"><span class="toc-nav-number">2.2.</span> <span class="toc-nav-text">安装Nginx</span></a></li><li class="toc-nav-item toc-nav-level-4"><a class="toc-nav-link" href="#vip-container"><span class="toc-nav-number">2.3.</span> <span class="toc-nav-text">修改Nginx配置</span></a></li><li class="toc-nav-item toc-nav-level-4"><a class="toc-nav-link" href="#vip-container"><span class="toc-nav-number">2.4.</span> <span class="toc-nav-text">验证HTTP&#x2F;2</span></a></li><li class="toc-nav-item toc-nav-level-4"><a class="toc-nav-link" href="#vip-container"><span class="toc-nav-number">2.5.</span> <span class="toc-nav-text">浏览器支持</span></a></li></ol></li><li class="toc-nav-item toc-nav-level-3"><a class="toc-nav-link" href="#vip-container"><span class="toc-nav-number">3.</span> <span class="toc-nav-text">参考文档</span></a></li></ol>
         
         </div>
       </aside>

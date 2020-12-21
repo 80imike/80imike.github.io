@@ -230,19 +230,19 @@
                 col-md-10 col-md-offset-1
                 post-container">
 
-                <div id="vip-container"><h3 id="背景">背景</h3>
+                <div id="vip-container"><h3><span id="背景">背景</span></h3>
 <p>最近 Nginx 官网发布了 Nginx 1.13.4，Nginx 1.13.4 中新增了一个 <code>ngx_http_mirror_module</code> 模块。通过 mirror 模块，可实现对原始请求创建后台镜像，镜像子请求的输出会被忽略。</p>
 <p>利用这一功能我们就可以将线上实时访问流量拷贝至其他环境，基于这些流量可以做版本发布前的预先验证或者进行流量放大后的压测等等。</p>
 <a id="more"></a>
-<h3 id="mirror-模块配置">mirror 模块配置</h3>
+<h3><span id="mirror-模块配置">mirror 模块配置</span></h3>
 <p>在这之前与这一功能类似的软件有：<a href="https://github.com/session-replay-tools/tcpcopy" target="_blank" rel="noopener">TCPCopy</a>等，Nginx 自身支持后使用起来就更加方便了。下面我们来看看具体的如何配置：</p>
-<h4 id="编译安装-nginx">编译安装 Nginx</h4>
+<h4><span id="编译安装-nginx">编译安装 Nginx</span></h4>
 <p>mirror 模块在 Nginx 1.13.4中默认是启用的，如果要禁用这个功能可在编译时加上 <code>--without-http_mirror_module</code>参数。</p>
 <figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">$ apt-get install libreadline-dev libncurses5-dev libpcre3-dev libssl-dev perl make build-essential</span><br><span class="line">$ wget http:&#x2F;&#x2F;nginx.org&#x2F;download&#x2F;nginx-1.13.4.tar.gz</span><br><span class="line">$ tar xzvf nginx-1.13.4.tar.gz</span><br><span class="line">$ cd nginx-1.13.4&#x2F;</span><br><span class="line">$ .&#x2F;configure</span><br><span class="line">$ make &amp;&amp; make install</span><br></pre></td></tr></table></figure>
 <p>mirror 模块配置分为两部分：源地址和镜像地址配置。配置位置可以为 Nginx 配置文件的 <code>http</code>, <code>server</code>, <code>location</code>的上下文中，配置示例为：</p>
 <figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line"># original配置</span><br><span class="line">location &#x2F; &#123;</span><br><span class="line">    mirror &#x2F;mirror;</span><br><span class="line">    mirror_request_body off;</span><br><span class="line">    proxy_pass http:&#x2F;&#x2F;127.0.0.1:9502;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"># mirror配置</span><br><span class="line">location &#x2F;mirror &#123;</span><br><span class="line">    internal;</span><br><span class="line">    proxy_pass http:&#x2F;&#x2F;127.0.0.1:8081$request_uri;</span><br><span class="line">    proxy_set_header X-Original-URI $request_uri;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
 <p>在这个示例中我们配置了两组后台服务器，<code>http://127.0.0.1:9502</code> 指向生产服务器， <code>http://127.0.0.1:8081</code>指向测试服务器。用户访问生产服务器的同时，请求会被 Nginx 复制发送给测试服务器，需要注意的一点是 mirror 不会输出 http 返回内容。</p>
-<h4 id="original-配置说明">original 配置说明</h4>
+<h4><span id="original-配置说明">original 配置说明</span></h4>
 <ul>
 <li>location /</li>
 </ul>
@@ -259,7 +259,7 @@
 <li>proxy_pass</li>
 </ul>
 <p>指定上游 Server 的地址。</p>
-<h4 id="mirror-配置说明">mirror 配置说明</h4>
+<h4><span id="mirror-配置说明">mirror 配置说明</span></h4>
 <ul>
 <li>internal</li>
 </ul>
@@ -272,12 +272,12 @@
 <li>proxy_set_header</li>
 </ul>
 <p>设置镜像流量的头部。</p>
-<h4 id="验证">验证</h4>
-<p><img src="https://www.hi-linux.com/img/linux/ngx_mirror1.png" alt=""></p>
+<h4><span id="验证">验证</span></h4>
+<p><img src="https://www.hi-linux.com/img/linux/ngx_mirror1.png" alt></p>
 <p>按照上述配置，搭建了上图所示的验证环境，各个模块均部署在本机，由curl发起请求：</p>
 <figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">$ curl 127.0.0.1</span><br></pre></td></tr></table></figure>
 <p>original 和 mirror 均为上游 Server PHP 脚本，其中 original 返回响应 response to client。 抓包结果如下图:</p>
-<p><img src="https://www.hi-linux.com/img/linux/ngx_mirror2.png" alt=""></p>
+<p><img src="https://www.hi-linux.com/img/linux/ngx_mirror2.png" alt></p>
 <p>分析抓包结果，整个请求流程为：</p>
 <ul>
 <li>curl 向 Nginx 80 端口发起 GET / HTTP 请求。</li>
@@ -288,12 +288,12 @@
 <li>mirror将响应发送至nginx，nginx丢弃。</li>
 </ul>
 <p>由此可见，在整个流程中 Nginx 将请求转发送至 original 和 mirror，然后等待响应。几乎不会对正常请求造成影响，整个处理过程是完全异步的。</p>
-<h3 id="mirror-模块实现">mirror 模块实现</h3>
+<h3><span id="mirror-模块实现">mirror 模块实现</span></h3>
 <figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br></pre></td><td class="code"><pre><span class="line">static ngx_int_t</span><br><span class="line">ngx_http_mirror_handler_internal(ngx_http_request_t *r)</span><br><span class="line">&#123;</span><br><span class="line">    ngx_str_t                   *name;</span><br><span class="line">    ngx_uint_t                   i;</span><br><span class="line">    ngx_http_request_t          *sr;</span><br><span class="line">    ngx_http_mirror_loc_conf_t  *mlcf;</span><br><span class="line"></span><br><span class="line">    mlcf &#x3D; ngx_http_get_module_loc_conf(r, ngx_http_mirror_module);</span><br><span class="line"></span><br><span class="line">    name &#x3D; mlcf-&gt;mirror-&gt;elts;</span><br><span class="line"></span><br><span class="line">    for (i &#x3D; 0; i &lt; mlcf-&gt;mirror-&gt;nelts; i++) &#123;</span><br><span class="line">        if (ngx_http_subrequest(r, &amp;name[i], &amp;r-&gt;args, &amp;sr, NULL,</span><br><span class="line">                                NGX_HTTP_SUBREQUEST_BACKGROUND)</span><br><span class="line">            !&#x3D; NGX_OK)</span><br><span class="line">        &#123;</span><br><span class="line">            return NGX_HTTP_INTERNAL_SERVER_ERROR;</span><br><span class="line">        &#125;</span><br><span class="line"></span><br><span class="line">        sr-&gt;header_only &#x3D; 1;</span><br><span class="line">        sr-&gt;method &#x3D; r-&gt;method;</span><br><span class="line">        sr-&gt;method_name &#x3D; r-&gt;method_name;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    return NGX_DECLINED;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
 <p>Nginx 有关 mirror 的代码位于文件 <code>src/http/modules/ngx_http_mirror_module.c</code> 文件，上述为文件中的 <code>ngx_http_mirror_handler_internal</code> 函数。在开启了 mirror 之后此函数会被执行，可见其内部主要通过 <code>ngx_http_subrequest</code> 发起 http 子请求来实现的。</p>
 <p>通过代码可见，Nginx 支持配置多个 mirror uri，示例为:</p>
 <figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br></pre></td><td class="code"><pre><span class="line">location &#x2F; &#123;</span><br><span class="line">    mirror &#x2F;mirror;</span><br><span class="line">    mirror &#x2F;mirror2;</span><br><span class="line">    mirror_request_body off;</span><br><span class="line">    proxy_pass http:&#x2F;&#x2F;127.0.0.1:9502;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line">location &#x2F;mirror &#123;</span><br><span class="line">    internal;</span><br><span class="line">    proxy_pass http:&#x2F;&#x2F;127.0.0.1:8081$request_uri;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line">location &#x2F;mirror2 &#123;</span><br><span class="line">    internal;</span><br><span class="line">    proxy_pass http:&#x2F;&#x2F;127.0.0.1:8081$request_uri;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-<h3 id="参考文档">参考文档</h3>
+<h3><span id="参考文档">参考文档</span></h3>
 <p><a href="http://www.google.com" target="_blank" rel="noopener">http://www.google.com</a><br>
 <a href="http://blog.csdn.net/xhjcehust/article/details/77093074" target="_blank" rel="noopener">http://blog.csdn.net/xhjcehust/article/details/77093074</a><br>
 <a href="http://nginx.org/en/docs/http/ngx_http_mirror_module.html" target="_blank" rel="noopener">http://nginx.org/en/docs/http/ngx_http_mirror_module.html</a></p>
@@ -368,7 +368,7 @@
         <div id="toc" class="toc-article">
         <strong class="toc-title">Contents</strong>
         
-          <ol class="toc-nav"><li class="toc-nav-item toc-nav-level-3"><a class="toc-nav-link" href="#背景"><span class="toc-nav-number">1.</span> <span class="toc-nav-text">背景</span></a></li><li class="toc-nav-item toc-nav-level-3"><a class="toc-nav-link" href="#mirror-模块配置"><span class="toc-nav-number">2.</span> <span class="toc-nav-text">mirror 模块配置</span></a><ol class="toc-nav-child"><li class="toc-nav-item toc-nav-level-4"><a class="toc-nav-link" href="#编译安装-nginx"><span class="toc-nav-number">2.1.</span> <span class="toc-nav-text">编译安装 Nginx</span></a></li><li class="toc-nav-item toc-nav-level-4"><a class="toc-nav-link" href="#original-配置说明"><span class="toc-nav-number">2.2.</span> <span class="toc-nav-text">original 配置说明</span></a></li><li class="toc-nav-item toc-nav-level-4"><a class="toc-nav-link" href="#mirror-配置说明"><span class="toc-nav-number">2.3.</span> <span class="toc-nav-text">mirror 配置说明</span></a></li><li class="toc-nav-item toc-nav-level-4"><a class="toc-nav-link" href="#验证"><span class="toc-nav-number">2.4.</span> <span class="toc-nav-text">验证</span></a></li></ol></li><li class="toc-nav-item toc-nav-level-3"><a class="toc-nav-link" href="#mirror-模块实现"><span class="toc-nav-number">3.</span> <span class="toc-nav-text">mirror 模块实现</span></a></li><li class="toc-nav-item toc-nav-level-3"><a class="toc-nav-link" href="#参考文档"><span class="toc-nav-number">4.</span> <span class="toc-nav-text">参考文档</span></a></li></ol>
+          <ol class="toc-nav"><li class="toc-nav-item toc-nav-level-3"><a class="toc-nav-link" href="#vip-container"><span class="toc-nav-number">1.</span> <span class="toc-nav-text">背景</span></a></li><li class="toc-nav-item toc-nav-level-3"><a class="toc-nav-link" href="#vip-container"><span class="toc-nav-number">2.</span> <span class="toc-nav-text">mirror 模块配置</span></a><ol class="toc-nav-child"><li class="toc-nav-item toc-nav-level-4"><a class="toc-nav-link" href="#vip-container"><span class="toc-nav-number">2.1.</span> <span class="toc-nav-text">编译安装 Nginx</span></a></li><li class="toc-nav-item toc-nav-level-4"><a class="toc-nav-link" href="#vip-container"><span class="toc-nav-number">2.2.</span> <span class="toc-nav-text">original 配置说明</span></a></li><li class="toc-nav-item toc-nav-level-4"><a class="toc-nav-link" href="#vip-container"><span class="toc-nav-number">2.3.</span> <span class="toc-nav-text">mirror 配置说明</span></a></li><li class="toc-nav-item toc-nav-level-4"><a class="toc-nav-link" href="#vip-container"><span class="toc-nav-number">2.4.</span> <span class="toc-nav-text">验证</span></a></li></ol></li><li class="toc-nav-item toc-nav-level-3"><a class="toc-nav-link" href="#vip-container"><span class="toc-nav-number">3.</span> <span class="toc-nav-text">mirror 模块实现</span></a></li><li class="toc-nav-item toc-nav-level-3"><a class="toc-nav-link" href="#vip-container"><span class="toc-nav-number">4.</span> <span class="toc-nav-text">参考文档</span></a></li></ol>
         
         </div>
       </aside>

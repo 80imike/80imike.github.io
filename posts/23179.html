@@ -260,7 +260,7 @@
 </blockquote>
 <p>玩笑归玩笑，但至少我们能看出，警报不是一个简单的计算+通知系统。只是，”做好警报”这件事本身是个综合问题，代码能解决的也只是其中的一小部分，更多的事情要在组织、人事和管理上去做。我掰不出那么有深度的文章，这篇文章就专注一点，只讲代码部分里的通知，也就是 Prometheus 生态中的 Alertmanager 这个组件。</p>
 <a id="more"></a>
-<h2 id="为什么要-alertmanager">为什么要 Alertmanager？</h2>
+<h2><span id="为什么要-alertmanager">为什么要 Alertmanager？</span></h2>
 <p>我们先介绍一点背景知识，Prometheus 生态中的警报是在 Prometheus Server 中计算警报规则(Alert Rule)并产生的，而所谓计算警报规则，其实就是周期性地执行一段 PromQL，得到的查询结果就是警报，比如:</p>
 <figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">node_load5 &gt; 20</span><br></pre></td></tr></table></figure>
 <p>这个 PromQL 会查出所有”在最近一次采样中，5分钟平均 Load 大于 20”的时间序列。这些序列带上它们的标签就被转化为警报。</p>
@@ -287,9 +287,9 @@
 </li>
 </ul>
 <p>假如你很忙，那么读到这里就完全 OK 了，反正这类文章最大的作用就是让我们”知道有 X 这回事，大概了解有啥特性，当有需求匹配时，能想到试试看 X 合不合适“，其中 X = Alertmanager。当然，假如你是个好奇宝宝，那么还可以看看下面的解析。</p>
-<h2 id="alertmanager-内部架构">Alertmanager 内部架构</h2>
+<h2><span id="alertmanager-内部架构">Alertmanager 内部架构</span></h2>
 <p>先看官方文档中的架构图：</p>
-<p><img src="https://aleiwu.com/img/alertmanager/alertmanager.png" alt=""></p>
+<p><img src="https://aleiwu.com/img/alertmanager/alertmanager.png" alt></p>
 <ol>
 <li>
 <p>从左上开始，Prometheus 发送的警报到 Alertmanager;</p>
@@ -316,7 +316,7 @@
 <p>Notification Pipeline 的实现与设计意图</p>
 </li>
 </ol>
-<h3 id="routing-tree">Routing Tree</h3>
+<h3><span id="routing-tree">Routing Tree</span></h3>
 <p>Routing Tree 的是一颗多叉树，节点的数据结构定义如下：</p>
 <figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line">&#x2F;&#x2F; 节点包含警报的路由逻辑</span><br><span class="line">type Route struct &#123;</span><br><span class="line">    &#x2F;&#x2F; 父节点</span><br><span class="line">    parent *Route</span><br><span class="line">    &#x2F;&#x2F; 节点的配置，下文详解</span><br><span class="line">    RouteOpts RouteOpts</span><br><span class="line">    &#x2F;&#x2F; Matchers 是一组匹配规则，用于判断 Alert 与当前节点是否匹配</span><br><span class="line">    Matchers types.Matchers</span><br><span class="line">    &#x2F;&#x2F; 假如为 true, 那么 Alert 在匹配到一个节点后，还会继续往下匹配</span><br><span class="line">    Continue bool</span><br><span class="line">    &#x2F;&#x2F; 子节点</span><br><span class="line">    Routes []*Route</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
 <p>具体的处理代码很简单，深度优先搜索：警报从 root 开始匹配（root 默认匹配所有警报），然后根据节点中定义的 Matchers 检测警报与节点是否匹配，匹配则继续往下搜索，默认情况下第一个”最深”的 match (也就是 DFS 回溯之前的最后一个节点)会被返回。特殊情况就是节点配置了 Continue=true，这时假如这个节点匹配上了，那不会立即返回，而是继续搜索，用于支持警报发送给多方这种场景（比如”抄送”)</p>
@@ -352,7 +352,7 @@
 </li>
 </ul>
 <p>group_interval 和 repeat_interval 的区别会在下文中详述</p>
-<h3 id="notification-pipeline">Notification Pipeline</h3>
+<h3><span id="notification-pipeline">Notification Pipeline</span></h3>
 <p>由 Routing Tree 分组后的警报会触发 Notification Pipeline:</p>
 <ul>
 <li>
@@ -409,7 +409,7 @@
 <p>Inhibit Rule：抑制规则用于在某类警报发生时，抑制掉另一类警报，比如某个机房宕机了，那么会影响所有上层服务，产生级联的警报洪流，反而会掩盖掉根本原因，这时候抑制规则就有用了； 因此 Notification Pipeline 的设计意图就很明确了：通过一系列逻辑（如抑制、静默、去重）来获得更高的警报质量，由于警报质量的维度很多（剔除重复、类似的警报，静默暂时无用的警报，抑制级联警报），因此 Notification Pipeline 设计成了责任链模式，以便于随时添加新的环节来优化警报质量</p>
 </li>
 </ul>
-<h2 id="一个-prometheus-报警处理实例">一个 Prometheus 报警处理实例</h2>
+<h2><span id="一个-prometheus-报警处理实例">一个 Prometheus 报警处理实例</span></h2>
 <p>最近又被问到了 Prometheus 为啥不报警，恰好回忆起之前经常解答相关问题，不妨写一篇文章来解决下面两个问题：</p>
 <ul>
 <li>
@@ -419,28 +419,28 @@
 <p>我的 Prometheus 为啥不报警？</p>
 </li>
 </ul>
-<h3 id="从-for-参数开始">从 for 参数开始</h3>
+<h3><span id="从-for-参数开始">从 for 参数开始</span></h3>
 <p>我们首先需要一些背景知识：Prometheus 是如何计算并产生警报的？</p>
 <p>看一条简单的警报规则：</p>
 <figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line">- alert: KubeAPILatencyHigh</span><br><span class="line">  annotations:</span><br><span class="line">    message: The API server has a 99th percentile latency of &#123;&#123; $value &#125;&#125; seconds</span><br><span class="line">      for &#123;&#123; $labels.verb &#125;&#125; &#123;&#123; $labels.resource &#125;&#125;.</span><br><span class="line">  expr: |</span><br><span class="line">    cluster_quantile:apiserver_request_latencies:histogram_quantile&#123;job&#x3D;&quot;apiserver&quot;,quantile&#x3D;&quot;0.99&quot;,subresource!&#x3D;&quot;log&quot;&#125; &gt; 4</span><br><span class="line">  for: 10m</span><br><span class="line">  labels:</span><br><span class="line">    severity: critical</span><br></pre></td></tr></table></figure>
 <p>这条警报的<em>大致</em>含义是，假如 kube-apiserver 的 P99 响应时间大于 4 秒，并持续 10 分钟以上，就产生报警。</p>
 <p>首先要注意的是由 <code>for</code> 指定的 Pending Duration。这个参数主要用于降噪，很多类似响应时间这样的指标都是有抖动的，通过指定 Pending Duration，我们可以 过滤掉这些瞬时抖动，让 on-call 人员能够把注意力放在真正有持续影响的问题上。</p>
 <p>那么显然，下面这样的状况是不会触发这条警报规则的，因为虽然指标已经达到了警报阈值，但持续时间并不够长：</p>
-<p><img src="https://aleiwu.com/prometheus-peaks.png" alt=""></p>
+<p><img src="https://aleiwu.com/prometheus-peaks.png" alt></p>
 <p>但偶尔我们也会碰到更奇怪的事情。</p>
-<h3 id="为什么不报警">为什么不报警？</h3>
-<p><img src="https://aleiwu.com/no-alert.jpg" alt=""></p>
+<h3><span id="为什么不报警">为什么不报警？</span></h3>
+<p><img src="https://aleiwu.com/no-alert.jpg" alt></p>
 <p>类似上面这样持续超出阈值的场景，为什么有时候会不报警呢？</p>
-<h3 id="为什么报警">为什么报警？</h3>
-<p><img src="https://aleiwu.com/why-alert.jpg" alt=""></p>
+<h3><span id="为什么报警">为什么报警？</span></h3>
+<p><img src="https://aleiwu.com/why-alert.jpg" alt></p>
 <p>类似上面这样并未持续超出阈值的场景，为什么有时又会报警呢？</p>
-<h3 id="采样间隔">采样间隔</h3>
+<h3><span id="采样间隔">采样间隔</span></h3>
 <p>这其实都源自于 Prometheus 的数据存储方式与计算方式。</p>
 <p>首先，Prometheus 按照配置的抓取间隔(<code>scrape_interval</code>)定时抓取指标数据，因此存储的是形如 (timestamp, value) 这样的采样点。</p>
 <p>对于警报， Prometheus 会按固定的时间间隔重复计算每条警报规则，因此警报规则计算得到的只是稀疏的采样点，而警报持续时间是否大于 <code>for</code> 指定的 Pending Duration 则是由这些稀疏的采样点决定的。</p>
 <p>而在 Grafana 渲染图表时，Grafana 发送给 Prometheus 的是一个 Range Query，其执行机制是从时间区间的起始点开始，每隔一定的时间点（由 Range Query 的 <code>step</code> 请求参数决定） 进行一次计算采样。</p>
 <p>这些结合在一起，就会导致警报规则计算时“看到的内容”和我们在 Grafana 图表上观察到的内容不一致，比如下面这张示意图：</p>
-<p><img src="https://aleiwu.com/alert-firing.jpg" alt=""></p>
+<p><img src="https://aleiwu.com/alert-firing.jpg" alt></p>
 <p>上面图中，圆点代表原始采样点：</p>
 <ul>
 <li>
@@ -463,14 +463,14 @@
 </li>
 </ul>
 <p>由于采样是稀疏的，部分采样点会出现被跳过的状况，而当 Grafana 渲染图表时，取决于 Range Query 中采样点的分布，图表则有可能捕捉到 被警报规则忽略掉的”低谷“（图三)或者也可能无法捕捉到警报规则碰到的”低谷“（图二）。如此这般，我们就被”图表“给蒙骗过去，质疑起警报来了。</p>
-<h3 id="如何应对">如何应对</h3>
+<h3><span id="如何应对">如何应对</span></h3>
 <p>首先嘛， Prometheus 作为一个指标系统天生就不是精确的——由于指标本身就是稀疏采样的，事实上所有的图表和警报都是”估算”，我们也就不必 太纠结于图表和警报的对应性，能够帮助我们发现问题解决问题就是一个好监控系统。当然，有时候我们也得证明这个警报确实没问题，那可以看一眼 <code>ALERTS</code> 指标。<code>ALERTS</code> 是 Prometheus 在警报计算过程中维护的内建指标，它记录每个警报从 Pending 到 Firing 的整个历史过程，拉出来一看也就清楚了。</p>
 <p>但有时候 ALERTS 的说服力可能还不够，因为它本身并没有记录每次计算出来的值到底是啥，而在我们回头去考证警报时，又无法选取出和警报计算过程中一模一样的计算时间点， 因此也就无法还原警报计算时看到的计算值究竟是啥。这时候终极解决方案就是把警报所要计算的指标定义成一条 Recording Rule，计算出一个新指标来记录计算值，然后针对这个 新指标做阈值报警。kube-prometheus 的警报规则中就大量采用了这种技术。</p>
-<h3 id="到此为止了吗">到此为止了吗？</h3>
+<h3><span id="到此为止了吗">到此为止了吗？</span></h3>
 <p>Prometheus 警报不仅包含 Prometheus 本身，还包含用于警报治理的 Alertmanager，我们可以看一看上面那张指标计算示意图的全图：</p>
-<p><img src="https://aleiwu.com/alert-overview.jpg" alt=""></p>
+<p><img src="https://aleiwu.com/alert-overview.jpg" alt></p>
 <p>在警报产生后，还要经过 Alertmanager 的分组、抑制处理、静默处理、去重处理和降噪处理最后再发送给接收者。而这个过程也有大量的因素可能会导致警报产生了却最终没有进行通知。</p>
-<h2 id="结语">结语</h2>
+<h2><span id="结语">结语</span></h2>
 <p>Alertmanager 整体的设计意图就是奔着治理警报（通知）去的，首先它用 Routing Tree 来帮助用户定义警报的归类与发送逻辑，然后再用 Notification Pipeline 来做抑制、静默、去重以提升警报质量。这些功能虽然不能解决”警报”这件事中所有令人头疼的问题，但确实为我们着手去解决”警报质量”相关问题提供了趁手的工具。</p>
 <blockquote>
 <p>本文转载自：「Aylei’s Blog」，原文：1.<a href="https://url.cn/5Gp0VLq%E3%80%812.https://url.cn/5MEMY8K%EF%BC%8C%E7%89%88%E6%9D%83%E5%BD%92%E5%8E%9F%E4%BD%9C%E8%80%85%E6%89%80%E6%9C%89%E3%80%82%E6%AC%A2%E8%BF%8E%E6%8A%95%E7%A8%BF%EF%BC%8C%E6%8A%95%E7%A8%BF%E9%82%AE%E7%AE%B1:" target="_blank" rel="noopener">https://url.cn/5Gp0VLq、2.https://url.cn/5MEMY8K，版权归原作者所有。欢迎投稿，投稿邮箱:</a> <code>editor@hi-linux.com</code> 。</p>
@@ -546,7 +546,7 @@
         <div id="toc" class="toc-article">
         <strong class="toc-title">Contents</strong>
         
-          <ol class="toc-nav"><li class="toc-nav-item toc-nav-level-2"><a class="toc-nav-link" href="#为什么要-alertmanager"><span class="toc-nav-number">1.</span> <span class="toc-nav-text">为什么要 Alertmanager？</span></a></li><li class="toc-nav-item toc-nav-level-2"><a class="toc-nav-link" href="#alertmanager-内部架构"><span class="toc-nav-number">2.</span> <span class="toc-nav-text">Alertmanager 内部架构</span></a><ol class="toc-nav-child"><li class="toc-nav-item toc-nav-level-3"><a class="toc-nav-link" href="#routing-tree"><span class="toc-nav-number">2.1.</span> <span class="toc-nav-text">Routing Tree</span></a></li><li class="toc-nav-item toc-nav-level-3"><a class="toc-nav-link" href="#notification-pipeline"><span class="toc-nav-number">2.2.</span> <span class="toc-nav-text">Notification Pipeline</span></a></li></ol></li><li class="toc-nav-item toc-nav-level-2"><a class="toc-nav-link" href="#一个-prometheus-报警处理实例"><span class="toc-nav-number">3.</span> <span class="toc-nav-text">一个 Prometheus 报警处理实例</span></a><ol class="toc-nav-child"><li class="toc-nav-item toc-nav-level-3"><a class="toc-nav-link" href="#从-for-参数开始"><span class="toc-nav-number">3.1.</span> <span class="toc-nav-text">从 for 参数开始</span></a></li><li class="toc-nav-item toc-nav-level-3"><a class="toc-nav-link" href="#为什么不报警"><span class="toc-nav-number">3.2.</span> <span class="toc-nav-text">为什么不报警？</span></a></li><li class="toc-nav-item toc-nav-level-3"><a class="toc-nav-link" href="#为什么报警"><span class="toc-nav-number">3.3.</span> <span class="toc-nav-text">为什么报警？</span></a></li><li class="toc-nav-item toc-nav-level-3"><a class="toc-nav-link" href="#采样间隔"><span class="toc-nav-number">3.4.</span> <span class="toc-nav-text">采样间隔</span></a></li><li class="toc-nav-item toc-nav-level-3"><a class="toc-nav-link" href="#如何应对"><span class="toc-nav-number">3.5.</span> <span class="toc-nav-text">如何应对</span></a></li><li class="toc-nav-item toc-nav-level-3"><a class="toc-nav-link" href="#到此为止了吗"><span class="toc-nav-number">3.6.</span> <span class="toc-nav-text">到此为止了吗？</span></a></li></ol></li><li class="toc-nav-item toc-nav-level-2"><a class="toc-nav-link" href="#结语"><span class="toc-nav-number">4.</span> <span class="toc-nav-text">结语</span></a></li></ol>
+          <ol class="toc-nav"><li class="toc-nav-item toc-nav-level-2"><a class="toc-nav-link" href="#vip-container"><span class="toc-nav-number">1.</span> <span class="toc-nav-text">为什么要 Alertmanager？</span></a></li><li class="toc-nav-item toc-nav-level-2"><a class="toc-nav-link" href="#vip-container"><span class="toc-nav-number">2.</span> <span class="toc-nav-text">Alertmanager 内部架构</span></a><ol class="toc-nav-child"><li class="toc-nav-item toc-nav-level-3"><a class="toc-nav-link" href="#vip-container"><span class="toc-nav-number">2.1.</span> <span class="toc-nav-text">Routing Tree</span></a></li><li class="toc-nav-item toc-nav-level-3"><a class="toc-nav-link" href="#vip-container"><span class="toc-nav-number">2.2.</span> <span class="toc-nav-text">Notification Pipeline</span></a></li></ol></li><li class="toc-nav-item toc-nav-level-2"><a class="toc-nav-link" href="#vip-container"><span class="toc-nav-number">3.</span> <span class="toc-nav-text">一个 Prometheus 报警处理实例</span></a><ol class="toc-nav-child"><li class="toc-nav-item toc-nav-level-3"><a class="toc-nav-link" href="#vip-container"><span class="toc-nav-number">3.1.</span> <span class="toc-nav-text">从 for 参数开始</span></a></li><li class="toc-nav-item toc-nav-level-3"><a class="toc-nav-link" href="#vip-container"><span class="toc-nav-number">3.2.</span> <span class="toc-nav-text">为什么不报警？</span></a></li><li class="toc-nav-item toc-nav-level-3"><a class="toc-nav-link" href="#vip-container"><span class="toc-nav-number">3.3.</span> <span class="toc-nav-text">为什么报警？</span></a></li><li class="toc-nav-item toc-nav-level-3"><a class="toc-nav-link" href="#vip-container"><span class="toc-nav-number">3.4.</span> <span class="toc-nav-text">采样间隔</span></a></li><li class="toc-nav-item toc-nav-level-3"><a class="toc-nav-link" href="#vip-container"><span class="toc-nav-number">3.5.</span> <span class="toc-nav-text">如何应对</span></a></li><li class="toc-nav-item toc-nav-level-3"><a class="toc-nav-link" href="#vip-container"><span class="toc-nav-number">3.6.</span> <span class="toc-nav-text">到此为止了吗？</span></a></li></ol></li><li class="toc-nav-item toc-nav-level-2"><a class="toc-nav-link" href="#vip-container"><span class="toc-nav-number">4.</span> <span class="toc-nav-text">结语</span></a></li></ol>
         
         </div>
       </aside>

@@ -103,9 +103,9 @@
                             
                               <a class="tag" href="/tags/#技巧" title="技巧">技巧</a>
                             
-                              <a class="tag" href="/tags/#Linux" title="Linux">Linux</a>
-                            
                               <a class="tag" href="/tags/#Docker" title="Docker">Docker</a>
+                            
+                              <a class="tag" href="/tags/#Linux" title="Linux">Linux</a>
                             
                         </div>
                         <h1>Docker 网络详解</h1>
@@ -233,15 +233,15 @@
                 post-container">
 
                 <div id="vip-container"><p>转载自:<a href="http://blog.csdn.net/wsscy2004" target="_blank" rel="noopener">http://blog.csdn.net/wsscy2004</a></p>
-<h3 id="网络基础">网络基础</h3>
+<h3><span id="网络基础">网络基础</span></h3>
 <p>Docker使用linux桥接，在主机虚拟一个docker0网络接口，在主机中运行命令查看：</p>
 <figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">#List host bridges</span></span><br><span class="line"><span class="variable">$sudo</span> brctl show</span><br><span class="line">bridge      name    bridge id               STP enabled     interfacesdocker0             8000.000000000000       no</span><br><span class="line"></span><br><span class="line"><span class="comment">#Show docker0 IP address</span></span><br><span class="line"><span class="variable">$sudo</span> ifconfig docker0</span><br><span class="line">docker0   Link encap:Ethernet  HWaddr xx:xx:xx:xx:xx:xx</span><br><span class="line">          inet addr:172.17.42.1  Bcast:0.0.0.0  Mask:255.255.0.0</span><br></pre></td></tr></table></figure>
 <p>docker启动一个container时会会根据docker0的网段划分container的IP,docker0是每个container的网关。<a id="more"></a></p>
-<h3 id="自定义网络范围">自定义网络范围</h3>
+<h3><span id="自定义网络范围">自定义网络范围</span></h3>
 <p>尽管docker在使用linux brigde会找最合适的。但是有时候我们还是需要自己规划。</p>
 <p>使用-b=<bridgename>参数设置</bridgename></p>
 <figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">#先关闭docker</span></span><br><span class="line"><span class="variable">$sudo</span> service docker stop</span><br><span class="line"></span><br><span class="line"><span class="comment">#关闭网桥docker0# 添加自己的网桥bridge0</span></span><br><span class="line"><span class="variable">$sudo</span> ifconfig docker0 down</span><br><span class="line"><span class="variable">$sudo</span> brctl addbr bridge0</span><br><span class="line"><span class="variable">$sudo</span> ifconfig bridge0 192.168.227.1 netmask 255.255.255.0</span><br><span class="line"></span><br><span class="line"><span class="comment">#向Docker startup file中添加启动自定义网桥参数</span></span><br><span class="line"><span class="variable">$echo</span> <span class="string">"DOCKER_OPTS=\"-b=bridge0\""</span> &gt;&gt; /etc/default/docker</span><br><span class="line"></span><br><span class="line"><span class="comment">#启动Docker</span></span><br><span class="line"><span class="variable">$sudo</span> service docker start</span><br><span class="line"></span><br><span class="line"><span class="comment">#查看自定义网桥是否启动成功，ip等配置是否正确</span></span><br><span class="line"><span class="variable">$sudo</span> ifconfig bridge0</span><br><span class="line">bridge0   Link encap:Ethernet  HWaddr xx:xx:xx:xx:xx:xx</span><br><span class="line">          inet addr:192.168.227.1  Bcast:192.168.227.255  Mask:255.255.255.0</span><br><span class="line"></span><br><span class="line"><span class="comment">#启动container</span></span><br><span class="line">docker run -i -t base /bin/bash</span><br><span class="line"></span><br><span class="line"><span class="comment">#可以看到Container IP,在网段192.168.227/24内</span></span><br><span class="line">root@261c272cd7d5:/<span class="comment"># ifconfig eth0</span></span><br><span class="line">eth0      Link encap:Ethernet  HWaddr xx:xx:xx:xx:xx:xx</span><br><span class="line">          inet addr:192.168.227.5  Bcast:192.168.227.255  Mask:255.255.255.0</span><br><span class="line"></span><br><span class="line"><span class="comment">#bridge0 IP as the default gateway 查看路由信息</span></span><br><span class="line">root@261c272cd7d5:/<span class="comment"># route -n</span></span><br><span class="line">Kernel IP routing table</span><br><span class="line">Destination     Gateway         Genmask         Flags Metric Ref    Use Iface</span><br><span class="line">0.0.0.0         192.168.227.1   0.0.0.0         UG    0      0        0 eth0</span><br><span class="line">192.168.227.0   0.0.0.0         255.255.255.0   U     0      0        0 eth0</span><br><span class="line"></span><br><span class="line"><span class="comment">#hits CTRL+P then CTRL+Q to detach</span></span><br><span class="line"></span><br><span class="line"><span class="comment">#查看网桥信息</span></span><br><span class="line"><span class="variable">$sudo</span> brctl show</span><br><span class="line">bridge      name    bridge id               STP enabled     interfaces</span><br><span class="line">bridge0             8000.fe7c2e0faebd       no              vethAQI2QT</span><br></pre></td></tr></table></figure>
-<h3 id="container互通">container互通</h3>
+<h3><span id="container互通">container互通</span></h3>
 <p>docker默认是允许container互通，通过-icc=false关闭互通。<br>
 一旦关闭了互通，只能通过–link name:alias命令连接指定container.</p>
 <p>container互相隔离的情况下，假设我们有一个webapp container,一个redis contianer需要互通。<br>
@@ -253,10 +253,10 @@
 <figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br></pre></td><td class="code"><pre><span class="line"><span class="variable">$root</span>@4c01db0b339c:/<span class="comment"># env</span></span><br><span class="line"></span><br><span class="line">HOSTNAME=4c01db0b339c</span><br><span class="line">DB_NAME=/webapp/db</span><br><span class="line">TERM=xterm</span><br><span class="line">DB_PORT=tcp://172.17.0.8:6379</span><br><span class="line">DB_PORT_6379_TCP=tcp://172.17.0.8:6379</span><br><span class="line">DB_PORT_6379_TCP_PROTO=tcp</span><br><span class="line">DB_PORT_6379_TCP_ADDR=172.17.0.8</span><br><span class="line">DB_PORT_6379_TCP_PORT=6379</span><br><span class="line">PATH=/usr/<span class="built_in">local</span>/sbin:/usr/<span class="built_in">local</span>/bin:/usr/sbin:/usr/bin:/sbin:/bin</span><br><span class="line">PWD=/</span><br><span class="line">SHLVL=1</span><br><span class="line">HOME=/</span><br><span class="line">container=lxc</span><br><span class="line">_=/usr/bin/env</span><br><span class="line">root@4c01db0b339c:/<span class="comment">#</span></span><br></pre></td></tr></table></figure>
 <p>0.11版本以后，–link redis:db的别名，会在/etc/hosts中生成对应的ip映射:</p>
 <figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">root@6541a75d44a0:/<span class="comment"># cat /etc/hosts</span></span><br><span class="line">172.17.0.3  6541a75d44a0172.17.0.2  db</span><br></pre></td></tr></table></figure>
-<h3 id="什么是vethxxxx">什么是vethxxxx</h3>
+<h3><span id="什么是vethxxxx">什么是vethxxxx</span></h3>
 <figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">#查看网桥信息</span></span><br><span class="line"><span class="variable">$sudo</span> brctl show</span><br><span class="line">bridge      name    bridge id               STP enabled     interfaces</span><br><span class="line">docker0             8000.fe7c2e0faebd       no              vethAQI2QT</span><br></pre></td></tr></table></figure>
 <p>vethxxx是主机与container内部eth0相连的管道。详见ip link和namespaces infrastructure</p>
-<h3 id="更多">更多</h3>
+<h3><span id="更多">更多</span></h3>
 <p>pipework可以创建各种复杂的containers互通的场景。详见<a href="http://github.com/jpetazzo/pipework" target="_blank" rel="noopener">here</a></p>
 </div>
 
@@ -287,7 +287,7 @@
                     
                     
                         <li class="next">
-                            <a href="/posts/13805.html" data-toggle="tooltip" data-placement="top" title="If Everyone Cared">Next Post &rarr;</a>
+                            <a href="/posts/17756.html" data-toggle="tooltip" data-placement="top" title="Https(SSLTLS)原理详解">Next Post &rarr;</a>
                         </li>
                     
                 </ul>
@@ -329,7 +329,7 @@
         <div id="toc" class="toc-article">
         <strong class="toc-title">Contents</strong>
         
-          <ol class="toc-nav"><li class="toc-nav-item toc-nav-level-3"><a class="toc-nav-link" href="#网络基础"><span class="toc-nav-number">1.</span> <span class="toc-nav-text">网络基础</span></a></li><li class="toc-nav-item toc-nav-level-3"><a class="toc-nav-link" href="#自定义网络范围"><span class="toc-nav-number">2.</span> <span class="toc-nav-text">自定义网络范围</span></a></li><li class="toc-nav-item toc-nav-level-3"><a class="toc-nav-link" href="#container互通"><span class="toc-nav-number">3.</span> <span class="toc-nav-text">container互通</span></a></li><li class="toc-nav-item toc-nav-level-3"><a class="toc-nav-link" href="#什么是vethxxxx"><span class="toc-nav-number">4.</span> <span class="toc-nav-text">什么是vethxxxx</span></a></li><li class="toc-nav-item toc-nav-level-3"><a class="toc-nav-link" href="#更多"><span class="toc-nav-number">5.</span> <span class="toc-nav-text">更多</span></a></li></ol>
+          <ol class="toc-nav"><li class="toc-nav-item toc-nav-level-3"><a class="toc-nav-link" href="#vip-container"><span class="toc-nav-number">1.</span> <span class="toc-nav-text">网络基础</span></a></li><li class="toc-nav-item toc-nav-level-3"><a class="toc-nav-link" href="#vip-container"><span class="toc-nav-number">2.</span> <span class="toc-nav-text">自定义网络范围</span></a></li><li class="toc-nav-item toc-nav-level-3"><a class="toc-nav-link" href="#vip-container"><span class="toc-nav-number">3.</span> <span class="toc-nav-text">container互通</span></a></li><li class="toc-nav-item toc-nav-level-3"><a class="toc-nav-link" href="#vip-container"><span class="toc-nav-number">4.</span> <span class="toc-nav-text">什么是vethxxxx</span></a></li><li class="toc-nav-item toc-nav-level-3"><a class="toc-nav-link" href="#vip-container"><span class="toc-nav-number">5.</span> <span class="toc-nav-text">更多</span></a></li></ol>
         
         </div>
       </aside>
@@ -351,9 +351,9 @@
                        
                           <a class="tag" href="/tags/#技巧" title="技巧">技巧</a>
                         
-                          <a class="tag" href="/tags/#Linux" title="Linux">Linux</a>
-                        
                           <a class="tag" href="/tags/#Docker" title="Docker">Docker</a>
+                        
+                          <a class="tag" href="/tags/#Linux" title="Linux">Linux</a>
                         
                     </div>
                 </section>

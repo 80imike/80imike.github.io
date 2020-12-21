@@ -230,11 +230,11 @@
                 col-md-10 col-md-offset-1
                 post-container">
 
-                <div id="vip-container"><h3 id="背景介绍">背景介绍</h3>
+                <div id="vip-container"><h3><span id="背景介绍">背景介绍</span></h3>
 <p>很多公司都使用静态密码+动态密码的方式登陆跳板机，某些还会强制一个动态密码只能登陆一次，于是我们面临着等一分钟才能登陆一次跳板机，很不方便。本文介绍一种在本机的设置，免除每次输入密码的方法。</p>
-<h3 id="实现方法">实现方法</h3>
+<h3><span id="实现方法">实现方法</span></h3>
 <p>此功能是利用SSH的ControlPersist特性，SSH版本必须是5.6或以上版本才可使用ControlPersist特性。升级SSH可参考<a href="http://imike.me/2016/04/13/CentOS6%E4%B8%8B%E5%8D%87%E7%BA%A7OpenSSH%E8%87%B37.1/" target="_blank" rel="noopener">CentOS6下升级OpenSSH至7.1</a>一文。</p>
-<h4 id="多条连接共享">多条连接共享</h4>
+<h4><span id="多条连接共享">多条连接共享</span></h4>
 <p>如果你需要在多个窗口中打开到同一个服务器的连接，而不想每次都输入用户名，密码，或是等待连接建立，那么你可以配置SSH的连接共享选项，在本地打开你的SSH配置文件，通常它们位于~/.ssh/config，然后添加下面2行(ControlMaster配合ControlPath一起使用)</p>
 <figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">ControlMaster auto</span><br><span class="line">ControlPath /tmp/ssh_mux_%h_%p_%r</span><br></pre></td></tr></table></figure>
 <a id="more"></a>
@@ -243,14 +243,14 @@
 <p>如果你是Windows用户，很不幸，最流行的开源SSH客户端Putty并不支持这个特性，但是Windows上也有OpenSSH的实现，比如这个<a href="https://www.itefix.net/copssh" target="_blank" rel="noopener">Copssh</a></p>
 <p>文件传输</p>
 <p>连接共享不止可以帮助你共享多个SSH连接，如果你需要通过SFTP与服务器传输文件，你会发现，它们使用的依然是同一条连接，如果你使用的Bash，你会发现，你甚至SSH甚至支持Tab对服务器端文件进行自动补全，共享连接选项对于那些需要借助SSH的工具，比如rsync，git等等也同样有效。</p>
-<h4 id="长连接">长连接</h4>
+<h4><span id="长连接">长连接</span></h4>
 <p>如果你发现自己每条需要连接同一个服务器无数次，那么长连接选项就是为你准备的。</p>
 <figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">ControlPersist yes</span><br></pre></td></tr></table></figure>
 <p>打开之后即使关闭了所有的已连接ssh连接，一段时间内也能无需密码重新连接。</p>
 <figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">ControlPersist 4h</span><br></pre></td></tr></table></figure>
 <p>每次通过SSH与服务器建立连接之后，这条连接将被保持4个小时，即使在你退出服务器之后这条连接依然可以重用，因此，在你下一次(4小时之内)登录服务器时，你会发现连接以闪电般的速度建立完成，这个选项对于通过scp拷贝多个文件提速尤其明显，因为你不在需要为每个文件做单独的认证了。</p>
 <p>Compression为压缩选项，打开之后加快数据传输速度。</p>
-<h4 id="具体配置方法">具体配置方法</h4>
+<h4><span id="具体配置方法">具体配置方法</span></h4>
 <p>此时我们打开ssh客户端/shell命令行，编辑~/.ssh/config文件</p>
 <figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line">vim ~/.ssh/config</span><br><span class="line"></span><br><span class="line">Host *</span><br><span class="line">     ControlPersist yes</span><br><span class="line">     ControlMaster auto</span><br><span class="line">     ControlPath ~/.ssh/%r@%h-%p</span><br><span class="line">     Compression yes</span><br></pre></td></tr></table></figure>
 <p>如果登陆服务器地址为<code>web.imike.me</code>，通常每次都要输入<code>ssh web.imike.me</code>这样一长串。优化上面的配置可减少输入，提高效率。如下:</p>
@@ -258,7 +258,7 @@
 <p>这样每次只需输入ssh web即可登陆。大家自行修改HostName和ControlPath字段就可以。</p>
 <p>用指定用户名和指定端口登陆，可以使用下面的代替，同理使用<code>ssh web02</code>命令登陆。</p>
 <figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line">Host web02</span><br><span class="line">      HostName 202.202.202.202</span><br><span class="line">      User mike</span><br><span class="line">	  Port 2698</span><br><span class="line">      ControlPersist yes</span><br><span class="line">      ControlMaster auto</span><br><span class="line">      ControlPath ~/.ssh/%r@%h-%p</span><br><span class="line">      Compression yes</span><br></pre></td></tr></table></figure>
-<h3 id="参考文档">参考文档</h3>
+<h3><span id="参考文档">参考文档</span></h3>
 <p><a href="http://www.google.com" target="_blank" rel="noopener">http://www.google.com</a><br>
 <a href="http://blog.csdn.net/xuanwu_yan/article/details/45666797" target="_blank" rel="noopener">http://blog.csdn.net/xuanwu_yan/article/details/45666797</a></p>
 </div>
@@ -332,7 +332,7 @@
         <div id="toc" class="toc-article">
         <strong class="toc-title">Contents</strong>
         
-          <ol class="toc-nav"><li class="toc-nav-item toc-nav-level-3"><a class="toc-nav-link" href="#背景介绍"><span class="toc-nav-number">1.</span> <span class="toc-nav-text">背景介绍</span></a></li><li class="toc-nav-item toc-nav-level-3"><a class="toc-nav-link" href="#实现方法"><span class="toc-nav-number">2.</span> <span class="toc-nav-text">实现方法</span></a><ol class="toc-nav-child"><li class="toc-nav-item toc-nav-level-4"><a class="toc-nav-link" href="#多条连接共享"><span class="toc-nav-number">2.1.</span> <span class="toc-nav-text">多条连接共享</span></a></li><li class="toc-nav-item toc-nav-level-4"><a class="toc-nav-link" href="#长连接"><span class="toc-nav-number">2.2.</span> <span class="toc-nav-text">长连接</span></a></li><li class="toc-nav-item toc-nav-level-4"><a class="toc-nav-link" href="#具体配置方法"><span class="toc-nav-number">2.3.</span> <span class="toc-nav-text">具体配置方法</span></a></li></ol></li><li class="toc-nav-item toc-nav-level-3"><a class="toc-nav-link" href="#参考文档"><span class="toc-nav-number">3.</span> <span class="toc-nav-text">参考文档</span></a></li></ol>
+          <ol class="toc-nav"><li class="toc-nav-item toc-nav-level-3"><a class="toc-nav-link" href="#vip-container"><span class="toc-nav-number">1.</span> <span class="toc-nav-text">背景介绍</span></a></li><li class="toc-nav-item toc-nav-level-3"><a class="toc-nav-link" href="#vip-container"><span class="toc-nav-number">2.</span> <span class="toc-nav-text">实现方法</span></a><ol class="toc-nav-child"><li class="toc-nav-item toc-nav-level-4"><a class="toc-nav-link" href="#vip-container"><span class="toc-nav-number">2.1.</span> <span class="toc-nav-text">多条连接共享</span></a></li><li class="toc-nav-item toc-nav-level-4"><a class="toc-nav-link" href="#vip-container"><span class="toc-nav-number">2.2.</span> <span class="toc-nav-text">长连接</span></a></li><li class="toc-nav-item toc-nav-level-4"><a class="toc-nav-link" href="#vip-container"><span class="toc-nav-number">2.3.</span> <span class="toc-nav-text">具体配置方法</span></a></li></ol></li><li class="toc-nav-item toc-nav-level-3"><a class="toc-nav-link" href="#vip-container"><span class="toc-nav-number">3.</span> <span class="toc-nav-text">参考文档</span></a></li></ol>
         
         </div>
       </aside>
