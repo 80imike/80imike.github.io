@@ -1,0 +1,669 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<!-- Head tag -->
+<head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="google-site-verification" content="xBT4GhYoi5qRD5tr338pgPM5OWHHIDR6mNg1a3euekI" />
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="description" content="">
+    <meta name="keyword"  content="Linux,运维,Nginx,Zabbix,Centos,Ansible,MySQL,Python,Docker,ELK,Haproxy,Git,Nodejs,安全,技术">
+    <link rel="shortcut icon" href="/img/ironman-draw.png">
+    <!-- Place this tag in your head or just before your close body tag. -->
+    <script async defer src="https://buttons.github.io/buttons.js"></script>
+    <title>
+        
+          手把手教你深度定制 Kubernetes Nginx Ingress 错误提示页面 - 奇妙的 Linux 世界
+        
+    </title>
+
+    <link rel="canonical" href="https://www.hi-linux.com/posts/22262.html">
+
+    <!-- Bootstrap Core CSS -->
+    
+<link rel="stylesheet" href="/css/bootstrap.min.css">
+
+
+    <!-- Custom CSS --> 
+    
+<link rel="stylesheet" href="/css/beantech.min.css">
+
+    
+    <!-- Pygments Highlight CSS -->
+    
+<link rel="stylesheet" href="/css/highlight.css">
+
+
+    
+<link rel="stylesheet" href="/css/widget.css">
+
+
+    
+<link rel="stylesheet" href="/css/rocket.css">
+
+
+    
+<link rel="stylesheet" href="/css/signature.css">
+
+
+    
+<link rel="stylesheet" href="/css/toc.css">
+
+
+    <!-- Custom Fonts -->
+    <!-- <link href="https://maxcdn.bootstrapcdn.com/font-awesome/4.3.0/css/font-awesome.min.css" rel="stylesheet" type="text/css"> -->
+    <!-- Hux change font-awesome CDN to qiniu -->
+    <link href="https://cdn.staticfile.org/font-awesome/4.5.0/css/font-awesome.min.css" rel="stylesheet" type="text/css">
+
+
+    <!-- Hux Delete, sad but pending in China
+    <link href='http://fonts.googleapis.com/css?family=Lora:400,700,400italic,700italic' rel='stylesheet' type='text/css'>
+    <link href='http://fonts.googleapis.com/css?family=Open+Sans:300italic,400italic,600italic,700italic,800italic,400,300,600,700,800' rel='stylesheet' type='text/
+    css'>
+    -->
+
+
+    <!-- HTML5 Shim and Respond.js IE8 support of HTML5 elements and media queries -->
+    <!-- WARNING: Respond.js doesn't work if you view the page via file:// -->
+    <!--[if lt IE 9]>
+        <script src="https://oss.maxcdn.com/libs/html5shiv/3.7.0/html5shiv.js"></script>
+        <script src="https://oss.maxcdn.com/libs/respond.js/1.4.2/respond.min.js"></script>
+    <![endif]-->
+
+    <!-- ga & ba script hoook -->
+    <script></script>
+<meta name="generator" content="Hexo 4.2.1"><link rel="alternate" href="/atom.xml" title="奇妙的 Linux 世界" type="application/atom+xml">
+</head>
+
+
+<!-- hack iOS CSS :active style -->
+<body ontouchstart="">
+	<!-- Modified by Yu-Hsuan Yen -->
+<!-- Post Header -->
+<style type="text/css">
+    header.intro-header{
+        
+            background-image: url('/img/header_img/building.jpg')
+            /*post*/
+        
+    }
+    
+</style>
+
+<header class="intro-header" >
+    <!-- Signature -->
+    <div id="signature">
+        <div class="container">
+            <div class="row">
+                <div class="col-lg-8 col-lg-offset-2 col-md-10 col-md-offset-1">
+                
+                    <div class="post-heading">
+                        <div class="tags">
+                            
+                              <a class="tag" href="/tags/#Linux" title="Linux">Linux</a>
+                            
+                              <a class="tag" href="/tags/#Docker" title="Docker">Docker</a>
+                            
+                              <a class="tag" href="/tags/#Kubernetes" title="Kubernetes">Kubernetes</a>
+                            
+                        </div>
+                        <h1>手把手教你深度定制 Kubernetes Nginx Ingress 错误提示页面</h1>
+                        <h2 class="subheading"></h2>
+                        <span class="meta">
+                            Posted by Mike on
+                            2020-12-28
+                        </span>
+                    </div>
+                
+
+
+                </div>
+            </div>
+        </div>
+    </div>
+</header>
+
+	
+    <!-- Navigation -->
+<nav class="navbar navbar-default navbar-custom navbar-fixed-top">
+    <div class="container-fluid">
+        <!-- Brand and toggle get grouped for better mobile display -->
+        <div class="navbar-header page-scroll">
+            <button type="button" class="navbar-toggle">
+                <span class="sr-only">Toggle navigation</span>
+                <span class="icon-bar"></span>
+                <span class="icon-bar"></span>
+                <span class="icon-bar"></span>
+            </button>
+            <a class="navbar-brand" href="/">奇妙的 Linux 世界</a>
+        </div>
+
+        <!-- Collect the nav links, forms, and other content for toggling -->
+        <!-- Known Issue, found by Hux:
+            <nav>'s height woule be hold on by its content.
+            so, when navbar scale out, the <nav> will cover tags.
+            also mask any touch event of tags, unfortunately.
+        -->
+        <div id="huxblog_navbar">
+            <div class="navbar-collapse">
+                <ul class="nav navbar-nav navbar-right">
+                    <li>
+                        <a href="/">Home</a>
+                    </li>
+
+                    
+
+                        
+                    
+
+                        
+                    
+
+                        
+                        <li>
+                            <a href="/about/">About</a>
+                        </li>
+                        
+                    
+
+                        
+                        <li>
+                            <a href="/archive/">Archives</a>
+                        </li>
+                        
+                    
+
+                        
+                        <li>
+                            <a href="/tags/">Tags</a>
+                        </li>
+                        
+                    
+                    
+                </ul>
+            </div>
+        </div>
+        <!-- /.navbar-collapse -->
+    </div>
+    <!-- /.container -->
+</nav>
+<script>
+    // Drop Bootstarp low-performance Navbar
+    // Use customize navbar with high-quality material design animation
+    // in high-perf jank-free CSS3 implementation
+    var $body   = document.body;
+    var $toggle = document.querySelector('.navbar-toggle');
+    var $navbar = document.querySelector('#huxblog_navbar');
+    var $collapse = document.querySelector('.navbar-collapse');
+
+    $toggle.addEventListener('click', handleMagic)
+    function handleMagic(e){
+        if ($navbar.className.indexOf('in') > 0) {
+        // CLOSE
+            $navbar.className = " ";
+            // wait until animation end.
+            setTimeout(function(){
+                // prevent frequently toggle
+                if($navbar.className.indexOf('in') < 0) {
+                    $collapse.style.height = "0px"
+                }
+            },400)
+        }else{
+        // OPEN
+            $collapse.style.height = "auto"
+            $navbar.className += " in";
+        }
+    }
+</script>
+
+
+    <!-- Main Content -->
+    <!-- Modify by Yu-Hsuan Yen -->
+
+<!-- Post Content -->
+<article>
+    <div class="container">
+        <div class="row">
+
+            <!-- Post Container -->
+            <div class="
+                col-lg-8 col-lg-offset-2
+                col-md-10 col-md-offset-1
+                post-container">
+
+                <div id="vip-container"><blockquote>
+<p>错误页面是发生错误时显示的网页。 错误页面会警告用户发生的错误类型，并可能为用户提供解决问题的步骤的建议。 除了在未样式化的网页上提供错误信息的基本页面之外，还可以使用可以设计为具有额外功能和样式外观的自定义错误页面。 这些设置可以在服务器上更改。 许多服务器提供了可用于生成自定义错误页面的实用程序。</p>
+<p>引文参考：<a href="https://www.netinbag.com/cn/internet/what-are-error-pages.html" target="_blank" rel="noopener">https://www.netinbag.com/cn/internet/what-are-error-pages.html</a></p>
+</blockquote>
+<h2><span id="1-错误页面状态码">1、错误页面状态码</span></h2>
+<p>网站运行过程中难免出现问题，为用户抛出一个错误页面，常见的错误页面包含<code>403</code>、<code>404</code>、<code>500</code>、<code>502</code>、<code>503</code>、<code>504</code>状态码，这些常见的错误页面状态码的含义如下</p>
+<ul>
+<li>403 Forbidden</li>
+<li>404 Not Found</li>
+<li>500 Internal Server Eroor</li>
+<li>502 Bad Gateway</li>
+<li>503 Service Unavailable</li>
+<li>504 Gateway Timeout</li>
+</ul>
+<a id="more"></a>
+<h2><span id="2-在k8s中模拟错误页面">2、在k8s中模拟错误页面</span></h2>
+<p>本文中涉及到的的<code>k8s集群</code>版本、<code>Ingress nginx</code>版本如下</p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">#</span><span class="bash"> kubectl version</span></span><br><span class="line">Client Version: version.Info&#123;Major:"1", Minor:"15", GitVersion:"v1.15.0", GitCommit:"e8462b5b5dc2584fdcd18e6bcfe9f1e4d970a529", GitTreeState:"clean", BuildDate:"2019-06-19T16:40:16Z", GoVersion:"go1.12.5", Compiler:"gc", Platform:"linux/amd64"&#125;</span><br><span class="line">Server Version: version.Info&#123;Major:"1", Minor:"15", GitVersion:"v1.15.0", GitCommit:"e8462b5b5dc2584fdcd18e6bcfe9f1e4d970a529", GitTreeState:"clean", BuildDate:"2019-06-19T16:32:14Z", GoVersion:"go1.12.5", Compiler:"gc", Platform:"linux/amd64"&#125;</span><br><span class="line"><span class="meta">#</span><span class="bash"> POD_NAME=$(kubectl get pods -l app.kubernetes.io/name=ingress-nginx -n ingress-nginx -o jsonpath=<span class="string">'&#123;.items[0].metadata.name&#125;'</span>)</span></span><br><span class="line"><span class="meta">#</span><span class="bash"> kubectl <span class="built_in">exec</span> -it <span class="variable">$POD_NAME</span> -n ingress-nginx -- /nginx-ingress-controller --version</span></span><br><span class="line">-------------------------------------------------------------------------------</span><br><span class="line">NGINX Ingress controller</span><br><span class="line">  Release:    0.25.0</span><br><span class="line">  Build:      git-1387f7b7e</span><br><span class="line">  Repository: https://github.com/kubernetes/ingress-nginx</span><br><span class="line">-------------------------------------------------------------------------------</span><br></pre></td></tr></table></figure>
+<p>对于错误页面状态码，为了方便，这里模拟出<code>404</code>和<code>503</code>两个错误状态码页面</p>
+<ul>
+<li>404页面</li>
+</ul>
+<p>解析一个不存在的域名到<code>Ingress controller</code>所在的节点，进行访问，页面如下</p>
+<p><img src="https://img.hi-linux.com/staticfile/pH3Yqo-2020-12-27-O6ybjO.jpg" alt="pH3Yqo-2020-12-27-O6ybjO"></p>
+<p>这里对<code>Ingress nginx</code>做了版本号的隐藏，返回了默认的<code>404 Not Found</code>(页面未找到)</p>
+<ul>
+<li>503页面</li>
+</ul>
+<p>在<code>k8s</code>中创建一个如下的<code>Ingress</code>资源</p>
+<figure class="highlight yaml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line"><span class="attr">apiVersion:</span> <span class="string">extensions/v1beta1</span></span><br><span class="line"><span class="attr">kind:</span> <span class="string">Ingress</span></span><br><span class="line"><span class="attr">metadata:</span></span><br><span class="line">  <span class="attr">name:</span> <span class="string">example-ingress</span></span><br><span class="line"><span class="attr">spec:</span></span><br><span class="line">  <span class="attr">rules:</span></span><br><span class="line">    <span class="bullet">-</span> <span class="attr">host:</span> <span class="string">example.bar.com</span></span><br><span class="line">      <span class="attr">http:</span></span><br><span class="line">        <span class="attr">paths:</span></span><br><span class="line">          <span class="bullet">-</span> <span class="attr">backend:</span></span><br><span class="line">              <span class="attr">serviceName:</span> <span class="string">nginx-service</span></span><br><span class="line">              <span class="attr">servicePort:</span> <span class="number">80</span></span><br></pre></td></tr></table></figure>
+<p>同样将对应的域名解析到<code>Ingress controller</code>所在的节点进行访问，由于该<code>Ingress</code>的后端并没有对应的<code>nginx-service</code>，因此会返回默认的<code>503</code>(服务暂时不可用)</p>
+<p><img src="https://img.hi-linux.com/staticfile/YpwQZG-2020-12-27-NxbEl6.jpg" alt="YpwQZG-2020-12-27-NxbEl6"></p>
+<h2><span id="3-默认后端错误页面">3、默认后端错误页面</span></h2>
+<p>很多时候我们虽然隐藏了<code>Ingress nginx</code>的版本号，但直接返回状态码还是不够友好。一些网站都会有自定义的较友好、美观的错误页面或跳转到公益页面等。</p>
+<p>如何定制错误页面？在网址的域名<code>dns</code>被正确解析而不是未注册或被劫持的情况下，简单来说可以根据网络访问链路分为以下两种情况：</p>
+<ul>
+<li>域名通过<code>CNAME</code>解析到<code>cdn</code></li>
+</ul>
+<p>如果网站前面用到了类似阿里云提供的<code>CDN</code>加速、全站加速等服务，域名通过<code>CNAME</code>解析到<code>CDN</code>，<code>CDN</code>再配置关联的域名。这种情况下错误页面的定义都可以直接在<code>CDN</code>控制台进行配置。如下图所示，指定状态码对应的页面即可。</p>
+<p><img src="https://img.hi-linux.com/staticfile/Hjr9qs-2020-12-27-Y5ZyqI.jpg" alt="Hjr9qs-2020-12-27-Y5ZyqI"></p>
+<ul>
+<li>域名通过<code>A</code>记录解析到<code>LB</code>或者真实服务器</li>
+</ul>
+<p>如果网站域名通过<code>A</code>记录解析到<code>LB</code>或者真实服务器，而<code>LB</code>或者真实服务器不做任何处理，那么将返回上面所示的错误状态码页面。对于<code>k8s</code>中通过<code>Ingress nginx</code>暴露的服务来说，可以在<code>Ingress-controller</code>配置默认后端错误页面。</p>
+<p>可以参照官方的<a href="https://github.com/kubernetes/ingress-nginx/tree/nginx-0.25.0/docs/examples/customization/custom-errors" target="_blank" rel="noopener">文档说明</a>，配置流程如下。</p>
+<h3><span id="31-部署默认后端">3.1 部署默认后端</span></h3>
+<p><code>Ingress nginx</code>提供了默认的自定义后端供用户使用，<code>yaml</code>如下</p>
+<figure class="highlight yaml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">---</span></span><br><span class="line"><span class="attr">apiVersion:</span> <span class="string">v1</span></span><br><span class="line"><span class="attr">kind:</span> <span class="string">Service</span></span><br><span class="line"><span class="attr">metadata:</span></span><br><span class="line">  <span class="attr">name:</span> <span class="string">nginx-errors</span></span><br><span class="line">  <span class="attr">labels:</span></span><br><span class="line">    <span class="attr">app.kubernetes.io/name:</span> <span class="string">nginx-errors</span></span><br><span class="line">    <span class="attr">app.kubernetes.io/part-of:</span> <span class="string">ingress-nginx</span></span><br><span class="line"><span class="attr">spec:</span></span><br><span class="line">  <span class="attr">selector:</span></span><br><span class="line">    <span class="attr">app.kubernetes.io/name:</span> <span class="string">nginx-errors</span></span><br><span class="line">    <span class="attr">app.kubernetes.io/part-of:</span> <span class="string">ingress-nginx</span></span><br><span class="line">  <span class="attr">ports:</span></span><br><span class="line">  <span class="bullet">-</span> <span class="attr">port:</span> <span class="number">80</span></span><br><span class="line">    <span class="attr">targetPort:</span> <span class="number">8080</span></span><br><span class="line">    <span class="attr">name:</span> <span class="string">http</span></span><br><span class="line"><span class="meta">---</span></span><br><span class="line"><span class="attr">apiVersion:</span> <span class="string">apps/v1</span></span><br><span class="line"><span class="attr">kind:</span> <span class="string">Deployment</span></span><br><span class="line"><span class="attr">metadata:</span></span><br><span class="line">  <span class="attr">name:</span> <span class="string">nginx-errors</span></span><br><span class="line">  <span class="attr">labels:</span></span><br><span class="line">    <span class="attr">app.kubernetes.io/name:</span> <span class="string">nginx-errors</span></span><br><span class="line">    <span class="attr">app.kubernetes.io/part-of:</span> <span class="string">ingress-nginx</span></span><br><span class="line"><span class="attr">spec:</span></span><br><span class="line">  <span class="attr">replicas:</span> <span class="number">1</span></span><br><span class="line">  <span class="attr">selector:</span></span><br><span class="line">    <span class="attr">matchLabels:</span></span><br><span class="line">      <span class="attr">app.kubernetes.io/name:</span> <span class="string">nginx-errors</span></span><br><span class="line">      <span class="attr">app.kubernetes.io/part-of:</span> <span class="string">ingress-nginx</span></span><br><span class="line">  <span class="attr">template:</span></span><br><span class="line">    <span class="attr">metadata:</span></span><br><span class="line">      <span class="attr">labels:</span></span><br><span class="line">        <span class="attr">app.kubernetes.io/name:</span> <span class="string">nginx-errors</span></span><br><span class="line">        <span class="attr">app.kubernetes.io/part-of:</span> <span class="string">ingress-nginx</span></span><br><span class="line">    <span class="attr">spec:</span></span><br><span class="line">      <span class="attr">containers:</span></span><br><span class="line">      <span class="bullet">-</span> <span class="attr">name:</span> <span class="string">nginx-error-server</span></span><br><span class="line">        <span class="attr">image:</span> <span class="string">quay.io/kubernetes-ingress-controller/custom-error-pages-amd64:0.3</span></span><br><span class="line">        <span class="attr">ports:</span></span><br><span class="line">        <span class="bullet">-</span> <span class="attr">containerPort:</span> <span class="number">8080</span></span><br><span class="line">        <span class="comment"># Setting the environment variable DEBUG we can see the headers sent </span></span><br><span class="line">        <span class="comment"># by the ingress controller to the backend in the client response.</span></span><br><span class="line">        <span class="comment"># env:</span></span><br><span class="line">        <span class="comment"># - name: DEBUG</span></span><br><span class="line">        <span class="comment">#   value: "true"</span></span><br></pre></td></tr></table></figure>
+<p>保证镜像可用的情况下，直接创建对应资源即可</p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">#</span><span class="bash"> kubectl create -f custom-default-backend.yaml</span></span><br><span class="line">service "nginx-errors" created</span><br><span class="line">deployment.apps "nginx-errors" created</span><br></pre></td></tr></table></figure>
+<p>检查创建的资源</p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">#</span><span class="bash"> kubectl get deploy,svc</span></span><br><span class="line">NAME                           DESIRED   CURRENT   READY     AGE</span><br><span class="line">deployment.apps/nginx-errors   1         1         1         10s</span><br><span class="line"></span><br><span class="line">NAME                   TYPE        CLUSTER-IP  EXTERNAL-IP   PORT(S)   AGE</span><br><span class="line">service/nginx-errors   ClusterIP   10.0.0.12   &lt;none&gt;        80/TCP    10s</span><br></pre></td></tr></table></figure>
+<h3><span id="32-配置启动参数">3.2 配置启动参数</span></h3>
+<p>修改<code>Ingress controller</code>控制器的启动参数，加入以下配置，通过<code>--default-backend</code>标志的值设置为新创建的错误后端的名称</p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">#</span><span class="bash"> kubectl -n ingress-nginx edit ds nginx-ingress-controller</span></span><br><span class="line">...</span><br><span class="line">    spec:</span><br><span class="line">      containers:</span><br><span class="line">      - args:</span><br><span class="line">        - /nginx-ingress-controller</span><br><span class="line">        - --configmap=$(POD_NAMESPACE)/nginx-configuration</span><br><span class="line">        - --tcp-services-configmap=$(POD_NAMESPACE)/tcp-services</span><br><span class="line">        - --udp-services-configmap=$(POD_NAMESPACE)/udp-services</span><br><span class="line">        - --publish-service=$(POD_NAMESPACE)/ingress-nginx</span><br><span class="line">        - --annotations-prefix=nginx.ingress.kubernetes.io</span><br><span class="line">        - --default-backend-service=ingress-nginx/nginx-errors  # 添加此行</span><br><span class="line">...</span><br></pre></td></tr></table></figure>
+<h3><span id="33-修改configmap">3.3 修改configmap</span></h3>
+<p>修改对应的<code>configmap</code>指定要关联到默认后端服务的服务状态码，意味着如果状态码是配置项中的值，那么返回给客户端浏览器的就是默认后端服务</p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">#</span><span class="bash"> kubectl -n ingress-nginx edit configmap nginx-configuration</span></span><br><span class="line">apiVersion: v1</span><br><span class="line">data:</span><br><span class="line">  custom-http-errors: 403,404,500,502,503,504 # 添加此行</span><br></pre></td></tr></table></figure>
+<h3><span id="34-测试">3.4 测试</span></h3>
+<p>通过终端命令访问上面<code>404</code>和<code>503</code>页面的两个域名</p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">#</span><span class="bash">  ingress-nginx curl example.bar.com                              </span></span><br><span class="line">5xx html                                                                                                                                                                        #  ingress-nginx curl example.foo.com                              </span><br><span class="line">&lt;span&gt;The page you're looking for could not be found.&lt;/span&gt;</span><br><span class="line"><span class="meta">#</span><span class="bash">  自定义Accept标头</span></span><br><span class="line"><span class="meta">#</span><span class="bash">  ingress-nginx curl -H <span class="string">'Accept: application/json'</span> example.foo.com</span></span><br><span class="line">&#123; "message": "The page you're looking for could not be found" &#125;</span><br></pre></td></tr></table></figure>
+<p>可以看到默认后端将<code>404</code>状态码返回了字符串，<code>503</code>返回了<code>5xx html</code>的字符串。缺点在于这样的情况如果用浏览器进行访问，仅仅是一个字符串文本甚至无法正常显示，因此需要重新定义这个默认后端服务，提供友好的界面返回。</p>
+<h2><span id="4-自定义错误页面">4、自定义错误页面</span></h2>
+<h3><span id="41-剖析请求与关键">4.1 剖析请求与关键</span></h3>
+<p>如下图所示，<code>Ingress Controller</code>控制器的工作原理，简单来说，将控制器理解为一个监听器，通过不断地监听 <code>kube-apiserver</code>，实时的感知后端 <code>Service</code>和<code>Pod</code>的变化，当得到这些信息变化后，<code>Ingress Controller</code>再结合<code>Ingress</code>的配置，更新反向代理负载均衡器，从而达到服务发现的作用。<code>Ingress-nginx</code>的最终目标是构造<code>nginx.conf</code>这样的配置文件，主要用途是在配置文件有任何变更后都需要重新加载 <code>nginx</code>。</p>
+<p><img src="https://img.hi-linux.com/staticfile/fHCwV4-2020-12-27-uFOoUZ.jpg" alt="fHCwV4-2020-12-27-uFOoUZ"></p>
+<p>通过上面创建<code>ingress</code>资源，以及配置控制器启动参数和<code>configmap</code>，进入到<code>nginx-ingress-controller</code>的<code>pod</code>中查看配置(文件内容很多，可以导出或过滤查看)。</p>
+<p>会看到将状态码关联了自定义的默认后端</p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">#</span><span class="bash"> kubectl -n ingress-nginx <span class="built_in">exec</span> -it nginx-ingress-controller-2rrsw bash</span></span><br><span class="line">www-data@k8s-qa-node-03:/etc/nginx$ grep "error_page" nginx.conf -C 10</span><br><span class="line">        </span><br><span class="line">        ssl_ecdh_curve auto;</span><br><span class="line">        </span><br><span class="line">        proxy_intercept_errors on;</span><br><span class="line">        </span><br><span class="line">        error_page 404 = @custom_upstream-default-backend_404;</span><br><span class="line">        error_page 500 = @custom_upstream-default-backend_500;</span><br><span class="line">        error_page 502 = @custom_upstream-default-backend_502;</span><br><span class="line">        error_page 503 = @custom_upstream-default-backend_503;</span><br><span class="line">        error_page 504 = @custom_upstream-default-backend_504;</span><br><span class="line">        </span><br><span class="line">        proxy_ssl_session_reuse on;</span><br><span class="line">        </span><br><span class="line">        upstream upstream_balancer &#123;</span><br><span class="line">                server 0.0.0.1; # placeholder</span><br></pre></td></tr></table></figure>
+<p>过滤出上面创建的域名<code>example.bar.com</code>相关配置</p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">	#</span><span class="bash"><span class="comment"># start server example.bar.com</span></span></span><br><span class="line">	server &#123;</span><br><span class="line">		server_name example.bar.com ;</span><br><span class="line">		</span><br><span class="line">		listen 80;</span><br><span class="line">		</span><br><span class="line">		listen [::]:80;</span><br><span class="line">		</span><br><span class="line">		set $proxy_upstream_name "-";</span><br><span class="line">		set $pass_access_scheme $scheme;</span><br><span class="line">		set $pass_server_port $server_port;</span><br><span class="line">		set $best_http_host $http_host;</span><br><span class="line">		set $pass_port $pass_server_port;</span><br><span class="line">...</span><br><span class="line">		location @custom_upstream-default-backend_404 &#123;</span><br><span class="line">			internal;</span><br><span class="line">			</span><br><span class="line">			proxy_intercept_errors off;</span><br><span class="line">			</span><br><span class="line">			proxy_set_header       X-Code             404;</span><br><span class="line">			proxy_set_header       X-Format           $http_accept;</span><br><span class="line">			proxy_set_header       X-Original-URI     $request_uri;</span><br><span class="line">			proxy_set_header       X-Namespace        $namespace;</span><br><span class="line">			proxy_set_header       X-Ingress-Name     $ingress_name;</span><br><span class="line">			proxy_set_header       X-Service-Name     $service_name;</span><br><span class="line">			proxy_set_header       X-Service-Port     $service_port;</span><br><span class="line">			proxy_set_header       X-Request-ID       $req_id;</span><br><span class="line">			proxy_set_header       Host               $best_http_host;</span><br><span class="line">			</span><br><span class="line">			set $proxy_upstream_name upstream-default-backend;</span><br><span class="line">			</span><br><span class="line">			rewrite                (.*) / break;</span><br><span class="line">			</span><br><span class="line">			proxy_pass            http://upstream_balancer;</span><br><span class="line">			log_by_lua_block &#123;</span><br><span class="line">				</span><br><span class="line">				monitor.call()</span><br><span class="line">				</span><br><span class="line">			&#125;</span><br><span class="line">		&#125;</span><br><span class="line">		</span><br><span class="line">		location @custom_upstream-default-backend_500 &#123;</span><br><span class="line">			internal;</span><br><span class="line">			</span><br><span class="line">			proxy_intercept_errors off;</span><br><span class="line">			</span><br><span class="line">			proxy_set_header       X-Code             500;</span><br><span class="line">			proxy_set_header       X-Format           $http_accept;</span><br><span class="line">			proxy_set_header       X-Original-URI     $request_uri;</span><br><span class="line">			proxy_set_header       X-Namespace        $namespace;</span><br><span class="line">			proxy_set_header       X-Ingress-Name     $ingress_name;</span><br><span class="line">			proxy_set_header       X-Service-Name     $service_name;</span><br><span class="line">			proxy_set_header       X-Service-Port     $service_port;</span><br><span class="line">			proxy_set_header       X-Request-ID       $req_id;</span><br><span class="line">			proxy_set_header       Host               $best_http_host;</span><br><span class="line">			</span><br><span class="line">			set $proxy_upstream_name upstream-default-backend;</span><br><span class="line">			</span><br><span class="line">			rewrite                (.*) / break;</span><br><span class="line">			</span><br><span class="line">			proxy_pass            http://upstream_balancer;</span><br><span class="line">			log_by_lua_block &#123;</span><br><span class="line">				</span><br><span class="line">				monitor.call()</span><br><span class="line">				</span><br><span class="line">			&#125;</span><br><span class="line">		&#125;</span><br><span class="line">...</span><br></pre></td></tr></table></figure>
+<p>这个<code>server</code>中关于默认后端的配置内容是<strong>关键信息</strong>(踩坑发现，后面只有用到这里的相关配置才能达到最终目标，否则无法判断)。</p>
+<p>可以看到，在传递默认后端时，设置了多个请求头字段，其中<code>X-Code</code>即状态码正是所需要的，这里意味着将控制器返回的对应状态码，例如<code>500</code>定义在了<code>X-Code中</code>。如果自定义一个默认后端来取代官方的默认后端，就可以通过<code>X-Code</code>这个特定的头部来判断实现不同的状态码从而返回不同的自定义错误页面。</p>
+<p>关于<code>X-code</code>早期的版本可能会不生效，<a href="https://github.com/kubernetes/ingress-nginx/issues/2281" target="_blank" rel="noopener">issue参考</a></p>
+<h3><span id="42-构建自定义后端">4.2 构建自定义后端</span></h3>
+<p>自定义后端页面可以理解成就是简单的静态页面，这里可以通过熟悉的<code>nginx</code>来构建这样的自定义后端。即通过手动编译安装<code>nginx</code>，并打包好自定义错误页面、配置文件成一个<code>docker</code>镜像。</p>
+<p>镜像中<code>nginx.conf</code>的<strong>关键配置</strong></p>
+<ul>
+<li>利用上面提到的<code>X-code</code>特定头部进行原始状态码的判断。</li>
+<li><code>nginx</code>不支持嵌套的<code>if</code>判断以及逻辑运算，因此通过设置<code>flag</code>变量标记的形式实现不同状态码的判断返回，如果列出的状态码都不匹配，将状态码设置为返回<code>404</code>。</li>
+</ul>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br></pre></td><td class="code"><pre><span class="line">    server &#123;</span><br><span class="line">        listen 80;</span><br><span class="line">...</span><br><span class="line">        root   /data/www/error;</span><br><span class="line">        error_page  403  /403.html;</span><br><span class="line">        error_page  404  /404.html;</span><br><span class="line">        error_page  500  /500.html;</span><br><span class="line">        error_page  502  /502.html;</span><br><span class="line">        error_page  503  /503.html;</span><br><span class="line">        error_page  504  /504.html;</span><br><span class="line">        location = / &#123;</span><br><span class="line">            set $flag 404;</span><br><span class="line">            if ($http_x_code = "403")&#123;set $flag 403;&#125;</span><br><span class="line">            if ($http_x_code = "404")&#123;set $flag 404;&#125;</span><br><span class="line">            if ($http_x_code = "500")&#123;set $flag 500;&#125;</span><br><span class="line">            if ($http_x_code = "502")&#123;set $flag 502;&#125;</span><br><span class="line">            if ($http_x_code = "503")&#123;set $flag 503;&#125;</span><br><span class="line">            if ($http_x_code = "504")&#123;set $flag 504;&#125;</span><br><span class="line">            if ($flag = "403")&#123;return 403;&#125;</span><br><span class="line">            if ($flag = "404")&#123;return 404;&#125;</span><br><span class="line">            if ($flag = "500")&#123;return 500;&#125;</span><br><span class="line">            if ($flag = "502")&#123;return 502;&#125;</span><br><span class="line">            if ($flag = "503")&#123;return 503;&#125;</span><br><span class="line">            if ($flag = "504")&#123;return 504;&#125;</span><br><span class="line">        &#125;</span><br><span class="line">        location = /403.html &#123;</span><br><span class="line">            internal;</span><br><span class="line">        &#125;</span><br><span class="line">        location = /404.html &#123;</span><br><span class="line">            internal;</span><br><span class="line">        &#125;</span><br><span class="line">...</span><br></pre></td></tr></table></figure>
+<p>代码根目录结构</p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line">[root@docker nginx_error]# tree error/</span><br><span class="line">error/</span><br><span class="line">├── 403.html</span><br><span class="line">├── 404.html</span><br><span class="line">├── 500.html</span><br><span class="line">├── 502.html</span><br><span class="line">├── 503.html</span><br><span class="line">└── 504.html</span><br></pre></td></tr></table></figure>
+<p>这里我已经将制作好的镜像上传到了<code>dockerhub</code>，可以通过以下命令拉取镜像</p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">docker pull ssgeek/nginx:nginx_error_1.14.2_v1.0</span><br></pre></td></tr></table></figure>
+<h3><span id="43-部署自定义后端">4.3 部署自定义后端</span></h3>
+<p>参照已有模板，重新部署一个新的默认后端</p>
+<figure class="highlight yaml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">---</span></span><br><span class="line"><span class="attr">apiVersion:</span> <span class="string">v1</span></span><br><span class="line"><span class="attr">kind:</span> <span class="string">Service</span></span><br><span class="line"><span class="attr">metadata:</span></span><br><span class="line">  <span class="attr">name:</span> <span class="string">ssgeek-errors</span></span><br><span class="line">  <span class="attr">labels:</span></span><br><span class="line">    <span class="attr">app.kubernetes.io/name:</span> <span class="string">ssgeek-errors</span></span><br><span class="line">    <span class="attr">app.kubernetes.io/part-of:</span> <span class="string">ingress-nginx</span></span><br><span class="line">  <span class="attr">namespace:</span> <span class="string">ingress-nginx</span></span><br><span class="line"><span class="attr">spec:</span></span><br><span class="line">  <span class="attr">selector:</span></span><br><span class="line">    <span class="attr">app.kubernetes.io/name:</span> <span class="string">ssgeek-errors</span></span><br><span class="line">    <span class="attr">app.kubernetes.io/part-of:</span> <span class="string">ingress-nginx</span></span><br><span class="line">  <span class="attr">ports:</span></span><br><span class="line">  <span class="bullet">-</span> <span class="attr">port:</span> <span class="number">80</span></span><br><span class="line">    <span class="attr">targetPort:</span> <span class="number">80</span></span><br><span class="line">    <span class="attr">name:</span> <span class="string">http</span></span><br><span class="line"><span class="meta">---</span></span><br><span class="line"><span class="attr">apiVersion:</span> <span class="string">apps/v1</span></span><br><span class="line"><span class="attr">kind:</span> <span class="string">Deployment</span></span><br><span class="line"><span class="attr">metadata:</span></span><br><span class="line">  <span class="attr">name:</span> <span class="string">ssgeek-errors</span></span><br><span class="line">  <span class="attr">labels:</span></span><br><span class="line">    <span class="attr">app.kubernetes.io/name:</span> <span class="string">ssgeek-errors</span></span><br><span class="line">    <span class="attr">app.kubernetes.io/part-of:</span> <span class="string">ingress-nginx</span></span><br><span class="line">  <span class="attr">namespace:</span> <span class="string">ingress-nginx</span></span><br><span class="line"><span class="attr">spec:</span></span><br><span class="line">  <span class="attr">replicas:</span> <span class="number">1</span></span><br><span class="line">  <span class="attr">selector:</span></span><br><span class="line">    <span class="attr">matchLabels:</span></span><br><span class="line">      <span class="attr">app.kubernetes.io/name:</span> <span class="string">ssgeek-errors</span></span><br><span class="line">      <span class="attr">app.kubernetes.io/part-of:</span> <span class="string">ingress-nginx</span></span><br><span class="line">  <span class="attr">template:</span></span><br><span class="line">    <span class="attr">metadata:</span></span><br><span class="line">      <span class="attr">labels:</span></span><br><span class="line">        <span class="attr">app.kubernetes.io/name:</span> <span class="string">ssgeek-errors</span></span><br><span class="line">        <span class="attr">app.kubernetes.io/part-of:</span> <span class="string">ingress-nginx</span></span><br><span class="line">    <span class="attr">spec:</span></span><br><span class="line">      <span class="attr">containers:</span></span><br><span class="line">      <span class="bullet">-</span> <span class="attr">name:</span> <span class="string">ssgeek-errors</span></span><br><span class="line">        <span class="attr">image:</span> <span class="string">ssgeek/nginx:nginx_error_1.14.2_v1.0</span></span><br><span class="line">        <span class="attr">ports:</span></span><br><span class="line">        <span class="bullet">-</span> <span class="attr">containerPort:</span> <span class="number">80</span></span><br><span class="line">        <span class="comment"># Setting the environment variable DEBUG we can see the headers sent </span></span><br><span class="line">        <span class="comment"># by the ingress controller to the backend in the client response.</span></span><br><span class="line">        <span class="comment"># env:</span></span><br><span class="line">        <span class="comment"># - name: DEBUG</span></span><br><span class="line">        <span class="comment">#   value: "true"</span></span><br></pre></td></tr></table></figure>
+<p>同样的，修改<code>Ingress controller</code>控制器的启动参数，修改关联的<code>service</code>名称</p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">#</span><span class="bash"> kubectl -n ingress-nginx edit ds nginx-ingress-controller</span></span><br><span class="line">...</span><br><span class="line">    spec:</span><br><span class="line">      containers:</span><br><span class="line">      - args:</span><br><span class="line">        - /nginx-ingress-controller</span><br><span class="line">        - --configmap=$(POD_NAMESPACE)/nginx-configuration</span><br><span class="line">        - --tcp-services-configmap=$(POD_NAMESPACE)/tcp-services</span><br><span class="line">        - --udp-services-configmap=$(POD_NAMESPACE)/udp-services</span><br><span class="line">        - --publish-service=$(POD_NAMESPACE)/ingress-nginx</span><br><span class="line">        - --annotations-prefix=nginx.ingress.kubernetes.io</span><br><span class="line">        - --default-backend-service=ingress-nginx/ssgeek-errors  # 修改成自定义的默认后端服务</span><br><span class="line">...</span><br></pre></td></tr></table></figure>
+<h3><span id="44-最终测试">4.4 最终测试</span></h3>
+<p>测试效果如下</p>
+<p><video id="video" width="800" height="450" controls="controls" preload="none" poster="https://image.ssgeek.com/20201217-05.png" style="box-sizing: inherit; margin: 0px; padding: 0px; color: rgb(73, 80, 87); font-family: -apple-system, system-ui, &quot;Segoe UI&quot;, Roboto, &quot;PingFang SC&quot;, &quot;Hiragino Sans GB&quot;, &quot;Microsoft YaHei&quot;, Helvetica, Arial, sans-serif, &quot;Apple Color Emoji&quot;, &quot;Segoe UI Emoji&quot;, &quot;Segoe UI Symbol&quot;; font-size: 16px; font-style: normal; font-variant-ligatures: normal; font-variant-caps: normal; font-weight: 400; letter-spacing: normal; orphans: 2; text-align: start; text-indent: 0px; text-transform: none; white-space: normal; widows: 2; word-spacing: 0px; -webkit-text-stroke-width: 0px; background-color: rgb(248, 249, 250); text-decoration-thickness: initial; text-decoration-style: initial; text-decoration-color: initial;"></video></p>
+<p>到这里，基于<code>k8s Ingress nginx</code>对错误页面的深度定制就完成了。</p>
+<blockquote>
+<p>本文转载自：「山山仙人博客」，原文：<a href="https://tinyurl.com/ybkp2jbw%EF%BC%8C%E7%89%88%E6%9D%83%E5%BD%92%E5%8E%9F%E4%BD%9C%E8%80%85%E6%89%80%E6%9C%89%E3%80%82%E6%AC%A2%E8%BF%8E%E6%8A%95%E7%A8%BF%EF%BC%8C%E6%8A%95%E7%A8%BF%E9%82%AE%E7%AE%B1:" target="_blank" rel="noopener">https://tinyurl.com/ybkp2jbw，版权归原作者所有。欢迎投稿，投稿邮箱:</a> <a href="mailto:editor@hi-linux.com">editor@hi-linux.com</a>。</p>
+</blockquote>
+</div>
+
+			<script src="https://my.openwrite.cn/js/readmore.js" type="text/javascript"></script>
+			<script>
+			var isMobile = navigator.userAgent.match(/(phone|pad|pod|iPhone|iPod|ios|iPad|Android|Mobile|BlackBerry|IEMobile|MQQBrowser|JUC|Fennec|wOSBrowser|BrowserNG|WebOS|Symbian|Windows Phone)/i);
+			if (!isMobile) {
+			    var btw = new BTWPlugin();
+			    btw.init({
+			        "id": "vip-container",
+			        "blogId": "10135-1588830050631-449",
+			        "name": "「奇妙的 Linux 世界」",
+			        "qrcode": "https://www.hi-linux.com/img/wechat/mp_qrcode_12.jpg",
+			        "keyword": "VIP"
+			    });
+			}
+			</script>
+		
+                
+
+                <hr>
+                <!-- Pager -->
+                <ul class="pager">
+                    
+                    
+                        <li class="next">
+                            <a href="/posts/11502.html" data-toggle="tooltip" data-placement="top" title="史上最全的 SSH 中文教程 (阮一峰 2020 最新开源力作)">Next Post &rarr;</a>
+                        </li>
+                    
+                </ul>
+
+                <!-- duoshuo Share start -->
+                
+                <!-- 多说 Share end-->
+
+                <!-- 多说评论框 start -->
+                
+                <!-- 多说评论框 end -->
+
+                <!-- disqus comment start -->
+                
+                <!-- disqus comment end -->
+
+                
+                    <!-- disqus 评论框 start -->
+                    <div class="comment">
+                        <div id="lv-container" data-id="city" data-uid="MTAyMC8yNzg2My80NDQw"></div>
+                    </div>
+                    <!-- disqus 评论框 end -->
+                
+
+            </div>
+            
+            <!-- Tabe of Content -->
+            <!-- Table of Contents -->
+
+  
+    <style>
+      span.toc-nav-number{
+        display: none
+      }
+    </style>
+  
+    
+      <aside id="sidebar">
+        <div id="toc" class="toc-article">
+        <strong class="toc-title">Contents</strong>
+        
+          <ol class="toc-nav"><li class="toc-nav-item toc-nav-level-2"><a class="toc-nav-link" href="#vip-container"><span class="toc-nav-number">1.</span> <span class="toc-nav-text">1、错误页面状态码</span></a></li><li class="toc-nav-item toc-nav-level-2"><a class="toc-nav-link" href="#vip-container"><span class="toc-nav-number">2.</span> <span class="toc-nav-text">2、在k8s中模拟错误页面</span></a></li><li class="toc-nav-item toc-nav-level-2"><a class="toc-nav-link" href="#vip-container"><span class="toc-nav-number">3.</span> <span class="toc-nav-text">3、默认后端错误页面</span></a><ol class="toc-nav-child"><li class="toc-nav-item toc-nav-level-3"><a class="toc-nav-link" href="#vip-container"><span class="toc-nav-number">3.1.</span> <span class="toc-nav-text">3.1 部署默认后端</span></a></li><li class="toc-nav-item toc-nav-level-3"><a class="toc-nav-link" href="#vip-container"><span class="toc-nav-number">3.2.</span> <span class="toc-nav-text">3.2 配置启动参数</span></a></li><li class="toc-nav-item toc-nav-level-3"><a class="toc-nav-link" href="#vip-container"><span class="toc-nav-number">3.3.</span> <span class="toc-nav-text">3.3 修改configmap</span></a></li><li class="toc-nav-item toc-nav-level-3"><a class="toc-nav-link" href="#vip-container"><span class="toc-nav-number">3.4.</span> <span class="toc-nav-text">3.4 测试</span></a></li></ol></li><li class="toc-nav-item toc-nav-level-2"><a class="toc-nav-link" href="#vip-container"><span class="toc-nav-number">4.</span> <span class="toc-nav-text">4、自定义错误页面</span></a><ol class="toc-nav-child"><li class="toc-nav-item toc-nav-level-3"><a class="toc-nav-link" href="#vip-container"><span class="toc-nav-number">4.1.</span> <span class="toc-nav-text">4.1 剖析请求与关键</span></a></li><li class="toc-nav-item toc-nav-level-3"><a class="toc-nav-link" href="#vip-container"><span class="toc-nav-number">4.2.</span> <span class="toc-nav-text">4.2 构建自定义后端</span></a></li><li class="toc-nav-item toc-nav-level-3"><a class="toc-nav-link" href="#vip-container"><span class="toc-nav-number">4.3.</span> <span class="toc-nav-text">4.3 部署自定义后端</span></a></li><li class="toc-nav-item toc-nav-level-3"><a class="toc-nav-link" href="#vip-container"><span class="toc-nav-number">4.4.</span> <span class="toc-nav-text">4.4 最终测试</span></a></li></ol></li></ol>
+        
+        </div>
+      </aside>
+    
+
+                
+            <!-- Sidebar Container -->
+            <div class="
+                col-lg-8 col-lg-offset-2
+                col-md-10 col-md-offset-1
+                sidebar-container">
+
+                <!-- Featured Tags -->
+                
+                <section>
+                    <!-- no hr -->
+                    <h5><a href="/tags/">FEATURED TAGS</a></h5>
+                    <div class="tags">
+                       
+                          <a class="tag" href="/tags/#Linux" title="Linux">Linux</a>
+                        
+                          <a class="tag" href="/tags/#Docker" title="Docker">Docker</a>
+                        
+                          <a class="tag" href="/tags/#Kubernetes" title="Kubernetes">Kubernetes</a>
+                        
+                    </div>
+                </section>
+                
+
+                <!-- Friends Blog -->
+                
+                <hr>
+                <h5>FRIENDS</h5>
+                <ul class="list-inline">
+
+                    
+                        <li><a href="http://www.mike.org.cn/" target="_blank">简单.生活</a></li>
+                    
+                        <li><a href="http://shang.qq.com/wpa/qunwpa?idkey=ea4c43493c2269428ac6ef6141de4b6d78e5ab2d41380ca4099b833b62884ee9" target="_blank">技术交流群</a></li>
+                    
+                        <li><a href="" target="_blank"></a></li>
+                    
+                        <li><a href="" target="_blank"></a></li>
+                    
+                </ul>
+                
+            </div>
+        </div>
+    </div>
+</article>
+
+
+
+
+
+
+    <!-- 来必力City版公共JS代码 start (一个网页只需插入一次) -->
+    <script type="text/javascript">
+       (function(d, s) {
+           var j, e = d.getElementsByTagName(s)[0];
+    
+           if (typeof LivereTower === 'function') { return; }
+    
+           j = d.createElement(s);
+           j.src = 'https://cdn-city.livere.com/js/embed.dist.js';
+           j.async = true;
+    
+           e.parentNode.insertBefore(j, e);
+       })(document, 'script');
+    </script>
+    <noscript>为正常使用来必力评论功能请激活JavaScript</noscript>
+    <!-- 来必力City版 公共JS代码 end -->
+
+
+
+<!-- async load function -->
+<script>
+    function async(u, c) {
+      var d = document, t = 'script',
+          o = d.createElement(t),
+          s = d.getElementsByTagName(t)[0];
+      o.src = u;
+      if (c) { o.addEventListener('load', function (e) { c(null, e); }, false); }
+      s.parentNode.insertBefore(o, s);
+    }
+</script>
+<!-- anchor-js, Doc:http://bryanbraun.github.io/anchorjs/ -->
+<script>
+    async("https://cdn.bootcss.com/anchor-js/1.1.1/anchor.min.js",function(){
+        anchors.options = {
+          visible: 'hover',
+          placement: 'left',
+          icon: 'ℬ'
+        };
+        anchors.add().remove('.intro-header h1').remove('.subheading').remove('.sidebar-container h5');
+    })
+</script>
+<style>
+    /* place left on bigger screen */
+    @media all and (min-width: 800px) {
+        .anchorjs-link{
+            position: absolute;
+            left: -0.75em;
+            font-size: 1.1em;
+            margin-top : -0.1em;
+        }
+    }
+</style>
+
+
+
+    <!-- Footer -->
+    <!-- Footer -->
+<footer>
+    <div class="container">
+        <div class="row">
+            <div class="col-lg-8 col-lg-offset-2 col-md-10 col-md-offset-1">
+                <ul class="list-inline text-center">
+                
+                    <li>
+                        <a href="/atom.xml">
+                            <span class="fa-stack fa-lg">
+                                <i class="fa fa-circle fa-stack-2x"></i>
+                                <i class="fa fa-rss fa-stack-1x fa-inverse"></i>
+                            </span>
+                        </a>
+                    </li>
+                
+                
+                
+                    <li>
+                        <a target="_blank" href="https://www.zhihu.com/people/80imike">
+                            <span class="fa-stack fa-lg">
+                                <i class="fa fa-circle fa-stack-2x"></i>
+                                <i class="fa  fa-stack-1x fa-inverse">知</i>
+                            </span>
+                        </a>
+                    </li>
+                
+
+                
+                    <li>
+                        <a target="_blank" href="http://weibo.com/2093524665">
+                            <span class="fa-stack fa-lg">
+                                <i class="fa fa-circle fa-stack-2x"></i>
+                                <i class="fa fa-weibo fa-stack-1x fa-inverse"></i>
+                            </span>
+                        </a>
+                    </li>
+                
+
+                
+
+                
+
+                
+
+                </ul>
+                <p class="copyright text-muted">
+                    Copyright &copy; Mike 2020 | Hosted by <a href="https://pages.coding.me" target="_blank" rel="noopener" style="font-weight: bold">Coding Pages</a>
+                    <br>
+                    Theme by <a href="http://beantech.org" target="_blank" rel="noopener">BeanTech</a> 
+                    <span style="display: inline-block; margin: 0 5px;">
+                        <i class="fa fa-heart"></i>
+                    </span> 
+                    re-Ported by <a href="http://www.huweihuang.com" target="_blank" rel="noopener">胡伟煌</a> | 
+                    <iframe
+                        style="margin-left: 2px; margin-bottom:-5px;"
+                        frameborder="0" scrolling="0" width="91px" height="20px"
+                        src="https://ghbtns.com/github-btn.html?user=huweihuang&repo=hexo-theme-huweihuang&type=star&count=true" >
+                    </iframe>
+                </p>
+            </div>
+        </div>
+    </div>
+</footer>
+
+<!-- jQuery -->
+
+<script src="/js/jquery.min.js"></script>
+
+
+<!-- Bootstrap Core JavaScript -->
+
+<script src="/js/bootstrap.min.js"></script>
+
+
+<!-- Custom Theme JavaScript -->
+
+<script src="/js/hux-blog.min.js"></script>
+
+
+
+<!-- async load function -->
+<script>
+    function async(u, c) {
+      var d = document, t = 'script',
+          o = d.createElement(t),
+          s = d.getElementsByTagName(t)[0];
+      o.src = u;
+      if (c) { o.addEventListener('load', function (e) { c(null, e); }, false); }
+      s.parentNode.insertBefore(o, s);
+    }
+</script>
+
+<!-- 
+     Because of the native support for backtick-style fenced code blocks 
+     right within the Markdown is landed in Github Pages, 
+     From V1.6, There is no need for Highlight.js, 
+     so Huxblog drops it officially.
+
+     - https://github.com/blog/2100-github-pages-now-faster-and-simpler-with-jekyll-3-0  
+     - https://help.github.com/articles/creating-and-highlighting-code-blocks/    
+-->
+<!--
+    <script>
+        async("http://cdn.bootcss.com/highlight.js/8.6/highlight.min.js", function(){
+            hljs.initHighlightingOnLoad();
+        })
+    </script>
+    <link href="http://cdn.bootcss.com/highlight.js/8.6/styles/github.min.css" rel="stylesheet">
+-->
+
+
+<!-- jquery.tagcloud.js -->
+<script>
+    // only load tagcloud.js in tag.html
+    if($('#tag_cloud').length !== 0){
+        async("https://www.hi-linux.com/js/jquery.tagcloud.js",function(){
+            $.fn.tagcloud.defaults = {
+                //size: {start: 1, end: 1, unit: 'em'},
+                color: {start: '#bbbbee', end: '#0085a1'},
+            };
+            $('#tag_cloud a').tagcloud();
+        })
+    }
+</script>
+
+<!--fastClick.js -->
+<script>
+    async("https://cdn.bootcss.com/fastclick/1.0.6/fastclick.min.js", function(){
+        var $nav = document.querySelector("nav");
+        if($nav) FastClick.attach($nav);
+    })
+</script>
+
+
+<!-- Google Analytics -->
+
+
+
+
+<!-- Baidu Tongji -->
+
+
+
+
+
+
+	<a id="rocket" href="#top" class=""></a>
+	<script type="text/javascript" src="/js/totop.js?v=1.0.0" async=""></script>
+    <script type="text/javascript" src="/js/toc.js?v=1.0.0" async=""></script>
+<!-- Image to hack wechat -->
+<img src="https://www.hi-linux.com/img/icon_wechat.png" width="0" height="0" />
+<!-- Migrate from head to bottom, no longer block render and still work -->
+
+<script>(function(w,d, s, id) {w.webpushr=w.webpushr||function(){(w.webpushr.q=w.webpushr.q||[]).push(arguments)};var js, fjs = d.getElementsByTagName(s)[0];js = d.createElement(s); js.id = id;js.src = 'https://cdn.webpushr.com/app.min.js';fjs.parentNode.appendChild(js);}(window,document, 'script', 'webpushr-jssdk'));webpushr('init','BF9JK7xV9kjWTdMx2lr6RWaPfXV7wNuZaVAJ1bfIGoBNJavqLEBVFMKLubITnCA4bh2fI9iH9tMF95nXnPt7xxY');</script></body>
+
+</html>
