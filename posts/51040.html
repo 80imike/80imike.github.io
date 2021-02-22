@@ -1,0 +1,646 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<!-- Head tag -->
+<head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="google-site-verification" content="xBT4GhYoi5qRD5tr338pgPM5OWHHIDR6mNg1a3euekI" />
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="description" content="">
+    <meta name="keyword"  content="Linux,运维,Nginx,Zabbix,Centos,Ansible,MySQL,Python,Docker,ELK,Haproxy,Git,Nodejs,安全,技术">
+    <link rel="shortcut icon" href="/img/ironman-draw.png">
+    <!-- Place this tag in your head or just before your close body tag. -->
+    <script async defer src="https://buttons.github.io/buttons.js"></script>
+    <title>
+        
+          一文搞懂 Kubernetes 如何实现 DNS 解析 - 奇妙的 Linux 世界
+        
+    </title>
+
+    <link rel="canonical" href="https://www.hi-linux.com/posts/51040.html">
+
+    <!-- Bootstrap Core CSS -->
+    
+<link rel="stylesheet" href="/css/bootstrap.min.css">
+
+
+    <!-- Custom CSS --> 
+    
+<link rel="stylesheet" href="/css/beantech.min.css">
+
+    
+    <!-- Pygments Highlight CSS -->
+    
+<link rel="stylesheet" href="/css/highlight.css">
+
+
+    
+<link rel="stylesheet" href="/css/widget.css">
+
+
+    
+<link rel="stylesheet" href="/css/rocket.css">
+
+
+    
+<link rel="stylesheet" href="/css/signature.css">
+
+
+    
+<link rel="stylesheet" href="/css/toc.css">
+
+
+    <!-- Custom Fonts -->
+    <!-- <link href="https://maxcdn.bootstrapcdn.com/font-awesome/4.3.0/css/font-awesome.min.css" rel="stylesheet" type="text/css"> -->
+    <!-- Hux change font-awesome CDN to qiniu -->
+    <link href="https://cdn.staticfile.org/font-awesome/4.5.0/css/font-awesome.min.css" rel="stylesheet" type="text/css">
+
+
+    <!-- Hux Delete, sad but pending in China
+    <link href='http://fonts.googleapis.com/css?family=Lora:400,700,400italic,700italic' rel='stylesheet' type='text/css'>
+    <link href='http://fonts.googleapis.com/css?family=Open+Sans:300italic,400italic,600italic,700italic,800italic,400,300,600,700,800' rel='stylesheet' type='text/
+    css'>
+    -->
+
+
+    <!-- HTML5 Shim and Respond.js IE8 support of HTML5 elements and media queries -->
+    <!-- WARNING: Respond.js doesn't work if you view the page via file:// -->
+    <!--[if lt IE 9]>
+        <script src="https://oss.maxcdn.com/libs/html5shiv/3.7.0/html5shiv.js"></script>
+        <script src="https://oss.maxcdn.com/libs/respond.js/1.4.2/respond.min.js"></script>
+    <![endif]-->
+
+    <!-- ga & ba script hoook -->
+    <script></script>
+<meta name="generator" content="Hexo 4.2.1"><link rel="alternate" href="/atom.xml" title="奇妙的 Linux 世界" type="application/atom+xml">
+</head>
+
+
+<!-- hack iOS CSS :active style -->
+<body ontouchstart="">
+	<!-- Modified by Yu-Hsuan Yen -->
+<!-- Post Header -->
+<style type="text/css">
+    header.intro-header{
+        
+            background-image: url('/img/header_img/building.jpg')
+            /*post*/
+        
+    }
+    
+</style>
+
+<header class="intro-header" >
+    <!-- Signature -->
+    <div id="signature">
+        <div class="container">
+            <div class="row">
+                <div class="col-lg-8 col-lg-offset-2 col-md-10 col-md-offset-1">
+                
+                    <div class="post-heading">
+                        <div class="tags">
+                            
+                              <a class="tag" href="/tags/#Linux" title="Linux">Linux</a>
+                            
+                              <a class="tag" href="/tags/#Kubernetes" title="Kubernetes">Kubernetes</a>
+                            
+                              <a class="tag" href="/tags/#DNS" title="DNS">DNS</a>
+                            
+                        </div>
+                        <h1>一文搞懂 Kubernetes 如何实现 DNS 解析</h1>
+                        <h2 class="subheading"></h2>
+                        <span class="meta">
+                            Posted by Mike on
+                            2021-02-22
+                        </span>
+                    </div>
+                
+
+
+                </div>
+            </div>
+        </div>
+    </div>
+</header>
+
+	
+    <!-- Navigation -->
+<nav class="navbar navbar-default navbar-custom navbar-fixed-top">
+    <div class="container-fluid">
+        <!-- Brand and toggle get grouped for better mobile display -->
+        <div class="navbar-header page-scroll">
+            <button type="button" class="navbar-toggle">
+                <span class="sr-only">Toggle navigation</span>
+                <span class="icon-bar"></span>
+                <span class="icon-bar"></span>
+                <span class="icon-bar"></span>
+            </button>
+            <a class="navbar-brand" href="/">奇妙的 Linux 世界</a>
+        </div>
+
+        <!-- Collect the nav links, forms, and other content for toggling -->
+        <!-- Known Issue, found by Hux:
+            <nav>'s height woule be hold on by its content.
+            so, when navbar scale out, the <nav> will cover tags.
+            also mask any touch event of tags, unfortunately.
+        -->
+        <div id="huxblog_navbar">
+            <div class="navbar-collapse">
+                <ul class="nav navbar-nav navbar-right">
+                    <li>
+                        <a href="/">Home</a>
+                    </li>
+
+                    
+
+                        
+                    
+
+                        
+                    
+
+                        
+                        <li>
+                            <a href="/archive/">Archives</a>
+                        </li>
+                        
+                    
+
+                        
+                        <li>
+                            <a href="/about/">About</a>
+                        </li>
+                        
+                    
+
+                        
+                        <li>
+                            <a href="/tags/">Tags</a>
+                        </li>
+                        
+                    
+                    
+                </ul>
+            </div>
+        </div>
+        <!-- /.navbar-collapse -->
+    </div>
+    <!-- /.container -->
+</nav>
+<script>
+    // Drop Bootstarp low-performance Navbar
+    // Use customize navbar with high-quality material design animation
+    // in high-perf jank-free CSS3 implementation
+    var $body   = document.body;
+    var $toggle = document.querySelector('.navbar-toggle');
+    var $navbar = document.querySelector('#huxblog_navbar');
+    var $collapse = document.querySelector('.navbar-collapse');
+
+    $toggle.addEventListener('click', handleMagic)
+    function handleMagic(e){
+        if ($navbar.className.indexOf('in') > 0) {
+        // CLOSE
+            $navbar.className = " ";
+            // wait until animation end.
+            setTimeout(function(){
+                // prevent frequently toggle
+                if($navbar.className.indexOf('in') < 0) {
+                    $collapse.style.height = "0px"
+                }
+            },400)
+        }else{
+        // OPEN
+            $collapse.style.height = "auto"
+            $navbar.className += " in";
+        }
+    }
+</script>
+
+
+    <!-- Main Content -->
+    <!-- Modify by Yu-Hsuan Yen -->
+
+<!-- Post Content -->
+<article>
+    <div class="container">
+        <div class="row">
+
+            <!-- Post Container -->
+            <div class="
+                col-lg-8 col-lg-offset-2
+                col-md-10 col-md-offset-1
+                post-container">
+
+                <div id="vip-container"><p>最近在处理 Kuberntes 中的 DNS 解析问题, 正好借这个机会学习下 Kubernetes 中的 DNS 服务器工作原理, 处理的 DNS 服务器问题会稍后再水一篇博客介绍.</p>
+<p>我对解析过程的了解也比较粗浅, 仅介绍下配置中的内容.</p>
+<h2><span id="pod-中的-dns-概览">Pod 中的 DNS 概览</span></h2>
+<p>众所周知, DNS 服务器用于将域名转换为 IP (具体为啥要转换建议复习下 7 层网络模型). Linux 服务器中 DNS 解析配置位于<code>/etc/resolv.conf</code>, 在 Pod 中也不例外, 下面是某个 Pod 中的配置:</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">nameserver 10.96.0.10</span><br><span class="line">search kube-system.svc.cluster.local svc.cluster.local cluster.local</span><br><span class="line">options ndots:5</span><br></pre></td></tr></table></figure>
+<p>假如我们平时想要修改自己本机上的 DNS 服务器, 比如想要修改为<code>8.8.8.8</code>, 就会这么去修改:</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">nameserver 8.8.8.8</span><br><span class="line">nameserver 8.8.4.4</span><br></pre></td></tr></table></figure>
+<a id="more"></a>
+<p>如果想要调试 DNS 服务器, 测试返回结果, 可以使用 dig 工具:</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br></pre></td><td class="code"><pre><span class="line">&gt; dig baidu.com @8.8.8.8</span><br><span class="line"></span><br><span class="line">; &lt;&lt;&gt;&gt; DiG 9.16.10 &lt;&lt;&gt;&gt; baidu.com @8.8.8.8</span><br><span class="line">;; global options: +cmd</span><br><span class="line">;; Got answer:</span><br><span class="line">;; -&gt;&gt;HEADER&lt;&lt;- opcode: QUERY, status: NOERROR, id: 5114</span><br><span class="line">;; flags: qr rd ra; QUERY: 1, ANSWER: 2, AUTHORITY: 0, ADDITIONAL: 1</span><br><span class="line"></span><br><span class="line">;; OPT PSEUDOSECTION:</span><br><span class="line">; EDNS: version: 0, flags:; udp: 512</span><br><span class="line">;; QUESTION SECTION:</span><br><span class="line">;baidu.com.			IN	A</span><br><span class="line"></span><br><span class="line">;; ANSWER SECTION:</span><br><span class="line">baidu.com.		159	IN	A	39.156.69.79</span><br><span class="line">baidu.com.		159	IN	A	220.181.38.148</span><br><span class="line"></span><br><span class="line">;; Query time: 10 msec</span><br><span class="line">;; SERVER: 8.8.8.8#53(8.8.8.8)</span><br><span class="line">;; WHEN: Tue Jan 12 09:26:13 HKT 2021</span><br><span class="line">;; MSG SIZE  rcvd: 70</span><br></pre></td></tr></table></figure>
+<h2><span id="dns-服务器-nameserver">DNS 服务器 – nameserver</span></h2>
+<p>我们先从<code>nameserver 10.96.0.10</code>来看, 为什么请求这个地址可以进行 DNS 解析. 这个答案就是 <code>iptables</code>, 我仅截取 UDP 的 53 端口, 以下内容可以通过<code>iptables-save</code>获得.</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">-A KUBE-SERVICES -d 10.96.0.10&#x2F;32 -p udp -m comment --comment &quot;kube-system&#x2F;kube-dns:dns cluster IP&quot; -m udp --dport 53 -j KUBE-SVC-TCOU7JCQXEZGVUNU</span><br><span class="line"># 简单解释下, 这条规则表示, 如果目标地址是 10.96.0.10的udp53端口, 那么就会跳转到这条链上&#96;KUBE-SVC-TCOU7JCQXEZGVUNU&#96;</span><br></pre></td></tr></table></figure>
+<p>我们再看下这条链<code>KUBE-SVC-TCOU7JCQXEZGVUNU</code>:</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line">-A KUBE-SVC-TCOU7JCQXEZGVUNU -m statistic --mode random --probability 0.50000000000 -j KUBE-SEP-Q3HNNZPXUAYYDXW2</span><br><span class="line">-A KUBE-SVC-TCOU7JCQXEZGVUNU -j KUBE-SEP-BBR3Z5NWFGXGVHEZ</span><br><span class="line"></span><br><span class="line">-A KUBE-SEP-Q3HNNZPXUAYYDXW2 -p udp -m udp -j DNAT --to-destination 172.32.3.219:53</span><br><span class="line">-A KUBE-SEP-BBR3Z5NWFGXGVHEZ -p udp -m udp -j DNAT --to-destination 172.32.6.239:53</span><br><span class="line"></span><br><span class="line"># 联系之前的规则, 这几条规则完整的意思是:</span><br><span class="line"># 本机中, 发给10.96.0.10:53的流量, 一半转发到172.32.3.219:53, 另一半转发到172.32.6.239:53</span><br></pre></td></tr></table></figure>
+<h3><span id="kubernetes-的-deployment">Kubernetes 的 Deployment</span></h3>
+<p>再看下我们的 Kubernetes 中 Pod 的 IP 地址, 也就是说, DNS 请求实际上会到我们的 Coredns 容器中被处理.</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">&gt; kubectl -n kube-system get pods -o wide | grep dns</span><br><span class="line">coredns-646bc69b8d-jd22w                                   1&#x2F;1     Running   0          57d    172.32.6.239    m1  &lt;none&gt;           &lt;none&gt;</span><br><span class="line">coredns-646bc69b8d-p8pqq                                   1&#x2F;1     Running   8          315d   172.32.3.219    m2  &lt;none&gt;           &lt;none&gt;</span><br></pre></td></tr></table></figure>
+<h3><span id="kubernetes-中-service-的具体实现">Kubernetes 中 Service 的具体实现</span></h3>
+<p>再查看下对应的 Service, 可以看到, 上述机器中的 Iptables 其实就是 Service 的具体实现方式.</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">&gt; kubectl -n kube-system get svc | grep dns</span><br><span class="line">kube-dns   ClusterIP   10.96.0.10   &lt;none&gt;        53&#x2F;UDP,53&#x2F;TCP,9153&#x2F;TCP   398d</span><br></pre></td></tr></table></figure>
+<p>可能有人会有疑问, 现在是 2 个 Pod 可以均分流量, 如果是 3 个, 4 个 Pod, Iptables 是如何做转发的呢, 正好我有这个疑问, 因此我就再加了 2 个 Pod, 看看<code>iptables</code>是怎么实现对于 4 个 Pod 均分流量的.</p>
+<p>这是最后的实现方式:</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">-A KUBE-SVC-TCOU7JCQXEZGVUNU -m statistic --mode random --probability 0.25000000000 -j KUBE-SEP-HTZHQHQPOHVVNWZS</span><br><span class="line">-A KUBE-SVC-TCOU7JCQXEZGVUNU -m statistic --mode random --probability 0.33333333349 -j KUBE-SEP-3VNFB2SPYQJRRPK6</span><br><span class="line">-A KUBE-SVC-TCOU7JCQXEZGVUNU -m statistic --mode random --probability 0.50000000000 -j KUBE-SEP-Q3HNNZPXUAYYDXW2</span><br><span class="line">-A KUBE-SVC-TCOU7JCQXEZGVUNU -j KUBE-SEP-BBR3Z5NWFGXGVHEZ</span><br></pre></td></tr></table></figure>
+<p>这些语句的意思应该是:</p>
+<ol>
+<li>前 1/4 的流量到一条链中, 剩 3/4</li>
+<li>剩下 3/4 的流量, 1/3到一条链, 剩 2/4</li>
+<li>剩下 2/4 的浏览, 1/2到一条链, 剩 1/4</li>
+<li>最后 1/4 到一条链</li>
+</ol>
+<p>通过这样的方式对流量进行了均分, 还是挺巧妙的, 这样, 5个,10个也是可以依次去分的.</p>
+<h2><span id="resolvconf-中其他参数解析">resolv.conf 中其他参数解析</span></h2>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">search kube-system.svc.cluster.local svc.cluster.local cluster.local</span><br><span class="line">options ndots:5</span><br></pre></td></tr></table></figure>
+<p>详细的介绍可以看这里: <a href="https://man7.org/linux/man-pages/man5/resolv.conf.5.html" target="_blank" rel="noopener">resolv.conf手册</a>, 我简单的说下我的理解.</p>
+<h3><span id="search-参数">search 参数</span></h3>
+<p>假如没有这个<code>search</code>参数, 我们查找时:</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">&gt; ping kube-dns</span><br><span class="line">ping: kube-dns: Name or service not known</span><br></pre></td></tr></table></figure>
+<p>如果增加了<code>search</code>参数后, 再去查找:</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">&gt; ping kube-dns</span><br><span class="line">PING kube-dns.kube-system.svc.psigor-dev.nease.net (10.96.0.10) 56(84) bytes of data.</span><br></pre></td></tr></table></figure>
+<p>可以看到, 解析域名时, 如果给定的域名无法查找, 会添加<code>search</code>后面的后缀进行查找(假如以<code>.</code>结尾, 类似<code>kube-dns.</code>, 这样的域名不会再去尝试, FQDN域名).</p>
+<p><code>search</code>的工作就是帮我们去尝试, 用在 Kubenetes 中, 配置<code>kube-system.svc.cluster.local svc.cluster.local cluster.local</code> 就会帮我们尝试, 我们<code>ping abc</code>, 就会这样进行查询</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">[INFO] 10.202.37.232:50940 - 51439 &quot;A IN abc.kube-system.svc.cluster.local. udp 51 false 512&quot; NXDOMAIN qr,aa,rd 144 0.000114128s</span><br><span class="line">[INFO] 10.202.37.232:51823 - 54524 &quot;A IN abc.svc.cluster.local. udp 39 false 512&quot; NXDOMAIN qr,aa,rd 132 0.000124048s</span><br><span class="line">[INFO] 10.202.37.232:41894 - 15434 &quot;A IN abc.cluster.local. udp 35 false 512&quot; NXDOMAIN qr,aa,rd 128 0.000092304s</span><br><span class="line">[INFO] 10.202.37.232:40357 - 43160 &quot;A IN abc. udp 21 false 512&quot; NOERROR qr,aa,rd,ra 94 0.000163406s</span><br></pre></td></tr></table></figure>
+<h3><span id="ndots-以及其优化问题">ndots 以及其优化问题</span></h3>
+<p><code>search</code>配置需要与<code>ndots</code>一起使用, 默认的<code>ndots</code>是 1, 它的作用是: 如果检查到被查询的域名中<code>dot</code>的数量小于该值时, 就会优先尝试添加<code>search</code>域中的后缀.</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">Resolver queries having fewer than</span><br><span class="line">ndots dots (default is 1) in them will be attempted using</span><br><span class="line">each component of the search path in turn until a match is</span><br><span class="line">found.</span><br></pre></td></tr></table></figure>
+<h4><span id="实际举例">实际举例</span></h4>
+<p>假如我们的 DNS 配置如下:</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">search kube-system.svc.cluster.local svc.cluster.local cluster.local</span><br><span class="line">options ndots:2</span><br></pre></td></tr></table></figure>
+<p>当我们<code>ping abc.123</code>(此域名只有一个 dot ), DNS 服务器的日志如下, 可以注意到日志中最先尝试的是<code>abc.123.kube-system.svc.cluster.local.</code>, 最后才会尝试我们的域名.</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">[INFO] 10.202.37.232:33386 - 36445 &quot;A IN abc.123.kube-system.svc.cluster.local. udp 55 false 512&quot; NXDOMAIN qr,aa,rd 148 0.001700129s</span><br><span class="line">[INFO] 10.202.37.232:51389 - 58489 &quot;A IN abc.123.svc.cluster.local. udp 43 false 512&quot; NXDOMAIN qr,aa,rd 136 0.001117693s</span><br><span class="line">[INFO] 10.202.37.232:32785 - 4976 &quot;A IN abc.123.cluster.local. udp 39 false 512&quot; NXDOMAIN qr,aa,rd 132 0.001047215s</span><br><span class="line">[INFO] 10.202.37.232:57827 - 56555 &quot;A IN abc.123. udp 25 false 512&quot; NXDOMAIN qr,rd,ra 100 0.001763186s</span><br></pre></td></tr></table></figure>
+<p>那我们<code>ping abc.123.def</code>(此域名有两个 dot), DNS 服务器的日志像下面这样, 注意到日志中最优先尝试的是<code>abc.123.def.</code></p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">[INFO] 10.202.37.232:39314 - 794 &quot;A IN abc.123.def. udp 29 false 512&quot; NXDOMAIN qr,rd,ra 104 0.025049846s</span><br><span class="line">[INFO] 10.202.37.232:51736 - 61456 &quot;A IN abc.123.def.kube-system.svc.cluster.local. udp 59 false 512&quot; NXDOMAIN qr,aa,rd 152 0.001213934s</span><br><span class="line">[INFO] 10.202.37.232:53145 - 26709 &quot;A IN abc.123.def.svc.cluster.local. udp 47 false 512&quot; NXDOMAIN qr,aa,rd 140 0.001418143s</span><br><span class="line">[INFO] 10.202.37.232:54444 - 1145 &quot;A IN abc.123.def.cluster.local. udp 43 false 512&quot; NXDOMAIN qr,aa,rd 136 0.001009799s</span><br></pre></td></tr></table></figure>
+<p>希望借这个例子让大家明白两点:</p>
+<ol>
+<li>无论 ndots 是多少, search 参数中的后缀都会被以此查找(我们测试时使用了一个不存在的域名, 解析工具尝试了全部的可能)</li>
+<li>ndots 的不妥当设置, 可能会给 DNS 服务器造成压力(假如域名是存在的, dns查询会尽快返回, 不会继续查找了, 会减少服务器压力)</li>
+</ol>
+<h4><span id="优化讨论">优化讨论</span></h4>
+<p>假如现在 ndots 是 2, 我们想要查询<code>baidu.com</code>, 由于 dot 数目为 1 小于配置中的 2, 会首先添加后缀进行查找:</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">[INFO] 10.202.37.232:42911 - 55931 &quot;A IN baidu.com.kube-system.svc.cluster.local. udp 57 false 512&quot; NXDOMAIN qr,aa,rd 150 0.000116042s</span><br><span class="line">[INFO] 10.202.37.232:53722 - 33218 &quot;A IN baidu.com.svc.cluster.local. udp 45 false 512&quot; NXDOMAIN qr,aa,rd 138 0.000075077s</span><br><span class="line">[INFO] 10.202.37.232:46487 - 50053 &quot;A IN baidu.com.cluster.local. udp 41 false 512&quot; NXDOMAIN qr,aa,rd 134 0.000067313s</span><br><span class="line">[INFO] 10.202.37.232:48360 - 51853 &quot;A IN baidu.com. udp 27 false 512&quot; NOERROR qr,aa,rd,ra 77 0.000127309s</span><br></pre></td></tr></table></figure>
+<p>那么, 我们会产生 3 个无用的 DNS 查询记录. 对于DNS服务器来说, 仅仅是<code>baidu.com</code>这个域名, 流量就变成了4倍. 假如 n继续增大呢, 就像是<code>Kubernetes</code>中默认给定的5, 那我们会产生更多的无效请求, 因为不只是<code>baidu.com</code>, 就连<code>map.baidu.com</code>, <code>m.map.baidu.com</code>, 这些域名也要从search域中开始尝试, 会对 DNS 服务器造成比较大的压力.</p>
+<blockquote>
+<p>我个人建议:</p>
+<ol>
+<li>如果内部服务之间请求十分频繁, 也就是我们需要经常访问<code>xxx.svc.cluster.local</code>这样的域名, 那么可以保持 ndots 较大</li>
+<li>但是内部服务之间请求比较少时, 强烈建议调小 ndots, 以减少无用流量的产生, 减轻 dns 服务器的压力 我个人用的话, 改成 2 就好</li>
+</ol>
+</blockquote>
+<h2><span id="总结">总结</span></h2>
+<p>很抱歉, 这篇文章的大部分篇幅都是在说 <code>nameserver</code> 是如何解析的, <code>resolv.conf</code>中的内容比较少, 主要原因是我前些天一直在看<code>iptables</code>, 这次正好有, 所以花时间看下, 可能有种想要炫技的心理吧.</p>
+<p>解决问题的时候, 理解后面的参数是比较重要的, 我也贴了一些自己的实验, 希望能对大家有所帮助吧, 至少了解了ndots之后再考虑调优.</p>
+<blockquote>
+<p>本文转载自：「 我的小米粥分你一半 」，原文：<a href="https://tinyurl.com/yynhvbvz" target="_blank" rel="noopener">https://tinyurl.com/yynhvbvz</a> ，版权归原作者所有。欢迎投稿，投稿邮箱: <a href="mailto:editor@hi-linux.com">editor@hi-linux.com</a>。</p>
+</blockquote>
+</div>
+
+			<script src="https://my.openwrite.cn/js/readmore.js" type="text/javascript"></script>
+			<script>
+			var isMobile = navigator.userAgent.match(/(phone|pad|pod|iPhone|iPod|ios|iPad|Android|Mobile|BlackBerry|IEMobile|MQQBrowser|JUC|Fennec|wOSBrowser|BrowserNG|WebOS|Symbian|Windows Phone)/i);
+			if (!isMobile) {
+			    var btw = new BTWPlugin();
+			    btw.init({
+			        "id": "vip-container",
+			        "blogId": "10135-1588830050631-449",
+			        "name": "「奇妙的 Linux 世界」",
+			        "qrcode": "https://www.hi-linux.com/img/wechat/mp_qrcode_12.jpg",
+			        "keyword": "VIP"
+			    });
+			}
+			</script>
+		
+                
+
+                <hr>
+                <!-- Pager -->
+                <ul class="pager">
+                    
+                    
+                        <li class="next">
+                            <a href="/posts/13302.html" data-toggle="tooltip" data-placement="top" title="Linux 下自动应答工具 Expect 使用指南">Next Post &rarr;</a>
+                        </li>
+                    
+                </ul>
+
+                <!-- duoshuo Share start -->
+                
+                <!-- 多说 Share end-->
+
+                <!-- 多说评论框 start -->
+                
+                <!-- 多说评论框 end -->
+
+                <!-- disqus comment start -->
+                
+                <!-- disqus comment end -->
+
+                
+                    <!-- disqus 评论框 start -->
+                    <div class="comment">
+                        <div id="lv-container" data-id="city" data-uid="MTAyMC8yNzg2My80NDQw"></div>
+                    </div>
+                    <!-- disqus 评论框 end -->
+                
+
+            </div>
+            
+            <!-- Tabe of Content -->
+            <!-- Table of Contents -->
+
+  
+    <style>
+      span.toc-nav-number{
+        display: none
+      }
+    </style>
+  
+    
+      <aside id="sidebar">
+        <div id="toc" class="toc-article">
+        <strong class="toc-title">Contents</strong>
+        
+          <ol class="toc-nav"><li class="toc-nav-item toc-nav-level-2"><a class="toc-nav-link" href="#vip-container"><span class="toc-nav-number">1.</span> <span class="toc-nav-text">Pod 中的 DNS 概览</span></a></li><li class="toc-nav-item toc-nav-level-2"><a class="toc-nav-link" href="#vip-container"><span class="toc-nav-number">2.</span> <span class="toc-nav-text">DNS 服务器 – nameserver</span></a><ol class="toc-nav-child"><li class="toc-nav-item toc-nav-level-3"><a class="toc-nav-link" href="#vip-container"><span class="toc-nav-number">2.1.</span> <span class="toc-nav-text">Kubernetes 的 Deployment</span></a></li><li class="toc-nav-item toc-nav-level-3"><a class="toc-nav-link" href="#vip-container"><span class="toc-nav-number">2.2.</span> <span class="toc-nav-text">Kubernetes 中 Service 的具体实现</span></a></li></ol></li><li class="toc-nav-item toc-nav-level-2"><a class="toc-nav-link" href="#vip-container"><span class="toc-nav-number">3.</span> <span class="toc-nav-text">resolv.conf 中其他参数解析</span></a><ol class="toc-nav-child"><li class="toc-nav-item toc-nav-level-3"><a class="toc-nav-link" href="#vip-container"><span class="toc-nav-number">3.1.</span> <span class="toc-nav-text">search 参数</span></a></li><li class="toc-nav-item toc-nav-level-3"><a class="toc-nav-link" href="#vip-container"><span class="toc-nav-number">3.2.</span> <span class="toc-nav-text">ndots 以及其优化问题</span></a><ol class="toc-nav-child"><li class="toc-nav-item toc-nav-level-4"><a class="toc-nav-link" href="#vip-container"><span class="toc-nav-number">3.2.1.</span> <span class="toc-nav-text">实际举例</span></a></li><li class="toc-nav-item toc-nav-level-4"><a class="toc-nav-link" href="#vip-container"><span class="toc-nav-number">3.2.2.</span> <span class="toc-nav-text">优化讨论</span></a></li></ol></li></ol></li><li class="toc-nav-item toc-nav-level-2"><a class="toc-nav-link" href="#vip-container"><span class="toc-nav-number">4.</span> <span class="toc-nav-text">总结</span></a></li></ol>
+        
+        </div>
+      </aside>
+    
+
+                
+            <!-- Sidebar Container -->
+            <div class="
+                col-lg-8 col-lg-offset-2
+                col-md-10 col-md-offset-1
+                sidebar-container">
+
+                <!-- Featured Tags -->
+                
+                <section>
+                    <!-- no hr -->
+                    <h5><a href="/tags/">FEATURED TAGS</a></h5>
+                    <div class="tags">
+                       
+                          <a class="tag" href="/tags/#Linux" title="Linux">Linux</a>
+                        
+                          <a class="tag" href="/tags/#Kubernetes" title="Kubernetes">Kubernetes</a>
+                        
+                          <a class="tag" href="/tags/#DNS" title="DNS">DNS</a>
+                        
+                    </div>
+                </section>
+                
+
+                <!-- Friends Blog -->
+                
+                <hr>
+                <h5>FRIENDS</h5>
+                <ul class="list-inline">
+
+                    
+                        <li><a href="http://www.mike.org.cn/" target="_blank">简单.生活</a></li>
+                    
+                        <li><a href="http://shang.qq.com/wpa/qunwpa?idkey=ea4c43493c2269428ac6ef6141de4b6d78e5ab2d41380ca4099b833b62884ee9" target="_blank">技术交流群</a></li>
+                    
+                        <li><a href="" target="_blank"></a></li>
+                    
+                        <li><a href="" target="_blank"></a></li>
+                    
+                </ul>
+                
+            </div>
+        </div>
+    </div>
+</article>
+
+
+
+
+
+
+    <!-- 来必力City版公共JS代码 start (一个网页只需插入一次) -->
+    <script type="text/javascript">
+       (function(d, s) {
+           var j, e = d.getElementsByTagName(s)[0];
+    
+           if (typeof LivereTower === 'function') { return; }
+    
+           j = d.createElement(s);
+           j.src = 'https://cdn-city.livere.com/js/embed.dist.js';
+           j.async = true;
+    
+           e.parentNode.insertBefore(j, e);
+       })(document, 'script');
+    </script>
+    <noscript>为正常使用来必力评论功能请激活JavaScript</noscript>
+    <!-- 来必力City版 公共JS代码 end -->
+
+
+
+<!-- async load function -->
+<script>
+    function async(u, c) {
+      var d = document, t = 'script',
+          o = d.createElement(t),
+          s = d.getElementsByTagName(t)[0];
+      o.src = u;
+      if (c) { o.addEventListener('load', function (e) { c(null, e); }, false); }
+      s.parentNode.insertBefore(o, s);
+    }
+</script>
+<!-- anchor-js, Doc:http://bryanbraun.github.io/anchorjs/ -->
+<script>
+    async("https://cdn.bootcss.com/anchor-js/1.1.1/anchor.min.js",function(){
+        anchors.options = {
+          visible: 'hover',
+          placement: 'left',
+          icon: 'ℬ'
+        };
+        anchors.add().remove('.intro-header h1').remove('.subheading').remove('.sidebar-container h5');
+    })
+</script>
+<style>
+    /* place left on bigger screen */
+    @media all and (min-width: 800px) {
+        .anchorjs-link{
+            position: absolute;
+            left: -0.75em;
+            font-size: 1.1em;
+            margin-top : -0.1em;
+        }
+    }
+</style>
+
+
+
+    <!-- Footer -->
+    <!-- Footer -->
+<footer>
+    <div class="container">
+        <div class="row">
+            <div class="col-lg-8 col-lg-offset-2 col-md-10 col-md-offset-1">
+                <ul class="list-inline text-center">
+                
+                    <li>
+                        <a href="/atom.xml">
+                            <span class="fa-stack fa-lg">
+                                <i class="fa fa-circle fa-stack-2x"></i>
+                                <i class="fa fa-rss fa-stack-1x fa-inverse"></i>
+                            </span>
+                        </a>
+                    </li>
+                
+                
+                
+                    <li>
+                        <a target="_blank" href="https://www.zhihu.com/people/80imike">
+                            <span class="fa-stack fa-lg">
+                                <i class="fa fa-circle fa-stack-2x"></i>
+                                <i class="fa  fa-stack-1x fa-inverse">知</i>
+                            </span>
+                        </a>
+                    </li>
+                
+
+                
+                    <li>
+                        <a target="_blank" href="http://weibo.com/2093524665">
+                            <span class="fa-stack fa-lg">
+                                <i class="fa fa-circle fa-stack-2x"></i>
+                                <i class="fa fa-weibo fa-stack-1x fa-inverse"></i>
+                            </span>
+                        </a>
+                    </li>
+                
+
+                
+
+                
+
+                
+
+                </ul>
+                <p class="copyright text-muted">
+                    Copyright &copy; Mike 2021 | Hosted by <a href="https://pages.coding.me" target="_blank" rel="noopener" style="font-weight: bold">Coding Pages</a>
+                    <br>
+                    Theme by <a href="http://beantech.org" target="_blank" rel="noopener">BeanTech</a> 
+                    <span style="display: inline-block; margin: 0 5px;">
+                        <i class="fa fa-heart"></i>
+                    </span> 
+                    re-Ported by <a href="http://www.huweihuang.com" target="_blank" rel="noopener">胡伟煌</a> | 
+                    <iframe
+                        style="margin-left: 2px; margin-bottom:-5px;"
+                        frameborder="0" scrolling="0" width="91px" height="20px"
+                        src="https://ghbtns.com/github-btn.html?user=huweihuang&repo=hexo-theme-huweihuang&type=star&count=true" >
+                    </iframe>
+                </p>
+            </div>
+        </div>
+    </div>
+</footer>
+
+<!-- jQuery -->
+
+<script src="/js/jquery.min.js"></script>
+
+
+<!-- Bootstrap Core JavaScript -->
+
+<script src="/js/bootstrap.min.js"></script>
+
+
+<!-- Custom Theme JavaScript -->
+
+<script src="/js/hux-blog.min.js"></script>
+
+
+
+<!-- async load function -->
+<script>
+    function async(u, c) {
+      var d = document, t = 'script',
+          o = d.createElement(t),
+          s = d.getElementsByTagName(t)[0];
+      o.src = u;
+      if (c) { o.addEventListener('load', function (e) { c(null, e); }, false); }
+      s.parentNode.insertBefore(o, s);
+    }
+</script>
+
+<!-- 
+     Because of the native support for backtick-style fenced code blocks 
+     right within the Markdown is landed in Github Pages, 
+     From V1.6, There is no need for Highlight.js, 
+     so Huxblog drops it officially.
+
+     - https://github.com/blog/2100-github-pages-now-faster-and-simpler-with-jekyll-3-0  
+     - https://help.github.com/articles/creating-and-highlighting-code-blocks/    
+-->
+<!--
+    <script>
+        async("http://cdn.bootcss.com/highlight.js/8.6/highlight.min.js", function(){
+            hljs.initHighlightingOnLoad();
+        })
+    </script>
+    <link href="http://cdn.bootcss.com/highlight.js/8.6/styles/github.min.css" rel="stylesheet">
+-->
+
+
+<!-- jquery.tagcloud.js -->
+<script>
+    // only load tagcloud.js in tag.html
+    if($('#tag_cloud').length !== 0){
+        async("https://www.hi-linux.com/js/jquery.tagcloud.js",function(){
+            $.fn.tagcloud.defaults = {
+                //size: {start: 1, end: 1, unit: 'em'},
+                color: {start: '#bbbbee', end: '#0085a1'},
+            };
+            $('#tag_cloud a').tagcloud();
+        })
+    }
+</script>
+
+<!--fastClick.js -->
+<script>
+    async("https://cdn.bootcss.com/fastclick/1.0.6/fastclick.min.js", function(){
+        var $nav = document.querySelector("nav");
+        if($nav) FastClick.attach($nav);
+    })
+</script>
+
+
+<!-- Google Analytics -->
+
+
+
+
+<!-- Baidu Tongji -->
+
+
+
+
+
+
+	<a id="rocket" href="#top" class=""></a>
+	<script type="text/javascript" src="/js/totop.js?v=1.0.0" async=""></script>
+    <script type="text/javascript" src="/js/toc.js?v=1.0.0" async=""></script>
+<!-- Image to hack wechat -->
+<img src="https://www.hi-linux.com/img/icon_wechat.png" width="0" height="0" />
+<!-- Migrate from head to bottom, no longer block render and still work -->
+
+<script>(function(w,d, s, id) {w.webpushr=w.webpushr||function(){(w.webpushr.q=w.webpushr.q||[]).push(arguments)};var js, fjs = d.getElementsByTagName(s)[0];js = d.createElement(s); js.id = id;js.src = 'https://cdn.webpushr.com/app.min.js';fjs.parentNode.appendChild(js);}(window,document, 'script', 'webpushr-jssdk'));webpushr('init','BF9JK7xV9kjWTdMx2lr6RWaPfXV7wNuZaVAJ1bfIGoBNJavqLEBVFMKLubITnCA4bh2fI9iH9tMF95nXnPt7xxY');</script></body>
+
+</html>
