@@ -1,0 +1,703 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<!-- Head tag -->
+<head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="google-site-verification" content="xBT4GhYoi5qRD5tr338pgPM5OWHHIDR6mNg1a3euekI" />
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="description" content="">
+    <meta name="keyword"  content="Linux,运维,Nginx,Zabbix,Centos,Ansible,MySQL,Python,Docker,ELK,Haproxy,Git,Nodejs,安全,技术">
+    <link rel="shortcut icon" href="/img/ironman-draw.png">
+    <!-- Place this tag in your head or just before your close body tag. -->
+    <script async defer src="https://buttons.github.io/buttons.js"></script>
+    <title>
+        
+          Linux 网络流量监控利器 iftop 中文入门指南 - 奇妙的 Linux 世界
+        
+    </title>
+
+    <link rel="canonical" href="https://www.hi-linux.com/posts/35952.html">
+
+    <!-- Bootstrap Core CSS -->
+    
+<link rel="stylesheet" href="/css/bootstrap.min.css">
+
+
+    <!-- Custom CSS --> 
+    
+<link rel="stylesheet" href="/css/beantech.min.css">
+
+    
+    <!-- Pygments Highlight CSS -->
+    
+<link rel="stylesheet" href="/css/highlight.css">
+
+
+    
+<link rel="stylesheet" href="/css/widget.css">
+
+
+    
+<link rel="stylesheet" href="/css/rocket.css">
+
+
+    
+<link rel="stylesheet" href="/css/signature.css">
+
+
+    
+<link rel="stylesheet" href="/css/toc.css">
+
+
+    <!-- Custom Fonts -->
+    <!-- <link href="https://maxcdn.bootstrapcdn.com/font-awesome/4.3.0/css/font-awesome.min.css" rel="stylesheet" type="text/css"> -->
+    <!-- Hux change font-awesome CDN to qiniu -->
+    <link href="https://cdn.staticfile.org/font-awesome/4.5.0/css/font-awesome.min.css" rel="stylesheet" type="text/css">
+
+
+    <!-- Hux Delete, sad but pending in China
+    <link href='http://fonts.googleapis.com/css?family=Lora:400,700,400italic,700italic' rel='stylesheet' type='text/css'>
+    <link href='http://fonts.googleapis.com/css?family=Open+Sans:300italic,400italic,600italic,700italic,800italic,400,300,600,700,800' rel='stylesheet' type='text/
+    css'>
+    -->
+
+
+    <!-- HTML5 Shim and Respond.js IE8 support of HTML5 elements and media queries -->
+    <!-- WARNING: Respond.js doesn't work if you view the page via file:// -->
+    <!--[if lt IE 9]>
+        <script src="https://oss.maxcdn.com/libs/html5shiv/3.7.0/html5shiv.js"></script>
+        <script src="https://oss.maxcdn.com/libs/respond.js/1.4.2/respond.min.js"></script>
+    <![endif]-->
+
+    <!-- ga & ba script hoook -->
+    <script></script>
+<meta name="generator" content="Hexo 4.2.1"><link rel="alternate" href="/atom.xml" title="奇妙的 Linux 世界" type="application/atom+xml">
+</head>
+
+
+<!-- hack iOS CSS :active style -->
+<body ontouchstart="">
+	<!-- Modified by Yu-Hsuan Yen -->
+<!-- Post Header -->
+<style type="text/css">
+    header.intro-header{
+        
+            background-image: url('/img/header_img/building.jpg')
+            /*post*/
+        
+    }
+    
+</style>
+
+<header class="intro-header" >
+    <!-- Signature -->
+    <div id="signature">
+        <div class="container">
+            <div class="row">
+                <div class="col-lg-8 col-lg-offset-2 col-md-10 col-md-offset-1">
+                
+                    <div class="post-heading">
+                        <div class="tags">
+                            
+                              <a class="tag" href="/tags/#技巧" title="技巧">技巧</a>
+                            
+                              <a class="tag" href="/tags/#Linux" title="Linux">Linux</a>
+                            
+                              <a class="tag" href="/tags/#iftop" title="iftop">iftop</a>
+                            
+                        </div>
+                        <h1>Linux 网络流量监控利器 iftop 中文入门指南</h1>
+                        <h2 class="subheading"></h2>
+                        <span class="meta">
+                            Posted by Mike on
+                            2021-03-22
+                        </span>
+                    </div>
+                
+
+
+                </div>
+            </div>
+        </div>
+    </div>
+</header>
+
+	
+    <!-- Navigation -->
+<nav class="navbar navbar-default navbar-custom navbar-fixed-top">
+    <div class="container-fluid">
+        <!-- Brand and toggle get grouped for better mobile display -->
+        <div class="navbar-header page-scroll">
+            <button type="button" class="navbar-toggle">
+                <span class="sr-only">Toggle navigation</span>
+                <span class="icon-bar"></span>
+                <span class="icon-bar"></span>
+                <span class="icon-bar"></span>
+            </button>
+            <a class="navbar-brand" href="/">奇妙的 Linux 世界</a>
+        </div>
+
+        <!-- Collect the nav links, forms, and other content for toggling -->
+        <!-- Known Issue, found by Hux:
+            <nav>'s height woule be hold on by its content.
+            so, when navbar scale out, the <nav> will cover tags.
+            also mask any touch event of tags, unfortunately.
+        -->
+        <div id="huxblog_navbar">
+            <div class="navbar-collapse">
+                <ul class="nav navbar-nav navbar-right">
+                    <li>
+                        <a href="/">Home</a>
+                    </li>
+
+                    
+
+                        
+                    
+
+                        
+                    
+
+                        
+                        <li>
+                            <a href="/archive/">Archives</a>
+                        </li>
+                        
+                    
+
+                        
+                        <li>
+                            <a href="/about/">About</a>
+                        </li>
+                        
+                    
+
+                        
+                        <li>
+                            <a href="/tags/">Tags</a>
+                        </li>
+                        
+                    
+                    
+                </ul>
+            </div>
+        </div>
+        <!-- /.navbar-collapse -->
+    </div>
+    <!-- /.container -->
+</nav>
+<script>
+    // Drop Bootstarp low-performance Navbar
+    // Use customize navbar with high-quality material design animation
+    // in high-perf jank-free CSS3 implementation
+    var $body   = document.body;
+    var $toggle = document.querySelector('.navbar-toggle');
+    var $navbar = document.querySelector('#huxblog_navbar');
+    var $collapse = document.querySelector('.navbar-collapse');
+
+    $toggle.addEventListener('click', handleMagic)
+    function handleMagic(e){
+        if ($navbar.className.indexOf('in') > 0) {
+        // CLOSE
+            $navbar.className = " ";
+            // wait until animation end.
+            setTimeout(function(){
+                // prevent frequently toggle
+                if($navbar.className.indexOf('in') < 0) {
+                    $collapse.style.height = "0px"
+                }
+            },400)
+        }else{
+        // OPEN
+            $collapse.style.height = "auto"
+            $navbar.className += " in";
+        }
+    }
+</script>
+
+
+    <!-- Main Content -->
+    <!-- Modify by Yu-Hsuan Yen -->
+
+<!-- Post Content -->
+<article>
+    <div class="container">
+        <div class="row">
+
+            <!-- Post Container -->
+            <div class="
+                col-lg-8 col-lg-offset-2
+                col-md-10 col-md-offset-1
+                post-container">
+
+                <div id="vip-container"><h2><span id="iftop-是什么">iftop 是什么</span></h2>
+<blockquote>
+<p>在 Linux 系统下即时监控服务器的网络带宽使用情况，有很多工具，比如 iptraf、nethogs 等等，但是推荐使用小巧但功能很强大的 iftop 工具。</p>
+</blockquote>
+<p>iftop 是 Linux 系统一个免费的网卡实时流量监控工具，类似于 top 命令。iftop 可以监控指定网卡的实时流量、端口连接信息、反向解析 IP 等，还可以精确显示本机网络流量及网络内各主机和本机相互通信的流量集合，非常适合于监控代理服务器或路由器的网络流量。同时，iftop 对检测流量异常的主机非常有效，通过 iftop 的输出可以迅速定位主机流量异常的根源，这对于网络故障排查、网络安全检测是十分有用的。缺点就是无报表功能，且必须以 root 身份才能运行。</p>
+<p>官网：<a href="http://www.ex-parrot.com/~pdw/iftop/" target="_blank" rel="noopener">http://www.ex-parrot.com/~pdw/iftop/</a></p>
+<h2><span id="安装">安装</span></h2>
+<ol>
+<li>通过软件管理工具安装</li>
+</ol>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"># CentOS</span><br><span class="line">$ sudo yum install iftop</span><br><span class="line"></span><br><span class="line"># Ubuntu</span><br><span class="line">$ sudo apt install iftop</span><br></pre></td></tr></table></figure>
+<ol start="2">
+<li>通过源代码编译安装</li>
+</ol>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line"># 安装比较软件包</span><br><span class="line">$ sudo um install libpcap libpcap-devel ncurses ncurses-devel flex byacc</span><br><span class="line"></span><br><span class="line"># 下载软件包</span><br><span class="line">$ wget &quot;http:&#x2F;&#x2F;www.ex-parrot.com&#x2F;~pdw&#x2F;iftop&#x2F;download&#x2F;iftop-0.17.tar.gz&quot;</span><br><span class="line">$ tar zxvf iftop-0.17.tar.gz</span><br><span class="line">$ cd iftop-0.17</span><br><span class="line">$ .&#x2F;configure</span><br><span class="line">$ make &amp;&amp; make install</span><br></pre></td></tr></table></figure>
+<a id="more"></a>
+<h2><span id="常用参数">常用参数</span></h2>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br></pre></td><td class="code"><pre><span class="line">-i 指定需要检测的网卡， 如果有多个网络接口，则需要注意网络接口的选择，如：# iftop -i eth1</span><br><span class="line">-B 将输出以 byte 为单位显示网卡流量，默认是 bit</span><br><span class="line">-n 将输出的主机信息都通过 IP 显示，不进行 DNS 解析 </span><br><span class="line">-N 只显示连接端口号，不显示端口对应的服务名称</span><br><span class="line">-F 显示特定网段的网卡进出流量  如: iftop -F 192.168.85.0&#x2F;24</span><br><span class="line">-h 帮助，显示参数信息</span><br><span class="line">-p 以混杂模式运行 iftop，此时 iftop 可以用作网络嗅探器</span><br><span class="line">-P 显示主机以及端口信息</span><br><span class="line">-m 设置输出界面中最上面的流量刻度最大值，流量刻度分 5 个大段显示  如：# iftop -m 100M</span><br><span class="line">-f 使用筛选码选择数据包来计数  如 iftop -f filter code</span><br><span class="line">-b 不显示流量图形条</span><br><span class="line">-c 指定可选的配置文件，如：iftop  -c config file</span><br><span class="line">-t 使用不带 ncurses 的文本界面，</span><br><span class="line">    以下两个是只和 -t 一起用的：</span><br><span class="line">    -s num num 秒后打印一次文本输出然后退出，-t -s 60 组合使用，表示取 60 秒网络流量输出到终端</span><br><span class="line">    -L num 打印的行数</span><br><span class="line">-f 参数支持 tcpdump 的语法，可以使用各种过滤条件。</span><br></pre></td></tr></table></figure>
+<h2><span id="界面操作">界面操作</span></h2>
+<ol>
+<li>界面信息</li>
+</ol>
+<p>安装完 <code>iftop</code> 工具后，直接输入 <code>iftop</code> 命令即可显示网卡实时流量信息。在默认情况下，<code>iftop</code> 显示系统第一块网卡的流量信息，如果要显示指定网卡信息，可通过<code>“-i”</code>参数实现。执行<code>“iftop -P -i eth0”</code>命令，得到如下图所示的 <code>iftop</code> 的一个典型输出界面。</p>
+<ul>
+<li>
+<p>第一部分</p>
+<ul>
+<li>iftop 输出中最上面的一行，此行信息是流量刻度，用于显示网卡带宽流量。</li>
+</ul>
+</li>
+<li>
+<p>第二部分</p>
+<ul>
+<li>此部分为分割线中间的部分，其中又分别分为左、中、右三列。左列和中列，记录了哪些 IP 或主机正在和本机的网络进行连接。其中，中列的“=&gt;”代表发送数据，“&lt;=”代表接收数据，通过这个指示箭头可以很清晰地知道两个 IP 之间的通信情况。最右列又分为三小列，这些实时参数分别表示外部 IP 连接到本机 2 秒内、10 秒内和 40 秒内的平均流量值。</li>
+<li>另外，这个部分还有一个流量图形条，流量图形条是对流量大小的动态展示，以第一部分中的流量刻度为基准。通过这个流量图形条可以很方便地看出哪个 IP 的流量最大，进而迅速定位网络中可能出现的流量问题。</li>
+</ul>
+</li>
+<li>
+<p>第三部分</p>
+<ul>
+<li>位于 iftop 输出的最下面，可以分为三行，其中，“TX”表示发送数据，“RX”表示接收数据，“TOTAL”表示发送和接收全部流量。与这三行对应的有三列，其中“cum”列表示从运行 iftop 到目前的发送、接收和总数据流量。“peak”列表示发送、接收以及总的流量峰值。“rates”列表示过去 2s、10s、40s 的平均流量值。</li>
+</ul>
+</li>
+</ul>
+<p><img src="https://img.hi-linux.com/staticfile/linux-network-iftop-tools-1-2021-02-22-uOPjUB.png" alt></p>
+<ol start="2">
+<li>交互操作</li>
+</ol>
+<p>在 <code>iftop</code> 的实时监控界面中，还可以对输出结果进行交互式操作，用于对输出信息进行整理和过滤，在上图所示界面中，按键 <code>“h”</code> 即可进入交互选项界面，如下图所示。<code>iftop</code> 的交互功能和 <code>Linux</code> 下的 <code>top</code> 命令非常类似，交互参数主要分为 <code>4</code> 个部分，分别是一般参数、主机显示参数、端口显示参数和输出排序参数。相关参数的含义如下表所示。</p>
+<p><img src="https://img.hi-linux.com/staticfile/linux-network-iftop-tools-2-2021-02-22-wisbVN.png" alt></p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br></pre></td><td class="code"><pre><span class="line">参数      含义</span><br><span class="line">P        通过此键可切换暂停/继续显示</span><br><span class="line">h        通过此键可在交互参数界面/状态输出界面之间来回切换</span><br><span class="line">b        通过此键可切换是否显示平均流量图形条</span><br><span class="line">B        通过此键可切换显示2秒、10秒、40秒内的平均流量</span><br><span class="line">T        通过此键可切换是否显示每个连接的总流量</span><br><span class="line">j/k      按j键或k键可以向上或向下滚动屏幕显示当前的连接信息</span><br><span class="line">l        通过此键可打开iftop输出过滤功能，比如输入要显示的IP，按回车后，屏幕就只显示与这个IP相关的流量信息</span><br><span class="line">L        通过此键可切换显示流量刻度范围，刻度不同，流量图形条会跟着变化</span><br><span class="line">q        通过此键可退出iftop流量监控界面</span><br><span class="line">n        通过此键可使iftop输出结果以IP或主机名的方式显示</span><br><span class="line">s        通过此键可切换是否显示源主机信息</span><br><span class="line">d        通过此键可切换是否显示远端目标主机信息</span><br><span class="line">t        通过此键可切换iftop显示格式，连续按此键可依次显示：以两行显示发送接收流量、以一行显示发送接收流量、只显示发送流量/接收流量</span><br><span class="line">N        通过此键可切换显示端口号/端口号对应服务名称</span><br><span class="line">S        通过此键可切换是否显示本地源主机的端口信息</span><br><span class="line">D        通过此键可切换是否显示远端目标主机的端口信息</span><br><span class="line">p        通过此键可切换是否显示端口信息</span><br><span class="line">1/2/3    根据最近 2 秒、10 秒、40 秒的平均网络流量排序</span><br><span class="line">&lt;        通过此键可根据左边的本地主机名或IP地址进行排序</span><br><span class="line">&gt;        通过此键可根据远端目标主机的主机名或IP地址进行排序</span><br><span class="line">o        通过此键可切换是否固定显示当前的连接</span><br></pre></td></tr></table></figure>
+<h2><span id="使用示例">使用示例</span></h2>
+<ol>
+<li>显示网卡 eth0 的信息，主机通过 ip 显示</li>
+</ol>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">$ iftop -i eth0 -n</span><br></pre></td></tr></table></figure>
+<ol start="2">
+<li>显示端口号（添加 -P 参数，进入界面可通过 p 参数关闭）</li>
+</ol>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">$ iftop -i eth0 -n -P</span><br></pre></td></tr></table></figure>
+<ol start="3">
+<li>显示将输出以 byte 为单位显示网卡流量,默认是 bit</li>
+</ol>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">$ iftop -i eth0 -n -B</span><br></pre></td></tr></table></figure>
+<ol start="4">
+<li>显示流量进度条</li>
+</ol>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">## 进入界面后按下 L </span><br><span class="line">$ iftop -i eth0 -n</span><br></pre></td></tr></table></figure>
+<ol start="5">
+<li>显示每个连接的总流量</li>
+</ol>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">## 进入界面后按下 T</span><br><span class="line">$ iftop -i eth0 -n</span><br></pre></td></tr></table></figure>
+<ol start="6">
+<li>显示指定 ip 172.17.1.158 的流量</li>
+</ol>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">进入界面后按下 l 后,再输入 172.17.1.158 并回车)</span><br><span class="line">$ iftop -i eth0 -n</span><br></pre></td></tr></table></figure>
+<h2><span id="实战">实战</span></h2>
+<p>下面我们将通过找出最费流量的 IP 和端口号这一具体实例，来演示 iftop 强大的功能。</p>
+<ol>
+<li>进入界面</li>
+</ol>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">$ iftop -i eth0 -nNB -m 10M</span><br></pre></td></tr></table></figure>
+<ul>
+<li>-i 指定网卡，</li>
+<li>-n 代表主机通过ip显示不走DNS</li>
+<li>-N 只显示连接端口号，不显示端口对应的服务名称(不加会显示如ssh这样的服务名称，不便于排查)</li>
+<li>-B 指定显示单位为Kb，默认是bit，太小！</li>
+<li>-m 设置输出界面中最上面的流量刻度最大值，流量刻度分5个大段显示</li>
+</ul>
+<p>进入后界面如下:</p>
+<p><img src="https://img.hi-linux.com/staticfile/662544-20190409210125203-1972088283-2021-02-22-Dr2ib3.png" alt="img"></p>
+<ol start="2">
+<li>按下 L 显示流量刻度</li>
+</ol>
+<p>L 参数直接显示进度条，方便人类阅读。</p>
+<p><img src="https://img2018.cnblogs.com/blog/662544/201904/662544-20190409210311438-298086268.png" alt="img"></p>
+<ol start="3">
+<li>按下 T 显示总量</li>
+</ol>
+<p>有个总数统计，看着方便！</p>
+<p><img src="https://img.hi-linux.com/staticfile/662544-20190409210410810-1883429367-2021-02-22-ncetd0.png" alt="img"></p>
+<ol start="4">
+<li>按下 3，根据最近 40s 统计排序</li>
+</ol>
+<p>用平均值来统计最权威点</p>
+<p><img src="https://img.hi-linux.com/staticfile/662544-20190409210518173-21025455-2021-02-22-ePqAU2.png" alt="img"></p>
+<ol start="5">
+<li>按下 t，发送和接受合成一行</li>
+</ol>
+<p><img src="https://img.hi-linux.com/staticfile/662544-20190409210625919-169291969-2021-02-22-6qL0Op.png" alt="img"></p>
+<ol start="6">
+<li>多按几次 B，查看最近 2s、10s、40s 的统计</li>
+</ol>
+<p><img src="https://img2018.cnblogs.com/blog/662544/201904/662544-20190409211010423-1486003558.png" alt="img"></p>
+<p>没错，图中的 172.17.1.158 就是我们找到的流量用得最多的 IP</p>
+<ol start="7">
+<li>筛选指定 IP 172.17.1.158</li>
+</ol>
+<p>按下 l, 输入172.17.1.158，出现如下</p>
+<p><img src="https://img.hi-linux.com/staticfile/662544-20190409211215269-1603240397-2021-02-22-l1x0Jt.png" alt="img"></p>
+<p>回车后生效</p>
+<p><img src="https://img2018.cnblogs.com/blog/662544/201904/662544-20190409211236275-1078452279.png" alt="img"></p>
+<p>这下就只看到这个 IP 的流量监控了</p>
+<ol start="8">
+<li>找到这个 IP 哪个端口流量用得最多</li>
+</ol>
+<p>按下 p, 根据端口号显示</p>
+<p><img src="https://img.hi-linux.com/staticfile/662544-20190409211529439-1633640505-2021-02-22-NTAMbf.png" alt="img"></p>
+<p>到这里，我们就学会了如何找出流量用得最多的 IP 和端口号。</p>
+<blockquote>
+<p>本文转载自：「 博客园 」，原文：<a href="http://t.cn/A6tM3oLg" target="_blank" rel="noopener">http://t.cn/A6tM3oLg</a> ，版权归原作者所有。欢迎投稿，投稿邮箱: <a href="mailto:editor@hi-linux.com">editor@hi-linux.com</a>。</p>
+</blockquote>
+</div>
+
+			<script src="https://my.openwrite.cn/js/readmore.js" type="text/javascript"></script>
+			<script>
+			var isMobile = navigator.userAgent.match(/(phone|pad|pod|iPhone|iPod|ios|iPad|Android|Mobile|BlackBerry|IEMobile|MQQBrowser|JUC|Fennec|wOSBrowser|BrowserNG|WebOS|Symbian|Windows Phone)/i);
+			if (!isMobile) {
+			    var btw = new BTWPlugin();
+			    btw.init({
+			        "id": "vip-container",
+			        "blogId": "10135-1588830050631-449",
+			        "name": "「奇妙的 Linux 世界」",
+			        "qrcode": "https://www.hi-linux.com/img/wechat/mp_qrcode_12.jpg",
+			        "keyword": "VIP"
+			    });
+			}
+			</script>
+		
+                
+
+                <hr>
+                <!-- Pager -->
+                <ul class="pager">
+                    
+                    
+                        <li class="next">
+                            <a href="/posts/49989.html" data-toggle="tooltip" data-placement="top" title="如何在不重建镜像情况下优雅的修改容器内容">Next Post &rarr;</a>
+                        </li>
+                    
+                </ul>
+
+                <!-- duoshuo Share start -->
+                
+                <!-- 多说 Share end-->
+
+                <!-- 多说评论框 start -->
+                
+                <!-- 多说评论框 end -->
+
+                <!-- disqus comment start -->
+                
+                <!-- disqus comment end -->
+
+                
+                    <!-- disqus 评论框 start -->
+                    <div class="comment">
+                        <div id="lv-container" data-id="city" data-uid="MTAyMC8yNzg2My80NDQw"></div>
+                    </div>
+                    <!-- disqus 评论框 end -->
+                
+
+            </div>
+            
+            <!-- Tabe of Content -->
+            <!-- Table of Contents -->
+
+  
+    <style>
+      span.toc-nav-number{
+        display: none
+      }
+    </style>
+  
+    
+      <aside id="sidebar">
+        <div id="toc" class="toc-article">
+        <strong class="toc-title">Contents</strong>
+        
+          <ol class="toc-nav"><li class="toc-nav-item toc-nav-level-2"><a class="toc-nav-link" href="#vip-container"><span class="toc-nav-number">1.</span> <span class="toc-nav-text">iftop 是什么</span></a></li><li class="toc-nav-item toc-nav-level-2"><a class="toc-nav-link" href="#vip-container"><span class="toc-nav-number">2.</span> <span class="toc-nav-text">安装</span></a></li><li class="toc-nav-item toc-nav-level-2"><a class="toc-nav-link" href="#vip-container"><span class="toc-nav-number">3.</span> <span class="toc-nav-text">常用参数</span></a></li><li class="toc-nav-item toc-nav-level-2"><a class="toc-nav-link" href="#vip-container"><span class="toc-nav-number">4.</span> <span class="toc-nav-text">界面操作</span></a></li><li class="toc-nav-item toc-nav-level-2"><a class="toc-nav-link" href="#vip-container"><span class="toc-nav-number">5.</span> <span class="toc-nav-text">使用示例</span></a></li><li class="toc-nav-item toc-nav-level-2"><a class="toc-nav-link" href="#vip-container"><span class="toc-nav-number">6.</span> <span class="toc-nav-text">实战</span></a></li></ol>
+        
+        </div>
+      </aside>
+    
+
+                
+            <!-- Sidebar Container -->
+            <div class="
+                col-lg-8 col-lg-offset-2
+                col-md-10 col-md-offset-1
+                sidebar-container">
+
+                <!-- Featured Tags -->
+                
+                <section>
+                    <!-- no hr -->
+                    <h5><a href="/tags/">FEATURED TAGS</a></h5>
+                    <div class="tags">
+                       
+                          <a class="tag" href="/tags/#技巧" title="技巧">技巧</a>
+                        
+                          <a class="tag" href="/tags/#Linux" title="Linux">Linux</a>
+                        
+                          <a class="tag" href="/tags/#iftop" title="iftop">iftop</a>
+                        
+                    </div>
+                </section>
+                
+
+                <!-- Friends Blog -->
+                
+                <hr>
+                <h5>FRIENDS</h5>
+                <ul class="list-inline">
+
+                    
+                        <li><a href="http://www.mike.org.cn/" target="_blank">简单.生活</a></li>
+                    
+                        <li><a href="http://shang.qq.com/wpa/qunwpa?idkey=ea4c43493c2269428ac6ef6141de4b6d78e5ab2d41380ca4099b833b62884ee9" target="_blank">技术交流群</a></li>
+                    
+                        <li><a href="" target="_blank"></a></li>
+                    
+                        <li><a href="" target="_blank"></a></li>
+                    
+                </ul>
+                
+            </div>
+        </div>
+    </div>
+</article>
+
+
+
+
+
+
+    <!-- 来必力City版公共JS代码 start (一个网页只需插入一次) -->
+    <script type="text/javascript">
+       (function(d, s) {
+           var j, e = d.getElementsByTagName(s)[0];
+    
+           if (typeof LivereTower === 'function') { return; }
+    
+           j = d.createElement(s);
+           j.src = 'https://cdn-city.livere.com/js/embed.dist.js';
+           j.async = true;
+    
+           e.parentNode.insertBefore(j, e);
+       })(document, 'script');
+    </script>
+    <noscript>为正常使用来必力评论功能请激活JavaScript</noscript>
+    <!-- 来必力City版 公共JS代码 end -->
+
+
+
+<!-- async load function -->
+<script>
+    function async(u, c) {
+      var d = document, t = 'script',
+          o = d.createElement(t),
+          s = d.getElementsByTagName(t)[0];
+      o.src = u;
+      if (c) { o.addEventListener('load', function (e) { c(null, e); }, false); }
+      s.parentNode.insertBefore(o, s);
+    }
+</script>
+<!-- anchor-js, Doc:http://bryanbraun.github.io/anchorjs/ -->
+<script>
+    async("https://cdn.bootcss.com/anchor-js/1.1.1/anchor.min.js",function(){
+        anchors.options = {
+          visible: 'hover',
+          placement: 'left',
+          icon: 'ℬ'
+        };
+        anchors.add().remove('.intro-header h1').remove('.subheading').remove('.sidebar-container h5');
+    })
+</script>
+<style>
+    /* place left on bigger screen */
+    @media all and (min-width: 800px) {
+        .anchorjs-link{
+            position: absolute;
+            left: -0.75em;
+            font-size: 1.1em;
+            margin-top : -0.1em;
+        }
+    }
+</style>
+
+
+
+    <!-- Footer -->
+    <!-- Footer -->
+<footer>
+    <div class="container">
+        <div class="row">
+            <div class="col-lg-8 col-lg-offset-2 col-md-10 col-md-offset-1">
+                <ul class="list-inline text-center">
+                
+                    <li>
+                        <a href="/atom.xml">
+                            <span class="fa-stack fa-lg">
+                                <i class="fa fa-circle fa-stack-2x"></i>
+                                <i class="fa fa-rss fa-stack-1x fa-inverse"></i>
+                            </span>
+                        </a>
+                    </li>
+                
+                
+                
+                    <li>
+                        <a target="_blank" href="https://www.zhihu.com/people/80imike">
+                            <span class="fa-stack fa-lg">
+                                <i class="fa fa-circle fa-stack-2x"></i>
+                                <i class="fa  fa-stack-1x fa-inverse">知</i>
+                            </span>
+                        </a>
+                    </li>
+                
+
+                
+                    <li>
+                        <a target="_blank" href="http://weibo.com/2093524665">
+                            <span class="fa-stack fa-lg">
+                                <i class="fa fa-circle fa-stack-2x"></i>
+                                <i class="fa fa-weibo fa-stack-1x fa-inverse"></i>
+                            </span>
+                        </a>
+                    </li>
+                
+
+                
+
+                
+
+                
+
+                </ul>
+                <p class="copyright text-muted">
+                    Copyright &copy; Mike 2021 | Hosted by <a href="https://pages.coding.me" target="_blank" rel="noopener" style="font-weight: bold">Coding Pages</a>
+                    <br>
+                    Theme by <a href="http://beantech.org" target="_blank" rel="noopener">BeanTech</a> 
+                    <span style="display: inline-block; margin: 0 5px;">
+                        <i class="fa fa-heart"></i>
+                    </span> 
+                    re-Ported by <a href="http://www.huweihuang.com" target="_blank" rel="noopener">胡伟煌</a> | 
+                    <iframe
+                        style="margin-left: 2px; margin-bottom:-5px;"
+                        frameborder="0" scrolling="0" width="91px" height="20px"
+                        src="https://ghbtns.com/github-btn.html?user=huweihuang&repo=hexo-theme-huweihuang&type=star&count=true" >
+                    </iframe>
+                </p>
+            </div>
+        </div>
+    </div>
+</footer>
+
+<!-- jQuery -->
+
+<script src="/js/jquery.min.js"></script>
+
+
+<!-- Bootstrap Core JavaScript -->
+
+<script src="/js/bootstrap.min.js"></script>
+
+
+<!-- Custom Theme JavaScript -->
+
+<script src="/js/hux-blog.min.js"></script>
+
+
+
+<!-- async load function -->
+<script>
+    function async(u, c) {
+      var d = document, t = 'script',
+          o = d.createElement(t),
+          s = d.getElementsByTagName(t)[0];
+      o.src = u;
+      if (c) { o.addEventListener('load', function (e) { c(null, e); }, false); }
+      s.parentNode.insertBefore(o, s);
+    }
+</script>
+
+<!-- 
+     Because of the native support for backtick-style fenced code blocks 
+     right within the Markdown is landed in Github Pages, 
+     From V1.6, There is no need for Highlight.js, 
+     so Huxblog drops it officially.
+
+     - https://github.com/blog/2100-github-pages-now-faster-and-simpler-with-jekyll-3-0  
+     - https://help.github.com/articles/creating-and-highlighting-code-blocks/    
+-->
+<!--
+    <script>
+        async("http://cdn.bootcss.com/highlight.js/8.6/highlight.min.js", function(){
+            hljs.initHighlightingOnLoad();
+        })
+    </script>
+    <link href="http://cdn.bootcss.com/highlight.js/8.6/styles/github.min.css" rel="stylesheet">
+-->
+
+
+<!-- jquery.tagcloud.js -->
+<script>
+    // only load tagcloud.js in tag.html
+    if($('#tag_cloud').length !== 0){
+        async("https://www.hi-linux.com/js/jquery.tagcloud.js",function(){
+            $.fn.tagcloud.defaults = {
+                //size: {start: 1, end: 1, unit: 'em'},
+                color: {start: '#bbbbee', end: '#0085a1'},
+            };
+            $('#tag_cloud a').tagcloud();
+        })
+    }
+</script>
+
+<!--fastClick.js -->
+<script>
+    async("https://cdn.bootcss.com/fastclick/1.0.6/fastclick.min.js", function(){
+        var $nav = document.querySelector("nav");
+        if($nav) FastClick.attach($nav);
+    })
+</script>
+
+
+<!-- Google Analytics -->
+
+
+
+
+<!-- Baidu Tongji -->
+
+
+
+
+
+
+	<a id="rocket" href="#top" class=""></a>
+	<script type="text/javascript" src="/js/totop.js?v=1.0.0" async=""></script>
+    <script type="text/javascript" src="/js/toc.js?v=1.0.0" async=""></script>
+<!-- Image to hack wechat -->
+<img src="https://www.hi-linux.com/img/icon_wechat.png" width="0" height="0" />
+<!-- Migrate from head to bottom, no longer block render and still work -->
+
+<script>(function(w,d, s, id) {w.webpushr=w.webpushr||function(){(w.webpushr.q=w.webpushr.q||[]).push(arguments)};var js, fjs = d.getElementsByTagName(s)[0];js = d.createElement(s); js.id = id;js.src = 'https://cdn.webpushr.com/app.min.js';fjs.parentNode.appendChild(js);}(window,document, 'script', 'webpushr-jssdk'));webpushr('init','BF9JK7xV9kjWTdMx2lr6RWaPfXV7wNuZaVAJ1bfIGoBNJavqLEBVFMKLubITnCA4bh2fI9iH9tMF95nXnPt7xxY');</script></body>
+
+</html>
