@@ -1,0 +1,795 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<!-- Head tag -->
+<head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="google-site-verification" content="xBT4GhYoi5qRD5tr338pgPM5OWHHIDR6mNg1a3euekI" />
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="description" content="">
+    <meta name="keyword"  content="Linux,运维,Nginx,Zabbix,Centos,Ansible,MySQL,Python,Docker,ELK,Haproxy,Git,Nodejs,安全,技术">
+    <link rel="shortcut icon" href="/img/ironman-draw.png">
+    <!-- Place this tag in your head or just before your close body tag. -->
+    <script async defer src="https://buttons.github.io/buttons.js"></script>
+    <title>
+        
+          如何使用 Tmuxp 来优雅的管理多个 Tmux 会话 - 奇妙的 Linux 世界
+        
+    </title>
+
+    <link rel="canonical" href="https://www.hi-linux.com/posts/253.html">
+
+    <!-- Bootstrap Core CSS -->
+    
+<link rel="stylesheet" href="/css/bootstrap.min.css">
+
+
+    <!-- Custom CSS --> 
+    
+<link rel="stylesheet" href="/css/beantech.min.css">
+
+    
+    <!-- Pygments Highlight CSS -->
+    
+<link rel="stylesheet" href="/css/highlight.css">
+
+
+    
+<link rel="stylesheet" href="/css/widget.css">
+
+
+    
+<link rel="stylesheet" href="/css/rocket.css">
+
+
+    
+<link rel="stylesheet" href="/css/signature.css">
+
+
+    
+<link rel="stylesheet" href="/css/toc.css">
+
+
+    <!-- Custom Fonts -->
+    <!-- <link href="https://maxcdn.bootstrapcdn.com/font-awesome/4.3.0/css/font-awesome.min.css" rel="stylesheet" type="text/css"> -->
+    <!-- Hux change font-awesome CDN to qiniu -->
+    <link href="https://cdn.staticfile.org/font-awesome/4.5.0/css/font-awesome.min.css" rel="stylesheet" type="text/css">
+
+
+    <!-- Hux Delete, sad but pending in China
+    <link href='http://fonts.googleapis.com/css?family=Lora:400,700,400italic,700italic' rel='stylesheet' type='text/css'>
+    <link href='http://fonts.googleapis.com/css?family=Open+Sans:300italic,400italic,600italic,700italic,800italic,400,300,600,700,800' rel='stylesheet' type='text/
+    css'>
+    -->
+
+
+    <!-- HTML5 Shim and Respond.js IE8 support of HTML5 elements and media queries -->
+    <!-- WARNING: Respond.js doesn't work if you view the page via file:// -->
+    <!--[if lt IE 9]>
+        <script src="https://oss.maxcdn.com/libs/html5shiv/3.7.0/html5shiv.js"></script>
+        <script src="https://oss.maxcdn.com/libs/respond.js/1.4.2/respond.min.js"></script>
+    <![endif]-->
+
+    <!-- ga & ba script hoook -->
+    <script></script>
+<meta name="generator" content="Hexo 4.2.1"><link rel="alternate" href="/atom.xml" title="奇妙的 Linux 世界" type="application/atom+xml">
+</head>
+
+
+<!-- hack iOS CSS :active style -->
+<body ontouchstart="">
+	<!-- Modified by Yu-Hsuan Yen -->
+<!-- Post Header -->
+<style type="text/css">
+    header.intro-header{
+        
+            background-image: url('/img/header_img/building.jpg')
+            /*post*/
+        
+    }
+    
+</style>
+
+<header class="intro-header" >
+    <!-- Signature -->
+    <div id="signature">
+        <div class="container">
+            <div class="row">
+                <div class="col-lg-8 col-lg-offset-2 col-md-10 col-md-offset-1">
+                
+                    <div class="post-heading">
+                        <div class="tags">
+                            
+                              <a class="tag" href="/tags/#Linux" title="Linux">Linux</a>
+                            
+                              <a class="tag" href="/tags/#Tmux" title="Tmux">Tmux</a>
+                            
+                              <a class="tag" href="/tags/#Tmuxp" title="Tmuxp">Tmuxp</a>
+                            
+                        </div>
+                        <h1>如何使用 Tmuxp 来优雅的管理多个 Tmux 会话</h1>
+                        <h2 class="subheading"></h2>
+                        <span class="meta">
+                            Posted by Mike on
+                            2021-05-06
+                        </span>
+                    </div>
+                
+
+
+                </div>
+            </div>
+        </div>
+    </div>
+</header>
+
+	
+    <!-- Navigation -->
+<nav class="navbar navbar-default navbar-custom navbar-fixed-top">
+    <div class="container-fluid">
+        <!-- Brand and toggle get grouped for better mobile display -->
+        <div class="navbar-header page-scroll">
+            <button type="button" class="navbar-toggle">
+                <span class="sr-only">Toggle navigation</span>
+                <span class="icon-bar"></span>
+                <span class="icon-bar"></span>
+                <span class="icon-bar"></span>
+            </button>
+            <a class="navbar-brand" href="/">奇妙的 Linux 世界</a>
+        </div>
+
+        <!-- Collect the nav links, forms, and other content for toggling -->
+        <!-- Known Issue, found by Hux:
+            <nav>'s height woule be hold on by its content.
+            so, when navbar scale out, the <nav> will cover tags.
+            also mask any touch event of tags, unfortunately.
+        -->
+        <div id="huxblog_navbar">
+            <div class="navbar-collapse">
+                <ul class="nav navbar-nav navbar-right">
+                    <li>
+                        <a href="/">Home</a>
+                    </li>
+
+                    
+
+                        
+                    
+
+                        
+                    
+
+                        
+                        <li>
+                            <a href="/archive/">Archives</a>
+                        </li>
+                        
+                    
+
+                        
+                        <li>
+                            <a href="/about/">About</a>
+                        </li>
+                        
+                    
+
+                        
+                        <li>
+                            <a href="/tags/">Tags</a>
+                        </li>
+                        
+                    
+                    
+                </ul>
+            </div>
+        </div>
+        <!-- /.navbar-collapse -->
+    </div>
+    <!-- /.container -->
+</nav>
+<script>
+    // Drop Bootstarp low-performance Navbar
+    // Use customize navbar with high-quality material design animation
+    // in high-perf jank-free CSS3 implementation
+    var $body   = document.body;
+    var $toggle = document.querySelector('.navbar-toggle');
+    var $navbar = document.querySelector('#huxblog_navbar');
+    var $collapse = document.querySelector('.navbar-collapse');
+
+    $toggle.addEventListener('click', handleMagic)
+    function handleMagic(e){
+        if ($navbar.className.indexOf('in') > 0) {
+        // CLOSE
+            $navbar.className = " ";
+            // wait until animation end.
+            setTimeout(function(){
+                // prevent frequently toggle
+                if($navbar.className.indexOf('in') < 0) {
+                    $collapse.style.height = "0px"
+                }
+            },400)
+        }else{
+        // OPEN
+            $collapse.style.height = "auto"
+            $navbar.className += " in";
+        }
+    }
+</script>
+
+
+    <!-- Main Content -->
+    <!-- Modify by Yu-Hsuan Yen -->
+
+<!-- Post Content -->
+<article>
+    <div class="container">
+        <div class="row">
+
+            <!-- Post Container -->
+            <div class="
+                col-lg-8 col-lg-offset-2
+                col-md-10 col-md-offset-1
+                post-container">
+
+                <div id="vip-container"><blockquote>
+<p><strong>使用 <a href="https://github.com/tmux-python/tmuxp" target="_blank" rel="noopener">tmuxp</a> 可以很好的帮助我们来管理 tmux 的会话(session)，解决了平时在使用 tmux 工具时候的痛点。</strong></p>
+</blockquote>
+<h2><span id="1-工具介绍">1. 工具介绍</span></h2>
+<blockquote>
+<p><strong>安装和使用都非常简单</strong></p>
+</blockquote>
+<p>事实上，<code>tmuxp</code> 也是一个构建于 <code>tmux</code> 之上的对象关系映射的 <code>ORM</code> 的 <code>API</code> 工具，就是利用 <code>tmux</code> 工具定义的窗格(pane)、窗口(windows)和会话(session)，以创建关联视图的 <code>Server</code>, <code>Session</code>, <code>Window</code>, <code>Pane</code> 对象。我们在使用的时候，可以使用 <code>YAML</code>, <code>JSON</code> 以及 <code>dict</code> 字配置项来启动我们配置好的窗口和面板。使用时候需要注意的是，只支持 <code>tmux&gt;=1.8</code> 的版本。</p>
+<ul>
+<li>简洁的语法
+<ul>
+<li>都支持在单独的命令中使用简短标记</li>
+</ul>
+</li>
+<li>加载会话
+<ul>
+<li>都是根据配置文件中加载 <code>tmux</code> 会话(<code>session</code>)</li>
+</ul>
+</li>
+<li>多种格式支持
+<ul>
+<li>可以使用 <code>YAML</code>, <code>JSON</code> 以及 <code>dict</code> 字配置项</li>
+</ul>
+</li>
+</ul>
+<a id="more"></a>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># 只有这一种安装方式</span></span><br><span class="line">$ pip install tmuxp</span><br><span class="line">$ pip install --user tmuxp</span><br><span class="line"></span><br><span class="line"><span class="comment"># 配置zsh补全(.zshrc)</span></span><br><span class="line">$ <span class="built_in">eval</span> <span class="string">"<span class="variable">$(_TMUXP_COMPLETE=source_zsh tmuxp)</span>"</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># 配置bash补全(.bashrc)</span></span><br><span class="line">$ <span class="built_in">eval</span> <span class="string">"<span class="variable">$(_TMUXP_COMPLETE=source tmuxp)</span>"</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># 如果运行命令提示报错则执行如下命令即可</span></span><br><span class="line">$ tmux <span class="built_in">kill</span>-server</span><br></pre></td></tr></table></figure>
+<figure class="highlight yaml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># 简洁的语法配置</span></span><br><span class="line"><span class="attr">session_name:</span> <span class="string">shorthands</span></span><br><span class="line"><span class="attr">windows:</span></span><br><span class="line">  <span class="bullet">-</span> <span class="attr">window_name:</span> <span class="string">long</span> <span class="string">form</span></span><br><span class="line">    <span class="attr">panes:</span></span><br><span class="line">      <span class="bullet">-</span> <span class="attr">shell_command:</span></span><br><span class="line">          <span class="bullet">-</span> <span class="string">echo</span> <span class="string">'did you know'</span></span><br><span class="line">          <span class="bullet">-</span> <span class="string">echo</span> <span class="string">'you can inline'</span></span><br><span class="line">      <span class="bullet">-</span> <span class="attr">shell_command:</span> <span class="string">echo</span> <span class="string">'single commands'</span></span><br><span class="line">      <span class="bullet">-</span> <span class="string">echo</span> <span class="string">'for panes'</span></span><br></pre></td></tr></table></figure>
+<p><img src="https://img.hi-linux.com/staticfile/learn-tmuxp-tools-1-2021-01-27-aJHxhm.gif" alt></p>
+<h2><span id="2-使用方式">2. 使用方式</span></h2>
+<blockquote>
+<p><strong>只需要记住 load 这个一个命令其实就够了</strong></p>
+</blockquote>
+<p><strong><code>tmuxp</code></strong> 工具将配置文件保存在 <code>~/.tmuxp</code> 中或在项目目录下作为 <code>~/.tmuxp.{yaml，json}</code> 独立出现。当然我们也可以使用其提供的命令，进行会话的相关操作和使用。下来就让我们一起去看看，如何使用吧！</p>
+<ul>
+<li>[1] 加载会话(Load session)
+<ul>
+<li>Load a tmux workspace from each CONFIG.</li>
+</ul>
+</li>
+</ul>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># 使用方式</span></span><br><span class="line"><span class="comment"># session_name: 会话(Session)名称</span></span><br><span class="line"><span class="comment"># -h: tmux服务器的地址</span></span><br><span class="line"><span class="comment"># -L: tmux服务器的socket名，与tmux相同</span></span><br><span class="line"><span class="comment"># -S: tmux服务器的socket路径，与tmux相同</span></span><br><span class="line"><span class="comment"># -2: 强迫tmux的终端支持256色</span></span><br><span class="line"><span class="comment"># -8: 与-2类似，但是只支持88色</span></span><br><span class="line"><span class="comment"># --list=False: 列出可用的配置文件</span></span><br><span class="line">$ tmuxp load [-h] [-L socket-name] [-S socket-path] [-2 | -8] [--list] [config]</span><br></pre></td></tr></table></figure>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># 通过配置文件路径加载</span></span><br><span class="line">$ tmuxp load .</span><br><span class="line">$ tmuxp load ./mysession.yaml</span><br><span class="line">$ tmuxp load ~/workspaces/myproject.yaml</span><br><span class="line"></span><br><span class="line"><span class="comment"># 通过自定义会话名称加载</span></span><br><span class="line">$ tmuxp load mysession</span><br><span class="line"></span><br><span class="line"><span class="comment"># 一次加载多个会话</span></span><br><span class="line">$ tmuxp load mysession ./another/project/</span><br></pre></td></tr></table></figure>
+<ul>
+<li>[2] 冻结会话(Freeze sessions)
+<ul>
+<li>Snapshot a session into a config.</li>
+</ul>
+</li>
+</ul>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># 使用方式</span></span><br><span class="line"><span class="comment"># session_name: 会话(Session)名称</span></span><br><span class="line"><span class="comment"># -h: tmux服务器的地址</span></span><br><span class="line"><span class="comment"># -L: tmux服务器的socket名，与tmux相同</span></span><br><span class="line"><span class="comment"># -S: tmux服务器的socket路径，与tmux相同</span></span><br><span class="line">$ tmuxp freeze [-h] [-L socket-name] [-S socket-path] session_name [session_name ...]</span><br></pre></td></tr></table></figure>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># 为tmux布局、窗格路径和窗口/会话名称创建快照</span></span><br><span class="line">$ tmuxp freeze session-name</span><br></pre></td></tr></table></figure>
+<ul>
+<li>[3] 配置转换
+<ul>
+<li>Convert a tmuxp config between JSON and YAML.</li>
+</ul>
+</li>
+</ul>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># 使用方式</span></span><br><span class="line"><span class="comment"># config: 配置文件的绝对/相对路径</span></span><br><span class="line">tmuxp convert [-h] config</span><br></pre></td></tr></table></figure>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># 可以互相转换JSON/YAML格式</span></span><br><span class="line">$ tmuxp convert &lt;filename&gt;</span><br></pre></td></tr></table></figure>
+<ul>
+<li>[4] 配置导入
+<ul>
+<li>Import a teamocil/tmuxinator config.</li>
+</ul>
+</li>
+</ul>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># 使用方式</span></span><br><span class="line"><span class="comment"># config: 在 ~/.teamocil 和当前目录下查找yaml文件</span></span><br><span class="line"><span class="comment"># --list=False: 列出 ~/.teamocil 和当前工作目录下的配置文件</span></span><br><span class="line">$ tmuxp import teamocil [-h] (--list | config)</span><br><span class="line">$ tmuxp import tmuxinator [-h] (--list | config)</span><br></pre></td></tr></table></figure>
+<h2><span id="3-面板窗口配置">3. 面板窗口配置</span></h2>
+<blockquote>
+<p><strong>主要介绍 tmux 面板的切分、启动目录、索引设定等操作</strong></p>
+</blockquote>
+<ul>
+<li>[1] 两个窗格(2 split panes)
+<ul>
+<li>分割出两个窗格</li>
+</ul>
+</li>
+</ul>
+<p><img src="https://img.hi-linux.com/staticfile/learn-tmuxp-tools-2-2021-01-27-c3IkeK.gif" alt></p>
+<figure class="highlight yaml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"><span class="attr">session_name:</span> <span class="number">2</span><span class="string">-pane-vertical</span></span><br><span class="line"><span class="attr">windows:</span></span><br><span class="line">  <span class="bullet">-</span> <span class="attr">window_name:</span> <span class="string">my</span> <span class="string">test</span> <span class="string">window</span></span><br><span class="line">    <span class="attr">panes:</span></span><br><span class="line">      <span class="bullet">-</span> <span class="string">echo</span> <span class="string">hello</span></span><br><span class="line">      <span class="bullet">-</span> <span class="string">echo</span> <span class="string">hello</span></span><br></pre></td></tr></table></figure>
+<figure class="highlight yaml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br></pre></td><td class="code"><pre><span class="line"><span class="attr">session_name:</span> <span class="number">2</span><span class="string">-pane-vertical-long</span></span><br><span class="line"><span class="attr">windows:</span></span><br><span class="line">  <span class="bullet">-</span> <span class="attr">window_name:</span> <span class="string">test</span></span><br><span class="line">    <span class="attr">panes:</span></span><br><span class="line">      <span class="bullet">-</span> <span class="attr">shell_command:</span></span><br><span class="line">          <span class="bullet">-</span> <span class="string">cd</span> <span class="string">~</span></span><br><span class="line">          <span class="bullet">-</span> <span class="string">pwd</span></span><br><span class="line">          <span class="bullet">-</span> <span class="string">top</span></span><br><span class="line">      <span class="bullet">-</span> <span class="attr">shell_command:</span></span><br><span class="line">          <span class="bullet">-</span> <span class="string">cd</span> <span class="string">/var/www</span></span><br><span class="line">          <span class="bullet">-</span> <span class="string">pwd</span></span><br><span class="line">  <span class="bullet">-</span> <span class="attr">window_name:</span> <span class="string">second</span> <span class="string">window</span></span><br><span class="line">    <span class="attr">shell_command_before:</span> <span class="string">cd</span> <span class="string">/var/www</span></span><br><span class="line">    <span class="attr">panes:</span></span><br><span class="line">      <span class="bullet">-</span> <span class="attr">shell_command:</span> <span class="string">pwd</span></span><br><span class="line">      <span class="bullet">-</span> <span class="attr">shell_command:</span></span><br><span class="line">          <span class="bullet">-</span> <span class="string">pwd</span></span><br></pre></td></tr></table></figure>
+<ul>
+<li><strong>[2] 三个窗格(3 panes)</strong></li>
+</ul>
+<p><img src="https://img.hi-linux.com/staticfile/RA1Cc4-2021-01-27-a7MTrq.jpg" alt></p>
+<figure class="highlight yaml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line"><span class="attr">session_name:</span> <span class="number">3</span><span class="string">-panes</span></span><br><span class="line"><span class="attr">windows:</span></span><br><span class="line">  <span class="bullet">-</span> <span class="attr">window_name:</span> <span class="string">dev</span> <span class="string">window</span></span><br><span class="line">    <span class="attr">layout:</span> <span class="string">main-vertical</span></span><br><span class="line">    <span class="attr">shell_command_before:</span></span><br><span class="line">      <span class="bullet">-</span> <span class="string">cd</span> <span class="string">~/</span></span><br><span class="line">    <span class="attr">panes:</span></span><br><span class="line">      <span class="bullet">-</span> <span class="attr">shell_command:</span></span><br><span class="line">          <span class="bullet">-</span> <span class="string">cd</span> <span class="string">/var/log</span></span><br><span class="line">          <span class="bullet">-</span> <span class="string">ls</span> <span class="string">-al</span> <span class="string">|</span> <span class="string">grep</span> <span class="string">\.log</span></span><br><span class="line">      <span class="bullet">-</span> <span class="string">echo</span> <span class="string">hello</span></span><br><span class="line">      <span class="bullet">-</span> <span class="string">echo</span> <span class="string">hellotmu</span></span><br></pre></td></tr></table></figure>
+<ul>
+<li><strong>[3] 四个窗格(4 panes)</strong></li>
+</ul>
+<p><img src="https://img.hi-linux.com/staticfile/learn-tmuxp-tools-4-2021-01-27-NB729J.gif" alt></p>
+<figure class="highlight yaml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line"><span class="attr">session_name:</span> <span class="number">4</span><span class="string">-pane-split</span></span><br><span class="line"><span class="attr">windows:</span></span><br><span class="line">  <span class="bullet">-</span> <span class="attr">window_name:</span> <span class="string">dev</span> <span class="string">window</span></span><br><span class="line">    <span class="attr">layout:</span> <span class="string">tiled</span></span><br><span class="line">    <span class="attr">shell_command_before:</span></span><br><span class="line">      <span class="bullet">-</span> <span class="string">cd</span> <span class="string">~/</span></span><br><span class="line">    <span class="attr">panes:</span></span><br><span class="line">      <span class="bullet">-</span> <span class="attr">shell_command:</span></span><br><span class="line">          <span class="bullet">-</span> <span class="string">cd</span> <span class="string">/var/log</span></span><br><span class="line">          <span class="bullet">-</span> <span class="string">ls</span> <span class="string">-al</span> <span class="string">|</span> <span class="string">grep</span> <span class="string">\.log</span></span><br><span class="line">      <span class="bullet">-</span> <span class="string">echo</span> <span class="string">hello</span></span><br><span class="line">      <span class="bullet">-</span> <span class="string">echo</span> <span class="string">hello</span></span><br><span class="line">      <span class="bullet">-</span> <span class="string">echo</span> <span class="string">hello</span></span><br></pre></td></tr></table></figure>
+<ul>
+<li>[4] 空白窗格(Blank panes)
+<ul>
+<li>直接可以使用 ‘null, ‘blank’, ‘pane’ 中任何一个，即可创建空白窗格</li>
+</ul>
+</li>
+</ul>
+<figure class="highlight yaml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br></pre></td><td class="code"><pre><span class="line"><span class="attr">session_name:</span> <span class="string">Blank</span> <span class="string">pane</span> <span class="string">test</span></span><br><span class="line"><span class="attr">windows:</span></span><br><span class="line">  <span class="comment"># 如果之前没有shell命令将打开一个空白窗格</span></span><br><span class="line">  <span class="bullet">-</span> <span class="attr">window_name:</span> <span class="string">Blank</span> <span class="string">pane</span> <span class="string">test</span></span><br><span class="line">    <span class="attr">panes:</span></span><br><span class="line">      <span class="bullet">-</span></span><br><span class="line">      <span class="bullet">-</span> <span class="string">pane</span></span><br><span class="line">      <span class="bullet">-</span> <span class="string">blank</span></span><br><span class="line">  <span class="bullet">-</span> <span class="attr">window_name:</span> <span class="string">More</span> <span class="string">blank</span> <span class="string">panes</span></span><br><span class="line">    <span class="attr">panes:</span></span><br><span class="line">      <span class="bullet">-</span> <span class="literal">null</span></span><br><span class="line">      <span class="bullet">-</span> <span class="attr">shell_command:</span></span><br><span class="line">      <span class="bullet">-</span> <span class="attr">shell_command:</span></span><br><span class="line">          <span class="bullet">-</span></span><br><span class="line">  <span class="comment"># 空字符串将被视为回车</span></span><br><span class="line">  <span class="bullet">-</span> <span class="attr">window_name:</span> <span class="string">Empty</span> <span class="string">string</span> <span class="string">(return)</span></span><br><span class="line">    <span class="attr">panes:</span></span><br><span class="line">      <span class="bullet">-</span> <span class="string">""</span></span><br><span class="line">      <span class="bullet">-</span> <span class="attr">shell_command:</span> <span class="string">""</span></span><br><span class="line">      <span class="bullet">-</span> <span class="attr">shell_command:</span></span><br><span class="line">          <span class="bullet">-</span> <span class="string">""</span></span><br><span class="line">  <span class="comment"># 窗格可以有其他选项但仍然是空的</span></span><br><span class="line">  <span class="bullet">-</span> <span class="attr">window_name:</span> <span class="string">Blank</span> <span class="string">with</span> <span class="string">options</span></span><br><span class="line">    <span class="attr">panes:</span></span><br><span class="line">      <span class="bullet">-</span> <span class="attr">focus:</span> <span class="literal">true</span></span><br><span class="line">      <span class="bullet">-</span> <span class="attr">start_directory:</span> <span class="string">/tmp</span></span><br></pre></td></tr></table></figure>
+<ul>
+<li>[5] 启动目录(Start Directory)
+<ul>
+<li>设置起始目录</li>
+<li>等价于<code>tmux new-window -c &lt;start-directory&gt;</code>命令</li>
+</ul>
+</li>
+</ul>
+<figure class="highlight yaml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br></pre></td><td class="code"><pre><span class="line"><span class="attr">session_name:</span> <span class="string">start</span> <span class="string">directory</span></span><br><span class="line"><span class="attr">start_directory:</span> <span class="string">/var/</span></span><br><span class="line"><span class="attr">windows:</span></span><br><span class="line">  <span class="bullet">-</span> <span class="attr">window_name:</span> <span class="string">should</span> <span class="string">be</span> <span class="string">/var/</span></span><br><span class="line">    <span class="attr">panes:</span></span><br><span class="line">      <span class="bullet">-</span> <span class="attr">shell_command:</span></span><br><span class="line">          <span class="bullet">-</span> <span class="string">echo</span> <span class="string">"\033c</span></span><br><span class="line"><span class="string">          - it trickles down from session-level"</span></span><br><span class="line">      <span class="bullet">-</span> <span class="string">echo</span> <span class="string">hello</span></span><br><span class="line">  <span class="bullet">-</span> <span class="attr">window_name:</span> <span class="string">should</span> <span class="string">be</span> <span class="string">/var/log</span></span><br><span class="line">    <span class="attr">start_directory:</span> <span class="string">log</span></span><br><span class="line">    <span class="attr">panes:</span></span><br><span class="line">      <span class="bullet">-</span> <span class="attr">shell_command:</span></span><br><span class="line">          <span class="bullet">-</span> <span class="string">echo</span> <span class="string">'\033c</span></span><br><span class="line"><span class="string">          - window start_directory concatenates to session start_directory</span></span><br><span class="line"><span class="string">          - if it is not absolute'</span></span><br><span class="line">      <span class="bullet">-</span> <span class="string">echo</span> <span class="string">hello</span></span><br><span class="line">  <span class="bullet">-</span> <span class="attr">window_name:</span> <span class="string">should</span> <span class="string">be</span> <span class="string">~</span></span><br><span class="line">    <span class="attr">start_directory:</span> <span class="string">"~"</span></span><br><span class="line">    <span class="attr">panes:</span></span><br><span class="line">      <span class="bullet">-</span> <span class="attr">shell_command:</span></span><br><span class="line">          <span class="bullet">-</span> <span class="string">'echo \\033c ~ has precedence. note: remember to quote ~ in YAML'</span></span><br><span class="line">      <span class="bullet">-</span> <span class="string">echo</span> <span class="string">hello</span></span><br><span class="line">  <span class="bullet">-</span> <span class="attr">window_name:</span> <span class="string">should</span> <span class="string">be</span> <span class="string">/bin</span></span><br><span class="line">    <span class="attr">start_directory:</span> <span class="string">/bin</span></span><br><span class="line">    <span class="attr">panes:</span></span><br><span class="line">      <span class="bullet">-</span> <span class="string">echo</span> <span class="string">'\033c absolute paths also have precedence.'</span></span><br><span class="line">      <span class="bullet">-</span> <span class="string">echo</span> <span class="string">hello</span></span><br><span class="line">  <span class="bullet">-</span> <span class="attr">window_name:</span> <span class="string">should</span> <span class="string">be</span> <span class="string">config's</span> <span class="string">dir</span></span><br><span class="line">    <span class="attr">start_directory:</span> <span class="string">./</span></span><br><span class="line">    <span class="attr">panes:</span></span><br><span class="line">      <span class="bullet">-</span> <span class="attr">shell_command:</span></span><br><span class="line">          <span class="bullet">-</span> <span class="string">echo</span> <span class="string">'\033c</span></span><br><span class="line"><span class="string">          - ./ is relative to config file location</span></span><br><span class="line"><span class="string">          - ../ will be parent of config file</span></span><br><span class="line"><span class="string">          - ./test will be \"test\" dir inside dir of config file'</span></span><br><span class="line">      <span class="bullet">-</span> <span class="attr">shell_command:</span></span><br><span class="line">          <span class="bullet">-</span> <span class="string">echo</span> <span class="string">'\033c</span></span><br><span class="line"><span class="string">          - This way you can load up workspaces from projects and maintain</span></span><br><span class="line"><span class="string">          - relative paths.'</span></span><br></pre></td></tr></table></figure>
+<ul>
+<li>[6] 窗口索引
+<ul>
+<li>定义窗口索引，就是我们在使用时候用来切换窗口时使用</li>
+</ul>
+</li>
+</ul>
+<figure class="highlight yaml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line"><span class="attr">session_name:</span> <span class="string">Window</span> <span class="string">index</span> <span class="string">example</span></span><br><span class="line"><span class="attr">windows:</span></span><br><span class="line">  <span class="bullet">-</span> <span class="attr">window_name:</span> <span class="string">zero</span></span><br><span class="line">    <span class="attr">panes:</span></span><br><span class="line">      <span class="bullet">-</span> <span class="string">echo</span> <span class="string">"this window's index will be zero"</span></span><br><span class="line">  <span class="bullet">-</span> <span class="attr">window_name:</span> <span class="string">five</span></span><br><span class="line">    <span class="attr">panes:</span></span><br><span class="line">      <span class="bullet">-</span> <span class="string">echo</span> <span class="string">"this window's index will be five"</span></span><br><span class="line">    <span class="attr">window_index:</span> <span class="number">5</span></span><br><span class="line">  <span class="bullet">-</span> <span class="attr">window_name:</span> <span class="string">one</span></span><br><span class="line">    <span class="attr">panes:</span></span><br><span class="line">      <span class="bullet">-</span> <span class="string">echo</span> <span class="string">"this window's index will be one"</span></span><br></pre></td></tr></table></figure>
+<h2><span id="4-面板窗口设置">4. 面板窗口设置</span></h2>
+<blockquote>
+<p><strong>工具系统方法的一些配置</strong></p>
+</blockquote>
+<ul>
+<li>[1] 环境变量
+<ul>
+<li>在<code>tmuxp</code>中设置会话环境变量</li>
+</ul>
+</li>
+</ul>
+<figure class="highlight yaml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line"><span class="attr">session_name:</span> <span class="string">Environment</span> <span class="string">variables</span> <span class="string">test</span></span><br><span class="line"><span class="attr">environment:</span></span><br><span class="line">  <span class="attr">EDITOR:</span> <span class="string">/usr/bin/vim</span></span><br><span class="line">  <span class="attr">HOME:</span> <span class="string">/tmp/hm</span></span><br><span class="line"><span class="attr">windows:</span></span><br><span class="line">  <span class="comment"># 如果之前没有shell命令将打开一个空白窗格。</span></span><br><span class="line">  <span class="bullet">-</span> <span class="attr">window_name:</span> <span class="string">Blank</span> <span class="string">pane</span> <span class="string">test</span></span><br><span class="line">    <span class="attr">panes:</span></span><br><span class="line">      <span class="bullet">-</span></span><br></pre></td></tr></table></figure>
+<ul>
+<li>[2] 定制主面板高度(Main pane height)
+<ul>
+<li>根据实际使用情况，设置主面板的高度</li>
+</ul>
+</li>
+</ul>
+<figure class="highlight yaml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br></pre></td><td class="code"><pre><span class="line"><span class="attr">session_name:</span> <span class="string">main-pane-height</span></span><br><span class="line"><span class="attr">start_directory:</span> <span class="string">"~"</span></span><br><span class="line"><span class="attr">windows:</span></span><br><span class="line">  <span class="bullet">-</span> <span class="attr">layout:</span> <span class="string">main-horizontal</span></span><br><span class="line">    <span class="attr">options:</span></span><br><span class="line">      <span class="attr">main-pane-height:</span> <span class="number">30</span></span><br><span class="line">    <span class="attr">panes:</span></span><br><span class="line">      <span class="bullet">-</span> <span class="attr">shell_command:</span></span><br><span class="line">          <span class="bullet">-</span> <span class="string">top</span></span><br><span class="line">        <span class="attr">start_directory:</span> <span class="string">"~"</span></span><br><span class="line">      <span class="bullet">-</span> <span class="attr">shell_command:</span></span><br><span class="line">          <span class="bullet">-</span> <span class="string">echo</span> <span class="string">"hey"</span></span><br><span class="line">      <span class="bullet">-</span> <span class="attr">shell_command:</span></span><br><span class="line">          <span class="bullet">-</span> <span class="string">echo</span> <span class="string">"moo"</span></span><br><span class="line">    <span class="attr">window_name:</span> <span class="string">my</span> <span class="string">window</span> <span class="string">name</span></span><br></pre></td></tr></table></figure>
+<ul>
+<li>[3] 终端历史
+<ul>
+<li>用于配置是否需要记录终端命令历史</li>
+</ul>
+</li>
+</ul>
+<figure class="highlight yaml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br></pre></td><td class="code"><pre><span class="line"><span class="attr">session_name:</span> <span class="string">suppress</span></span><br><span class="line"><span class="attr">suppress_history:</span> <span class="literal">false</span></span><br><span class="line"><span class="attr">windows:</span></span><br><span class="line">  <span class="bullet">-</span> <span class="attr">window_name:</span> <span class="string">appended</span></span><br><span class="line">    <span class="attr">focus:</span> <span class="literal">true</span></span><br><span class="line">    <span class="attr">suppress_history:</span> <span class="literal">false</span></span><br><span class="line">    <span class="attr">panes:</span></span><br><span class="line">      <span class="bullet">-</span> <span class="string">echo</span> <span class="string">"window in the history!"</span></span><br><span class="line"></span><br><span class="line">  <span class="bullet">-</span> <span class="attr">window_name:</span> <span class="string">suppressed</span></span><br><span class="line">    <span class="attr">suppress_history:</span> <span class="literal">true</span></span><br><span class="line">    <span class="attr">panes:</span></span><br><span class="line">      <span class="bullet">-</span> <span class="string">echo</span> <span class="string">"window not in the history!"</span></span><br><span class="line"></span><br><span class="line">  <span class="bullet">-</span> <span class="attr">window_name:</span> <span class="string">default</span></span><br><span class="line">    <span class="attr">panes:</span></span><br><span class="line">      <span class="bullet">-</span> <span class="string">echo</span> <span class="string">"session in the history!"</span></span><br><span class="line"></span><br><span class="line">  <span class="bullet">-</span> <span class="attr">window_name:</span> <span class="string">mixed</span></span><br><span class="line">    <span class="attr">suppress_history:</span> <span class="literal">false</span></span><br><span class="line">    <span class="attr">panes:</span></span><br><span class="line">      <span class="bullet">-</span> <span class="attr">shell_command:</span></span><br><span class="line">          <span class="bullet">-</span> <span class="string">echo</span> <span class="string">"command in the history!"</span></span><br><span class="line">        <span class="attr">suppress_history:</span> <span class="literal">false</span></span><br><span class="line">      <span class="bullet">-</span> <span class="attr">shell_command:</span></span><br><span class="line">          <span class="bullet">-</span> <span class="string">echo</span> <span class="string">"command not in the history!"</span></span><br><span class="line">        <span class="attr">suppress_history:</span> <span class="literal">true</span></span><br><span class="line">      <span class="bullet">-</span> <span class="attr">shell_command:</span></span><br><span class="line">          <span class="bullet">-</span> <span class="string">echo</span> <span class="string">"window in the history!"</span></span><br></pre></td></tr></table></figure>
+<ul>
+<li>[4] 窗口选项
+<ul>
+<li>创建窗格后设置窗口选项</li>
+<li>在创建过程中在每个窗格中执行单个命令后，对于“同步窗格”选项很有用</li>
+</ul>
+</li>
+</ul>
+<figure class="highlight yaml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line"><span class="attr">session_name:</span> <span class="number">2</span><span class="string">-pane-synchronized</span></span><br><span class="line"><span class="attr">windows:</span></span><br><span class="line">  <span class="bullet">-</span> <span class="attr">window_name:</span> <span class="string">Two</span> <span class="string">synchronized</span> <span class="string">panes</span></span><br><span class="line">    <span class="attr">panes:</span></span><br><span class="line">      <span class="bullet">-</span> <span class="string">ssh</span> <span class="string">server1</span></span><br><span class="line">      <span class="bullet">-</span> <span class="string">ssh</span> <span class="string">server2</span></span><br><span class="line">    <span class="attr">options_after:</span></span><br><span class="line">      <span class="attr">synchronize-panes:</span> <span class="string">on</span></span><br></pre></td></tr></table></figure>
+<ul>
+<li>[5] 设置选项
+<ul>
+<li>设置<code>tmux</code>工具相关的选项，例如全局(服务器范围)选项、会话选项和窗口选项</li>
+<li>包括<code>automatic-rename</code>,<code>default-shell</code>,<code>default-command</code>等相关命令</li>
+</ul>
+</li>
+</ul>
+<figure class="highlight yaml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br></pre></td><td class="code"><pre><span class="line"><span class="attr">session_name:</span> <span class="string">test</span> <span class="string">window</span> <span class="string">options</span></span><br><span class="line"><span class="attr">start_directory:</span> <span class="string">"~"</span></span><br><span class="line"><span class="attr">global_options:</span></span><br><span class="line">  <span class="attr">default-shell:</span> <span class="string">/bin/sh</span></span><br><span class="line">  <span class="attr">default-command:</span> <span class="string">/bin/sh</span></span><br><span class="line"><span class="attr">options:</span></span><br><span class="line">  <span class="attr">main-pane-height:</span> <span class="string">$&#123;MAIN_PANE_HEIGHT&#125;</span> <span class="comment"># works with env variables</span></span><br><span class="line"><span class="attr">windows:</span></span><br><span class="line">  <span class="bullet">-</span> <span class="attr">layout:</span> <span class="string">main-horizontal</span></span><br><span class="line">    <span class="attr">options:</span></span><br><span class="line">      <span class="attr">automatic-rename:</span> <span class="string">on</span></span><br><span class="line">    <span class="attr">panes:</span></span><br><span class="line">      <span class="bullet">-</span> <span class="attr">shell_command:</span></span><br><span class="line">          <span class="bullet">-</span> <span class="string">man</span> <span class="string">echo</span></span><br><span class="line">        <span class="attr">start_directory:</span> <span class="string">"~"</span></span><br><span class="line">      <span class="bullet">-</span> <span class="attr">shell_command:</span></span><br><span class="line">          <span class="bullet">-</span> <span class="string">echo</span> <span class="string">"hey"</span></span><br><span class="line">      <span class="bullet">-</span> <span class="attr">shell_command:</span></span><br><span class="line">          <span class="bullet">-</span> <span class="string">echo</span> <span class="string">"moo"</span></span><br></pre></td></tr></table></figure>
+<ul>
+<li>[6] 自动重命名(Automatic Rename)
+<ul>
+<li>即可以自动命令创建的面板名称</li>
+</ul>
+</li>
+</ul>
+<figure class="highlight yaml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br></pre></td><td class="code"><pre><span class="line"><span class="attr">session_name:</span> <span class="string">test</span> <span class="string">window</span> <span class="string">options</span></span><br><span class="line"><span class="attr">start_directory:</span> <span class="string">"~"</span></span><br><span class="line"><span class="attr">windows:</span></span><br><span class="line">  <span class="bullet">-</span> <span class="attr">layout:</span> <span class="string">main-horizontal</span></span><br><span class="line">    <span class="attr">options:</span></span><br><span class="line">      <span class="attr">automatic-rename:</span> <span class="string">on</span></span><br><span class="line">    <span class="attr">panes:</span></span><br><span class="line">      <span class="bullet">-</span> <span class="attr">shell_command:</span></span><br><span class="line">          <span class="bullet">-</span> <span class="string">man</span> <span class="string">echo</span></span><br><span class="line">        <span class="attr">start_directory:</span> <span class="string">"~"</span></span><br><span class="line">      <span class="bullet">-</span> <span class="attr">shell_command:</span></span><br><span class="line">          <span class="bullet">-</span> <span class="string">echo</span> <span class="string">"hey"</span></span><br><span class="line">      <span class="bullet">-</span> <span class="attr">shell_command:</span></span><br><span class="line">          <span class="bullet">-</span> <span class="string">echo</span> <span class="string">"moo"</span></span><br></pre></td></tr></table></figure>
+<ul>
+<li>[7] 专注模式
+<ul>
+<li>在专注模式中，可以确保在加载时附加和选择窗口和窗格</li>
+</ul>
+</li>
+</ul>
+<figure class="highlight yaml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br></pre></td><td class="code"><pre><span class="line"><span class="attr">session_name:</span> <span class="string">focus</span></span><br><span class="line"><span class="attr">windows:</span></span><br><span class="line">  <span class="bullet">-</span> <span class="attr">window_name:</span> <span class="string">attached</span> <span class="string">window</span></span><br><span class="line">    <span class="attr">focus:</span> <span class="literal">true</span></span><br><span class="line">    <span class="attr">panes:</span></span><br><span class="line">      <span class="bullet">-</span> <span class="attr">shell_command:</span></span><br><span class="line">          <span class="bullet">-</span> <span class="string">echo</span> <span class="string">hello</span></span><br><span class="line">          <span class="bullet">-</span> <span class="string">echo</span> <span class="string">'this pane should be selected on load'</span></span><br><span class="line">        <span class="attr">focus:</span> <span class="literal">true</span></span><br><span class="line">      <span class="bullet">-</span> <span class="attr">shell_command:</span></span><br><span class="line">          <span class="bullet">-</span> <span class="string">cd</span> <span class="string">/var/log</span></span><br><span class="line">          <span class="bullet">-</span> <span class="string">echo</span> <span class="string">hello</span></span><br><span class="line">  <span class="bullet">-</span> <span class="attr">window_name:</span> <span class="string">second</span> <span class="string">window</span></span><br><span class="line">    <span class="attr">shell_command_before:</span> <span class="string">cd</span> <span class="string">/var/log</span></span><br><span class="line">    <span class="attr">panes:</span></span><br><span class="line">      <span class="bullet">-</span> <span class="string">pane</span></span><br><span class="line">      <span class="bullet">-</span> <span class="attr">shell_command:</span></span><br><span class="line">          <span class="bullet">-</span> <span class="string">echo</span> <span class="string">'this pane should be focused, when window switched to first time'</span></span><br><span class="line">        <span class="attr">focus:</span> <span class="literal">true</span></span><br><span class="line">      <span class="bullet">-</span> <span class="string">pane</span></span><br></pre></td></tr></table></figure>
+<h2><span id="5-测试开发配置">5. 测试开发配置</span></h2>
+<blockquote>
+<p><strong>主要介绍在我们实际开发和测试当中应该如何使用该工具</strong></p>
+</blockquote>
+<ul>
+<li>[1] 定制高级开发环境
+<ul>
+<li>作为开发环境时候的相关配置</li>
+</ul>
+</li>
+</ul>
+<figure class="highlight yaml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br></pre></td><td class="code"><pre><span class="line"><span class="attr">session_name:</span> <span class="string">tmuxp</span></span><br><span class="line"><span class="attr">start_directory:</span> <span class="string">./</span> <span class="comment"># 加载相对于配置位置(项目根目录)的会话</span></span><br><span class="line"><span class="attr">before_script:</span> <span class="string">pipenv</span> <span class="string">install</span> <span class="string">--dev</span> <span class="string">--skip-lock</span></span><br><span class="line"><span class="attr">shell_command_before:</span></span><br><span class="line">  <span class="bullet">-</span> <span class="string">"[ -d `pipenv --venv` ] &amp;&amp; source `pipenv --venv`/bin/activate &amp;&amp; reset"</span></span><br><span class="line"><span class="attr">windows:</span></span><br><span class="line">  <span class="bullet">-</span> <span class="attr">window_name:</span> <span class="string">tmuxp</span></span><br><span class="line">    <span class="attr">focus:</span> <span class="literal">True</span></span><br><span class="line">    <span class="attr">layout:</span> <span class="string">main-horizontal</span></span><br><span class="line">    <span class="attr">options:</span></span><br><span class="line">      <span class="attr">main-pane-height:</span> <span class="number">35</span></span><br><span class="line">    <span class="attr">panes:</span></span><br><span class="line">      <span class="bullet">-</span> <span class="attr">focus:</span> <span class="literal">true</span></span><br><span class="line">      <span class="bullet">-</span> <span class="string">pane</span></span><br><span class="line">      <span class="bullet">-</span> <span class="string">make</span> <span class="string">watch_test</span></span><br><span class="line">  <span class="bullet">-</span> <span class="attr">window_name:</span> <span class="string">docs</span></span><br><span class="line">    <span class="attr">layout:</span> <span class="string">main-horizontal</span></span><br><span class="line">    <span class="attr">options:</span></span><br><span class="line">      <span class="attr">main-pane-height:</span> <span class="number">35</span></span><br><span class="line">    <span class="attr">start_directory:</span> <span class="string">doc/</span></span><br><span class="line">    <span class="attr">panes:</span></span><br><span class="line">      <span class="bullet">-</span> <span class="attr">focus:</span> <span class="literal">true</span></span><br><span class="line">      <span class="bullet">-</span> <span class="string">pane</span></span><br><span class="line">      <span class="bullet">-</span> <span class="string">make</span> <span class="string">serve</span></span><br><span class="line">      <span class="bullet">-</span> <span class="string">make</span> <span class="string">watch</span></span><br></pre></td></tr></table></figure>
+<ul>
+<li>[2] 自动引导
+<ul>
+<li>新版本<code>1.3.4</code>:在脚本 CWD 进入根(会话)级启动目录之前</li>
+</ul>
+</li>
+</ul>
+<figure class="highlight yaml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># 假设您的.tmuxp.yaml位于项目的根目录中</span></span><br><span class="line"><span class="comment"># 如果使用pipenv的话，则可以使用如下脚本来确保已安装软件包</span></span><br><span class="line"><span class="attr">session_name:</span> <span class="string">my</span> <span class="string">pipenv</span> <span class="string">project</span></span><br><span class="line"><span class="attr">start_directory:</span> <span class="string">./</span></span><br><span class="line"><span class="attr">before_script:</span> <span class="string">pipenv</span> <span class="string">install</span> <span class="string">--dev</span> <span class="string">--skip-lock</span> <span class="comment"># 开发环境</span></span><br><span class="line"><span class="attr">windows:</span></span><br><span class="line">  <span class="bullet">-</span> <span class="attr">window_name:</span> <span class="string">django</span> <span class="string">project</span></span><br><span class="line">    <span class="attr">focus:</span> <span class="literal">true</span></span><br><span class="line">    <span class="attr">panes:</span></span><br><span class="line">      <span class="bullet">-</span> <span class="string">blank</span></span><br><span class="line">      <span class="bullet">-</span> <span class="string">pipenv</span> <span class="string">run</span> <span class="string">./manage.py</span> <span class="string">runserver</span></span><br></pre></td></tr></table></figure>
+<figure class="highlight yaml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># 假设您的.tmuxp.yaml位于项目的根目录中</span></span><br><span class="line"><span class="comment"># 可以使用shell_command_before将自己置身于虚拟环境中</span></span><br><span class="line"><span class="attr">session_name:</span> <span class="string">my</span> <span class="string">pipenv</span> <span class="string">project</span></span><br><span class="line"><span class="attr">start_directory:</span> <span class="string">./</span></span><br><span class="line"><span class="attr">before_script:</span> <span class="string">pipenv</span> <span class="string">install</span> <span class="string">--dev</span> <span class="string">--skip-lock</span> <span class="comment"># 开发环境</span></span><br><span class="line"><span class="attr">shell_command_before:</span></span><br><span class="line">  <span class="bullet">-</span> <span class="string">"[ -d `pipenv --venv` ] &amp;&amp; source `pipenv --venv`/bin/activate &amp;&amp; reset"</span></span><br><span class="line"><span class="attr">windows:</span></span><br><span class="line">  <span class="bullet">-</span> <span class="attr">window_name:</span> <span class="string">django</span> <span class="string">project</span></span><br><span class="line">    <span class="attr">focus:</span> <span class="literal">true</span></span><br><span class="line">    <span class="attr">panes:</span></span><br><span class="line">      <span class="bullet">-</span> <span class="string">blank</span></span><br><span class="line">      <span class="bullet">-</span> <span class="string">./manage.py</span> <span class="string">runserver</span></span><br></pre></td></tr></table></figure>
+<h2><span id="6-配置示例文件">6. 配置示例文件</span></h2>
+<blockquote>
+<p><strong>这里就是其他人使用该工具的配置文件，可以借鉴和引用</strong></p>
+</blockquote>
+<ul>
+<li><strong>laixintao</strong></li>
+</ul>
+<figure class="highlight yaml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br></pre></td><td class="code"><pre><span class="line"><span class="attr">session_name:</span> <span class="string">workspace</span></span><br><span class="line"><span class="attr">windows:</span></span><br><span class="line">  <span class="bullet">-</span> <span class="attr">focus:</span> <span class="string">"true"</span></span><br><span class="line">    <span class="attr">layout:</span> <span class="number">66e3</span><span class="string">,238x57,0,0,14</span></span><br><span class="line">    <span class="attr">options:</span></span><br><span class="line">      <span class="attr">automatic-rename:</span> <span class="string">"off"</span></span><br><span class="line">    <span class="attr">panes:</span></span><br><span class="line">      <span class="bullet">-</span> <span class="string">pane</span></span><br><span class="line">    <span class="attr">start_directory:</span> <span class="string">/Users/laixintao/Program</span></span><br><span class="line">    <span class="attr">window_name:</span> <span class="string">vim</span></span><br><span class="line">  <span class="bullet">-</span> <span class="attr">layout:</span> <span class="string">a5de,238x57,0,0&#123;119x57,0,0,15,118x57,120,0[118x28,120,0,19,118x28,120,29,20]&#125;</span></span><br><span class="line">    <span class="attr">options:</span></span><br><span class="line">      <span class="attr">automatic-rename:</span> <span class="string">"off"</span></span><br><span class="line">    <span class="attr">panes:</span></span><br><span class="line">      <span class="bullet">-</span> <span class="attr">focus:</span> <span class="string">"true"</span></span><br><span class="line">        <span class="attr">shell_command:</span> <span class="string">zsh</span></span><br><span class="line">      <span class="bullet">-</span></span><br><span class="line">      <span class="bullet">-</span></span><br><span class="line">    <span class="attr">start_directory:</span> <span class="string">/Users/laixintao</span></span><br><span class="line">    <span class="attr">window_name:</span> <span class="string">operation</span></span><br><span class="line">  <span class="bullet">-</span> <span class="attr">layout:</span> <span class="number">66e5</span><span class="string">,238x57,0,0,16</span></span><br><span class="line">    <span class="attr">options:</span></span><br><span class="line">      <span class="attr">automatic-rename:</span> <span class="string">"off"</span></span><br><span class="line">    <span class="attr">panes:</span></span><br><span class="line">      <span class="bullet">-</span> <span class="attr">focus:</span> <span class="string">"true"</span></span><br><span class="line">        <span class="attr">shell_command:</span> <span class="string">zsh</span></span><br><span class="line">    <span class="attr">start_directory:</span> <span class="string">/Users/laixintao</span></span><br><span class="line">    <span class="attr">window_name:</span> <span class="string">shell</span></span><br><span class="line">  <span class="bullet">-</span> <span class="attr">layout:</span> <span class="number">66e6</span><span class="string">,238x57,0,0,17</span></span><br><span class="line">    <span class="attr">options:</span></span><br><span class="line">      <span class="attr">automatic-rename:</span> <span class="string">"off"</span></span><br><span class="line">    <span class="attr">panes:</span></span><br><span class="line">      <span class="bullet">-</span> <span class="attr">focus:</span> <span class="string">"true"</span></span><br><span class="line">        <span class="attr">shell_command:</span> <span class="string">zsh</span></span><br><span class="line">    <span class="attr">start_directory:</span> <span class="string">/Users/laixintao</span></span><br><span class="line">    <span class="attr">window_name:</span> <span class="string">shell</span></span><br><span class="line">  <span class="bullet">-</span> <span class="attr">layout:</span> <span class="number">66e7</span><span class="string">,238x57,0,0,18</span></span><br><span class="line">    <span class="attr">options:</span></span><br><span class="line">      <span class="attr">automatic-rename:</span> <span class="string">"off"</span></span><br><span class="line">    <span class="attr">panes:</span></span><br><span class="line">      <span class="bullet">-</span> <span class="attr">focus:</span> <span class="string">"true"</span></span><br><span class="line">        <span class="attr">shell_command:</span> <span class="string">zsh</span></span><br><span class="line">    <span class="attr">start_directory:</span> <span class="string">/Users/laixintao</span></span><br><span class="line">    <span class="attr">window_name:</span> <span class="string">shell</span></span><br><span class="line">  <span class="bullet">-</span> <span class="attr">layout:</span> <span class="string">main-vertical</span></span><br><span class="line">    <span class="attr">options:</span></span><br><span class="line">      <span class="attr">automatic-rename:</span> <span class="string">"off"</span></span><br><span class="line">    <span class="attr">panes:</span></span><br><span class="line">      <span class="bullet">-</span> <span class="attr">focus:</span> <span class="string">"true"</span></span><br><span class="line">        <span class="attr">shell_command:</span> <span class="string">clash</span> <span class="string">&gt;</span> <span class="string">/tmp/clash.log</span></span><br><span class="line">    <span class="attr">window_name:</span> <span class="string">&lt;clash&gt;</span></span><br></pre></td></tr></table></figure>
+<ul>
+<li><strong>vcspull</strong></li>
+</ul>
+<figure class="highlight yaml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br></pre></td><td class="code"><pre><span class="line"><span class="attr">session_name:</span> <span class="string">vcspull</span></span><br><span class="line"><span class="attr">start_directory:</span> <span class="string">./</span></span><br><span class="line"><span class="attr">before_script:</span> <span class="string">pipenv</span> <span class="string">install</span> <span class="string">--dev</span> <span class="string">--skip-lock</span></span><br><span class="line"><span class="attr">shell_command_before:</span></span><br><span class="line">  <span class="bullet">-</span> <span class="string">"[ -d `pipenv --venv` ] &amp;&amp; source `pipenv --venv`/bin/activate &amp;&amp; reset"</span></span><br><span class="line"><span class="attr">windows:</span></span><br><span class="line">  <span class="bullet">-</span> <span class="attr">window_name:</span> <span class="string">vcspull</span></span><br><span class="line">    <span class="attr">focus:</span> <span class="literal">True</span></span><br><span class="line">    <span class="attr">layout:</span> <span class="string">main-horizontal</span></span><br><span class="line">    <span class="attr">options:</span></span><br><span class="line">      <span class="attr">main-pane-height:</span> <span class="number">35</span></span><br><span class="line">    <span class="attr">panes:</span></span><br><span class="line">      <span class="bullet">-</span> <span class="attr">focus:</span> <span class="literal">true</span></span><br><span class="line">      <span class="bullet">-</span> <span class="string">pane</span></span><br><span class="line">      <span class="bullet">-</span> <span class="string">make</span> <span class="string">watch_test</span></span><br><span class="line">  <span class="bullet">-</span> <span class="attr">window_name:</span> <span class="string">docs</span></span><br><span class="line">    <span class="attr">layout:</span> <span class="string">main-horizontal</span></span><br><span class="line">    <span class="attr">options:</span></span><br><span class="line">      <span class="attr">main-pane-height:</span> <span class="number">35</span></span><br><span class="line">    <span class="attr">start_directory:</span> <span class="string">doc/</span></span><br><span class="line">    <span class="attr">panes:</span></span><br><span class="line">      <span class="bullet">-</span> <span class="attr">focus:</span> <span class="literal">true</span></span><br><span class="line">      <span class="bullet">-</span> <span class="string">pane</span></span><br><span class="line">      <span class="bullet">-</span> <span class="string">make</span> <span class="string">serve</span></span><br><span class="line">      <span class="bullet">-</span> <span class="string">make</span> <span class="string">watch</span></span><br></pre></td></tr></table></figure>
+<ul>
+<li><strong>dockerfiles</strong></li>
+</ul>
+<figure class="highlight yaml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br></pre></td><td class="code"><pre><span class="line"><span class="attr">session_name:</span> <span class="string">docker</span></span><br><span class="line"><span class="attr">start_directory:</span> <span class="string">./</span></span><br><span class="line"><span class="attr">windows:</span></span><br><span class="line">  <span class="bullet">-</span> <span class="attr">window_name:</span> <span class="string">dockerfiles</span></span><br><span class="line">    <span class="attr">layout:</span> <span class="string">6da5,239x56,0,0[239x34,0,0,65,239x21,0,35&#123;119x21,0,35,66,119x21,120,35,67&#125;]</span></span><br><span class="line">    <span class="attr">options:</span></span><br><span class="line">      <span class="attr">automatic-rename:</span> <span class="string">"off"</span></span><br><span class="line">    <span class="attr">panes:</span></span><br><span class="line">      <span class="bullet">-</span> <span class="attr">shell_command:</span></span><br><span class="line">          <span class="bullet">-</span> <span class="string">vim</span></span><br><span class="line">          <span class="bullet">-</span> <span class="string">:e</span> <span class="string">README.rst</span></span><br><span class="line">      <span class="bullet">-</span> <span class="string">pane</span></span><br><span class="line">      <span class="bullet">-</span> <span class="string">pane</span></span><br><span class="line">  <span class="bullet">-</span> <span class="attr">window_name:</span> <span class="string">docs</span></span><br><span class="line">    <span class="attr">layout:</span> <span class="string">main-horizontal</span></span><br><span class="line">    <span class="attr">options:</span></span><br><span class="line">      <span class="attr">main-pane-height:</span> <span class="number">35</span></span><br><span class="line">    <span class="attr">shell_command_before:</span></span><br><span class="line">      <span class="bullet">-</span> <span class="string">command</span> <span class="string">-v</span> <span class="string">virtualenv</span> <span class="string">&gt;/dev/null</span> <span class="number">2</span><span class="string">&gt;&amp;1</span> <span class="string">||</span> <span class="string">&#123;</span> <span class="string">pip</span> <span class="string">install</span> <span class="string">virtualenv;</span> <span class="string">&#125;</span></span><br><span class="line">      <span class="bullet">-</span> <span class="string">"[ -d .env -a -f .env/bin/activate ] &amp;&amp; source .env/bin/activate || virtualenv .env"</span></span><br><span class="line">      <span class="bullet">-</span> <span class="string">"[ ! -d .env/build ] || rm -rf .env/build"</span></span><br><span class="line">      <span class="bullet">-</span> <span class="string">cd</span> <span class="string">./doc</span></span><br><span class="line">      <span class="bullet">-</span> <span class="string">command</span> <span class="string">-v</span> <span class="string">.env/bin/tmuxp</span> <span class="string">&gt;/dev/null</span> <span class="number">2</span><span class="string">&gt;&amp;1</span> <span class="string">||</span> <span class="string">&#123;</span> <span class="string">pip</span> <span class="string">install</span> <span class="string">-r</span> <span class="string">requirements.pip;</span> <span class="string">&#125;</span></span><br><span class="line">    <span class="attr">panes:</span></span><br><span class="line">      <span class="bullet">-</span> <span class="attr">shell_command:</span></span><br><span class="line">          <span class="bullet">-</span> <span class="string">reset</span></span><br><span class="line">          <span class="bullet">-</span> <span class="string">vim</span></span><br><span class="line">          <span class="bullet">-</span> <span class="string">:Ex</span></span><br><span class="line">        <span class="attr">focus:</span> <span class="literal">true</span></span><br><span class="line">      <span class="bullet">-</span> <span class="string">pwd</span></span><br><span class="line">      <span class="bullet">-</span> <span class="string">echo</span> <span class="string">'docs built to &lt;http://0.0.0.0:8007/_build/html&gt;'</span><span class="string">;</span> <span class="string">python</span> <span class="string">-m</span> <span class="string">SimpleHTTPServer</span> <span class="number">8007</span></span><br><span class="line">      <span class="bullet">-</span> <span class="attr">shell_command:</span></span><br><span class="line">          <span class="bullet">-</span> <span class="string">command</span> <span class="string">-v</span> <span class="string">watching_testrunner</span> <span class="string">&gt;/dev/null</span> <span class="number">2</span><span class="string">&gt;&amp;1</span> <span class="string">||</span> <span class="string">&#123;</span> <span class="string">pip</span> <span class="string">install</span> <span class="string">watching_testrunner;</span> <span class="string">&#125;</span></span><br><span class="line">          <span class="bullet">-</span> <span class="string">watching_testrunner</span> <span class="string">--basepath</span> <span class="string">./</span> <span class="string">--pattern="*.rst"</span> <span class="string">'make html'</span></span><br><span class="line">  <span class="bullet">-</span> <span class="attr">window_name:</span> <span class="string">postgresql</span></span><br><span class="line">    <span class="attr">layout:</span> <span class="string">6da5,239x56,0,0[239x34,0,0,65,239x21,0,35&#123;119x21,0,35,66,119x21,120,35,67&#125;]</span></span><br><span class="line">    <span class="attr">options:</span></span><br><span class="line">      <span class="attr">automatic-rename:</span> <span class="string">"off"</span></span><br><span class="line">    <span class="attr">start_directory:</span> <span class="string">postgresql</span></span><br><span class="line">    <span class="attr">panes:</span></span><br><span class="line">      <span class="bullet">-</span> <span class="attr">shell_command:</span></span><br><span class="line">          <span class="bullet">-</span> <span class="string">vim</span></span><br><span class="line">          <span class="bullet">-</span> <span class="string">:e</span> <span class="string">Dockerfile</span></span><br><span class="line">      <span class="bullet">-</span> <span class="string">pane</span></span><br><span class="line">      <span class="bullet">-</span> <span class="string">pane</span></span><br></pre></td></tr></table></figure>
+<ul>
+<li><strong>sphinxcontrib</strong></li>
+</ul>
+<figure class="highlight yaml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br></pre></td><td class="code"><pre><span class="line"><span class="attr">session_name:</span> <span class="string">sphinxcontrib-github</span></span><br><span class="line"><span class="attr">start_directory:</span> <span class="string">./</span></span><br><span class="line"><span class="attr">windows:</span></span><br><span class="line"><span class="bullet">-</span> <span class="attr">options:</span></span><br><span class="line">    <span class="attr">main-pane-height:</span> <span class="number">35</span></span><br><span class="line">  <span class="attr">layout:</span> <span class="string">main-horizontal</span></span><br><span class="line">  <span class="attr">panes:</span></span><br><span class="line">  <span class="bullet">-</span> <span class="attr">shell_command:</span></span><br><span class="line">    <span class="bullet">-</span> <span class="string">vim</span></span><br><span class="line">    <span class="attr">focus:</span> <span class="literal">true</span></span><br><span class="line">  <span class="bullet">-</span> <span class="string">pane</span></span><br><span class="line">  <span class="bullet">-</span> <span class="string">pane</span></span><br><span class="line">  <span class="attr">window_name:</span> <span class="string">sphinxcontrib-github</span></span><br><span class="line"><span class="bullet">-</span> <span class="attr">window_name:</span> <span class="string">docs</span></span><br><span class="line">  <span class="attr">layout:</span> <span class="string">main-horizontal</span></span><br><span class="line">  <span class="attr">options:</span></span><br><span class="line">    <span class="attr">main-pane-height:</span> <span class="number">35</span></span><br><span class="line">  <span class="attr">shell_command_before:</span></span><br><span class="line">    <span class="bullet">-</span> <span class="string">command</span> <span class="string">-v</span> <span class="string">virtualenv</span> <span class="string">&gt;/dev/null</span> <span class="number">2</span><span class="string">&gt;&amp;1</span> <span class="string">||</span> <span class="string">&#123;</span> <span class="string">pip</span> <span class="string">install</span> <span class="string">virtualenv;</span> <span class="string">&#125;</span></span><br><span class="line">    <span class="bullet">-</span> <span class="string">'[ -d .env -a -f .env/bin/activate ] &amp;&amp; source .env/bin/activate || virtualenv .env'</span></span><br><span class="line">    <span class="bullet">-</span> <span class="string">'[ ! -d .env/build ] || rm -rf .env/build'</span></span><br><span class="line">    <span class="bullet">-</span> <span class="string">command</span> <span class="string">-v</span> <span class="string">.env/bin/tmuxp</span> <span class="string">&gt;/dev/null</span> <span class="number">2</span><span class="string">&gt;&amp;1</span> <span class="string">||</span> <span class="string">&#123;</span> <span class="string">pip</span> <span class="string">install</span> <span class="string">-e</span> <span class="string">.;</span> <span class="string">&#125;</span></span><br><span class="line">    <span class="bullet">-</span> <span class="string">cd</span> <span class="string">./doc</span></span><br><span class="line">  <span class="attr">panes:</span></span><br><span class="line">  <span class="bullet">-</span> <span class="attr">shell_command:</span></span><br><span class="line">    <span class="bullet">-</span> <span class="string">reset</span></span><br><span class="line">    <span class="bullet">-</span> <span class="string">vim</span></span><br><span class="line">    <span class="bullet">-</span> <span class="string">:Ex</span></span><br><span class="line">    <span class="attr">focus:</span> <span class="literal">true</span></span><br><span class="line">  <span class="bullet">-</span> <span class="string">pane</span></span><br><span class="line">  <span class="bullet">-</span> <span class="string">echo</span> <span class="string">'docs built to &lt;http://0.0.0.0:8005/_build/html&gt;'</span><span class="string">;</span> <span class="string">python</span> <span class="string">-m</span> <span class="string">SimpleHTTPServer</span> <span class="number">8005</span></span><br><span class="line">  <span class="bullet">-</span> <span class="attr">shell_command:</span></span><br><span class="line">    <span class="bullet">-</span> <span class="string">command</span> <span class="string">-v</span> <span class="string">sphinx-quickstart</span> <span class="string">&gt;/dev/null</span> <span class="number">2</span><span class="string">&gt;&amp;1</span> <span class="string">||</span> <span class="string">&#123;</span> <span class="string">pip</span> <span class="string">install</span> <span class="string">-r</span> <span class="string">requirements.pip;</span> <span class="string">&#125;</span></span><br><span class="line">    <span class="bullet">-</span> <span class="string">command</span> <span class="string">-v</span> <span class="string">watching_testrunner</span> <span class="string">&gt;/dev/null</span> <span class="number">2</span><span class="string">&gt;&amp;1</span> <span class="string">||</span> <span class="string">&#123;</span> <span class="string">pip</span> <span class="string">install</span> <span class="string">watching_testrunner;</span> <span class="string">&#125;</span></span><br><span class="line">    <span class="bullet">-</span> <span class="string">watching_testrunner</span> <span class="string">--basepath</span> <span class="string">./</span> <span class="string">--pattern="*.rst"</span> <span class="string">'make html'</span></span><br><span class="line"><span class="string">Terms</span></span><br></pre></td></tr></table></figure>
+<blockquote>
+<p>本文转载自：「 Escape 的博客 」，原文：<a href="https://tinyurl.com/y5zsckzv%EF%BC%8C%E7%89%88%E6%9D%83%E5%BD%92%E5%8E%9F%E4%BD%9C%E8%80%85%E6%89%80%E6%9C%89%E3%80%82%E6%AC%A2%E8%BF%8E%E6%8A%95%E7%A8%BF%EF%BC%8C%E6%8A%95%E7%A8%BF%E9%82%AE%E7%AE%B1:" target="_blank" rel="noopener">https://tinyurl.com/y5zsckzv，版权归原作者所有。欢迎投稿，投稿邮箱:</a> <a href="mailto:editor@hi-linux.com">editor@hi-linux.com</a>。</p>
+</blockquote>
+</div>
+
+			<script src="https://my.openwrite.cn/js/readmore.js" type="text/javascript"></script>
+			<script>
+			var isMobile = navigator.userAgent.match(/(phone|pad|pod|iPhone|iPod|ios|iPad|Android|Mobile|BlackBerry|IEMobile|MQQBrowser|JUC|Fennec|wOSBrowser|BrowserNG|WebOS|Symbian|Windows Phone)/i);
+			if (!isMobile) {
+			    var btw = new BTWPlugin();
+			    btw.init({
+			        "id": "vip-container",
+			        "blogId": "10135-1588830050631-449",
+			        "name": "「奇妙的 Linux 世界」",
+			        "qrcode": "https://www.hi-linux.com/img/wechat/mp_qrcode_12.jpg",
+			        "keyword": "VIP"
+			    });
+			}
+			</script>
+		
+                
+
+                <hr>
+                <!-- Pager -->
+                <ul class="pager">
+                    
+                    
+                        <li class="next">
+                            <a href="/posts/16230.html" data-toggle="tooltip" data-placement="top" title="CentOS 之父创造的 Rocky Linux 8.3 发布了！(内附镜像下载地址）">Next Post &rarr;</a>
+                        </li>
+                    
+                </ul>
+
+                <!-- duoshuo Share start -->
+                
+                <!-- 多说 Share end-->
+
+                <!-- 多说评论框 start -->
+                
+                <!-- 多说评论框 end -->
+
+                <!-- disqus comment start -->
+                
+                <!-- disqus comment end -->
+
+                
+                    <!-- disqus 评论框 start -->
+                    <div class="comment">
+                        <div id="lv-container" data-id="city" data-uid="MTAyMC8yNzg2My80NDQw"></div>
+                    </div>
+                    <!-- disqus 评论框 end -->
+                
+
+            </div>
+            
+            <!-- Tabe of Content -->
+            <!-- Table of Contents -->
+
+  
+    <style>
+      span.toc-nav-number{
+        display: none
+      }
+    </style>
+  
+    
+      <aside id="sidebar">
+        <div id="toc" class="toc-article">
+        <strong class="toc-title">Contents</strong>
+        
+          <ol class="toc-nav"><li class="toc-nav-item toc-nav-level-2"><a class="toc-nav-link" href="#vip-container"><span class="toc-nav-number">1.</span> <span class="toc-nav-text">1. 工具介绍</span></a></li><li class="toc-nav-item toc-nav-level-2"><a class="toc-nav-link" href="#vip-container"><span class="toc-nav-number">2.</span> <span class="toc-nav-text">2. 使用方式</span></a></li><li class="toc-nav-item toc-nav-level-2"><a class="toc-nav-link" href="#vip-container"><span class="toc-nav-number">3.</span> <span class="toc-nav-text">3. 面板窗口配置</span></a></li><li class="toc-nav-item toc-nav-level-2"><a class="toc-nav-link" href="#vip-container"><span class="toc-nav-number">4.</span> <span class="toc-nav-text">4. 面板窗口设置</span></a></li><li class="toc-nav-item toc-nav-level-2"><a class="toc-nav-link" href="#vip-container"><span class="toc-nav-number">5.</span> <span class="toc-nav-text">5. 测试开发配置</span></a></li><li class="toc-nav-item toc-nav-level-2"><a class="toc-nav-link" href="#vip-container"><span class="toc-nav-number">6.</span> <span class="toc-nav-text">6. 配置示例文件</span></a></li></ol>
+        
+        </div>
+      </aside>
+    
+
+                
+            <!-- Sidebar Container -->
+            <div class="
+                col-lg-8 col-lg-offset-2
+                col-md-10 col-md-offset-1
+                sidebar-container">
+
+                <!-- Featured Tags -->
+                
+                <section>
+                    <!-- no hr -->
+                    <h5><a href="/tags/">FEATURED TAGS</a></h5>
+                    <div class="tags">
+                       
+                          <a class="tag" href="/tags/#Linux" title="Linux">Linux</a>
+                        
+                          <a class="tag" href="/tags/#Tmux" title="Tmux">Tmux</a>
+                        
+                          <a class="tag" href="/tags/#Tmuxp" title="Tmuxp">Tmuxp</a>
+                        
+                    </div>
+                </section>
+                
+
+                <!-- Friends Blog -->
+                
+                <hr>
+                <h5>FRIENDS</h5>
+                <ul class="list-inline">
+
+                    
+                        <li><a href="http://www.mike.org.cn/" target="_blank">简单.生活</a></li>
+                    
+                        <li><a href="http://shang.qq.com/wpa/qunwpa?idkey=ea4c43493c2269428ac6ef6141de4b6d78e5ab2d41380ca4099b833b62884ee9" target="_blank">技术交流群</a></li>
+                    
+                        <li><a href="" target="_blank"></a></li>
+                    
+                        <li><a href="" target="_blank"></a></li>
+                    
+                </ul>
+                
+            </div>
+        </div>
+    </div>
+</article>
+
+
+
+
+
+
+    <!-- 来必力City版公共JS代码 start (一个网页只需插入一次) -->
+    <script type="text/javascript">
+       (function(d, s) {
+           var j, e = d.getElementsByTagName(s)[0];
+    
+           if (typeof LivereTower === 'function') { return; }
+    
+           j = d.createElement(s);
+           j.src = 'https://cdn-city.livere.com/js/embed.dist.js';
+           j.async = true;
+    
+           e.parentNode.insertBefore(j, e);
+       })(document, 'script');
+    </script>
+    <noscript>为正常使用来必力评论功能请激活JavaScript</noscript>
+    <!-- 来必力City版 公共JS代码 end -->
+
+
+
+<!-- async load function -->
+<script>
+    function async(u, c) {
+      var d = document, t = 'script',
+          o = d.createElement(t),
+          s = d.getElementsByTagName(t)[0];
+      o.src = u;
+      if (c) { o.addEventListener('load', function (e) { c(null, e); }, false); }
+      s.parentNode.insertBefore(o, s);
+    }
+</script>
+<!-- anchor-js, Doc:http://bryanbraun.github.io/anchorjs/ -->
+<script>
+    async("https://cdn.bootcss.com/anchor-js/1.1.1/anchor.min.js",function(){
+        anchors.options = {
+          visible: 'hover',
+          placement: 'left',
+          icon: 'ℬ'
+        };
+        anchors.add().remove('.intro-header h1').remove('.subheading').remove('.sidebar-container h5');
+    })
+</script>
+<style>
+    /* place left on bigger screen */
+    @media all and (min-width: 800px) {
+        .anchorjs-link{
+            position: absolute;
+            left: -0.75em;
+            font-size: 1.1em;
+            margin-top : -0.1em;
+        }
+    }
+</style>
+
+
+
+    <!-- Footer -->
+    <!-- Footer -->
+<footer>
+    <div class="container">
+        <div class="row">
+            <div class="col-lg-8 col-lg-offset-2 col-md-10 col-md-offset-1">
+                <ul class="list-inline text-center">
+                
+                    <li>
+                        <a href="/atom.xml">
+                            <span class="fa-stack fa-lg">
+                                <i class="fa fa-circle fa-stack-2x"></i>
+                                <i class="fa fa-rss fa-stack-1x fa-inverse"></i>
+                            </span>
+                        </a>
+                    </li>
+                
+                
+                
+                    <li>
+                        <a target="_blank" href="https://www.zhihu.com/people/80imike">
+                            <span class="fa-stack fa-lg">
+                                <i class="fa fa-circle fa-stack-2x"></i>
+                                <i class="fa  fa-stack-1x fa-inverse">知</i>
+                            </span>
+                        </a>
+                    </li>
+                
+
+                
+                    <li>
+                        <a target="_blank" href="http://weibo.com/2093524665">
+                            <span class="fa-stack fa-lg">
+                                <i class="fa fa-circle fa-stack-2x"></i>
+                                <i class="fa fa-weibo fa-stack-1x fa-inverse"></i>
+                            </span>
+                        </a>
+                    </li>
+                
+
+                
+
+                
+
+                
+
+                </ul>
+                <p class="copyright text-muted">
+                    Copyright &copy; Mike 2021 | Hosted by <a href="https://pages.coding.me" target="_blank" rel="noopener" style="font-weight: bold">Coding Pages</a>
+                    <br>
+                    Theme by <a href="http://beantech.org" target="_blank" rel="noopener">BeanTech</a> 
+                    <span style="display: inline-block; margin: 0 5px;">
+                        <i class="fa fa-heart"></i>
+                    </span> 
+                    re-Ported by <a href="http://www.huweihuang.com" target="_blank" rel="noopener">胡伟煌</a> | 
+                    <iframe
+                        style="margin-left: 2px; margin-bottom:-5px;"
+                        frameborder="0" scrolling="0" width="91px" height="20px"
+                        src="https://ghbtns.com/github-btn.html?user=huweihuang&repo=hexo-theme-huweihuang&type=star&count=true" >
+                    </iframe>
+                </p>
+            </div>
+        </div>
+    </div>
+</footer>
+
+<!-- jQuery -->
+
+<script src="/js/jquery.min.js"></script>
+
+
+<!-- Bootstrap Core JavaScript -->
+
+<script src="/js/bootstrap.min.js"></script>
+
+
+<!-- Custom Theme JavaScript -->
+
+<script src="/js/hux-blog.min.js"></script>
+
+
+
+<!-- async load function -->
+<script>
+    function async(u, c) {
+      var d = document, t = 'script',
+          o = d.createElement(t),
+          s = d.getElementsByTagName(t)[0];
+      o.src = u;
+      if (c) { o.addEventListener('load', function (e) { c(null, e); }, false); }
+      s.parentNode.insertBefore(o, s);
+    }
+</script>
+
+<!-- 
+     Because of the native support for backtick-style fenced code blocks 
+     right within the Markdown is landed in Github Pages, 
+     From V1.6, There is no need for Highlight.js, 
+     so Huxblog drops it officially.
+
+     - https://github.com/blog/2100-github-pages-now-faster-and-simpler-with-jekyll-3-0  
+     - https://help.github.com/articles/creating-and-highlighting-code-blocks/    
+-->
+<!--
+    <script>
+        async("http://cdn.bootcss.com/highlight.js/8.6/highlight.min.js", function(){
+            hljs.initHighlightingOnLoad();
+        })
+    </script>
+    <link href="http://cdn.bootcss.com/highlight.js/8.6/styles/github.min.css" rel="stylesheet">
+-->
+
+
+<!-- jquery.tagcloud.js -->
+<script>
+    // only load tagcloud.js in tag.html
+    if($('#tag_cloud').length !== 0){
+        async("https://www.hi-linux.com/js/jquery.tagcloud.js",function(){
+            $.fn.tagcloud.defaults = {
+                //size: {start: 1, end: 1, unit: 'em'},
+                color: {start: '#bbbbee', end: '#0085a1'},
+            };
+            $('#tag_cloud a').tagcloud();
+        })
+    }
+</script>
+
+<!--fastClick.js -->
+<script>
+    async("https://cdn.bootcss.com/fastclick/1.0.6/fastclick.min.js", function(){
+        var $nav = document.querySelector("nav");
+        if($nav) FastClick.attach($nav);
+    })
+</script>
+
+
+<!-- Google Analytics -->
+
+
+
+
+<!-- Baidu Tongji -->
+
+
+
+
+
+
+	<a id="rocket" href="#top" class=""></a>
+	<script type="text/javascript" src="/js/totop.js?v=1.0.0" async=""></script>
+    <script type="text/javascript" src="/js/toc.js?v=1.0.0" async=""></script>
+<!-- Image to hack wechat -->
+<img src="https://www.hi-linux.com/img/icon_wechat.png" width="0" height="0" />
+<!-- Migrate from head to bottom, no longer block render and still work -->
+
+<script>(function(w,d, s, id) {w.webpushr=w.webpushr||function(){(w.webpushr.q=w.webpushr.q||[]).push(arguments)};var js, fjs = d.getElementsByTagName(s)[0];js = d.createElement(s); js.id = id;js.src = 'https://cdn.webpushr.com/app.min.js';fjs.parentNode.appendChild(js);}(window,document, 'script', 'webpushr-jssdk'));webpushr('init','BF9JK7xV9kjWTdMx2lr6RWaPfXV7wNuZaVAJ1bfIGoBNJavqLEBVFMKLubITnCA4bh2fI9iH9tMF95nXnPt7xxY');</script></body>
+
+</html>
