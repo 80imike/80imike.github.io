@@ -1,0 +1,809 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<!-- Head tag -->
+<head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="google-site-verification" content="xBT4GhYoi5qRD5tr338pgPM5OWHHIDR6mNg1a3euekI" />
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="description" content="">
+    <meta name="keyword"  content="Linux,运维,Nginx,Zabbix,Centos,Ansible,MySQL,Python,Docker,ELK,Haproxy,Git,Nodejs,安全,技术">
+    <link rel="shortcut icon" href="/img/ironman-draw.png">
+    <!-- Place this tag in your head or just before your close body tag. -->
+    <script async defer src="https://buttons.github.io/buttons.js"></script>
+    <title>
+        
+          一文读懂 DevOps 和 SRE 的区别 - 奇妙的 Linux 世界
+        
+    </title>
+
+    <link rel="canonical" href="https://www.hi-linux.com/posts/38404.html">
+
+    <!-- Bootstrap Core CSS -->
+    
+<link rel="stylesheet" href="/css/bootstrap.min.css">
+
+
+    <!-- Custom CSS --> 
+    
+<link rel="stylesheet" href="/css/beantech.min.css">
+
+    
+    <!-- Pygments Highlight CSS -->
+    
+<link rel="stylesheet" href="/css/highlight.css">
+
+
+    
+<link rel="stylesheet" href="/css/widget.css">
+
+
+    
+<link rel="stylesheet" href="/css/rocket.css">
+
+
+    
+<link rel="stylesheet" href="/css/signature.css">
+
+
+    
+<link rel="stylesheet" href="/css/toc.css">
+
+
+    <!-- Custom Fonts -->
+    <!-- <link href="https://maxcdn.bootstrapcdn.com/font-awesome/4.3.0/css/font-awesome.min.css" rel="stylesheet" type="text/css"> -->
+    <!-- Hux change font-awesome CDN to qiniu -->
+    <link href="https://cdn.staticfile.org/font-awesome/4.5.0/css/font-awesome.min.css" rel="stylesheet" type="text/css">
+
+
+    <!-- Hux Delete, sad but pending in China
+    <link href='http://fonts.googleapis.com/css?family=Lora:400,700,400italic,700italic' rel='stylesheet' type='text/css'>
+    <link href='http://fonts.googleapis.com/css?family=Open+Sans:300italic,400italic,600italic,700italic,800italic,400,300,600,700,800' rel='stylesheet' type='text/
+    css'>
+    -->
+
+
+    <!-- HTML5 Shim and Respond.js IE8 support of HTML5 elements and media queries -->
+    <!-- WARNING: Respond.js doesn't work if you view the page via file:// -->
+    <!--[if lt IE 9]>
+        <script src="https://oss.maxcdn.com/libs/html5shiv/3.7.0/html5shiv.js"></script>
+        <script src="https://oss.maxcdn.com/libs/respond.js/1.4.2/respond.min.js"></script>
+    <![endif]-->
+
+    <!-- ga & ba script hoook -->
+    <script></script>
+<meta name="generator" content="Hexo 4.2.1"><link rel="alternate" href="/atom.xml" title="奇妙的 Linux 世界" type="application/atom+xml">
+</head>
+
+
+<!-- hack iOS CSS :active style -->
+<body ontouchstart="">
+	<!-- Modified by Yu-Hsuan Yen -->
+<!-- Post Header -->
+<style type="text/css">
+    header.intro-header{
+        
+            background-image: url('/img/header_img/building.jpg')
+            /*post*/
+        
+    }
+    
+</style>
+
+<header class="intro-header" >
+    <!-- Signature -->
+    <div id="signature">
+        <div class="container">
+            <div class="row">
+                <div class="col-lg-8 col-lg-offset-2 col-md-10 col-md-offset-1">
+                
+                    <div class="post-heading">
+                        <div class="tags">
+                            
+                              <a class="tag" href="/tags/#技巧" title="技巧">技巧</a>
+                            
+                              <a class="tag" href="/tags/#Linux" title="Linux">Linux</a>
+                            
+                              <a class="tag" href="/tags/#DevOps" title="DevOps">DevOps</a>
+                            
+                        </div>
+                        <h1>一文读懂 DevOps 和 SRE 的区别</h1>
+                        <h2 class="subheading"></h2>
+                        <span class="meta">
+                            Posted by Mike on
+                            2021-06-04
+                        </span>
+                    </div>
+                
+
+
+                </div>
+            </div>
+        </div>
+    </div>
+</header>
+
+	
+    <!-- Navigation -->
+<nav class="navbar navbar-default navbar-custom navbar-fixed-top">
+    <div class="container-fluid">
+        <!-- Brand and toggle get grouped for better mobile display -->
+        <div class="navbar-header page-scroll">
+            <button type="button" class="navbar-toggle">
+                <span class="sr-only">Toggle navigation</span>
+                <span class="icon-bar"></span>
+                <span class="icon-bar"></span>
+                <span class="icon-bar"></span>
+            </button>
+            <a class="navbar-brand" href="/">奇妙的 Linux 世界</a>
+        </div>
+
+        <!-- Collect the nav links, forms, and other content for toggling -->
+        <!-- Known Issue, found by Hux:
+            <nav>'s height woule be hold on by its content.
+            so, when navbar scale out, the <nav> will cover tags.
+            also mask any touch event of tags, unfortunately.
+        -->
+        <div id="huxblog_navbar">
+            <div class="navbar-collapse">
+                <ul class="nav navbar-nav navbar-right">
+                    <li>
+                        <a href="/">Home</a>
+                    </li>
+
+                    
+
+                        
+                    
+
+                        
+                    
+
+                        
+                        <li>
+                            <a href="/about/">About</a>
+                        </li>
+                        
+                    
+
+                        
+                        <li>
+                            <a href="/tags/">Tags</a>
+                        </li>
+                        
+                    
+
+                        
+                        <li>
+                            <a href="/archive/">Archives</a>
+                        </li>
+                        
+                    
+                    
+                </ul>
+            </div>
+        </div>
+        <!-- /.navbar-collapse -->
+    </div>
+    <!-- /.container -->
+</nav>
+<script>
+    // Drop Bootstarp low-performance Navbar
+    // Use customize navbar with high-quality material design animation
+    // in high-perf jank-free CSS3 implementation
+    var $body   = document.body;
+    var $toggle = document.querySelector('.navbar-toggle');
+    var $navbar = document.querySelector('#huxblog_navbar');
+    var $collapse = document.querySelector('.navbar-collapse');
+
+    $toggle.addEventListener('click', handleMagic)
+    function handleMagic(e){
+        if ($navbar.className.indexOf('in') > 0) {
+        // CLOSE
+            $navbar.className = " ";
+            // wait until animation end.
+            setTimeout(function(){
+                // prevent frequently toggle
+                if($navbar.className.indexOf('in') < 0) {
+                    $collapse.style.height = "0px"
+                }
+            },400)
+        }else{
+        // OPEN
+            $collapse.style.height = "auto"
+            $navbar.className += " in";
+        }
+    }
+</script>
+
+
+    <!-- Main Content -->
+    <!-- Modify by Yu-Hsuan Yen -->
+
+<!-- Post Content -->
+<article>
+    <div class="container">
+        <div class="row">
+
+            <!-- Post Container -->
+            <div class="
+                col-lg-8 col-lg-offset-2
+                col-md-10 col-md-offset-1
+                post-container">
+
+                <div id="vip-container"><h2><span id="devops-和-sre">DevOps 和 SRE</span></h2>
+<p>最近有一位朋友和我聊职业发展方向问题，聊了不少 DevOps 和 SRE 话题。 我几年前刚接触这两个概念时也常常将之混淆，可惜当时没有人来解答我困惑。 现在这虽然已经极为流行，但是我发现我这位朋友对这两个职位还存在一些误区。 于是我给了一些见解并整理成文章以饕大众。</p>
+<p>最常见的误区：</p>
+<ul>
+<li>DevOps 新概念，好高级哦</li>
+<li>SRE 是高级版 DevOps</li>
+<li>运维可以轻松转身 DevOps 工程师</li>
+</ul>
+<h2><span id="devops-和-sre-定义">DevOps 和 SRE 定义</span></h2>
+<p>DevOps 是字面上 Dev 开发 / Ops 运维两者组合， 严格意义上 DevOps 如下（via DevOps - Wikipedia）：</p>
+<blockquote>
+<p>DevOps（Development 和 Operations 的组合词）是一种重视“软件开发人员（Dev） ”和“IT 运维技术人员（Ops）”之间沟通合作的文化、运动或惯例。</p>
+</blockquote>
+<p>SRE 全称是 Site Reliability Engineering，最早是由 Google 提出，并且在其工程实践中发扬光大。 他们还出了一本同名书籍「Site Reliability Engineering」， 让这个理念在互联网工程师圈子里广泛传播。</p>
+<p>Google 对 SRE 解释是（via Site Reliability Engineering - Wikipedia）：</p>
+<blockquote>
+<p>Site reliability engineering (SRE) is a discipline that incorporates aspects of software engineering and applies that to operations whose goals are to create ultra-scalable and highly reliable software systems.</p>
+</blockquote>
+<p>我将其翻译翻译为中文：</p>
+<blockquote>
+<p>网站稳定性工程师是致力于打造「高扩展、高可用系统」，并将其贯彻为原则的软件工程师。</p>
+</blockquote>
+<p>从定义来看，DevOps 是文化、运动和惯例，而 SRE 是有严格任职要求的职位。 文化是软性定义，文化有更多概念可以捏造，而 SRE 定义精准，就少了想象空间（也可能 SRE 门槛高 ）。 按 Google 给出的说法是，SRE 工程师实践了 DevOps 文化。这个观点没错，但是国内的 DevOps 逐步独立出 DevOps 工程师， 所以在本文，我着重讨论的是 DevOps 工程师和 SRE 工程师两种职位对比。</p>
+<a id="more"></a>
+<h2><span id="两者产生背景和历史">两者产生背景和历史</span></h2>
+<p>互联网需求催生了 DevOps 。在最传统软件企业中，是只有 Dev 没有 Ops， 那时 Ops 可能还是只是技术支持人员。开发按照瀑布流：需求分析、系统设计、开发、测试、交付、运行， 传统软件发布是一个重量级操作。一旦发布，Dev 几乎不再直接操作。 80 后可能会记得 QQ 每年都会有一个大版本发布吧，QQ 2000 / 2003 / 2004 等等。 此时 Ops 不用和 Dev 直接高频接触，甚至针对一些纯离线业务，压根没有设立 Ops 这个岗位。</p>
+<p>互联网浪潮之后，软件由传统意义上桌面软件演变为面向网站、手机应用。 这时候业务核心逻辑，比如交易，社交行为都不在用户桌面完成，而是在服务器后端完成。 这给互联网企业给予了极大操作空间：随时可以改变业务逻辑，这促进了业务快速迭代变更。 但即便这样，Dev 和 Ops 是极其分裂的两个环节。Ops 不关心代码是如何运作的，Dev 不知道代码如何运行在服务器上。</p>
+<p>当业界还沉浸在可以每周发布版本喜悦中时，2009 年，Flicker 提出了每天发布 10+ 次概念，大大震撼了业界。 Flicker 提出了几个核心理念：</p>
+<ul>
+<li>业务快速发展，需要拥抱变更，小步快跑</li>
+<li>Ops 目标不是为了网站稳定和快速，而是推动业务快速发展</li>
+<li>基于自动化工具提高 Dev / Ops 联接：代码版本管理、监控</li>
+<li>高效沟通：IRC / IM Robot（现在那些 ChatBot 套路，10 年前就被 Flicker 玩过了）</li>
+<li>信任、透明、高效、互助的沟通文化</li>
+</ul>
+<p>真是让人难以想象，今天各种培训公司和一些知名大 V 在呼唤这些 DevOps 理念， 竟然在 2009 年一份幻灯片中就展现淋漓尽致。经典总是不过时，在尘封下闪耀着智慧光芒。 有些人将 DevOps 和运维自动化等同，这是只看到表象。 DevOps 目标是提高业务系统交付速度，并为之提供相关工具、制度和服务。 一些个人或培训机构添油加醋和衍生含义，都是围绕这 DevOps 本质而发散。</p>
+<p>接下来聊聊 SRE 历史， SRE 出现要晚一些。在 2003 年时候 Google 的 Ben Treynor 招募了几个软件工程师，这个团队设立目的是帮助 Google 生产环境服务运行更稳定、健壮、可靠。 不同于中小型规模公司，Google 服务于十几亿用户服务，短暂服务不可用会带来致命后果。 因此 Google 走在了时代最前面，SRE 产生了。 这个职位为大规模集群服务，小型团队不需要这样职位设定（可能也招不起真正 SRE ）。 Google 在探索若干年之后，SRE 团队开始将自己心得体会写在线上，并在 2016 年将此书出版。</p>
+<h2><span id="两者的职能不同">两者的职能不同</span></h2>
+<p>现在不少公司将 DevOps 职能单独抽取出来，称之为 DevOps 工程师。 那让我们看看 DevOps 工程师关心什么：DevOps 文化目的是提交交付速度， DevOps 工程师就自然会关心软件 / 服务的整个生命周期。 一个简单的公式：速度 = 总量 / 时间，添上工程行业术语，即 交付速度 = （（功能特性 * 工程质量） / 交付时间） * 交付风险。</p>
+<p>功能特性交给产品经理和项目经理管理，DevOps 工程师需要关心剩下几个因素：工程质量 / 交付时间 / 交付风险。 DevOps 工程师职能如下：</p>
+<ul>
+<li>管理应用全生命周期（需求、设计、开发、QA、发布、运行）</li>
+<li>关注全流程效率提升，挖掘瓶颈点并将其解决</li>
+<li>自动化运维平台设计和研发工作（标准化、自动化、平台化）</li>
+<li>支持运维系统，包括 虚拟化技术、资源管理技术、监控技术、网络技术</li>
+</ul>
+<p>SRE 关键词是「高扩展性」「高可用性」。高扩展性是指当服务用户数量暴增时， 应用系统以及支撑其服务（服务器资源、网络系统、数据库资源）可以在不调整系统结构，不强化机器本身性能 ，仅仅增加实例数量方式进行扩容。高可用性是指，应用架构中任何环节出现不可用时，比如应用服务、网关、数据库 等系统挂掉，整个系统可以在可预见时间内恢复并重新提供服务。当然，既然是「高」可用， 那么这个时间一般期望在分钟级别。SRE 职能可以概括为以下：</p>
+<ul>
+<li>为 应用、中间件、基础设施等提供 选型、设计、开发、容量规划、调优、故障处理</li>
+<li>为业务系统提供基于可用性、可扩展性考虑决策，参与业务系统设计和实施</li>
+<li>定位、处理、管理故障，优化导致故障发生相关部件</li>
+<li>提高各部件资源利用率</li>
+</ul>
+<h2><span id="工作内容不同">工作内容不同</span></h2>
+<p>职责不同导致两个职位工作内容也不尽相同，我将 DevOps 工程师和 SRE 工程师职能列举如下：</p>
+<ul>
+<li>
+<p>DevOps</p>
+<ul>
+<li>设定应用生命管理周期制度，扭转流程</li>
+<li>开发、管理 开发工程师 /QA 工程师使用 开发平台系统</li>
+<li>开发、管理 发布系统</li>
+<li>开发、选型、管理 监控、报警系统</li>
+<li>开发、管理 权限系统</li>
+<li>开发、选型、管理 CMBD</li>
+<li>管理变更</li>
+<li>管理故障</li>
+</ul>
+</li>
+<li>
+<p>SRE</p>
+<ul>
+<li>管理变更</li>
+<li>管理故障</li>
+<li>制定 SLA 服务标准</li>
+<li>开发、选型、管理 各类中间件</li>
+<li>开发、管理 分布式监控系统</li>
+<li>开发、管理 分布式追踪系统</li>
+<li>开发、管理 性能监控、探测系统（dtrace、火焰图）</li>
+<li>开发、选型、培训 性能调优工具</li>
+</ul>
+</li>
+</ul>
+<p>很有趣的对比，DevOps 和 SRE 都会关心应用生命周期，特别是生命周期里面的变更和故障。 但是 DevOps 工作内容是主要为开发链路服务，一个 DevOps Team 通常会提供一串工具链， 这其中会包括：开发工具、版本管理工具、CI 持续交付工具、CD 持续发布工具、报警工具、故障处理。 而 SRE Team 则关注更为关注变更、故障、性能、容量相关问题，会涉及具体业务，产出工具链会有： 容量测量工具、Logging 日志工具、Tracing 调用链路跟踪工具、Metrics 性能度量工具、监控报警工具等。</p>
+<h2><span id="devops-和-sre-关系">DevOps 和 SRE 关系</span></h2>
+<p>DevOps 首先是一种文化，后期逐渐独立成一个职位；SRE 一开始就明确是一个职位； 不少同学把 DevOps 和 SRE 搞混，是被两者表象锁迷惑，看上去这两者都有的工具属性、自动化要求也相似。 甚至有一些开发同学把这类运维工作都统一理解为：服务器 + 工具 + 自动化。这是盲人摸象，管中窥豹。</p>
+<p>从技能上来说，两者都需要较强的运维技能。 在职业发展天花板上，DevOps 可能缺乏 SRE 在一些专业领域的技能： 计算机体系结构能力；高吞吐高并发优化能力；可扩展系统设计能力；复杂系统设计能力；业务系统排查能力。 两者都需要软实力，但是 SRE 面临复杂度更高，挑战更大，要求也更高：</p>
+<p>DevOps 具有普遍意义，现代互联网公司都需要 DevOps，但是并非所有团队对高可用性、高扩展性存在需求，它们不需要 SRE。 DevOps 工程师掌握相关技能之后，也有机会可以发展为 SRE 工程师。 而一位合格 SRE 工程师，在有选择情况下面，我相信不会去转型为 DevOps 工程师。</p>
+<p>从专业背景来看，无论是 DevOps 还是 SRE 工程师，都需要研发背景，前者需要开发工具链，后者需要有较强架构设计经验。 如果有运维工程师想转型成为 DevOps 或者 SRE，那么需要补上相关技术知识。 毕竟，不是会搭建一套 Jenkins + Kubernetes 就可以自称为 DevOps / SRE 工程师。</p>
+<p>怎么样，有没有解开这几个常见误区呢？希望你看到这里可以豁然开朗，最后附上两个工程师的技能点， 期望有志成为这两种工程师的同学，加油努力。</p>
+<h2><span id="附录技能点">附录：技能点</span></h2>
+<p>DevOps：</p>
+<ul>
+<li>
+<p>Operator 技能</p>
+<ul>
+<li>
+<p>Linux Basis</p>
+<ul>
+<li>基本命令操作</li>
+<li>Linux FHS（Filesystem Hierarchy Standard 文件系统层次结构标准）</li>
+<li>Linux 系统（差异、历史、标准、发展）</li>
+</ul>
+</li>
+<li>
+<p>脚本</p>
+<ul>
+<li>Bash / Python</li>
+</ul>
+</li>
+<li>
+<p>基础服务</p>
+<ul>
+<li>DHCP / NTP / DNS / SSH / iptables / LDAP / CMDB</li>
+</ul>
+</li>
+<li>
+<p>自动化工具</p>
+<ul>
+<li>Fabric / Saltstack / Chef / Ansible</li>
+</ul>
+</li>
+<li>
+<p>基础监控工具</p>
+<ul>
+<li>Zabbix / Nagios / Cacti</li>
+</ul>
+</li>
+<li>
+<p>虚拟化</p>
+<ul>
+<li>KVM 管理 / XEN 管理 / vSphere 管理 / Docker</li>
+<li>容器编排 / Mesos / Kubernetes</li>
+</ul>
+</li>
+<li>
+<p>服务</p>
+<ul>
+<li>Nginx / F5 / HAProxy / LVS 负载均衡</li>
+<li>常见中间件 Operate（启动、关闭、重启、扩容）</li>
+</ul>
+</li>
+</ul>
+</li>
+<li>
+<p>Dev</p>
+<ul>
+<li>
+<p>语言</p>
+<ul>
+<li>Python</li>
+<li>Go（可选）</li>
+<li>Java（了解部署）</li>
+</ul>
+</li>
+<li>
+<p>流程和理论</p>
+<ul>
+<li>Application Life Cycle</li>
+<li>12 Factor</li>
+<li>微服务概念、部署、生命周期</li>
+<li>CI 持续集成 / Jenkins / Pipeline / Git Repo Web Hook</li>
+<li>CD 持续发布系统</li>
+</ul>
+</li>
+<li>
+<p>基础设施</p>
+<ul>
+<li>Git Repo / Gitlab / Github</li>
+<li>Logstash / Flume 日志收集</li>
+<li>配置文件管理（应用、中间件等）</li>
+<li>Nexus / JFrog / Pypi 包依赖管理</li>
+<li>面向 开发 / QA 开发环境管理系统</li>
+<li>线上权限分配系统</li>
+<li>监控报警系统</li>
+<li>基于 Fabric / Saltstack / Chef / Ansible 自动化工具开发</li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+<p>SRE：</p>
+<ul>
+<li>
+<p>语言和工程实现</p>
+<ul>
+<li>
+<p>深入理解开发语言（假设是 Java）</p>
+<ul>
+<li>业务部门使用开发框架</li>
+<li>并发、多线程和锁</li>
+<li>资源模型理解：网络、内存、CPU</li>
+<li>故障处理能力（分析瓶颈、熟悉相关工具、还原现场、提供方案）</li>
+</ul>
+</li>
+<li>
+<p>常见业务设计方案和陷阱（比如 Business Modeling，N+1、远程调用、不合理 DB 结构）</p>
+</li>
+<li>
+<p>MySQL / Mongo OLTP 类型查询优化</p>
+</li>
+<li>
+<p>多种并发模型，以及相关 Scalable 设计</p>
+</li>
+</ul>
+</li>
+<li>
+<p>问题定位工具</p>
+<ul>
+<li>容量管理</li>
+<li>Tracing 链路追踪</li>
+<li>Metrics 度量工具</li>
+<li>Logging 日志系统</li>
+</ul>
+</li>
+<li>
+<p>运维架构能力</p>
+<ul>
+<li>Linux 精通，理解 Linux 负载模型，资源模型</li>
+<li>熟悉常规中间件（MySQL Nginx Redis Mongo ZooKeeper 等），能够调优</li>
+<li>Linux 网络调优，网络 IO 模型以及在语言里面实现</li>
+<li>资源编排系统（Mesos / Kubernetes）</li>
+</ul>
+</li>
+<li>
+<p>理论</p>
+<ul>
+<li>容量规划方案</li>
+<li>熟悉分布式理论（Paxos / Raft / BigTable / MapReduce / Spanner 等），能够为场景决策合适方案</li>
+<li>性能模型（比如 Pxx 理解、Metrics、Dapper）</li>
+<li>资源模型（比如 Queuing Theory、负载方案、雪崩问题）</li>
+<li>资源编排系统（Mesos / Kurbernetes）</li>
+</ul>
+</li>
+</ul>
+<blockquote>
+<p>本文转载自：「 知乎 」，原文：<a href="https://tinyurl.com/fbjbzcn4" target="_blank" rel="noopener">https://tinyurl.com/fbjbzcn4</a> ，版权归原作者所有。欢迎投稿，投稿邮箱: <a href="mailto:editor@hi-linux.com">editor@hi-linux.com</a>。</p>
+</blockquote>
+</div>
+
+			<script src="https://my.openwrite.cn/js/readmore.js" type="text/javascript"></script>
+			<script>
+			var isMobile = navigator.userAgent.match(/(phone|pad|pod|iPhone|iPod|ios|iPad|Android|Mobile|BlackBerry|IEMobile|MQQBrowser|JUC|Fennec|wOSBrowser|BrowserNG|WebOS|Symbian|Windows Phone)/i);
+			if (!isMobile) {
+			    var btw = new BTWPlugin();
+			    btw.init({
+			        "id": "vip-container",
+			        "blogId": "10135-1588830050631-449",
+			        "name": "「奇妙的 Linux 世界」",
+			        "qrcode": "https://www.hi-linux.com/img/wechat/mp_qrcode_12.jpg",
+			        "keyword": "VIP"
+			    });
+			}
+			</script>
+		
+                
+
+                <hr>
+                <!-- Pager -->
+                <ul class="pager">
+                    
+                    
+                        <li class="next">
+                            <a href="/posts/13355.html" data-toggle="tooltip" data-placement="top" title="如何在 Linux 下优雅的查看系统 CPU 信息">Next Post &rarr;</a>
+                        </li>
+                    
+                </ul>
+
+                <!-- duoshuo Share start -->
+                
+                <!-- 多说 Share end-->
+
+                <!-- 多说评论框 start -->
+                
+                <!-- 多说评论框 end -->
+
+                <!-- disqus comment start -->
+                
+                <!-- disqus comment end -->
+
+                
+                    <!-- disqus 评论框 start -->
+                    <div class="comment">
+                        <div id="lv-container" data-id="city" data-uid="MTAyMC8yNzg2My80NDQw"></div>
+                    </div>
+                    <!-- disqus 评论框 end -->
+                
+
+            </div>
+            
+            <!-- Tabe of Content -->
+            <!-- Table of Contents -->
+
+  
+    <style>
+      span.toc-nav-number{
+        display: none
+      }
+    </style>
+  
+    
+      <aside id="sidebar">
+        <div id="toc" class="toc-article">
+        <strong class="toc-title">Contents</strong>
+        
+          <ol class="toc-nav"><li class="toc-nav-item toc-nav-level-2"><a class="toc-nav-link" href="#vip-container"><span class="toc-nav-number">1.</span> <span class="toc-nav-text">DevOps 和 SRE</span></a></li><li class="toc-nav-item toc-nav-level-2"><a class="toc-nav-link" href="#vip-container"><span class="toc-nav-number">2.</span> <span class="toc-nav-text">DevOps 和 SRE 定义</span></a></li><li class="toc-nav-item toc-nav-level-2"><a class="toc-nav-link" href="#vip-container"><span class="toc-nav-number">3.</span> <span class="toc-nav-text">两者产生背景和历史</span></a></li><li class="toc-nav-item toc-nav-level-2"><a class="toc-nav-link" href="#vip-container"><span class="toc-nav-number">4.</span> <span class="toc-nav-text">两者的职能不同</span></a></li><li class="toc-nav-item toc-nav-level-2"><a class="toc-nav-link" href="#vip-container"><span class="toc-nav-number">5.</span> <span class="toc-nav-text">工作内容不同</span></a></li><li class="toc-nav-item toc-nav-level-2"><a class="toc-nav-link" href="#vip-container"><span class="toc-nav-number">6.</span> <span class="toc-nav-text">DevOps 和 SRE 关系</span></a></li><li class="toc-nav-item toc-nav-level-2"><a class="toc-nav-link" href="#vip-container"><span class="toc-nav-number">7.</span> <span class="toc-nav-text">附录：技能点</span></a></li></ol>
+        
+        </div>
+      </aside>
+    
+
+                
+            <!-- Sidebar Container -->
+            <div class="
+                col-lg-8 col-lg-offset-2
+                col-md-10 col-md-offset-1
+                sidebar-container">
+
+                <!-- Featured Tags -->
+                
+                <section>
+                    <!-- no hr -->
+                    <h5><a href="/tags/">FEATURED TAGS</a></h5>
+                    <div class="tags">
+                       
+                          <a class="tag" href="/tags/#技巧" title="技巧">技巧</a>
+                        
+                          <a class="tag" href="/tags/#Linux" title="Linux">Linux</a>
+                        
+                          <a class="tag" href="/tags/#DevOps" title="DevOps">DevOps</a>
+                        
+                    </div>
+                </section>
+                
+
+                <!-- Friends Blog -->
+                
+                <hr>
+                <h5>FRIENDS</h5>
+                <ul class="list-inline">
+
+                    
+                        <li><a href="http://www.mike.org.cn/" target="_blank">简单.生活</a></li>
+                    
+                        <li><a href="http://shang.qq.com/wpa/qunwpa?idkey=ea4c43493c2269428ac6ef6141de4b6d78e5ab2d41380ca4099b833b62884ee9" target="_blank">技术交流群</a></li>
+                    
+                        <li><a href="" target="_blank"></a></li>
+                    
+                        <li><a href="" target="_blank"></a></li>
+                    
+                </ul>
+                
+            </div>
+        </div>
+    </div>
+</article>
+
+
+
+
+
+
+    <!-- 来必力City版公共JS代码 start (一个网页只需插入一次) -->
+    <script type="text/javascript">
+       (function(d, s) {
+           var j, e = d.getElementsByTagName(s)[0];
+    
+           if (typeof LivereTower === 'function') { return; }
+    
+           j = d.createElement(s);
+           j.src = 'https://cdn-city.livere.com/js/embed.dist.js';
+           j.async = true;
+    
+           e.parentNode.insertBefore(j, e);
+       })(document, 'script');
+    </script>
+    <noscript>为正常使用来必力评论功能请激活JavaScript</noscript>
+    <!-- 来必力City版 公共JS代码 end -->
+
+
+
+<!-- async load function -->
+<script>
+    function async(u, c) {
+      var d = document, t = 'script',
+          o = d.createElement(t),
+          s = d.getElementsByTagName(t)[0];
+      o.src = u;
+      if (c) { o.addEventListener('load', function (e) { c(null, e); }, false); }
+      s.parentNode.insertBefore(o, s);
+    }
+</script>
+<!-- anchor-js, Doc:http://bryanbraun.github.io/anchorjs/ -->
+<script>
+    async("https://cdn.bootcss.com/anchor-js/1.1.1/anchor.min.js",function(){
+        anchors.options = {
+          visible: 'hover',
+          placement: 'left',
+          icon: 'ℬ'
+        };
+        anchors.add().remove('.intro-header h1').remove('.subheading').remove('.sidebar-container h5');
+    })
+</script>
+<style>
+    /* place left on bigger screen */
+    @media all and (min-width: 800px) {
+        .anchorjs-link{
+            position: absolute;
+            left: -0.75em;
+            font-size: 1.1em;
+            margin-top : -0.1em;
+        }
+    }
+</style>
+
+
+
+    <!-- Footer -->
+    <!-- Footer -->
+<footer>
+    <div class="container">
+        <div class="row">
+            <div class="col-lg-8 col-lg-offset-2 col-md-10 col-md-offset-1">
+                <ul class="list-inline text-center">
+                
+                    <li>
+                        <a href="/atom.xml">
+                            <span class="fa-stack fa-lg">
+                                <i class="fa fa-circle fa-stack-2x"></i>
+                                <i class="fa fa-rss fa-stack-1x fa-inverse"></i>
+                            </span>
+                        </a>
+                    </li>
+                
+                
+                
+                    <li>
+                        <a target="_blank" href="https://www.zhihu.com/people/80imike">
+                            <span class="fa-stack fa-lg">
+                                <i class="fa fa-circle fa-stack-2x"></i>
+                                <i class="fa  fa-stack-1x fa-inverse">知</i>
+                            </span>
+                        </a>
+                    </li>
+                
+
+                
+                    <li>
+                        <a target="_blank" href="http://weibo.com/2093524665">
+                            <span class="fa-stack fa-lg">
+                                <i class="fa fa-circle fa-stack-2x"></i>
+                                <i class="fa fa-weibo fa-stack-1x fa-inverse"></i>
+                            </span>
+                        </a>
+                    </li>
+                
+
+                
+
+                
+
+                
+
+                </ul>
+                <p class="copyright text-muted">
+                    Copyright &copy; Mike 2021 | Hosted by <a href="https://pages.coding.me" target="_blank" rel="noopener" style="font-weight: bold">Coding Pages</a>
+                    <br>
+                    Theme by <a href="http://beantech.org" target="_blank" rel="noopener">BeanTech</a> 
+                    <span style="display: inline-block; margin: 0 5px;">
+                        <i class="fa fa-heart"></i>
+                    </span> 
+                    re-Ported by <a href="http://www.huweihuang.com" target="_blank" rel="noopener">胡伟煌</a> | 
+                    <iframe
+                        style="margin-left: 2px; margin-bottom:-5px;"
+                        frameborder="0" scrolling="0" width="91px" height="20px"
+                        src="https://ghbtns.com/github-btn.html?user=huweihuang&repo=hexo-theme-huweihuang&type=star&count=true" >
+                    </iframe>
+                </p>
+            </div>
+        </div>
+    </div>
+</footer>
+
+<!-- jQuery -->
+
+<script src="/js/jquery.min.js"></script>
+
+
+<!-- Bootstrap Core JavaScript -->
+
+<script src="/js/bootstrap.min.js"></script>
+
+
+<!-- Custom Theme JavaScript -->
+
+<script src="/js/hux-blog.min.js"></script>
+
+
+
+<!-- async load function -->
+<script>
+    function async(u, c) {
+      var d = document, t = 'script',
+          o = d.createElement(t),
+          s = d.getElementsByTagName(t)[0];
+      o.src = u;
+      if (c) { o.addEventListener('load', function (e) { c(null, e); }, false); }
+      s.parentNode.insertBefore(o, s);
+    }
+</script>
+
+<!-- 
+     Because of the native support for backtick-style fenced code blocks 
+     right within the Markdown is landed in Github Pages, 
+     From V1.6, There is no need for Highlight.js, 
+     so Huxblog drops it officially.
+
+     - https://github.com/blog/2100-github-pages-now-faster-and-simpler-with-jekyll-3-0  
+     - https://help.github.com/articles/creating-and-highlighting-code-blocks/    
+-->
+<!--
+    <script>
+        async("http://cdn.bootcss.com/highlight.js/8.6/highlight.min.js", function(){
+            hljs.initHighlightingOnLoad();
+        })
+    </script>
+    <link href="http://cdn.bootcss.com/highlight.js/8.6/styles/github.min.css" rel="stylesheet">
+-->
+
+
+<!-- jquery.tagcloud.js -->
+<script>
+    // only load tagcloud.js in tag.html
+    if($('#tag_cloud').length !== 0){
+        async("https://www.hi-linux.com/js/jquery.tagcloud.js",function(){
+            $.fn.tagcloud.defaults = {
+                //size: {start: 1, end: 1, unit: 'em'},
+                color: {start: '#bbbbee', end: '#0085a1'},
+            };
+            $('#tag_cloud a').tagcloud();
+        })
+    }
+</script>
+
+<!--fastClick.js -->
+<script>
+    async("https://cdn.bootcss.com/fastclick/1.0.6/fastclick.min.js", function(){
+        var $nav = document.querySelector("nav");
+        if($nav) FastClick.attach($nav);
+    })
+</script>
+
+
+<!-- Google Analytics -->
+
+
+
+
+<!-- Baidu Tongji -->
+
+
+
+
+
+
+	<a id="rocket" href="#top" class=""></a>
+	<script type="text/javascript" src="/js/totop.js?v=1.0.0" async=""></script>
+    <script type="text/javascript" src="/js/toc.js?v=1.0.0" async=""></script>
+<!-- Image to hack wechat -->
+<img src="https://www.hi-linux.com/img/icon_wechat.png" width="0" height="0" />
+<!-- Migrate from head to bottom, no longer block render and still work -->
+
+<script>(function(w,d, s, id) {w.webpushr=w.webpushr||function(){(w.webpushr.q=w.webpushr.q||[]).push(arguments)};var js, fjs = d.getElementsByTagName(s)[0];js = d.createElement(s); js.id = id;js.src = 'https://cdn.webpushr.com/app.min.js';fjs.parentNode.appendChild(js);}(window,document, 'script', 'webpushr-jssdk'));webpushr('init','BF9JK7xV9kjWTdMx2lr6RWaPfXV7wNuZaVAJ1bfIGoBNJavqLEBVFMKLubITnCA4bh2fI9iH9tMF95nXnPt7xxY');</script></body>
+
+</html>
