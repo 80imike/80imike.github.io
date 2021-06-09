@@ -6,7 +6,7 @@
   <link href="/atom.xml" rel="self"/>
   
   <link href="https://www.hi-linux.com/"/>
-  <updated>2021-06-07T02:17:23.004Z</updated>
+  <updated>2021-06-09T01:23:22.871Z</updated>
   <id>https://www.hi-linux.com/</id>
   
   <author>
@@ -15,6 +15,36 @@
   </author>
   
   <generator uri="https://hexo.io/">Hexo</generator>
+  
+  <entry>
+    <title>推荐一款开源即时性能分析工具 Pyroscope</title>
+    <link href="https://www.hi-linux.com/posts/52545.html"/>
+    <id>https://www.hi-linux.com/posts/52545.html</id>
+    <published>2021-06-09T01:00:00.000Z</published>
+    <updated>2021-06-09T01:23:22.871Z</updated>
+    
+    <content type="html"><![CDATA[<div id="vip-container"><p>当网站上线后，流量增加或短暂功能故障，都会造成使用者体验相当不好，而这时该怎么快速找到性能的瓶颈呢？通常 CPU 达到 100% 时，有时候也很难复制及找出关键问题点。</p><p>本篇文章，我们会介绍一套工具叫 Pyroscope，让开发者可以快速找到性能瓶颈的代码。Pyroscope 目前可以支持 Python, Ruby 或 Go 的环境。本文笔者会针对 Go 环境做介绍。</p><h2><span id="什么是-pyroscope">什么是 Pyroscope？</span></h2><p>Pyroscope 是一套开源的性能即时监控平台，简单的 Server 及 Agent 架构，让开发者可以轻松监控代码性能，不管你要找 10 秒或几分钟内的性能数据，都可以快速的即时呈现，开发者也不用在意装了此监控会造成任何性能上的负担。Pyroscope 背后的储存采用 Badger 这套 Key-Value 数据库，性能上是非常好的。目前只支持 3 种语言 (Python, Ruby 及 Go) 未来会预计支持 NodeJS。假设您还没引入任何性能分析工具或平台，那 Pyroscope 会是您最好的选择。</p><a id="more"></a><h2><span id="pyroscope-架构">Pyroscope 架构</span></h2><p>如果你有打算找性能分析工具平台，Pyroscope 提供了三大优势，让开发者可以放心使用</p><ul><li>低 CPU 使用率，不会影响既有平台</li><li>可储存好几年的资料，并且可用 10 秒细颗粒度查看资料</li><li>压缩储存资料，减少浪费硬盘空间</li><li>架构只有分 Server 和 Agent，除了 Go 语言之外，Python 跟 Ruby App 都是透过 pyroscope 指令启动相关 app 来监控系统效能。</li></ul><p><img src="https://img.hi-linux.com/staticfile/36tdD2-2021-04-22-Im2TSi.jpg" alt="Pyroscope 架构图"></p><h2><span id="启动-pyroscope-服务">启动 Pyroscope 服务</span></h2><p>启动方式有两种，第一是直接用 docker 指令启动。</p><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">$ docker run -it -p 4040:4040 pyroscope&#x2F;pyroscope:latest server</span><br></pre></td></tr></table></figure><p>另一种可以用 docker-compose 启动。</p><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line">---</span><br><span class="line">services:</span><br><span class="line">  pyroscope:</span><br><span class="line">    image: &quot;pyroscope&#x2F;pyroscope:latest&quot;</span><br><span class="line">    ports:</span><br><span class="line">      - &quot;4040:4040&quot;</span><br><span class="line">    command:</span><br><span class="line">      - &quot;server&quot;</span><br></pre></td></tr></table></figure><h2><span id="安装-agent">安装 Agent</span></h2><h3><span id="在-go-语言中使用">在 Go 语言中使用</span></h3><p>本篇用 Go 语言当作示例，先 import package</p><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">import &quot;github.com&#x2F;pyroscope-io&#x2F;pyroscope&#x2F;pkg&#x2F;agent&#x2F;profiler&quot;</span><br></pre></td></tr></table></figure><p>接著在 main.go 写入底下代码即可:</p><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">profiler.Start(profiler.Config&#123;</span><br><span class="line">    ApplicationName: &quot;simple.golang.app&quot;,</span><br><span class="line">    ServerAddress:   &quot;http:&#x2F;&#x2F;pyroscope:4040&quot;,</span><br><span class="line">&#125;)</span><br></pre></td></tr></table></figure><p>其中 <code>http://pyroscope</code> 可以换成自定义的 hostname 即可，接着打开上述网址就可以看到性能监控的画面了</p><p><img src="https://img.hi-linux.com/staticfile/7hYcxe-2021-04-22-v59IxB.jpg" alt></p><p>通过画面，我们可以快速找到是 SQL 或哪个函式执行时间长。</p><p><img src="https://img.hi-linux.com/staticfile/ChNi8m-2021-04-22-YkkYNt.jpg" alt></p><h3><span id="在-python-和-ruby-语言中使用">在 Python 和 Ruby 语言中使用</span></h3><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"># If using Python</span><br><span class="line">$ pyroscope exec python manage.py runserver </span><br><span class="line"></span><br><span class="line"># If using Ruby</span><br><span class="line">$ pyroscope exec rails server</span><br></pre></td></tr></table></figure><h2><span id="心得">心得</span></h2><p>这套工具相当方便，在 Go 语言虽然可以用 pprof 快速找到问题，但是难免还是需要手动的一些地方才可以查出性能瓶颈，有了这套平台，就可以将全部 App 都进行监控，当使用者有任何问题，就可以快速透过 Pyroscope 查看哪些代码出了问题。</p><blockquote><p>本文转载自：「 小恶魔 」，原文：<a href="http://t.cn/A6c0G3dm%EF%BC%8C%E7%89%88%E6%9D%83%E5%BD%92%E5%8E%9F%E4%BD%9C%E8%80%85%E6%89%80%E6%9C%89%E3%80%82%E6%AC%A2%E8%BF%8E%E6%8A%95%E7%A8%BF%EF%BC%8C%E6%8A%95%E7%A8%BF%E9%82%AE%E7%AE%B1:" target="_blank" rel="noopener">http://t.cn/A6c0G3dm，版权归原作者所有。欢迎投稿，投稿邮箱:</a> <a href="mailto:editor@hi-linux.com">editor@hi-linux.com</a>。</p></blockquote></div><script src="https://my.openwrite.cn/js/readmore.js" type="text/javascript"></script><script>var isMobile = navigator.userAgent.match(/(phone|pad|pod|iPhone|iPod|ios|iPad|Android|Mobile|BlackBerry|IEMobile|MQQBrowser|JUC|Fennec|wOSBrowser|BrowserNG|WebOS|Symbian|Windows Phone)/i);if (!isMobile) {    var btw = new BTWPlugin();    btw.init({        "id": "vip-container",        "blogId": "10135-1588830050631-449",        "name": "「奇妙的 Linux 世界」",        "qrcode": "https://www.hi-linux.com/img/wechat/mp_qrcode_12.jpg",        "keyword": "VIP"    });}</script>]]></content>
+    
+    <summary type="html">
+    
+      &lt;p&gt;当网站上线后，流量增加或短暂功能故障，都会造成使用者体验相当不好，而这时该怎么快速找到性能的瓶颈呢？通常 CPU 达到 100% 时，有时候也很难复制及找出关键问题点。&lt;/p&gt;
+&lt;p&gt;本篇文章，我们会介绍一套工具叫 Pyroscope，让开发者可以快速找到性能瓶颈的代码。Pyroscope 目前可以支持 Python, Ruby 或 Go 的环境。本文笔者会针对 Go 环境做介绍。&lt;/p&gt;
+&lt;h2 id=&quot;什么是-Pyroscope？&quot;&gt;什么是 Pyroscope？&lt;/h2&gt;
+&lt;p&gt;Pyroscope 是一套开源的性能即时监控平台，简单的 Server 及 Agent 架构，让开发者可以轻松监控代码性能，不管你要找 10 秒或几分钟内的性能数据，都可以快速的即时呈现，开发者也不用在意装了此监控会造成任何性能上的负担。Pyroscope 背后的储存采用 Badger 这套 Key-Value 数据库，性能上是非常好的。目前只支持 3 种语言 (Python, Ruby 及 Go) 未来会预计支持 NodeJS。假设您还没引入任何性能分析工具或平台，那 Pyroscope 会是您最好的选择。&lt;/p&gt;
+    
+    </summary>
+    
+    
+      <category term="Linux" scheme="https://www.hi-linux.com/categories/Linux/"/>
+    
+    
+      <category term="Linux" scheme="https://www.hi-linux.com/tags/Linux/"/>
+    
+      <category term="工具" scheme="https://www.hi-linux.com/tags/%E5%B7%A5%E5%85%B7/"/>
+    
+      <category term="Pyroscope" scheme="https://www.hi-linux.com/tags/Pyroscope/"/>
+    
+  </entry>
   
   <entry>
     <title>推荐两款助你效率提高 10 倍的 Kubernetes 容器日志查看神器</title>
@@ -804,39 +834,6 @@
       <category term="Linux" scheme="https://www.hi-linux.com/tags/Linux/"/>
     
       <category term="Docker" scheme="https://www.hi-linux.com/tags/Docker/"/>
-    
-  </entry>
-  
-  <entry>
-    <title>重磅 | AWS 免费开源增强版 Elasticsearch 分支 OpenSearch</title>
-    <link href="https://www.hi-linux.com/posts/50892.html"/>
-    <id>https://www.hi-linux.com/posts/50892.html</id>
-    <published>2021-04-15T01:00:00.000Z</published>
-    <updated>2021-04-15T01:36:05.433Z</updated>
-    
-    <content type="html"><![CDATA[<div id="vip-container"><p>今年 1 月，开发 Elasticsearch 和 Kibana 的公司 Elastic 宣布更改许可证，新版本将不再使用 Apache 2.0 许可证，而是使用 Elastic 许可证和服务器端公共许可证（SSPL），此举是为了禁止类似亚马逊等云服务商使用它的软件作为一种服务提供给客户。但同时，新的许可证不再符合开源许可证的定义，意味着 Elasticsearch 和 Kibana 不再是开源软件了。</p><p>然后，亚马逊宣布要创建它的 Elasticsearch 分支 OpenSearch 和 Kibana 分支 OpenSearch Dashboards。</p><p>近日 AWS 宣布创建 “真正” 开源的 Elasticsearch 分支有了下文。 OpenSearch 的源代码托管在 GitHub 上。亚马逊表示以后所有的更新将通过 OpenSearch 项目发布。包括红帽、SAP、Capital One 和 <a href="http://Logz.io" target="_blank" rel="noopener">Logz.io</a> 等在内的多个组织对 AWS 创建 OpenSearch 项目表示了支持。</p><blockquote><p>OpenSearch 项目由 OpenSearch (fork Elasticsearch 7.10.2) 和 OpenSearch Dashboards (fork Kibana 7.10.2) 组成，包括企业安全、告警、机器学习、SQL、索引状态管理等功能。OpenSearch 项目中的所有软件均采用了 Apache License 2.0 开源许可协议。</p></blockquote><p><strong>OpenSearch 项目仓库地址</strong></p><ol><li>OpenSearch</li></ol><p>项目地址：<a href="https://github.com/opensearch-project/OpenSearch" target="_blank" rel="noopener">https://github.com/opensearch-project/OpenSearch</a></p><ol start="2"><li>OpenSearch Dashboards</li></ol><p>项目地址：<a href="https://github.com/opensearch-project/OpenSearch-Dashboards" target="_blank" rel="noopener">https://github.com/opensearch-project/OpenSearch-Dashboards</a></p><p>AWS 介绍称，他们推出的 OpenSearch 删除了 Elasticsearch 中受 Elastic 商业许可证限制的功能、代码和商标，以兼容 Apache License 2.0，自称这是每个人都可以构建和创新的基础，任何人无需签署 CLA (Contributor License Agreement) 即可为项目贡献代码。</p><p>此外，AWS 现有的 Amazon Elasticsearch Service 被重命名为 Amazon OpenSearch Service，AWS 表示更名不会影响正在运营的业务，Amazon OpenSearch Service 会提供一系列可供部署和运行的开源引擎，包括当前可用的 19 个版本的 Elasticsearch（7.9 和更早版本、近期推出的 7.10）以及新版本的 OpenSearch。</p><p>AWS 还说到会继续通过安全性和错误修复来支持和维护采用 Apache License 2.0 的 Elasticsearch，并将通过 OpenSearch 和 OpenSearch Dashboards 提供所有新功能。Amazon OpenSearch Service API 将与现有服务 API 向后兼容。此外，AWS 会提供从现有 Elasticsearch 6.x 和 7.x 托管集群迁移至 OpenSearch 的无缝升级路径。</p><p>AWS 表示，当前版本的代码尚处于 Alpha 阶段，未经彻底测试并且不适合用于生产环境。他们计划在接下来的几周内发布 Beta 版本，有望在 2021 年中期发布稳定版并投入生产环境使用。</p><blockquote><p>本文转载自：「 开源中国 」，原文：<a href="http://t.cn/A6cxOsxg" target="_blank" rel="noopener">http://t.cn/A6cxOsxg</a> ，版权归原作者所有。欢迎投稿，投稿邮箱: <a href="mailto:editor@hi-linux.com">editor@hi-linux.com</a>。</p></blockquote></div><script src="https://my.openwrite.cn/js/readmore.js" type="text/javascript"></script><script>var isMobile = navigator.userAgent.match(/(phone|pad|pod|iPhone|iPod|ios|iPad|Android|Mobile|BlackBerry|IEMobile|MQQBrowser|JUC|Fennec|wOSBrowser|BrowserNG|WebOS|Symbian|Windows Phone)/i);if (!isMobile) {    var btw = new BTWPlugin();    btw.init({        "id": "vip-container",        "blogId": "10135-1588830050631-449",        "name": "「奇妙的 Linux 世界」",        "qrcode": "https://www.hi-linux.com/img/wechat/mp_qrcode_12.jpg",        "keyword": "VIP"    });}</script>]]></content>
-    
-    <summary type="html">
-    
-      
-      
-        
-        
-          &lt;div id=&quot;vip-container&quot;&gt;&lt;p&gt;今年 1 月，开发 Elasticsearch 和 Kibana 的公司 Elastic 宣布更改许可证，新版本将不再使用 Apache 2.0 许可证，而是使用 Elastic
-        
-      
-    
-    </summary>
-    
-    
-      <category term="Elasticsearch" scheme="https://www.hi-linux.com/categories/Elasticsearch/"/>
-    
-    
-      <category term="Linux" scheme="https://www.hi-linux.com/tags/Linux/"/>
-    
-      <category term="快迅" scheme="https://www.hi-linux.com/tags/%E5%BF%AB%E8%BF%85/"/>
-    
-      <category term="Elasticsearch" scheme="https://www.hi-linux.com/tags/Elasticsearch/"/>
     
   </entry>
   
