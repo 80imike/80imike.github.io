@@ -349,6 +349,33 @@
 <p>参考链接: <a href="https://ruofeng.me/2018/09/19/capture-packets-in-kubernetes/" target="_blank" rel="noopener">在 k8s 中对指定 Pod 进行抓包</a></p>
 </blockquote>
 <p>具体操作步骤如下:</p>
+<ol>
+<li>查看指定 Pod 运行在哪个宿主机上:</li>
+</ol>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">kubctl describe pod &lt;pod&gt; -n mservice</span><br></pre></td></tr></table></figure>
+<ol start="2">
+<li>获得容器的 Pid:</li>
+</ol>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">docker inspect -f &#123;&#123;.State.Pid&#125;&#125; &lt;container&gt;</span><br></pre></td></tr></table></figure>
+<ol start="3">
+<li>进入该容器的 network namespace:</li>
+</ol>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">nsenter --target &lt;PID&gt; -n</span><br></pre></td></tr></table></figure>
+<ol start="4">
+<li>使用宿主机的 <code>tcpdump</code> 抓包, 指定 eth0 网卡:</li>
+</ol>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">tcpdump -i eth0 tcp and port 80 -vvv</span><br></pre></td></tr></table></figure>
+<ol start="5">
+<li>或者直接抓包并导出到文件:</li>
+</ol>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">tcpdump -i eth0 -w &#x2F;tmp&#x2F;out.cap</span><br></pre></td></tr></table></figure>
+<ol start="6">
+<li>从远程 <code>scp</code> 到本地:</li>
+</ol>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">scp ipaddr:&#x2F;tmp&#x2F;out.cap .&#x2F;</span><br></pre></td></tr></table></figure>
+<ol start="7">
+<li>之后在 Wireshark 中可以打开文件非常直观得查看过滤抓到的数据。</li>
+</ol>
 <h2><span id="方法四-使用-kubectl-插件-ksniff">方法四 使用 kubectl 插件 ksniff</span></h2>
 <p>ksniff 项目地址：<a href="https://github.com/eldadru/ksniff" target="_blank" rel="noopener">https://github.com/eldadru/ksniff</a></p>
 <h3><span id="题外话-krew-kubectl-插件包管理器">题外话: krew - kubectl 插件包管理器</span></h3>
