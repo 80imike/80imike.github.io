@@ -1,0 +1,942 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<!-- Head tag -->
+<head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="google-site-verification" content="xBT4GhYoi5qRD5tr338pgPM5OWHHIDR6mNg1a3euekI" />
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="description" content="">
+    <meta name="keyword"  content="Linux,运维,Nginx,Zabbix,Centos,Ansible,MySQL,Python,Docker,ELK,Haproxy,Git,Nodejs,安全,技术">
+    <link rel="shortcut icon" href="/img/ironman-draw.png">
+    <!-- Place this tag in your head or just before your close body tag. -->
+    <script async defer src="https://buttons.github.io/buttons.js"></script>
+    <title>
+        
+          HTTP 故障图解指南 - 奇妙的 Linux 世界
+        
+    </title>
+
+    <link rel="canonical" href="https://www.hi-linux.com/posts/28200.html">
+
+    <!-- Bootstrap Core CSS -->
+    
+<link rel="stylesheet" href="/css/bootstrap.min.css">
+
+
+    <!-- Custom CSS --> 
+    
+<link rel="stylesheet" href="/css/beantech.min.css">
+
+    
+    <!-- Pygments Highlight CSS -->
+    
+<link rel="stylesheet" href="/css/highlight.css">
+
+
+    
+<link rel="stylesheet" href="/css/widget.css">
+
+
+    
+<link rel="stylesheet" href="/css/rocket.css">
+
+
+    
+<link rel="stylesheet" href="/css/signature.css">
+
+
+    
+<link rel="stylesheet" href="/css/toc.css">
+
+
+    <!-- Custom Fonts -->
+    <!-- <link href="https://maxcdn.bootstrapcdn.com/font-awesome/4.3.0/css/font-awesome.min.css" rel="stylesheet" type="text/css"> -->
+    <!-- Hux change font-awesome CDN to qiniu -->
+    <link href="https://cdn.staticfile.org/font-awesome/4.5.0/css/font-awesome.min.css" rel="stylesheet" type="text/css">
+
+
+    <!-- Hux Delete, sad but pending in China
+    <link href='http://fonts.googleapis.com/css?family=Lora:400,700,400italic,700italic' rel='stylesheet' type='text/css'>
+    <link href='http://fonts.googleapis.com/css?family=Open+Sans:300italic,400italic,600italic,700italic,800italic,400,300,600,700,800' rel='stylesheet' type='text/
+    css'>
+    -->
+
+
+    <!-- HTML5 Shim and Respond.js IE8 support of HTML5 elements and media queries -->
+    <!-- WARNING: Respond.js doesn't work if you view the page via file:// -->
+    <!--[if lt IE 9]>
+        <script src="https://oss.maxcdn.com/libs/html5shiv/3.7.0/html5shiv.js"></script>
+        <script src="https://oss.maxcdn.com/libs/respond.js/1.4.2/respond.min.js"></script>
+    <![endif]-->
+
+    <!-- ga & ba script hoook -->
+    <script></script>
+<meta name="generator" content="Hexo 4.2.1"><link rel="alternate" href="/atom.xml" title="奇妙的 Linux 世界" type="application/atom+xml">
+</head>
+
+
+<!-- hack iOS CSS :active style -->
+<body ontouchstart="">
+	<!-- Modified by Yu-Hsuan Yen -->
+<!-- Post Header -->
+<style type="text/css">
+    header.intro-header{
+        
+            background-image: url('/img/header_img/building.jpg')
+            /*post*/
+        
+    }
+    
+</style>
+
+<header class="intro-header" >
+    <!-- Signature -->
+    <div id="signature">
+        <div class="container">
+            <div class="row">
+                <div class="col-lg-8 col-lg-offset-2 col-md-10 col-md-offset-1">
+                
+                    <div class="post-heading">
+                        <div class="tags">
+                            
+                              <a class="tag" href="/tags/#技巧" title="技巧">技巧</a>
+                            
+                              <a class="tag" href="/tags/#Linux" title="Linux">Linux</a>
+                            
+                              <a class="tag" href="/tags/#HTTP" title="HTTP">HTTP</a>
+                            
+                        </div>
+                        <h1>HTTP 故障图解指南</h1>
+                        <h2 class="subheading"></h2>
+                        <span class="meta">
+                            Posted by Mike on
+                            2021-06-28
+                        </span>
+                    </div>
+                
+
+
+                </div>
+            </div>
+        </div>
+    </div>
+</header>
+
+	
+    <!-- Navigation -->
+<nav class="navbar navbar-default navbar-custom navbar-fixed-top">
+    <div class="container-fluid">
+        <!-- Brand and toggle get grouped for better mobile display -->
+        <div class="navbar-header page-scroll">
+            <button type="button" class="navbar-toggle">
+                <span class="sr-only">Toggle navigation</span>
+                <span class="icon-bar"></span>
+                <span class="icon-bar"></span>
+                <span class="icon-bar"></span>
+            </button>
+            <a class="navbar-brand" href="/">奇妙的 Linux 世界</a>
+        </div>
+
+        <!-- Collect the nav links, forms, and other content for toggling -->
+        <!-- Known Issue, found by Hux:
+            <nav>'s height woule be hold on by its content.
+            so, when navbar scale out, the <nav> will cover tags.
+            also mask any touch event of tags, unfortunately.
+        -->
+        <div id="huxblog_navbar">
+            <div class="navbar-collapse">
+                <ul class="nav navbar-nav navbar-right">
+                    <li>
+                        <a href="/">Home</a>
+                    </li>
+
+                    
+
+                        
+                    
+
+                        
+                    
+
+                        
+                        <li>
+                            <a href="/about/">About</a>
+                        </li>
+                        
+                    
+
+                        
+                        <li>
+                            <a href="/tags/">Tags</a>
+                        </li>
+                        
+                    
+
+                        
+                        <li>
+                            <a href="/archive/">Archives</a>
+                        </li>
+                        
+                    
+                    
+                </ul>
+            </div>
+        </div>
+        <!-- /.navbar-collapse -->
+    </div>
+    <!-- /.container -->
+</nav>
+<script>
+    // Drop Bootstarp low-performance Navbar
+    // Use customize navbar with high-quality material design animation
+    // in high-perf jank-free CSS3 implementation
+    var $body   = document.body;
+    var $toggle = document.querySelector('.navbar-toggle');
+    var $navbar = document.querySelector('#huxblog_navbar');
+    var $collapse = document.querySelector('.navbar-collapse');
+
+    $toggle.addEventListener('click', handleMagic)
+    function handleMagic(e){
+        if ($navbar.className.indexOf('in') > 0) {
+        // CLOSE
+            $navbar.className = " ";
+            // wait until animation end.
+            setTimeout(function(){
+                // prevent frequently toggle
+                if($navbar.className.indexOf('in') < 0) {
+                    $collapse.style.height = "0px"
+                }
+            },400)
+        }else{
+        // OPEN
+            $collapse.style.height = "auto"
+            $navbar.className += " in";
+        }
+    }
+</script>
+
+
+    <!-- Main Content -->
+    <!-- Modify by Yu-Hsuan Yen -->
+
+<!-- Post Content -->
+<article>
+    <div class="container">
+        <div class="row">
+
+            <!-- Post Container -->
+            <div class="
+                col-lg-8 col-lg-offset-2
+                col-md-10 col-md-offset-1
+                post-container">
+
+                <div id="vip-container"><p>网页打开某个网站，可以看到正常的内容，这个 <code>HTTP Status code</code> 是 <code>200</code>，没有显示在页面上。</p>
+<p>但是偶尔会看到整页白底，但是上面写 <code>400</code>、<code>403</code>、<code>500</code>，或者画面比较好看的 <code>404</code> 此页面找不到等等，那这些代码是什么意思呢？</p>
+<p>做为一个运维工程师，遇到这样的情况，你又应该怎么判断是哪里出问题了呢？</p>
+<a id="more"></a>
+<h2><span id="http-状态代码决策图">HTTP 状态代码决策图</span></h2>
+<p>对于超文本传输协议（又称 HTTP 状态代码），代码的第一个数字表示五类响应中的一类。HTTP 客户端至少要认识这五类。</p>
+<p>第一类代码是信息性的，表示在继续处理时的临时响应。<br>
+第二类状态代码传达了客户的请求被接收并成功处理。<br>
+第三类 HTTP 状态代码表明，为了完成请求，需要代表客户采取进一步的行动，如 URL 重定向。<br>
+第四类代码是在客户出错时使用的。<br>
+第五类状态代码表示服务器出了错误，无法完成一个明显有效的请求。</p>
+<table>
+<thead>
+<tr>
+<th style="text-align:left">1xx Informational</th>
+<th style="text-align:left"></th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align:left">100 - Continue</td>
+<td style="text-align:left">The server has received the initial request, and the client should continue sending the remainder of the request.</td>
+</tr>
+<tr>
+<td style="text-align:left">101 - Switching Protocols</td>
+<td style="text-align:left">The server is acknowledging that it is switching protocols based on the requesterÕs instructions.</td>
+</tr>
+<tr>
+<td style="text-align:left">102 - Processing Request (WebDAV; RFC 2518)</td>
+<td style="text-align:left">To avoid timing out, the server acknowledges that a request has been received and is being processed, though no response is available.</td>
+</tr>
+<tr>
+<td style="text-align:left">103 - Checkpoint</td>
+<td style="text-align:left">Resumes aborted PUT or POST requests in Resumable HTTP Requests Proposal.</td>
+</tr>
+<tr>
+<td style="text-align:left">122 - Too Long</td>
+<td style="text-align:left">An IE7-only code that indicates that the URI is longer than the maximum 2,083 characters.</td>
+</tr>
+<tr>
+<td style="text-align:left">200 - OK</td>
+<td style="text-align:left">The standard response for successful HTTP requests. Varies according to request method. For GET requests, responses contain an entity corresponding to the requested resource. For POST requests, responses contain an entity describing or containing the result of the action.</td>
+</tr>
+<tr>
+<td style="text-align:left">201 - Created</td>
+<td style="text-align:left">The request has been fulfilled, resulting in the creation of a new resource.</td>
+</tr>
+<tr>
+<td style="text-align:left">202 - Accepted</td>
+<td style="text-align:left">The request has been accepted, but processing is still pending. Upon processing, the request might be disallowed, meaning it might or might not actually be acted upon.</td>
+</tr>
+<tr>
+<td style="text-align:left">203 - Non-Authoritative Information (since HTTP/1.1)</td>
+<td style="text-align:left">The request has been successfully processed by the server, but the information being returned may be from another source.</td>
+</tr>
+<tr>
+<td style="text-align:left">204 - No Content</td>
+<td style="text-align:left">The request has been successfully processed by the server, but no content is being returned. Often a successful delete request.</td>
+</tr>
+<tr>
+<td style="text-align:left">205 - Reset Content</td>
+<td style="text-align:left">Though the request was successfully processed, no content is being returned and the requester must reset the document view.</td>
+</tr>
+<tr>
+<td style="text-align:left">206 - Partial Content (RFC 7233)</td>
+<td style="text-align:left">Because of the range header sent by the client, only part of the resource is being delivered by the server.</td>
+</tr>
+<tr>
+<td style="text-align:left">207 - Multi-Status (WebDAV; RFC 4918)</td>
+<td style="text-align:left">Depending on the number of sub-requests made by the client, the XML message that follows might contain multiple separate response codes.</td>
+</tr>
+<tr>
+<td style="text-align:left">208 - Already Reported (WebDAV; RFC 5842)</td>
+<td style="text-align:left">The results have been included in a previous reply and are not being returned again.</td>
+</tr>
+<tr>
+<td style="text-align:left">226 - IM Used (RFC 3229)</td>
+<td style="text-align:left">A request for this resource has been fulfilled by the server. The response represents the result of one or more instance manipulations for the current instance.</td>
+</tr>
+<tr>
+<td style="text-align:left">2xx Success</td>
+<td style="text-align:left"></td>
+</tr>
+<tr>
+<td style="text-align:left">300 - Multiple Choices</td>
+<td style="text-align:left">Indicates multiple options for the resource delivered, such as format options for video or list files with different extensions. The user can select preferred representation and redirect the request to that location.</td>
+</tr>
+<tr>
+<td style="text-align:left">301 - Moved Permanently</td>
+<td style="text-align:left">This request and all future ones should be directed to the given URI.</td>
+</tr>
+<tr>
+<td style="text-align:left">302 - Found</td>
+<td style="text-align:left">Indicates that the requested resource can be found temporarily via an alternative URI. Because many popular user agent implementations treat 302 responses similar to 303 responses, both status codes 303 and 307 were added to allow servers more specificity.</td>
+</tr>
+<tr>
+<td style="text-align:left">303 - See Other (since HTTP/1.1)</td>
+<td style="text-align:left">Indicates the response to the request can be found via alternative URI using GET method. Many pre-HTTP/1.1 user agents do not recognize 303, in which case the 302 status code can be used instead.</td>
+</tr>
+<tr>
+<td style="text-align:left">304 - Not Modified (RFC 7232)</td>
+<td style="text-align:left">Indicates that the resource has not been modified since last requested, and there is no need to retransmit as the client has a previously downloaded copy.</td>
+</tr>
+<tr>
+<td style="text-align:left">305 - Use Proxy (since HTTP/1.1)</td>
+<td style="text-align:left">Requested resource is located elsewhere and can be accessed through a proxy provided in the response. For security reasons, HTTP clients like Firefox and Internet Explorer do not correctly handle 305 responses.</td>
+</tr>
+<tr>
+<td style="text-align:left">306 - Switch Proxy</td>
+<td style="text-align:left">Originally indicated that subsequent requests should use the proxy specified. This status code is no longer used.</td>
+</tr>
+<tr>
+<td style="text-align:left">307 - Temporary Redirect (since HTTP/1.1)</td>
+<td style="text-align:left">Indicates that the request should be repeated with a different URI as specified, but future requests should use the original URI.</td>
+</tr>
+<tr>
+<td style="text-align:left">308 - Permanent Redirect (RFC 7538)</td>
+<td style="text-align:left">This and all future requests should be repeated using a different URI as specified. Unlike 301 and 302, with 307 and 308 status codes the HTTP method should not change.</td>
+</tr>
+<tr>
+<td style="text-align:left">3xx Redirection</td>
+<td style="text-align:left"></td>
+</tr>
+<tr>
+<td style="text-align:left">400 - Bad Request</td>
+<td style="text-align:left">The request cannot be processed by the server because of a client error such as syntax, framing, or routing.</td>
+</tr>
+<tr>
+<td style="text-align:left">401 - Unauthorized</td>
+<td style="text-align:left">Indicates that authentication is required and was either not provided or has failed. If the request already included authorization credentials, then the 401 status code indicates that those credentials were not accepted.</td>
+</tr>
+<tr>
+<td style="text-align:left">402 - Payment Required</td>
+<td style="text-align:left">Reserved for future use. Originally intended to be part of a digital cash or micropayment model, this code is not currently widely used.</td>
+</tr>
+<tr>
+<td style="text-align:left">403 - Forbidden</td>
+<td style="text-align:left">Indicates that though the request was valid, the server refuses to respond to it. Unlike the 401 status code, providing authentication will not change the outcome.</td>
+</tr>
+<tr>
+<td style="text-align:left">404 - Not Found</td>
+<td style="text-align:left">Indicates that the requested resource could not be found but may be available in the future.</td>
+</tr>
+<tr>
+<td style="text-align:left">405 - Method Not Allowed</td>
+<td style="text-align:left">The request method is not supported by the resource requested, as when using GET on a form that requires data to be presented via POST.</td>
+</tr>
+<tr>
+<td style="text-align:left">406 - Not Acceptable</td>
+<td style="text-align:left">The requested content is not acceptable according to the requestÕs Accept headers.</td>
+</tr>
+<tr>
+<td style="text-align:left">407 - Proxy Authentication Required (RFC 7235)</td>
+<td style="text-align:left">The client must first authenticate itself with the proxy.</td>
+</tr>
+<tr>
+<td style="text-align:left">408 - Request Timeout</td>
+<td style="text-align:left">Indicates that the server timed out while waiting for the request, though the client may repeat the request without modifications.</td>
+</tr>
+<tr>
+<td style="text-align:left">409 - Conflict</td>
+<td style="text-align:left">There is a conflict in the request that prevents it from being processedÑfor example, an edit conflict in the case of multiple updates.</td>
+</tr>
+<tr>
+<td style="text-align:left">410 - Gone</td>
+<td style="text-align:left">The requested resource is no longer available and will not be available again, as when a resource has been intentionally removed and should be purged. The client should not request the resource again.</td>
+</tr>
+<tr>
+<td style="text-align:left">411 - Length Required</td>
+<td style="text-align:left">The request did not specify the length of its content, though length is required by the requested source.</td>
+</tr>
+<tr>
+<td style="text-align:left">412 - Precondition Failed (RFC 7232)</td>
+<td style="text-align:left">Indicates that the server does not meet the request preconditions as specified by requester.</td>
+</tr>
+<tr>
+<td style="text-align:left">413 - Request Entity Too Large</td>
+<td style="text-align:left">Indicates that the request is larger than the server can or will process.</td>
+</tr>
+<tr>
+<td style="text-align:left">414 - Request-URI Too Long</td>
+<td style="text-align:left">The provided URI was too long to be processed by the server. When resulting from too much data encoded as GET request query-string, convert to a POST request.</td>
+</tr>
+<tr>
+<td style="text-align:left">415 - Unsupported Media Type</td>
+<td style="text-align:left">The server does not support the media type included by the request entity.</td>
+</tr>
+<tr>
+<td style="text-align:left">416 - Requested Range Not Satisfiable (RFC 7233)</td>
+<td style="text-align:left">Indicates that the client has requested a portion of the file that the server is unable to provide, such as a part of the file that lies beyond the end of the file.</td>
+</tr>
+<tr>
+<td style="text-align:left">417 - Expectation Failed</td>
+<td style="text-align:left">Indicates that the server is unable to meet the requirements of Expect request-header field.</td>
+</tr>
+<tr>
+<td style="text-align:left">418 - I’m a teapot (RFC 2324)</td>
+<td style="text-align:left">Defined in 1998 as a traditional IETF April FoolÕs joke and is not expected to be implemented by actual HTTP servers. The RFC specifies that this code should be returned by teapots requested to brew coffee.</td>
+</tr>
+<tr>
+<td style="text-align:left">419 - Authentication Timeout (not in RFC 2616)</td>
+<td style="text-align:left">Indicates that previously valid authentication has expired. Though not a part of the HTTP standard, the 419 status code is used as an alternative to 401 to differentiate from unauthorized clients being denied access.</td>
+</tr>
+<tr>
+<td style="text-align:left">420 - Enhance Your Calm (Twitter)</td>
+<td style="text-align:left">Returned by version 1 of the Twitter Search and Trends API when the client is being rate limited. Not a part of the HTTP standard.</td>
+</tr>
+<tr>
+<td style="text-align:left">420 - Method Failure (Spring Framework)</td>
+<td style="text-align:left">Defined by Spring in the HttpStatus class to be used when a method fails. Not a part of the HTTP standard, this status code is deprecated by Spring.</td>
+</tr>
+<tr>
+<td style="text-align:left">421 - Misdirected Request (HTTP/2)</td>
+<td style="text-align:left">Indicates that the request is directed at a server that is unable to produce a response.</td>
+</tr>
+<tr>
+<td style="text-align:left">422 - Unprocessable Entity (WebDAV; RFC 4918)</td>
+<td style="text-align:left">Indicates that the request is unable to be followed due to semantic errors.</td>
+</tr>
+<tr>
+<td style="text-align:left">423 - Locked (WebDAV; RFC 4918)</td>
+<td style="text-align:left">Indicates that the resource that is being accessed is locked.</td>
+</tr>
+<tr>
+<td style="text-align:left">424 - Failed Dependency (WebDAV; RFC 4918)</td>
+<td style="text-align:left">Indicates that the request failed because of the failure of a previous request.</td>
+</tr>
+<tr>
+<td style="text-align:left">426 - Upgrade Required</td>
+<td style="text-align:left">Indicates that the client should switch to a different protocol as specified in the Upgrade header field.</td>
+</tr>
+<tr>
+<td style="text-align:left">428 - Precondition Required (RFC 6585)</td>
+<td style="text-align:left">Indicates that origin server requires the request to be conditional to prevent the Òlost updateÓ problem.</td>
+</tr>
+<tr>
+<td style="text-align:left">429 - Too Many Requests (RFC 6585)</td>
+<td style="text-align:left">Occurs when the user has sent too many requests in a given amount of time. For use with rate limiting.</td>
+</tr>
+<tr>
+<td style="text-align:left">431 - Request Header Fields Too Large (RFC 6585)</td>
+<td style="text-align:left">Indicates that the request cannot be processed by the server because a single header field or all headers are collectively too large.</td>
+</tr>
+<tr>
+<td style="text-align:left">440 - Login Timeout (Microsoft)</td>
+<td style="text-align:left">Microsoft extension indicating that the session has expired.</td>
+</tr>
+<tr>
+<td style="text-align:left">444 - No Response (Nginx)</td>
+<td style="text-align:left">In Nginx logs as a malware deterrent, indicates that the server returned no information and closed the connection.</td>
+</tr>
+<tr>
+<td style="text-align:left">449 - Retry With (Microsoft)</td>
+<td style="text-align:left">Microsoft extension indicating that the request should be retried after performing a specific action.</td>
+</tr>
+<tr>
+<td style="text-align:left">450 - Blocked by Windows Parental Controls (Microsoft)</td>
+<td style="text-align:left">Microsoft extension indicating that Windows Parental Controls are turned on and blocking access to the page in question.</td>
+</tr>
+<tr>
+<td style="text-align:left">451 - Redirect (Microsoft)</td>
+<td style="text-align:left">In Exchange ActiveSync, used when there is a more efficient server or the server cannot access the clientÕs mailbox. Client should re-run the HTTP Autodiscovery protocol to find a better suited server.</td>
+</tr>
+<tr>
+<td style="text-align:left">451 - Unavailable For Legal Reasons (Internet draft)</td>
+<td style="text-align:left">Indicates that resource access has been denied for legal reasons such as censorship or government-mandated blocked access. Defined in the Internet draft as “A New HTTP Status Code for Legally-restricted Resources.” References the dystopian novel Fahrenheit 451 (1953), in which books are outlawed.</td>
+</tr>
+<tr>
+<td style="text-align:left">494 - Request Header Too Large (Nginx)</td>
+<td style="text-align:left">Similar to 431, Nginx internal code earlier in version 0.9.4.</td>
+</tr>
+<tr>
+<td style="text-align:left">495 - Cert Error (Nginx)</td>
+<td style="text-align:left">Nginx internal code indicating that SSL client certificate error has occurred</td>
+</tr>
+<tr>
+<td style="text-align:left">496 - No Cert (Nginx)</td>
+<td style="text-align:left">Nginx internal code indicating that the client didn’t provide certificate.</td>
+</tr>
+<tr>
+<td style="text-align:left">497 - HTTP to HTTPS (Nginx)</td>
+<td style="text-align:left">Nginx internal code indicating that plain HTTP requests were sent to HTTPS port.</td>
+</tr>
+<tr>
+<td style="text-align:left">498 - Token Expired/Invalid (Esri)</td>
+<td style="text-align:left">Returned by ArcGIS for Server when token is expired or otherwise invalid.</td>
+</tr>
+<tr>
+<td style="text-align:left">499 - Client Closed Request (Nginx)</td>
+<td style="text-align:left">In Nginx logs, indicates that the connection has been closed by the client while the server is still processing its request, in which case the server is unable to send a status code back.</td>
+</tr>
+<tr>
+<td style="text-align:left">499 - Token Required (Esri)</td>
+<td style="text-align:left">Returned by ArcGIS for Server when a token is required but was not submitted.</td>
+</tr>
+<tr>
+<td style="text-align:left">4xx Client Error</td>
+<td style="text-align:left"></td>
+</tr>
+<tr>
+<td style="text-align:left">500 - Internal Server Error</td>
+<td style="text-align:left">Generic error message for when there is no suitable specific information. Indicates an unexpected condition.</td>
+</tr>
+<tr>
+<td style="text-align:left">501 - Not Implemented</td>
+<td style="text-align:left">Indicates that the server does not recognize the method or is unable to fulfill it. Can indicate future availability.</td>
+</tr>
+<tr>
+<td style="text-align:left">502 - Bad Gateway</td>
+<td style="text-align:left">Indicates that server, when acting as gateway or proxy, received an invalid response from the upstream server.</td>
+</tr>
+<tr>
+<td style="text-align:left">503 - Service Unavailable</td>
+<td style="text-align:left">Indicates that the server is temporarily unavailable, often because of maintenance or overloading.</td>
+</tr>
+<tr>
+<td style="text-align:left">504 - Gateway Timeout</td>
+<td style="text-align:left">Indicates that the server, when acting as gateway or proxy, did not receive a timely response from the upstream server.</td>
+</tr>
+<tr>
+<td style="text-align:left">505 - HTTP Version Not Supported</td>
+<td style="text-align:left">Occurs when the server does not support the requestÕs HTTP protocol version.</td>
+</tr>
+<tr>
+<td style="text-align:left">506 - Variant Also Negotiates (RFC 2295)</td>
+<td style="text-align:left">Indicates that transparent content negotiation for the request is causing a circular reference.</td>
+</tr>
+<tr>
+<td style="text-align:left">507 - Insufficient Storage (WebDAV; RFC 4918)</td>
+<td style="text-align:left">Occurs when the server cannot store the representation necessary for completing the request.</td>
+</tr>
+<tr>
+<td style="text-align:left">508 - Loop Detected (WebDAV; RFC 5842)</td>
+<td style="text-align:left">Indicates that the server detected an infinite loop while processing the request.</td>
+</tr>
+<tr>
+<td style="text-align:left">509 - Bandwidth Limit Exceeded (Apache BW/Limited Extension)</td>
+<td style="text-align:left">Use unknown. Status code not specified by any RFCs.</td>
+</tr>
+<tr>
+<td style="text-align:left">510 - Not Extended (RFC 2774)</td>
+<td style="text-align:left">Indicates that the server requires further extensions in order to fulfill the request.</td>
+</tr>
+<tr>
+<td style="text-align:left">511 - Network Authentication Required (RFC 6585)</td>
+<td style="text-align:left">Client must authenticate in order to gain network access. Often used by proxies that control network access such as Wi-Fi hotspots.</td>
+</tr>
+<tr>
+<td style="text-align:left">598 - Network Read Timeout Error (Unknown)</td>
+<td style="text-align:left">Used by Microsoft HTTP proxies to indicate a network read time-out behind the proxy to a client in front of the proxy. Not specified in any RFCs.</td>
+</tr>
+<tr>
+<td style="text-align:left">599 - Network connect timeout error (Unknown)</td>
+<td style="text-align:left">Used by Microsoft HTTP proxies to indicate a network connect time-out behind the proxy to a client in front of the proxy. Not specified in any RFCs.</td>
+</tr>
+<tr>
+<td style="text-align:left">5xx server error</td>
+<td style="text-align:left"></td>
+</tr>
+</tbody>
+</table>
+<p>为了更直观的快速定位问题，有大神将这五类 HTTP 状态码做成一个决策图，可以很方便看到 HTTP 状态由 <code>1xx ~ 5xx</code> 的含义，并提供了常用解决思路。</p>
+<p><img src="https://img.hi-linux.com/staticfile/http-decision-diagram-2021-06-23-HqYYCV.png" alt></p>
+<p>有了这张图后，是不是当你再遇到 <code>HTTP</code> 报错时，就可以愉快的<strong>将锅扔给开发了</strong>呢，哈哈！更多 HTTP 排错指南可参考： <a href="https://documentation.solarwinds.com/en/success_center/loggly/content/admin/troubleshooting-http.htm" target="_blank" rel="noopener">Troubleshooting HTTP</a>。</p>
+<p><strong>如需『 HTTP 故障图解指南 』 高清版，可在公众号对话框回复关键字：「<code>HTTPTroubleshoot</code>」免费获取。</strong></p>
+<h2><span id="参考文档">参考文档</span></h2>
+<ul>
+<li><a href="https://tinyurl.com/srs4z5vj" target="_blank" rel="noopener">https://tinyurl.com/srs4z5vj</a></li>
+<li><a href="https://www.loggly.com/blog/http-status-code-diagram/" target="_blank" rel="noopener">https://www.loggly.com/blog/http-status-code-diagram/</a></li>
+<li><a href="https://documentation.solarwinds.com/en/success_center/loggly/content/admin/troubleshooting-http.htm" target="_blank" rel="noopener">https://documentation.solarwinds.com/en/success_center/loggly/content/admin/troubleshooting-http.htm</a></li>
+</ul>
+</div>
+
+			<script src="https://my.openwrite.cn/js/readmore.js" type="text/javascript"></script>
+			<script>
+			var isMobile = navigator.userAgent.match(/(phone|pad|pod|iPhone|iPod|ios|iPad|Android|Mobile|BlackBerry|IEMobile|MQQBrowser|JUC|Fennec|wOSBrowser|BrowserNG|WebOS|Symbian|Windows Phone)/i);
+			if (!isMobile) {
+			    var btw = new BTWPlugin();
+			    btw.init({
+			        "id": "vip-container",
+			        "blogId": "10135-1588830050631-449",
+			        "name": "「奇妙的 Linux 世界」",
+			        "qrcode": "https://www.hi-linux.com/img/wechat/mp_qrcode_12.jpg",
+			        "keyword": "VIP"
+			    });
+			}
+			</script>
+		
+                
+
+                <hr>
+                <!-- Pager -->
+                <ul class="pager">
+                    
+                    
+                        <li class="next">
+                            <a href="/posts/24084.html" data-toggle="tooltip" data-placement="top" title="CentOS 之父创造的 Rocky Linux 8.4 正式版发布了！(内附镜像下载地址）">Next Post &rarr;</a>
+                        </li>
+                    
+                </ul>
+
+                <!-- duoshuo Share start -->
+                
+                <!-- 多说 Share end-->
+
+                <!-- 多说评论框 start -->
+                
+                <!-- 多说评论框 end -->
+
+                <!-- disqus comment start -->
+                
+                <!-- disqus comment end -->
+
+                
+                    <!-- disqus 评论框 start -->
+                    <div class="comment">
+                        <div id="lv-container" data-id="city" data-uid="MTAyMC8yNzg2My80NDQw"></div>
+                    </div>
+                    <!-- disqus 评论框 end -->
+                
+
+            </div>
+            
+            <!-- Tabe of Content -->
+            <!-- Table of Contents -->
+
+  
+    <style>
+      span.toc-nav-number{
+        display: none
+      }
+    </style>
+  
+    
+      <aside id="sidebar">
+        <div id="toc" class="toc-article">
+        <strong class="toc-title">Contents</strong>
+        
+          <ol class="toc-nav"><li class="toc-nav-item toc-nav-level-2"><a class="toc-nav-link" href="#vip-container"><span class="toc-nav-number">1.</span> <span class="toc-nav-text">HTTP 状态代码决策图</span></a></li><li class="toc-nav-item toc-nav-level-2"><a class="toc-nav-link" href="#vip-container"><span class="toc-nav-number">2.</span> <span class="toc-nav-text">参考文档</span></a></li></ol>
+        
+        </div>
+      </aside>
+    
+
+                
+            <!-- Sidebar Container -->
+            <div class="
+                col-lg-8 col-lg-offset-2
+                col-md-10 col-md-offset-1
+                sidebar-container">
+
+                <!-- Featured Tags -->
+                
+                <section>
+                    <!-- no hr -->
+                    <h5><a href="/tags/">FEATURED TAGS</a></h5>
+                    <div class="tags">
+                       
+                          <a class="tag" href="/tags/#技巧" title="技巧">技巧</a>
+                        
+                          <a class="tag" href="/tags/#Linux" title="Linux">Linux</a>
+                        
+                          <a class="tag" href="/tags/#HTTP" title="HTTP">HTTP</a>
+                        
+                    </div>
+                </section>
+                
+
+                <!-- Friends Blog -->
+                
+                <hr>
+                <h5>FRIENDS</h5>
+                <ul class="list-inline">
+
+                    
+                        <li><a href="http://www.mike.org.cn/" target="_blank">简单.生活</a></li>
+                    
+                        <li><a href="http://shang.qq.com/wpa/qunwpa?idkey=ea4c43493c2269428ac6ef6141de4b6d78e5ab2d41380ca4099b833b62884ee9" target="_blank">技术交流群</a></li>
+                    
+                        <li><a href="" target="_blank"></a></li>
+                    
+                        <li><a href="" target="_blank"></a></li>
+                    
+                </ul>
+                
+            </div>
+        </div>
+    </div>
+</article>
+
+
+
+
+
+
+    <!-- 来必力City版公共JS代码 start (一个网页只需插入一次) -->
+    <script type="text/javascript">
+       (function(d, s) {
+           var j, e = d.getElementsByTagName(s)[0];
+    
+           if (typeof LivereTower === 'function') { return; }
+    
+           j = d.createElement(s);
+           j.src = 'https://cdn-city.livere.com/js/embed.dist.js';
+           j.async = true;
+    
+           e.parentNode.insertBefore(j, e);
+       })(document, 'script');
+    </script>
+    <noscript>为正常使用来必力评论功能请激活JavaScript</noscript>
+    <!-- 来必力City版 公共JS代码 end -->
+
+
+
+<!-- async load function -->
+<script>
+    function async(u, c) {
+      var d = document, t = 'script',
+          o = d.createElement(t),
+          s = d.getElementsByTagName(t)[0];
+      o.src = u;
+      if (c) { o.addEventListener('load', function (e) { c(null, e); }, false); }
+      s.parentNode.insertBefore(o, s);
+    }
+</script>
+<!-- anchor-js, Doc:http://bryanbraun.github.io/anchorjs/ -->
+<script>
+    async("https://cdn.bootcss.com/anchor-js/1.1.1/anchor.min.js",function(){
+        anchors.options = {
+          visible: 'hover',
+          placement: 'left',
+          icon: 'ℬ'
+        };
+        anchors.add().remove('.intro-header h1').remove('.subheading').remove('.sidebar-container h5');
+    })
+</script>
+<style>
+    /* place left on bigger screen */
+    @media all and (min-width: 800px) {
+        .anchorjs-link{
+            position: absolute;
+            left: -0.75em;
+            font-size: 1.1em;
+            margin-top : -0.1em;
+        }
+    }
+</style>
+
+
+
+    <!-- Footer -->
+    <!-- Footer -->
+<footer>
+    <div class="container">
+        <div class="row">
+            <div class="col-lg-8 col-lg-offset-2 col-md-10 col-md-offset-1">
+                <ul class="list-inline text-center">
+                
+                    <li>
+                        <a href="/atom.xml">
+                            <span class="fa-stack fa-lg">
+                                <i class="fa fa-circle fa-stack-2x"></i>
+                                <i class="fa fa-rss fa-stack-1x fa-inverse"></i>
+                            </span>
+                        </a>
+                    </li>
+                
+                
+                
+                    <li>
+                        <a target="_blank" href="https://www.zhihu.com/people/80imike">
+                            <span class="fa-stack fa-lg">
+                                <i class="fa fa-circle fa-stack-2x"></i>
+                                <i class="fa  fa-stack-1x fa-inverse">知</i>
+                            </span>
+                        </a>
+                    </li>
+                
+
+                
+                    <li>
+                        <a target="_blank" href="http://weibo.com/2093524665">
+                            <span class="fa-stack fa-lg">
+                                <i class="fa fa-circle fa-stack-2x"></i>
+                                <i class="fa fa-weibo fa-stack-1x fa-inverse"></i>
+                            </span>
+                        </a>
+                    </li>
+                
+
+                
+
+                
+
+                
+
+                </ul>
+                <p class="copyright text-muted">
+                    Copyright &copy; Mike 2021 | Hosted by <a href="https://pages.coding.me" target="_blank" rel="noopener" style="font-weight: bold">Coding Pages</a>
+                    <br>
+                    Theme by <a href="http://beantech.org" target="_blank" rel="noopener">BeanTech</a> 
+                    <span style="display: inline-block; margin: 0 5px;">
+                        <i class="fa fa-heart"></i>
+                    </span> 
+                    re-Ported by <a href="http://www.huweihuang.com" target="_blank" rel="noopener">胡伟煌</a> | 
+                    <iframe
+                        style="margin-left: 2px; margin-bottom:-5px;"
+                        frameborder="0" scrolling="0" width="91px" height="20px"
+                        src="https://ghbtns.com/github-btn.html?user=huweihuang&repo=hexo-theme-huweihuang&type=star&count=true" >
+                    </iframe>
+                </p>
+            </div>
+        </div>
+    </div>
+</footer>
+
+<!-- jQuery -->
+
+<script src="/js/jquery.min.js"></script>
+
+
+<!-- Bootstrap Core JavaScript -->
+
+<script src="/js/bootstrap.min.js"></script>
+
+
+<!-- Custom Theme JavaScript -->
+
+<script src="/js/hux-blog.min.js"></script>
+
+
+
+<!-- async load function -->
+<script>
+    function async(u, c) {
+      var d = document, t = 'script',
+          o = d.createElement(t),
+          s = d.getElementsByTagName(t)[0];
+      o.src = u;
+      if (c) { o.addEventListener('load', function (e) { c(null, e); }, false); }
+      s.parentNode.insertBefore(o, s);
+    }
+</script>
+
+<!-- 
+     Because of the native support for backtick-style fenced code blocks 
+     right within the Markdown is landed in Github Pages, 
+     From V1.6, There is no need for Highlight.js, 
+     so Huxblog drops it officially.
+
+     - https://github.com/blog/2100-github-pages-now-faster-and-simpler-with-jekyll-3-0  
+     - https://help.github.com/articles/creating-and-highlighting-code-blocks/    
+-->
+<!--
+    <script>
+        async("http://cdn.bootcss.com/highlight.js/8.6/highlight.min.js", function(){
+            hljs.initHighlightingOnLoad();
+        })
+    </script>
+    <link href="http://cdn.bootcss.com/highlight.js/8.6/styles/github.min.css" rel="stylesheet">
+-->
+
+
+<!-- jquery.tagcloud.js -->
+<script>
+    // only load tagcloud.js in tag.html
+    if($('#tag_cloud').length !== 0){
+        async("https://www.hi-linux.com/js/jquery.tagcloud.js",function(){
+            $.fn.tagcloud.defaults = {
+                //size: {start: 1, end: 1, unit: 'em'},
+                color: {start: '#bbbbee', end: '#0085a1'},
+            };
+            $('#tag_cloud a').tagcloud();
+        })
+    }
+</script>
+
+<!--fastClick.js -->
+<script>
+    async("https://cdn.bootcss.com/fastclick/1.0.6/fastclick.min.js", function(){
+        var $nav = document.querySelector("nav");
+        if($nav) FastClick.attach($nav);
+    })
+</script>
+
+
+<!-- Google Analytics -->
+
+
+
+
+<!-- Baidu Tongji -->
+
+
+
+
+
+
+	<a id="rocket" href="#top" class=""></a>
+	<script type="text/javascript" src="/js/totop.js?v=1.0.0" async=""></script>
+    <script type="text/javascript" src="/js/toc.js?v=1.0.0" async=""></script>
+<!-- Image to hack wechat -->
+<img src="https://www.hi-linux.com/img/icon_wechat.png" width="0" height="0" />
+<!-- Migrate from head to bottom, no longer block render and still work -->
+
+<script>(function(w,d, s, id) {w.webpushr=w.webpushr||function(){(w.webpushr.q=w.webpushr.q||[]).push(arguments)};var js, fjs = d.getElementsByTagName(s)[0];js = d.createElement(s); js.id = id;js.src = 'https://cdn.webpushr.com/app.min.js';fjs.parentNode.appendChild(js);}(window,document, 'script', 'webpushr-jssdk'));webpushr('init','BF9JK7xV9kjWTdMx2lr6RWaPfXV7wNuZaVAJ1bfIGoBNJavqLEBVFMKLubITnCA4bh2fI9iH9tMF95nXnPt7xxY');</script></body>
+
+</html>
