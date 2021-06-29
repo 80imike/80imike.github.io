@@ -1,0 +1,622 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<!-- Head tag -->
+<head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="google-site-verification" content="xBT4GhYoi5qRD5tr338pgPM5OWHHIDR6mNg1a3euekI" />
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="description" content="">
+    <meta name="keyword"  content="Linux,运维,Nginx,Zabbix,Centos,Ansible,MySQL,Python,Docker,ELK,Haproxy,Git,Nodejs,安全,技术">
+    <link rel="shortcut icon" href="/img/ironman-draw.png">
+    <!-- Place this tag in your head or just before your close body tag. -->
+    <script async defer src="https://buttons.github.io/buttons.js"></script>
+    <title>
+        
+          Kubernetes 官方出品调试工具上手指南(无需安装，开箱即用) - 奇妙的 Linux 世界
+        
+    </title>
+
+    <link rel="canonical" href="https://www.hi-linux.com/posts/48532.html">
+
+    <!-- Bootstrap Core CSS -->
+    
+<link rel="stylesheet" href="/css/bootstrap.min.css">
+
+
+    <!-- Custom CSS --> 
+    
+<link rel="stylesheet" href="/css/beantech.min.css">
+
+    
+    <!-- Pygments Highlight CSS -->
+    
+<link rel="stylesheet" href="/css/highlight.css">
+
+
+    
+<link rel="stylesheet" href="/css/widget.css">
+
+
+    
+<link rel="stylesheet" href="/css/rocket.css">
+
+
+    
+<link rel="stylesheet" href="/css/signature.css">
+
+
+    
+<link rel="stylesheet" href="/css/toc.css">
+
+
+    <!-- Custom Fonts -->
+    <!-- <link href="https://maxcdn.bootstrapcdn.com/font-awesome/4.3.0/css/font-awesome.min.css" rel="stylesheet" type="text/css"> -->
+    <!-- Hux change font-awesome CDN to qiniu -->
+    <link href="https://cdn.staticfile.org/font-awesome/4.5.0/css/font-awesome.min.css" rel="stylesheet" type="text/css">
+
+
+    <!-- Hux Delete, sad but pending in China
+    <link href='http://fonts.googleapis.com/css?family=Lora:400,700,400italic,700italic' rel='stylesheet' type='text/css'>
+    <link href='http://fonts.googleapis.com/css?family=Open+Sans:300italic,400italic,600italic,700italic,800italic,400,300,600,700,800' rel='stylesheet' type='text/
+    css'>
+    -->
+
+
+    <!-- HTML5 Shim and Respond.js IE8 support of HTML5 elements and media queries -->
+    <!-- WARNING: Respond.js doesn't work if you view the page via file:// -->
+    <!--[if lt IE 9]>
+        <script src="https://oss.maxcdn.com/libs/html5shiv/3.7.0/html5shiv.js"></script>
+        <script src="https://oss.maxcdn.com/libs/respond.js/1.4.2/respond.min.js"></script>
+    <![endif]-->
+
+    <!-- ga & ba script hoook -->
+    <script></script>
+<meta name="generator" content="Hexo 4.2.1"><link rel="alternate" href="/atom.xml" title="奇妙的 Linux 世界" type="application/atom+xml">
+</head>
+
+
+<!-- hack iOS CSS :active style -->
+<body ontouchstart="">
+	<!-- Modified by Yu-Hsuan Yen -->
+<!-- Post Header -->
+<style type="text/css">
+    header.intro-header{
+        
+            background-image: url('/img/header_img/building.jpg')
+            /*post*/
+        
+    }
+    
+</style>
+
+<header class="intro-header" >
+    <!-- Signature -->
+    <div id="signature">
+        <div class="container">
+            <div class="row">
+                <div class="col-lg-8 col-lg-offset-2 col-md-10 col-md-offset-1">
+                
+                    <div class="post-heading">
+                        <div class="tags">
+                            
+                              <a class="tag" href="/tags/#技巧" title="技巧">技巧</a>
+                            
+                              <a class="tag" href="/tags/#Linux" title="Linux">Linux</a>
+                            
+                              <a class="tag" href="/tags/#Kubernetes" title="Kubernetes">Kubernetes</a>
+                            
+                        </div>
+                        <h1>Kubernetes 官方出品调试工具上手指南(无需安装，开箱即用)</h1>
+                        <h2 class="subheading"></h2>
+                        <span class="meta">
+                            Posted by Mike on
+                            2021-06-29
+                        </span>
+                    </div>
+                
+
+
+                </div>
+            </div>
+        </div>
+    </div>
+</header>
+
+	
+    <!-- Navigation -->
+<nav class="navbar navbar-default navbar-custom navbar-fixed-top">
+    <div class="container-fluid">
+        <!-- Brand and toggle get grouped for better mobile display -->
+        <div class="navbar-header page-scroll">
+            <button type="button" class="navbar-toggle">
+                <span class="sr-only">Toggle navigation</span>
+                <span class="icon-bar"></span>
+                <span class="icon-bar"></span>
+                <span class="icon-bar"></span>
+            </button>
+            <a class="navbar-brand" href="/">奇妙的 Linux 世界</a>
+        </div>
+
+        <!-- Collect the nav links, forms, and other content for toggling -->
+        <!-- Known Issue, found by Hux:
+            <nav>'s height woule be hold on by its content.
+            so, when navbar scale out, the <nav> will cover tags.
+            also mask any touch event of tags, unfortunately.
+        -->
+        <div id="huxblog_navbar">
+            <div class="navbar-collapse">
+                <ul class="nav navbar-nav navbar-right">
+                    <li>
+                        <a href="/">Home</a>
+                    </li>
+
+                    
+
+                        
+                    
+
+                        
+                    
+
+                        
+                        <li>
+                            <a href="/about/">About</a>
+                        </li>
+                        
+                    
+
+                        
+                        <li>
+                            <a href="/tags/">Tags</a>
+                        </li>
+                        
+                    
+
+                        
+                        <li>
+                            <a href="/archive/">Archives</a>
+                        </li>
+                        
+                    
+                    
+                </ul>
+            </div>
+        </div>
+        <!-- /.navbar-collapse -->
+    </div>
+    <!-- /.container -->
+</nav>
+<script>
+    // Drop Bootstarp low-performance Navbar
+    // Use customize navbar with high-quality material design animation
+    // in high-perf jank-free CSS3 implementation
+    var $body   = document.body;
+    var $toggle = document.querySelector('.navbar-toggle');
+    var $navbar = document.querySelector('#huxblog_navbar');
+    var $collapse = document.querySelector('.navbar-collapse');
+
+    $toggle.addEventListener('click', handleMagic)
+    function handleMagic(e){
+        if ($navbar.className.indexOf('in') > 0) {
+        // CLOSE
+            $navbar.className = " ";
+            // wait until animation end.
+            setTimeout(function(){
+                // prevent frequently toggle
+                if($navbar.className.indexOf('in') < 0) {
+                    $collapse.style.height = "0px"
+                }
+            },400)
+        }else{
+        // OPEN
+            $collapse.style.height = "auto"
+            $navbar.className += " in";
+        }
+    }
+</script>
+
+
+    <!-- Main Content -->
+    <!-- Modify by Yu-Hsuan Yen -->
+
+<!-- Post Content -->
+<article>
+    <div class="container">
+        <div class="row">
+
+            <!-- Post Container -->
+            <div class="
+                col-lg-8 col-lg-offset-2
+                col-md-10 col-md-offset-1
+                post-container">
+
+                <div id="vip-container"><p>本文介绍了 Kubectl debug 和临时容器等调试方法。</p>
+<blockquote>
+<p>作者：Martin Heinz</p>
+<p>翻译：Bach (K8sMeetup)</p>
+<p>校对：星空下的文仔</p>
+</blockquote>
+<p>调试容器化工作负载和 Pod 是每位使用 Kubernetes 的开发人员和 DevOps 工程师的日常任务。通常情况下，我们简单地使用 <code>kubectl logs</code> 或者 <code>kubectl describe pod</code> 便足以找到问题所在，但有时候，一些问题会特别难查。这种情况下，大家可能会尝试使用 <code>kubectl exec</code>，但有时候这样也还不行，因为 Distroless 等容器甚至不允许通过 SSH 进入 shell。那么，如果以上所有方法都失败了，我们要怎么办？</p>
+<h2><span id="更好的方法">更好的方法</span></h2>
+<p>其实我们只需要使用更合适的工具。<strong>如果在 Kubernetes 上调试工作负载，那么合适的工具就是 <code>kubectl debug</code>。</strong> 这是不久前添加的一个新命令（v1.18），允许调试正在运行的 pod。它会将名为 EphemeralContainer（临时容器）的特殊容器注入到问题 Pod 中，让我们查看并排除故障。<code>kubectl debug</code> 看起来非常不错，但要使用它需要临时容器，临时容器到底是什么？</p>
+<p><strong>临时容器其实是 Pod 中的子资源，类似普通 <code>container</code>。但与普通容器不同的是，临时容器不用于构建应用程序，而是用于检查。</strong> 我们不会在创建 Pod 时定义它们，而使用特殊的 API 将其注入到运的行 Pod 中，来运行命令并检查 Pod 环境。除了这些不同，临时容器还缺少一些基本容器的字段，例如 <code>ports</code>、<code>resources</code>。</p>
+<p>那么我们为什么不直接使用基本容器？这是因为我们不能向 Pod 添加基本容器，它们应该是一次性的（需要随时删除或重新创建），这会导致难以重现问题 Pod 的错误，排除故障也会很麻烦。这就是将临时容器添加到 API 的原因——它们允许我们将临时容器添加到现有 Pod，从而检查正在运行的 Pod。</p>
+<p>虽然临时容器是作为 Kubernetes 核心的 Pod 规范的一部分，但很多人可能还没有听说过。这是因为临时容器处于早期 Alpha 阶段，这意味着默认情况下不启用。Alpha 阶段的资源和功能可能会出现重大变化，或者在 Kubernetes 的某个未来版本中被完全删除。<strong>因此，要使用它们必须在 kubelet 中使用Feature Gate（功能门）显式启用。</strong></p>
+<a id="more"></a>
+<h2><span id="configuring-feature-gates">Configuring Feature Gates</span></h2>
+<p><strong>现在如果确定要试用 <code>kubectl debug</code>，那么如何启用临时容器的功能门？这取决于集群设置。</strong> 例如，现在使用kubeadm启动创建集群，那么可以使用以下集群配置来启用临时容器：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">apiVersion: kubeadm.k8s.io&#x2F;v1beta2</span><br><span class="line">kind: ClusterConfiguration</span><br><span class="line">kubernetesVersion: v1.20.2</span><br><span class="line">apiServer:</span><br><span class="line">  extraArgs:</span><br><span class="line">    feature-gates: EphemeralContainers&#x3D;true</span><br></pre></td></tr></table></figure>
+<p>在以下示例中，为了简单和测试目的，我们使用 KinD（Docker 中的 Kubernetes）集群，这允许我们指定要启用的功能门。创建我们的测试集群：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line"># File: config.yaml</span><br><span class="line"># Run:  kind create cluster --config .&#x2F;config.yaml --name kind --image&#x3D;kindest&#x2F;node:v1.20.2</span><br><span class="line">kind: Cluster</span><br><span class="line">apiVersion: kind.x-k8s.io&#x2F;v1alpha4</span><br><span class="line">featureGates:</span><br><span class="line">  EphemeralContainers: true</span><br><span class="line">nodes:</span><br><span class="line">- role: control-plane</span><br></pre></td></tr></table></figure>
+<p>随着集群的运行，我们需要验证其有效性。最简单方法是检查 Pod API，它现在应该包含临时容器部分以及通常容器：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line">~ $ kubectl explain pod.spec.ephemeralContainers</span><br><span class="line">KIND:     Pod</span><br><span class="line">VERSION:  v1</span><br><span class="line"></span><br><span class="line">RESOURCE: ephemeralContainers &lt;[]Object&gt;</span><br><span class="line"></span><br><span class="line">DESCRIPTION:</span><br><span class="line">     List of ephemeral containers run in this pod....</span><br><span class="line">...</span><br></pre></td></tr></table></figure>
+<p>现在都有了，可以开始使用 <code>kubectl debug</code>。从简单的例子开始：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br></pre></td><td class="code"><pre><span class="line">~ $ kubectl run some-app --image&#x3D;k8s.gcr.io&#x2F;pause:3.1 --restart&#x3D;Never</span><br><span class="line">~ $ kubectl debug -it some-app --image&#x3D;busybox --target&#x3D;some-app</span><br><span class="line">Defaulting debug container name to debugger-tfqvh.</span><br><span class="line">If you don&#39;t see a command prompt, try pressing enter.</span><br><span class="line">&#x2F; #</span><br><span class="line"># From other terminal...</span><br><span class="line">~ $ kubectl describe pod some-app</span><br><span class="line">...</span><br><span class="line">Containers:</span><br><span class="line">  some-app:</span><br><span class="line">    Container ID:   containerd:&#x2F;&#x2F;60cc537eee843cb38a1ba295baaa172db8344eea59de4d75311400436d4a5083</span><br><span class="line">    Image:          k8s.gcr.io&#x2F;pause:3.1</span><br><span class="line">    Image ID:       k8s.gcr.io&#x2F;pause@sha256:f78411e19d84a252e53bff71a4407a5686c46983a2c2eeed83929b888179acea</span><br><span class="line">...</span><br><span class="line">Ephemeral Containers:</span><br><span class="line">  debugger-tfqvh:</span><br><span class="line">    Container ID:   containerd:&#x2F;&#x2F;12efbbf2e46bb523ae0546b2369801b51a61e1367dda839ce0e02f0e5c1a49d6</span><br><span class="line">    Image:          busybox</span><br><span class="line">    Image ID:       docker.io&#x2F;library&#x2F;busybox@sha256:ce2360d5189a033012fbad1635e037be86f23b65cfd676b436d0931af390a2ac</span><br><span class="line">    Port:           &lt;none&gt;</span><br><span class="line">    Host Port:      &lt;none&gt;</span><br><span class="line">    State:          Running</span><br><span class="line">      Started:      Mon, 15 Mar 2021 20:33:51 +0100</span><br><span class="line">    Ready:          False</span><br><span class="line">    Restart Count:  0</span><br><span class="line">    Environment:    &lt;none&gt;</span><br><span class="line">    Mounts:         &lt;none&gt;</span><br></pre></td></tr></table></figure>
+<p>我们首先启动一个名为 <code>some-app</code> 的 Pod 来进行“调试”。然后针对这个 Pod 运行 <code>kubectl debug</code>，指定 <code>busybox</code> 为临时容器的镜像，并作为原始容器的目标。此外，还需要包括 <code>-it</code> 参数，以便我们立即附加到容器获得 shell 会话。</p>
+<p>在上面的代码中可以看到，如果我们在 Pod 上运行 kubectl debug 后对其进行描述，那么它的描述将包括具有之前指定为命令选项值的临时容器部分。</p>
+<h2><span id="process-namespace-sharing">Process Namespace Sharing</span></h2>
+<p><code>kubectl debug</code> 是非常强大的工具，但有时向 Pod 添加一个容器还不足以获取 Pod 的另一个容器中运行的应用程序相关信息。当故障容器不包括必要的调试工具甚至 shell 时，可能就是这种情况。<strong>在这种情况下，我们可以使用 Process Sharing（进程共享）来使用注入的临时容器检查 Pod 的原有容器。</strong></p>
+<p>进程共享的一个问题是它不能应用于现有的 Pod，因此我们必须创建一个新 Pod，将其 <code>spec.shareProcessNamespace</code> 设置为 <code>true</code>，并将一个临时容器注入其中。这样有点麻烦，尤其是需要调试多个 Pod 或容器，亦或者需要重复执行该操作时。幸运的是，<code>kubectl debug</code> 可以使用 <code>--share-processes</code> 做到：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br></pre></td><td class="code"><pre><span class="line">~ $ kubectl run some-app --image&#x3D;nginx --restart&#x3D;Never</span><br><span class="line">~ $ kubectl debug -it some-app --image&#x3D;busybox --share-processes --copy-to&#x3D;some-app-debug</span><br><span class="line">Defaulting debug container name to debugger-tkwst.</span><br><span class="line">If you don&#39;t see a command prompt, try pressing enter.</span><br><span class="line">&#x2F; # ps ax</span><br><span class="line">PID   USER     TIME  COMMAND</span><br><span class="line">    1 root      0:00 &#x2F;pause</span><br><span class="line">    8 root      0:00 nginx: master process nginx -g daemon off;</span><br><span class="line">   38 101       0:00 nginx: worker process</span><br><span class="line">   39 root      0:00 sh</span><br><span class="line">   46 root      0:00 ps ax</span><br><span class="line">~ $ cat &#x2F;proc&#x2F;8&#x2F;root&#x2F;etc&#x2F;nginx&#x2F;conf.d&#x2F;default.conf </span><br><span class="line">server &#123;</span><br><span class="line">    listen       80;</span><br><span class="line">    listen  [::]:80;</span><br><span class="line">    server_name  localhost;</span><br><span class="line">...</span><br></pre></td></tr></table></figure>
+<p>上面的代码表明，通过进程共享，我们可以看到 Pod 中另一个容器内的所有内容，包括其进程和文件，这对于调试来说非常方便。另外，除了 <code>--share-processes</code> 还包括了 <code>--copy-to=new-pod-name</code>，这是因为我们需要创建一个新的 Pod，其名称由该 flag 指定。如果我们从另一个终端列出正在运行的 Pod，我们将看到以下内容：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"># From other terminal:</span><br><span class="line">~ $ kubectl get pods</span><br><span class="line">NAME             READY   STATUS    RESTARTS   AGE</span><br><span class="line">some-app         1&#x2F;1     Running   0          23h</span><br><span class="line">some-app-debug   2&#x2F;2     Running   0          20s</span><br></pre></td></tr></table></figure>
+<p>这就是我们在原始应用程序 Pod 上的新调试 Pod。与原始容器相比，它有 2 个容器，因为它还包括临时容器。此外，如果想在任何时候验证 Pod 中是否允许进程共享，那么可以运行：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">~ $ kubectl get pod some-app-debug -o json  | jq .spec.shareProcessNamespace</span><br><span class="line">true</span><br></pre></td></tr></table></figure>
+<h2><span id="好好使用">好好使用</span></h2>
+<p><strong>既然我们已经启用了功能并且知道命令是如何工作的，那就试着使用它并调试一些应用程序。</strong> 想象这样一个场景——我们有一个问题应用程序，我们需要在它的容器中对网络相关的问题进行故障排除。该应用程序没有我们可以使用的必要的网络 CLI 工具。为了解决这个问题，我们通过以下方式使用 <code>kubectl debug</code>：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br></pre></td><td class="code"><pre><span class="line">~ $ kubectl run distroless-python --image&#x3D;martinheinz&#x2F;distroless-python --restart&#x3D;Never</span><br><span class="line">~ $ kubectl exec -it distroless-python -- &#x2F;bin&#x2F;sh</span><br><span class="line"># id</span><br><span class="line">&#x2F;bin&#x2F;sh: 1: id: not found</span><br><span class="line"># ls</span><br><span class="line">&#x2F;bin&#x2F;sh: 2: ls: not found</span><br><span class="line"># env</span><br><span class="line">&#x2F;bin&#x2F;sh: 3: env: not found</span><br><span class="line">#</span><br><span class="line">...</span><br><span class="line"></span><br><span class="line">kubectl debug -it distroless-python --image&#x3D;praqma&#x2F;network-multitool --target&#x3D;distroless-python -- sh</span><br><span class="line">Defaulting debug container name to debugger-rvtd4.</span><br><span class="line">If you don&#39;t see a command prompt, try pressing enter.</span><br><span class="line">&#x2F; # ping localhost</span><br><span class="line">PING localhost(localhost (::1)) 56 data bytes</span><br><span class="line">64 bytes from localhost (::1): icmp_seq&#x3D;1 ttl&#x3D;64 time&#x3D;0.025 ms</span><br><span class="line">64 bytes from localhost (::1): icmp_seq&#x3D;2 ttl&#x3D;64 time&#x3D;0.044 ms</span><br><span class="line">64 bytes from localhost (::1): icmp_seq&#x3D;3 ttl&#x3D;64 time&#x3D;0.027 ms</span><br></pre></td></tr></table></figure>
+<p>在启动一个 Pod 之后，我们首先尝试将 shell 会话放入它的容器中，这看起来有效，但是实际上我们尝试运行一些基本命令时，将看到那里什么都没有。所以，我们要使用 <code>praqma/network-multitool</code> 将临时容器注入到 Pod 中，该镜像包含了 <code>curl</code>、<code>ping</code>、<code>telnet</code> 等工具，现在我们可以进行所有必要的故障排除。</p>
+<p>在上面的例子中，我们进入 Pod 的另一个容器中就足够了。但有时可能需要直接查看有问题的容器。这种情况下，我们可以像这样使用进程共享：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br></pre></td><td class="code"><pre><span class="line">~ $ kubectl run distroless-python --image&#x3D;martinheinz&#x2F;distroless-python --restart&#x3D;Never</span><br><span class="line">~ $ kubectl debug -it distroless-python --image&#x3D;busybox --share-processes --copy-to&#x3D;distroless-python-debug</span><br><span class="line">Defaulting debug container name to debugger-l692h.</span><br><span class="line">If you don&#39;t see a command prompt, try pressing enter.</span><br><span class="line">&#x2F; # ps ax</span><br><span class="line">PID   USER     TIME  COMMAND</span><br><span class="line">    1 root      0:00 &#x2F;pause</span><br><span class="line">    8 root      0:00 &#x2F;usr&#x2F;bin&#x2F;python3.5 sleep.py  # Original container is just sleeping forever</span><br><span class="line">   14 root      0:00 sh</span><br><span class="line">   20 root      0:00 ps ax</span><br><span class="line">&#x2F; # cat &#x2F;proc&#x2F;8&#x2F;root&#x2F;app&#x2F;sleep.py </span><br><span class="line">import time</span><br><span class="line">print(&quot;sleeping for 1 hour&quot;)</span><br><span class="line">time.sleep(3600)</span><br></pre></td></tr></table></figure>
+<p>在这里，我们再次运行使用 Distroless 镜像的容器。我们无法在它的 shell 中做任何事情。我们运行 <code>kubectl debug</code> 以及 <code>--share-processes --copy-to=...</code>，它创建了一个新的 Pod，带有额外的临时容器，可以访问所有进程。当我们列出正在运行的进程时，能看到应用程序容器的进程有 PID 8，可以用它来探索文件和环境。为此，我们需要通过 <code>/proc/&lt;PID&gt;/...</code> 目录，这个例子中是 <code>/proc/8/root/app/...</code>。</p>
+<p>另一种常见情况是应用程序在容器启动时不断崩溃，这让调试非常困难，因为没有足够的时间将 shell 会话导入容器并运行故障排除命令。<strong>在这种情况下，解决方案是创建具有不同入口点、命令的容器，这可以阻止应用程序立即崩溃并允许我们调试：</strong></p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br></pre></td><td class="code"><pre><span class="line">~ $ kubectl get pods</span><br><span class="line">NAME                READY   STATUS             RESTARTS   AGE</span><br><span class="line">crashing-app        0&#x2F;1     CrashLoopBackOff   1          8s</span><br><span class="line"></span><br><span class="line">~ $ kubectl debug crashing-app -it --copy-to&#x3D;crashing-app-debug --container&#x3D;crashing-app -- sh</span><br><span class="line">If you don&#39;t see a command prompt, try pressing enter.</span><br><span class="line"># id</span><br><span class="line">uid&#x3D;0(root) gid&#x3D;0(root) groups&#x3D;0(root)</span><br><span class="line">#</span><br><span class="line">...</span><br><span class="line"># From another terminal</span><br><span class="line">~ $ kubectl get pods</span><br><span class="line">NAME                READY   STATUS             RESTARTS   AGE</span><br><span class="line">crashing-app        0&#x2F;1     CrashLoopBackOff   3          2m7s</span><br><span class="line">crashing-app-debug  1&#x2F;1     Running            0          16s</span><br></pre></td></tr></table></figure>
+<h2><span id="调试集群节点">调试集群节点</span></h2>
+<p>本文主要关注 Pod 及其容器的调试，但任何集群管理员都知道常常需要调试的是节点而不是 Pod。幸运的是，<code>kubectl debug</code> 允许通过创建 Pod 来调试节点，该 Pod 将在指定节点上运行，节点的根文件系统安装在 <code>/root</code> 目录中。我们甚至可以用 <code>chroot</code> 访问主机二进制文件，这本质上充当了节点的 SSH 连接：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br></pre></td><td class="code"><pre><span class="line">~ $ kubectl get nodes</span><br><span class="line">NAME                 STATUS   ROLES                  AGE   VERSION</span><br><span class="line">kind-control-plane   Ready    control-plane,master   25h   v1.20.2</span><br><span class="line"></span><br><span class="line">~ $ kubectl debug node&#x2F;kind-control-plane -it --image&#x3D;ubuntu</span><br><span class="line">Creating debugging pod node-debugger-kind-control-plane-hvljt with container debugger on node kind-control-plane.</span><br><span class="line">If you don&#39;t see a command prompt, try pressing enter.</span><br><span class="line">root@kind-control-plane:&#x2F;# chroot &#x2F;host</span><br><span class="line"># head kind&#x2F;kubeadm.conf</span><br><span class="line">apiServer:</span><br><span class="line">  certSANs:</span><br><span class="line">  - localhost</span><br><span class="line">  - 127.0.0.1</span><br><span class="line">  extraArgs:</span><br><span class="line">    feature-gates: EphemeralContainers&#x3D;true</span><br><span class="line">    runtime-config: &quot;&quot;</span><br><span class="line">apiVersion: kubeadm.k8s.io&#x2F;v1beta2</span><br><span class="line">clusterName: kind</span><br><span class="line">controlPlaneEndpoint: kind-control-plane:6443</span><br></pre></td></tr></table></figure>
+<p>在上面的代码中，我们首先确定了想要调试的节点，然后使用 <code>node/...</code> 作为参数显式运行 <code>kubectl debug</code> 以访问我们集群的节点。在那之后，当连接到Pod后，我们使用 <code>chroot /host</code> 突破 <code>chroot</code>，并完全进入主机。最后，为了验证是否真的可以看到主机上的所有内容，我们了查看一部分的 <code>kubeadm.conf</code>，最终看到我们在文章开头配置的内容 <code>feature-gates: EphemeralContainers=true</code>。</p>
+<h2><span id="小结">小结</span></h2>
+<p><strong>能够快速有效地调试应用程序和服务可以节省大量时间，但更重要的是，它能极大地帮助解决那些如果不立即解决可能最终会花费大量资金的问题。</strong> 这就是为什么 kubectl debug 之类的工具能随意使用非常重要，即使它们尚未正式发布或默认启用。如果启用临时容器不是一种选择，那么尝试替代调试方法可能是一个好主意，例如使用包含故障排除工具的应用程序镜像的调试版本；或临时更改 Pod 的容器命令以阻止其崩溃。</p>
+<p>原文链接：<a href="https://towardsdatascience.com/the-easiest-way-to-debug-kubernetes-workloads-ff2ff5e3cc75" target="_blank" rel="noopener">https://towardsdatascience.com/the-easiest-way-to-debug-kubernetes-workloads-ff2ff5e3cc75</a></p>
+<blockquote>
+<p>本文转载自：「 K8sMeetup社区 」，原文：<a href="https://tinyurl.com/5bp67tpm" target="_blank" rel="noopener">https://tinyurl.com/5bp67tpm</a> ，版权归原作者所有。欢迎投稿，投稿邮箱: <a href="mailto:editor@hi-linux.com">editor@hi-linux.com</a>。</p>
+</blockquote>
+</div>
+
+			<script src="https://my.openwrite.cn/js/readmore.js" type="text/javascript"></script>
+			<script>
+			var isMobile = navigator.userAgent.match(/(phone|pad|pod|iPhone|iPod|ios|iPad|Android|Mobile|BlackBerry|IEMobile|MQQBrowser|JUC|Fennec|wOSBrowser|BrowserNG|WebOS|Symbian|Windows Phone)/i);
+			if (!isMobile) {
+			    var btw = new BTWPlugin();
+			    btw.init({
+			        "id": "vip-container",
+			        "blogId": "10135-1588830050631-449",
+			        "name": "「奇妙的 Linux 世界」",
+			        "qrcode": "https://www.hi-linux.com/img/wechat/mp_qrcode_12.jpg",
+			        "keyword": "VIP"
+			    });
+			}
+			</script>
+		
+                
+
+                <hr>
+                <!-- Pager -->
+                <ul class="pager">
+                    
+                    
+                        <li class="next">
+                            <a href="/posts/28200.html" data-toggle="tooltip" data-placement="top" title="HTTP 故障图解指南">Next Post &rarr;</a>
+                        </li>
+                    
+                </ul>
+
+                <!-- duoshuo Share start -->
+                
+                <!-- 多说 Share end-->
+
+                <!-- 多说评论框 start -->
+                
+                <!-- 多说评论框 end -->
+
+                <!-- disqus comment start -->
+                
+                <!-- disqus comment end -->
+
+                
+                    <!-- disqus 评论框 start -->
+                    <div class="comment">
+                        <div id="lv-container" data-id="city" data-uid="MTAyMC8yNzg2My80NDQw"></div>
+                    </div>
+                    <!-- disqus 评论框 end -->
+                
+
+            </div>
+            
+            <!-- Tabe of Content -->
+            <!-- Table of Contents -->
+
+  
+    <style>
+      span.toc-nav-number{
+        display: none
+      }
+    </style>
+  
+    
+      <aside id="sidebar">
+        <div id="toc" class="toc-article">
+        <strong class="toc-title">Contents</strong>
+        
+          <ol class="toc-nav"><li class="toc-nav-item toc-nav-level-2"><a class="toc-nav-link" href="#vip-container"><span class="toc-nav-number">1.</span> <span class="toc-nav-text">更好的方法</span></a></li><li class="toc-nav-item toc-nav-level-2"><a class="toc-nav-link" href="#vip-container"><span class="toc-nav-number">2.</span> <span class="toc-nav-text">Configuring Feature Gates</span></a></li><li class="toc-nav-item toc-nav-level-2"><a class="toc-nav-link" href="#vip-container"><span class="toc-nav-number">3.</span> <span class="toc-nav-text">Process Namespace Sharing</span></a></li><li class="toc-nav-item toc-nav-level-2"><a class="toc-nav-link" href="#vip-container"><span class="toc-nav-number">4.</span> <span class="toc-nav-text">好好使用</span></a></li><li class="toc-nav-item toc-nav-level-2"><a class="toc-nav-link" href="#vip-container"><span class="toc-nav-number">5.</span> <span class="toc-nav-text">调试集群节点</span></a></li><li class="toc-nav-item toc-nav-level-2"><a class="toc-nav-link" href="#vip-container"><span class="toc-nav-number">6.</span> <span class="toc-nav-text">小结</span></a></li></ol>
+        
+        </div>
+      </aside>
+    
+
+                
+            <!-- Sidebar Container -->
+            <div class="
+                col-lg-8 col-lg-offset-2
+                col-md-10 col-md-offset-1
+                sidebar-container">
+
+                <!-- Featured Tags -->
+                
+                <section>
+                    <!-- no hr -->
+                    <h5><a href="/tags/">FEATURED TAGS</a></h5>
+                    <div class="tags">
+                       
+                          <a class="tag" href="/tags/#技巧" title="技巧">技巧</a>
+                        
+                          <a class="tag" href="/tags/#Linux" title="Linux">Linux</a>
+                        
+                          <a class="tag" href="/tags/#Kubernetes" title="Kubernetes">Kubernetes</a>
+                        
+                    </div>
+                </section>
+                
+
+                <!-- Friends Blog -->
+                
+                <hr>
+                <h5>FRIENDS</h5>
+                <ul class="list-inline">
+
+                    
+                        <li><a href="http://www.mike.org.cn/" target="_blank">简单.生活</a></li>
+                    
+                        <li><a href="http://shang.qq.com/wpa/qunwpa?idkey=ea4c43493c2269428ac6ef6141de4b6d78e5ab2d41380ca4099b833b62884ee9" target="_blank">技术交流群</a></li>
+                    
+                        <li><a href="" target="_blank"></a></li>
+                    
+                        <li><a href="" target="_blank"></a></li>
+                    
+                </ul>
+                
+            </div>
+        </div>
+    </div>
+</article>
+
+
+
+
+
+
+    <!-- 来必力City版公共JS代码 start (一个网页只需插入一次) -->
+    <script type="text/javascript">
+       (function(d, s) {
+           var j, e = d.getElementsByTagName(s)[0];
+    
+           if (typeof LivereTower === 'function') { return; }
+    
+           j = d.createElement(s);
+           j.src = 'https://cdn-city.livere.com/js/embed.dist.js';
+           j.async = true;
+    
+           e.parentNode.insertBefore(j, e);
+       })(document, 'script');
+    </script>
+    <noscript>为正常使用来必力评论功能请激活JavaScript</noscript>
+    <!-- 来必力City版 公共JS代码 end -->
+
+
+
+<!-- async load function -->
+<script>
+    function async(u, c) {
+      var d = document, t = 'script',
+          o = d.createElement(t),
+          s = d.getElementsByTagName(t)[0];
+      o.src = u;
+      if (c) { o.addEventListener('load', function (e) { c(null, e); }, false); }
+      s.parentNode.insertBefore(o, s);
+    }
+</script>
+<!-- anchor-js, Doc:http://bryanbraun.github.io/anchorjs/ -->
+<script>
+    async("https://cdn.bootcss.com/anchor-js/1.1.1/anchor.min.js",function(){
+        anchors.options = {
+          visible: 'hover',
+          placement: 'left',
+          icon: 'ℬ'
+        };
+        anchors.add().remove('.intro-header h1').remove('.subheading').remove('.sidebar-container h5');
+    })
+</script>
+<style>
+    /* place left on bigger screen */
+    @media all and (min-width: 800px) {
+        .anchorjs-link{
+            position: absolute;
+            left: -0.75em;
+            font-size: 1.1em;
+            margin-top : -0.1em;
+        }
+    }
+</style>
+
+
+
+    <!-- Footer -->
+    <!-- Footer -->
+<footer>
+    <div class="container">
+        <div class="row">
+            <div class="col-lg-8 col-lg-offset-2 col-md-10 col-md-offset-1">
+                <ul class="list-inline text-center">
+                
+                    <li>
+                        <a href="/atom.xml">
+                            <span class="fa-stack fa-lg">
+                                <i class="fa fa-circle fa-stack-2x"></i>
+                                <i class="fa fa-rss fa-stack-1x fa-inverse"></i>
+                            </span>
+                        </a>
+                    </li>
+                
+                
+                
+                    <li>
+                        <a target="_blank" href="https://www.zhihu.com/people/80imike">
+                            <span class="fa-stack fa-lg">
+                                <i class="fa fa-circle fa-stack-2x"></i>
+                                <i class="fa  fa-stack-1x fa-inverse">知</i>
+                            </span>
+                        </a>
+                    </li>
+                
+
+                
+                    <li>
+                        <a target="_blank" href="http://weibo.com/2093524665">
+                            <span class="fa-stack fa-lg">
+                                <i class="fa fa-circle fa-stack-2x"></i>
+                                <i class="fa fa-weibo fa-stack-1x fa-inverse"></i>
+                            </span>
+                        </a>
+                    </li>
+                
+
+                
+
+                
+
+                
+
+                </ul>
+                <p class="copyright text-muted">
+                    Copyright &copy; Mike 2021 | Hosted by <a href="https://pages.coding.me" target="_blank" rel="noopener" style="font-weight: bold">Coding Pages</a>
+                    <br>
+                    Theme by <a href="http://beantech.org" target="_blank" rel="noopener">BeanTech</a> 
+                    <span style="display: inline-block; margin: 0 5px;">
+                        <i class="fa fa-heart"></i>
+                    </span> 
+                    re-Ported by <a href="http://www.huweihuang.com" target="_blank" rel="noopener">胡伟煌</a> | 
+                    <iframe
+                        style="margin-left: 2px; margin-bottom:-5px;"
+                        frameborder="0" scrolling="0" width="91px" height="20px"
+                        src="https://ghbtns.com/github-btn.html?user=huweihuang&repo=hexo-theme-huweihuang&type=star&count=true" >
+                    </iframe>
+                </p>
+            </div>
+        </div>
+    </div>
+</footer>
+
+<!-- jQuery -->
+
+<script src="/js/jquery.min.js"></script>
+
+
+<!-- Bootstrap Core JavaScript -->
+
+<script src="/js/bootstrap.min.js"></script>
+
+
+<!-- Custom Theme JavaScript -->
+
+<script src="/js/hux-blog.min.js"></script>
+
+
+
+<!-- async load function -->
+<script>
+    function async(u, c) {
+      var d = document, t = 'script',
+          o = d.createElement(t),
+          s = d.getElementsByTagName(t)[0];
+      o.src = u;
+      if (c) { o.addEventListener('load', function (e) { c(null, e); }, false); }
+      s.parentNode.insertBefore(o, s);
+    }
+</script>
+
+<!-- 
+     Because of the native support for backtick-style fenced code blocks 
+     right within the Markdown is landed in Github Pages, 
+     From V1.6, There is no need for Highlight.js, 
+     so Huxblog drops it officially.
+
+     - https://github.com/blog/2100-github-pages-now-faster-and-simpler-with-jekyll-3-0  
+     - https://help.github.com/articles/creating-and-highlighting-code-blocks/    
+-->
+<!--
+    <script>
+        async("http://cdn.bootcss.com/highlight.js/8.6/highlight.min.js", function(){
+            hljs.initHighlightingOnLoad();
+        })
+    </script>
+    <link href="http://cdn.bootcss.com/highlight.js/8.6/styles/github.min.css" rel="stylesheet">
+-->
+
+
+<!-- jquery.tagcloud.js -->
+<script>
+    // only load tagcloud.js in tag.html
+    if($('#tag_cloud').length !== 0){
+        async("https://www.hi-linux.com/js/jquery.tagcloud.js",function(){
+            $.fn.tagcloud.defaults = {
+                //size: {start: 1, end: 1, unit: 'em'},
+                color: {start: '#bbbbee', end: '#0085a1'},
+            };
+            $('#tag_cloud a').tagcloud();
+        })
+    }
+</script>
+
+<!--fastClick.js -->
+<script>
+    async("https://cdn.bootcss.com/fastclick/1.0.6/fastclick.min.js", function(){
+        var $nav = document.querySelector("nav");
+        if($nav) FastClick.attach($nav);
+    })
+</script>
+
+
+<!-- Google Analytics -->
+
+
+
+
+<!-- Baidu Tongji -->
+
+
+
+
+
+
+	<a id="rocket" href="#top" class=""></a>
+	<script type="text/javascript" src="/js/totop.js?v=1.0.0" async=""></script>
+    <script type="text/javascript" src="/js/toc.js?v=1.0.0" async=""></script>
+<!-- Image to hack wechat -->
+<img src="https://www.hi-linux.com/img/icon_wechat.png" width="0" height="0" />
+<!-- Migrate from head to bottom, no longer block render and still work -->
+
+<script>(function(w,d, s, id) {w.webpushr=w.webpushr||function(){(w.webpushr.q=w.webpushr.q||[]).push(arguments)};var js, fjs = d.getElementsByTagName(s)[0];js = d.createElement(s); js.id = id;js.src = 'https://cdn.webpushr.com/app.min.js';fjs.parentNode.appendChild(js);}(window,document, 'script', 'webpushr-jssdk'));webpushr('init','BF9JK7xV9kjWTdMx2lr6RWaPfXV7wNuZaVAJ1bfIGoBNJavqLEBVFMKLubITnCA4bh2fI9iH9tMF95nXnPt7xxY');</script></body>
+
+</html>
