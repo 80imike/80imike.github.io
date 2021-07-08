@@ -1,0 +1,654 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<!-- Head tag -->
+<head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="google-site-verification" content="xBT4GhYoi5qRD5tr338pgPM5OWHHIDR6mNg1a3euekI" />
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="description" content="">
+    <meta name="keyword"  content="Linux,运维,Nginx,Zabbix,Centos,Ansible,MySQL,Python,Docker,ELK,Haproxy,Git,Nodejs,安全,技术">
+    <link rel="shortcut icon" href="/img/ironman-draw.png">
+    <!-- Place this tag in your head or just before your close body tag. -->
+    <script async defer src="https://buttons.github.io/buttons.js"></script>
+    <title>
+        
+          Wintun：一款惊艳的 WireGuard 虚拟网卡接口驱动 - 奇妙的 Linux 世界
+        
+    </title>
+
+    <link rel="canonical" href="https://www.hi-linux.com/posts/42946.html">
+
+    <!-- Bootstrap Core CSS -->
+    
+<link rel="stylesheet" href="/css/bootstrap.min.css">
+
+
+    <!-- Custom CSS --> 
+    
+<link rel="stylesheet" href="/css/beantech.min.css">
+
+    
+    <!-- Pygments Highlight CSS -->
+    
+<link rel="stylesheet" href="/css/highlight.css">
+
+
+    
+<link rel="stylesheet" href="/css/widget.css">
+
+
+    
+<link rel="stylesheet" href="/css/rocket.css">
+
+
+    
+<link rel="stylesheet" href="/css/signature.css">
+
+
+    
+<link rel="stylesheet" href="/css/toc.css">
+
+
+    <!-- Custom Fonts -->
+    <!-- <link href="https://maxcdn.bootstrapcdn.com/font-awesome/4.3.0/css/font-awesome.min.css" rel="stylesheet" type="text/css"> -->
+    <!-- Hux change font-awesome CDN to qiniu -->
+    <link href="https://cdn.staticfile.org/font-awesome/4.5.0/css/font-awesome.min.css" rel="stylesheet" type="text/css">
+
+
+    <!-- Hux Delete, sad but pending in China
+    <link href='http://fonts.googleapis.com/css?family=Lora:400,700,400italic,700italic' rel='stylesheet' type='text/css'>
+    <link href='http://fonts.googleapis.com/css?family=Open+Sans:300italic,400italic,600italic,700italic,800italic,400,300,600,700,800' rel='stylesheet' type='text/
+    css'>
+    -->
+
+
+    <!-- HTML5 Shim and Respond.js IE8 support of HTML5 elements and media queries -->
+    <!-- WARNING: Respond.js doesn't work if you view the page via file:// -->
+    <!--[if lt IE 9]>
+        <script src="https://oss.maxcdn.com/libs/html5shiv/3.7.0/html5shiv.js"></script>
+        <script src="https://oss.maxcdn.com/libs/respond.js/1.4.2/respond.min.js"></script>
+    <![endif]-->
+
+    <!-- ga & ba script hoook -->
+    <script></script>
+<meta name="generator" content="Hexo 4.2.1"><link rel="alternate" href="/atom.xml" title="奇妙的 Linux 世界" type="application/atom+xml">
+</head>
+
+
+<!-- hack iOS CSS :active style -->
+<body ontouchstart="">
+	<!-- Modified by Yu-Hsuan Yen -->
+<!-- Post Header -->
+<style type="text/css">
+    header.intro-header{
+        
+            background-image: url('/img/header_img/building.jpg')
+            /*post*/
+        
+    }
+    
+</style>
+
+<header class="intro-header" >
+    <!-- Signature -->
+    <div id="signature">
+        <div class="container">
+            <div class="row">
+                <div class="col-lg-8 col-lg-offset-2 col-md-10 col-md-offset-1">
+                
+                    <div class="post-heading">
+                        <div class="tags">
+                            
+                              <a class="tag" href="/tags/#Linux" title="Linux">Linux</a>
+                            
+                              <a class="tag" href="/tags/#教程" title="教程">教程</a>
+                            
+                              <a class="tag" href="/tags/#WireGuard" title="WireGuard">WireGuard</a>
+                            
+                        </div>
+                        <h1>Wintun：一款惊艳的 WireGuard 虚拟网卡接口驱动</h1>
+                        <h2 class="subheading"></h2>
+                        <span class="meta">
+                            Posted by Mike on
+                            2021-07-07
+                        </span>
+                    </div>
+                
+
+
+                </div>
+            </div>
+        </div>
+    </div>
+</header>
+
+	
+    <!-- Navigation -->
+<nav class="navbar navbar-default navbar-custom navbar-fixed-top">
+    <div class="container-fluid">
+        <!-- Brand and toggle get grouped for better mobile display -->
+        <div class="navbar-header page-scroll">
+            <button type="button" class="navbar-toggle">
+                <span class="sr-only">Toggle navigation</span>
+                <span class="icon-bar"></span>
+                <span class="icon-bar"></span>
+                <span class="icon-bar"></span>
+            </button>
+            <a class="navbar-brand" href="/">奇妙的 Linux 世界</a>
+        </div>
+
+        <!-- Collect the nav links, forms, and other content for toggling -->
+        <!-- Known Issue, found by Hux:
+            <nav>'s height woule be hold on by its content.
+            so, when navbar scale out, the <nav> will cover tags.
+            also mask any touch event of tags, unfortunately.
+        -->
+        <div id="huxblog_navbar">
+            <div class="navbar-collapse">
+                <ul class="nav navbar-nav navbar-right">
+                    <li>
+                        <a href="/">Home</a>
+                    </li>
+
+                    
+
+                        
+                    
+
+                        
+                    
+
+                        
+                        <li>
+                            <a href="/about/">About</a>
+                        </li>
+                        
+                    
+
+                        
+                        <li>
+                            <a href="/tags/">Tags</a>
+                        </li>
+                        
+                    
+
+                        
+                        <li>
+                            <a href="/archive/">Archives</a>
+                        </li>
+                        
+                    
+                    
+                </ul>
+            </div>
+        </div>
+        <!-- /.navbar-collapse -->
+    </div>
+    <!-- /.container -->
+</nav>
+<script>
+    // Drop Bootstarp low-performance Navbar
+    // Use customize navbar with high-quality material design animation
+    // in high-perf jank-free CSS3 implementation
+    var $body   = document.body;
+    var $toggle = document.querySelector('.navbar-toggle');
+    var $navbar = document.querySelector('#huxblog_navbar');
+    var $collapse = document.querySelector('.navbar-collapse');
+
+    $toggle.addEventListener('click', handleMagic)
+    function handleMagic(e){
+        if ($navbar.className.indexOf('in') > 0) {
+        // CLOSE
+            $navbar.className = " ";
+            // wait until animation end.
+            setTimeout(function(){
+                // prevent frequently toggle
+                if($navbar.className.indexOf('in') < 0) {
+                    $collapse.style.height = "0px"
+                }
+            },400)
+        }else{
+        // OPEN
+            $collapse.style.height = "auto"
+            $navbar.className += " in";
+        }
+    }
+</script>
+
+
+    <!-- Main Content -->
+    <!-- Modify by Yu-Hsuan Yen -->
+
+<!-- Post Content -->
+<article>
+    <div class="container">
+        <div class="row">
+
+            <!-- Post Container -->
+            <div class="
+                col-lg-8 col-lg-offset-2
+                col-md-10 col-md-offset-1
+                post-container">
+
+                <div id="vip-container"><p>前一段时间，一直在找寻 Windows 操作系统上的虚拟网卡接口，主要是为了搭建隧道使用。但是 Windows 操作系统不像 Linux 操作系统，它的代码不开源，导致这方面的资料很少，因此花费了较长时间来寻找相关实现框架，最终找到了两款开源项目的虚拟接口驱动：</p>
+<ul>
+<li>Wireguard 项目的 Wintun 接口[1]</li>
+<li>OpenVPN 的 Tap 接口[2]</li>
+</ul>
+<p>这两个项目都是非常出名的搭建隧道的开源 V.P.N 项目。由于目前对 openVPN 项目不太了解，也没有适配 Tap 接口，因此这里重点介绍下 WinTun 接口。此接口实现我是非常非常的喜欢，喜欢到简直不要不要的。</p>
+<a id="more"></a>
+<h2><span id="简介">简介</span></h2>
+<p>说到 Wintun 项目，就不得不说到它的父亲：WireGuard 项目（以下简称 WG）。<strong>Github 传送门</strong>[3]</p>
+<p><img src="https://img.hi-linux.com/staticfile/640-20210630113612450-2021-06-30-Tfcrxr.png" alt></p>
+<p>WG 项目作为开源 V.P.N 项目，不同于 OpenVPN, Openswan, Strongswan 等，它的实现非常简介，Linux 内核代码实现不到 4000 行。相对于上述的三个 “按行收费” 的项目（代码 10 万行起步），它简直是太简洁了。故而得到了众多好评，其中就包括 Linux 鼻祖：Linus Torvalds。他的评价如下：</p>
+<blockquote>
+<p>Btw, on an unrelated issue: I see that Jason actually made the pull request to have wireguard included in the kernel.</p>
+<p>Can I just once again state my love for it and hope it gets merged soon? Maybe the code isn’t perfect, but I’ve skimmed it, and compared to the horrors that are OpenVPN and IPSec, it’s a work of art.</p>
+<p>Linus</p>
+</blockquote>
+<p>简而言之就是：<strong>劳资稀罕你，要把你合入我的 Linux 项目中</strong>。因此 Linux 内核自 5.6 之后便自带 WG 隧道功能，配置非常的简单。通过几行代码便可以完成一个 WG 隧道：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">$ ip link add dev wg0 type wireguard</span><br><span class="line">$ ip address add dev wg0 10.0.0.1&#x2F;24</span><br><span class="line">$ wg set wg0 listen-port 51820 private-key .&#x2F;private.key peer NIk5TyDpRDoU9tfIckTTXCsz1eht2aEmdN7l0Q31ow0&#x3D; allowed-ips 10.0.0.2&#x2F;32 endpoint 192.168.1.5:51820</span><br><span class="line">$ ip link set dev wg0 up</span><br></pre></td></tr></table></figure>
+<p>配置非常简单。除此之外，还提供了 Windows 客户端，这也是此项目为何包含 Wintun 虚拟网络接口的原因。</p>
+<p>客户端页面也是非常简洁，没有多余的东西 (<strong>客户端链接</strong>[4])：</p>
+<p><img src="https://img.hi-linux.com/staticfile/640-20210630113622279-2021-06-30-pTYDow.png" alt></p>
+<p>客户端上隧道协商成功之后，会根据隧道名称建立一个虚拟网卡，隧道拆除后接口自动删除。由于我的隧道名称为 Tun-1，因此在 “控制版面” 的“网络连接”中出现了一个 Tun-1 的网络接口：</p>
+<p><img src="https://img.hi-linux.com/staticfile/640-20210630113627967-2021-06-30-a6Sb0B.png" alt></p>
+<p>好了，下面开始介绍此虚拟网络接口。</p>
+<h2><span id="wintun-虚拟网络接口">WinTun 虚拟网络接口</span></h2>
+<p><img src="https://img.hi-linux.com/staticfile/640-20210630113633922-2021-06-30-rnV9d1.png" alt></p>
+<ul>
+<li>
+<p><strong>Github 传送门</strong>[5]</p>
+</li>
+<li>
+<p><strong>wintun 官网传送门</strong>[6]</p>
+</li>
+</ul>
+<p>常见的 <strong>windwos 的接口驱动开发</strong>[7]、安装比较复杂。常见的驱动安装包有：.inf 文件、.sys 文件、.cat 文件; 除此之外还涉及驱动程序签名，否则无法安装成功。尤其在开发调试阶段，每次都得签名，太磨叽了。</p>
+<p>但是 WinTun 接口用法<strong>非常简单高效</strong>。<strong>非常简单高效</strong>。<strong>非常简单高效</strong>。</p>
+<blockquote>
+<ol>
+<li>引入头文件：wintun.h</li>
+<li>加载动态库，解析动态库中的函数指针</li>
+</ol>
+</blockquote>
+<p>它通过<strong>动态库</strong>中方式来提供接口，我们可以加载此动态库，然后调用动态库中的函数指针来完成虚拟接口的创建、销毁、收发数据包等工作。此外<strong>它提供了一个示例供大家学习</strong>[8]，我便是通过参考开源代码中的示例（example.c），将 Wintun 接口移植到我的工程之中。非常简单，我太喜欢它了。</p>
+<p>实例代码就 400 行，其中大部分为 log 信息，供大家查看程序运行状态和报文收发信息。</p>
+<h3><span id="加载动态库中的函数指针">加载动态库中的函数指针</span></h3>
+<p>此函数的作用：</p>
+<ul>
+<li><strong>加载动态库，获取到动态库中的函数指针，后面通过函数指针来操作虚拟网卡接口。</strong></li>
+</ul>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br></pre></td><td class="code"><pre><span class="line">static HMODULE</span><br><span class="line">InitializeWintun(void)</span><br><span class="line">&#123;</span><br><span class="line">    HMODULE Wintun &#x3D;</span><br><span class="line">        LoadLibraryExW(L&quot;wintun.dll&quot;, NULL, LOAD_LIBRARY_SEARCH_APPLICATION_DIR | LOAD_LIBRARY_SEARCH_SYSTEM32);</span><br><span class="line">    if (!Wintun)</span><br><span class="line">        return NULL;</span><br><span class="line">#define X(Name, Type) ((Name &#x3D; (Type)GetProcAddress(Wintun, #Name)) &#x3D;&#x3D; NULL)</span><br><span class="line">    if (X(WintunCreateAdapter, WINTUN_CREATE_ADAPTER_FUNC) || X(WintunDeleteAdapter, WINTUN_DELETE_ADAPTER_FUNC) ||</span><br><span class="line">        X(WintunDeletePoolDriver, WINTUN_DELETE_POOL_DRIVER_FUNC) || X(WintunEnumAdapters, WINTUN_ENUM_ADAPTERS_FUNC) ||</span><br><span class="line">        X(WintunFreeAdapter, WINTUN_FREE_ADAPTER_FUNC) || X(WintunOpenAdapter, WINTUN_OPEN_ADAPTER_FUNC) ||</span><br><span class="line">        X(WintunGetAdapterLUID, WINTUN_GET_ADAPTER_LUID_FUNC) ||</span><br><span class="line">        X(WintunGetAdapterName, WINTUN_GET_ADAPTER_NAME_FUNC) ||</span><br><span class="line">        X(WintunSetAdapterName, WINTUN_SET_ADAPTER_NAME_FUNC) ||</span><br><span class="line">        X(WintunGetRunningDriverVersion, WINTUN_GET_RUNNING_DRIVER_VERSION_FUNC) ||</span><br><span class="line">        X(WintunSetLogger, WINTUN_SET_LOGGER_FUNC) || X(WintunStartSession, WINTUN_START_SESSION_FUNC) ||</span><br><span class="line">        X(WintunEndSession, WINTUN_END_SESSION_FUNC) || X(WintunGetReadWaitEvent, WINTUN_GET_READ_WAIT_EVENT_FUNC) ||</span><br><span class="line">        X(WintunReceivePacket, WINTUN_RECEIVE_PACKET_FUNC) ||</span><br><span class="line">        X(WintunReleaseReceivePacket, WINTUN_RELEASE_RECEIVE_PACKET_FUNC) ||</span><br><span class="line">        X(WintunAllocateSendPacket, WINTUN_ALLOCATE_SEND_PACKET_FUNC) || X(WintunSendPacket, WINTUN_SEND_PACKET_FUNC))</span><br><span class="line">#undef X</span><br><span class="line">    &#123;</span><br><span class="line">        DWORD LastError &#x3D; GetLastError();</span><br><span class="line">        FreeLibrary(Wintun);</span><br><span class="line">        SetLastError(LastError);</span><br><span class="line">        return NULL;</span><br><span class="line">    &#125;</span><br><span class="line">    return Wintun;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<h3><span id="main-函数">main() 函数</span></h3>
+<p>作用：</p>
+<ul>
+<li><strong>通过函数指针创建虚拟网卡</strong></li>
+<li><strong>创建虚拟网卡的收发线程</strong></li>
+</ul>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br><span class="line">70</span><br><span class="line">71</span><br><span class="line">72</span><br><span class="line">73</span><br><span class="line">74</span><br><span class="line">75</span><br><span class="line">76</span><br><span class="line">77</span><br><span class="line">78</span><br><span class="line">79</span><br><span class="line">80</span><br><span class="line">81</span><br><span class="line">82</span><br><span class="line">83</span><br><span class="line">84</span><br><span class="line">85</span><br><span class="line">86</span><br><span class="line">87</span><br><span class="line">88</span><br><span class="line">89</span><br><span class="line">90</span><br><span class="line">91</span><br><span class="line">92</span><br><span class="line">93</span><br><span class="line">94</span><br></pre></td><td class="code"><pre><span class="line">int</span><br><span class="line">main(void)</span><br><span class="line">&#123;</span><br><span class="line">    HMODULE Wintun &#x3D; InitializeWintun();</span><br><span class="line">    if (!Wintun)</span><br><span class="line">        return LogError(L&quot;Failed to initialize Wintun&quot;, GetLastError());</span><br><span class="line">    WintunSetLogger(ConsoleLogger);</span><br><span class="line">    Log(WINTUN_LOG_INFO, L&quot;Wintun library loaded&quot;);</span><br><span class="line">    WintunEnumAdapters(L&quot;Example&quot;, PrintAdapter, 0);</span><br><span class="line"></span><br><span class="line">    DWORD LastError;</span><br><span class="line">    HaveQuit &#x3D; FALSE;</span><br><span class="line">    QuitEvent &#x3D; CreateEventW(NULL, TRUE, FALSE, NULL);</span><br><span class="line">    if (!QuitEvent)</span><br><span class="line">    &#123;</span><br><span class="line">        LastError &#x3D; LogError(L&quot;Failed to create event&quot;, GetLastError());</span><br><span class="line">        goto cleanupWintun;</span><br><span class="line">    &#125;</span><br><span class="line">    if (!SetConsoleCtrlHandler(CtrlHandler, TRUE))</span><br><span class="line">    &#123;</span><br><span class="line">        LastError &#x3D; LogError(L&quot;Failed to set console handler&quot;, GetLastError());</span><br><span class="line">        goto cleanupQuit;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    GUID ExampleGuid &#x3D; &#123; 0xdeadbabe, 0xcafe, 0xbeef, &#123; 0x01, 0x23, 0x45, 0x67, 0x89, 0xab, 0xcd, 0xef &#125; &#125;;</span><br><span class="line">    WINTUN_ADAPTER_HANDLE Adapter &#x3D; WintunOpenAdapter(L&quot;Example&quot;, L&quot;Demo&quot;);</span><br><span class="line">    if (!Adapter)</span><br><span class="line">    &#123;</span><br><span class="line">        Adapter &#x3D; WintunCreateAdapter(L&quot;Example&quot;, L&quot;Demo&quot;, &amp;ExampleGuid, NULL);</span><br><span class="line">        if (!Adapter)</span><br><span class="line">        &#123;</span><br><span class="line">            LastError &#x3D; GetLastError();</span><br><span class="line">            LogError(L&quot;Failed to create adapter&quot;, LastError);</span><br><span class="line">            goto cleanupQuit;</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    DWORD Version &#x3D; WintunGetRunningDriverVersion();</span><br><span class="line">    Log(WINTUN_LOG_INFO, L&quot;Wintun v%u.%u loaded&quot;, (Version &gt;&gt; 16) &amp; 0xff, (Version &gt;&gt; 0) &amp; 0xff);</span><br><span class="line"></span><br><span class="line">    MIB_UNICASTIPADDRESS_ROW AddressRow;</span><br><span class="line">    InitializeUnicastIpAddressEntry(&amp;AddressRow);</span><br><span class="line">    WintunGetAdapterLUID(Adapter, &amp;AddressRow.InterfaceLuid);</span><br><span class="line">    AddressRow.Address.Ipv4.sin_family &#x3D; AF_INET;</span><br><span class="line">    AddressRow.Address.Ipv4.sin_addr.S_un.S_addr &#x3D; htonl((10 &lt;&lt; 24) | (6 &lt;&lt; 16) | (7 &lt;&lt; 8) | (7 &lt;&lt; 0)); &#x2F;* 10.6.7.7 *&#x2F;</span><br><span class="line">    AddressRow.OnLinkPrefixLength &#x3D; 24; &#x2F;* This is a &#x2F;24 network *&#x2F;</span><br><span class="line">    LastError &#x3D; CreateUnicastIpAddressEntry(&amp;AddressRow);</span><br><span class="line">    if (LastError !&#x3D; ERROR_SUCCESS &amp;&amp; LastError !&#x3D; ERROR_OBJECT_ALREADY_EXISTS)</span><br><span class="line">    &#123;</span><br><span class="line">        LogError(L&quot;Failed to set IP address&quot;, LastError);</span><br><span class="line">        goto cleanupAdapter;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    WINTUN_SESSION_HANDLE Session &#x3D; WintunStartSession(Adapter, 0x400000);</span><br><span class="line">    if (!Session)</span><br><span class="line">    &#123;</span><br><span class="line">        LastError &#x3D; LogLastError(L&quot;Failed to create adapter&quot;);</span><br><span class="line">        goto cleanupAdapter;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    Log(WINTUN_LOG_INFO, L&quot;Launching threads and mangling packets...&quot;);</span><br><span class="line"></span><br><span class="line">    HANDLE Workers[] &#x3D; &#123; CreateThread(NULL, 0, (LPTHREAD_START_ROUTINE)ReceivePackets, (LPVOID)Session, 0, NULL),</span><br><span class="line">                         CreateThread(NULL, 0, (LPTHREAD_START_ROUTINE)SendPackets, (LPVOID)Session, 0, NULL) &#125;;</span><br><span class="line">    if (!Workers[0] || !Workers[1])</span><br><span class="line">    &#123;</span><br><span class="line">        LastError &#x3D; LogError(L&quot;Failed to create threads&quot;, GetLastError());</span><br><span class="line">        goto cleanupWorkers;</span><br><span class="line">    &#125;</span><br><span class="line">    WaitForMultipleObjectsEx(_countof(Workers), Workers, TRUE, INFINITE, TRUE);</span><br><span class="line">    LastError &#x3D; ERROR_SUCCESS;</span><br><span class="line"></span><br><span class="line">cleanupWorkers:</span><br><span class="line">    HaveQuit &#x3D; TRUE;</span><br><span class="line">    SetEvent(QuitEvent);</span><br><span class="line">    for (size_t i &#x3D; 0; i &lt; _countof(Workers); ++i)</span><br><span class="line">    &#123;</span><br><span class="line">        if (Workers[i])</span><br><span class="line">        &#123;</span><br><span class="line">            WaitForSingleObject(Workers[i], INFINITE);</span><br><span class="line">            CloseHandle(Workers[i]);</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">    WintunEndSession(Session);</span><br><span class="line">cleanupAdapter:</span><br><span class="line">    WintunDeleteAdapter(Adapter, FALSE, NULL);</span><br><span class="line">    WintunFreeAdapter(Adapter);</span><br><span class="line">cleanupQuit:</span><br><span class="line">    SetConsoleCtrlHandler(CtrlHandler, FALSE);</span><br><span class="line">    CloseHandle(QuitEvent);</span><br><span class="line">cleanupWintun:</span><br><span class="line">    FreeLibrary(Wintun);</span><br><span class="line">    return LastError;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>收发报文的接口操作也非常简单，但是与 windows 网络协议栈之间的关系仍需要继续摸索。</p>
+<h3><span id="特别说明">特别说明</span></h3>
+<p>Wintun 接口是严格意义上的 3 层逻辑接口。原文如下：</p>
+<blockquote>
+<p>Wintun is a very simple and minimal TUN driver for the Windows kernel, which provides userspace programs with a simple network adapter for reading and writing packets. It is akin to Linux’s /dev/net/tun and BSD’s /dev/tun. Originally designed for use in WireGuard, Wintun is meant to be generally useful for a wide variety of layer 3 networking protocols and experiments. The driver is open source, so anybody can inspect and build it. Due to Microsoft’s driver signing requirements, we provide precompiled and signed versions that may be distributed with your software. The goal of the project is to be as simple as possible, opting to do things in the most pure and straight-forward way provided by NDIS.</p>
+</blockquote>
+<p>这里出现了一个小小的问题：<strong>Wireshark 上无法抓取此接口报文</strong>。如果想看封装后的报文信息，则需要单独记录日志而非抓包来完成。</p>
+<p><img src="https://img.hi-linux.com/staticfile/640-20210630113648931-2021-06-30-rB5kXq.png" alt></p>
+<p>导致这个问题原因没有找到，我认为是：<strong>wireshark 抓取的报文是二层报文 (一个完整的以太网帧)，而 3 层逻辑接口上的报文尚未封装以太网帧，故无法抓取此接口。这只是个人猜测，根本原因不得而知。</strong></p>
+<p><img src="https://img.hi-linux.com/staticfile/640-20210630113654931-2021-06-30-0mF6hi.png" alt></p>
+<p>好了，基本介绍完毕，重新表达下我对 WireGuard 和 WinTun 的态度：<strong>劳资稀罕你，very 喜欢。</strong></p>
+<blockquote>
+<p>原文链接：<a href="https://blog.csdn.net/s2603898260/article/details/117389372" target="_blank" rel="noopener">https://blog.csdn.net/s2603898260/article/details/117389372</a></p>
+</blockquote>
+<h3><span id="脚注">脚注</span></h3>
+<p>[1]Wireguard 项目的 Wintun 接口: <em><a href="https://github.com/WireGuard" target="_blank" rel="noopener">https://github.com/WireGuard</a></em></p>
+<p>[2]OpenVPN 的 Tap 接口: <em><a href="https://github.com/Toney-Sun/openvpn" target="_blank" rel="noopener">https://github.com/Toney-Sun/openvpn</a></em></p>
+<p>[3]Github 传送门: <em><a href="https://github.com/WireGuard" target="_blank" rel="noopener">https://github.com/WireGuard</a></em></p>
+<p>[4]客户端链接: <em><a href="https://www.wireguard.com/install/" target="_blank" rel="noopener">https://www.wireguard.com/install/</a></em></p>
+<p>[5]Github 传送门: <em><a href="https://github.com/Toney-Sun/wintun" target="_blank" rel="noopener">https://github.com/Toney-Sun/wintun</a></em></p>
+<p>[6]wintun 官网传送门: <em><a href="https://www.wintun.net/" target="_blank" rel="noopener">https://www.wintun.net/</a></em></p>
+<p>[7]windwos 的接口驱动开发: <em><a href="https://docs.microsoft.com/zh-cn/windows-hardware/drivers/install/components-of-a-driver-package" target="_blank" rel="noopener">https://docs.microsoft.com/zh-cn/windows-hardware/drivers/install/components-of-a-driver-package</a></em></p>
+<p>[8]它提供了一个示例供大家学习: <em><a href="https://git.zx2c4.com/wintun/tree/example/example.c" target="_blank" rel="noopener">https://git.zx2c4.com/wintun/tree/example/example.c</a></em></p>
+<blockquote>
+<p>本文转载自：「云原生实验室」，原文：<a href="https://tinyurl.com/y6mv2ym2" target="_blank" rel="noopener">https://tinyurl.com/y6mv2ym2</a> ，版权归原作者所有。欢迎投稿，投稿邮箱: <a href="mailto:editor@hi-linux.com">editor@hi-linux.com</a>。</p>
+</blockquote>
+</div>
+
+			<script src="https://my.openwrite.cn/js/readmore.js" type="text/javascript"></script>
+			<script>
+			var isMobile = navigator.userAgent.match(/(phone|pad|pod|iPhone|iPod|ios|iPad|Android|Mobile|BlackBerry|IEMobile|MQQBrowser|JUC|Fennec|wOSBrowser|BrowserNG|WebOS|Symbian|Windows Phone)/i);
+			if (!isMobile) {
+			    var btw = new BTWPlugin();
+			    btw.init({
+			        "id": "vip-container",
+			        "blogId": "10135-1588830050631-449",
+			        "name": "「奇妙的 Linux 世界」",
+			        "qrcode": "https://www.hi-linux.com/img/wechat/mp_qrcode_12.jpg",
+			        "keyword": "VIP"
+			    });
+			}
+			</script>
+		
+                
+
+                <hr>
+                <!-- Pager -->
+                <ul class="pager">
+                    
+                    
+                        <li class="next">
+                            <a href="/posts/38789.html" data-toggle="tooltip" data-placement="top" title="写给 Linux 小白用户的命令行极简教程">Next Post &rarr;</a>
+                        </li>
+                    
+                </ul>
+
+                <!-- duoshuo Share start -->
+                
+                <!-- 多说 Share end-->
+
+                <!-- 多说评论框 start -->
+                
+                <!-- 多说评论框 end -->
+
+                <!-- disqus comment start -->
+                
+                <!-- disqus comment end -->
+
+                
+                    <!-- disqus 评论框 start -->
+                    <div class="comment">
+                        <div id="lv-container" data-id="city" data-uid="MTAyMC8yNzg2My80NDQw"></div>
+                    </div>
+                    <!-- disqus 评论框 end -->
+                
+
+            </div>
+            
+            <!-- Tabe of Content -->
+            <!-- Table of Contents -->
+
+  
+    <style>
+      span.toc-nav-number{
+        display: none
+      }
+    </style>
+  
+    
+      <aside id="sidebar">
+        <div id="toc" class="toc-article">
+        <strong class="toc-title">Contents</strong>
+        
+          <ol class="toc-nav"><li class="toc-nav-item toc-nav-level-2"><a class="toc-nav-link" href="#vip-container"><span class="toc-nav-number">1.</span> <span class="toc-nav-text">简介</span></a></li><li class="toc-nav-item toc-nav-level-2"><a class="toc-nav-link" href="#vip-container"><span class="toc-nav-number">2.</span> <span class="toc-nav-text">WinTun 虚拟网络接口</span></a><ol class="toc-nav-child"><li class="toc-nav-item toc-nav-level-3"><a class="toc-nav-link" href="#vip-container"><span class="toc-nav-number">2.1.</span> <span class="toc-nav-text">加载动态库中的函数指针</span></a></li><li class="toc-nav-item toc-nav-level-3"><a class="toc-nav-link" href="#vip-container"><span class="toc-nav-number">2.2.</span> <span class="toc-nav-text">main() 函数</span></a></li><li class="toc-nav-item toc-nav-level-3"><a class="toc-nav-link" href="#vip-container"><span class="toc-nav-number">2.3.</span> <span class="toc-nav-text">特别说明</span></a></li><li class="toc-nav-item toc-nav-level-3"><a class="toc-nav-link" href="#vip-container"><span class="toc-nav-number">2.4.</span> <span class="toc-nav-text">脚注</span></a></li></ol></li></ol>
+        
+        </div>
+      </aside>
+    
+
+                
+            <!-- Sidebar Container -->
+            <div class="
+                col-lg-8 col-lg-offset-2
+                col-md-10 col-md-offset-1
+                sidebar-container">
+
+                <!-- Featured Tags -->
+                
+                <section>
+                    <!-- no hr -->
+                    <h5><a href="/tags/">FEATURED TAGS</a></h5>
+                    <div class="tags">
+                       
+                          <a class="tag" href="/tags/#Linux" title="Linux">Linux</a>
+                        
+                          <a class="tag" href="/tags/#教程" title="教程">教程</a>
+                        
+                          <a class="tag" href="/tags/#WireGuard" title="WireGuard">WireGuard</a>
+                        
+                    </div>
+                </section>
+                
+
+                <!-- Friends Blog -->
+                
+                <hr>
+                <h5>FRIENDS</h5>
+                <ul class="list-inline">
+
+                    
+                        <li><a href="http://www.mike.org.cn/" target="_blank">简单.生活</a></li>
+                    
+                        <li><a href="http://shang.qq.com/wpa/qunwpa?idkey=ea4c43493c2269428ac6ef6141de4b6d78e5ab2d41380ca4099b833b62884ee9" target="_blank">技术交流群</a></li>
+                    
+                        <li><a href="" target="_blank"></a></li>
+                    
+                        <li><a href="" target="_blank"></a></li>
+                    
+                </ul>
+                
+            </div>
+        </div>
+    </div>
+</article>
+
+
+
+
+
+
+    <!-- 来必力City版公共JS代码 start (一个网页只需插入一次) -->
+    <script type="text/javascript">
+       (function(d, s) {
+           var j, e = d.getElementsByTagName(s)[0];
+    
+           if (typeof LivereTower === 'function') { return; }
+    
+           j = d.createElement(s);
+           j.src = 'https://cdn-city.livere.com/js/embed.dist.js';
+           j.async = true;
+    
+           e.parentNode.insertBefore(j, e);
+       })(document, 'script');
+    </script>
+    <noscript>为正常使用来必力评论功能请激活JavaScript</noscript>
+    <!-- 来必力City版 公共JS代码 end -->
+
+
+
+<!-- async load function -->
+<script>
+    function async(u, c) {
+      var d = document, t = 'script',
+          o = d.createElement(t),
+          s = d.getElementsByTagName(t)[0];
+      o.src = u;
+      if (c) { o.addEventListener('load', function (e) { c(null, e); }, false); }
+      s.parentNode.insertBefore(o, s);
+    }
+</script>
+<!-- anchor-js, Doc:http://bryanbraun.github.io/anchorjs/ -->
+<script>
+    async("https://cdn.bootcss.com/anchor-js/1.1.1/anchor.min.js",function(){
+        anchors.options = {
+          visible: 'hover',
+          placement: 'left',
+          icon: 'ℬ'
+        };
+        anchors.add().remove('.intro-header h1').remove('.subheading').remove('.sidebar-container h5');
+    })
+</script>
+<style>
+    /* place left on bigger screen */
+    @media all and (min-width: 800px) {
+        .anchorjs-link{
+            position: absolute;
+            left: -0.75em;
+            font-size: 1.1em;
+            margin-top : -0.1em;
+        }
+    }
+</style>
+
+
+
+    <!-- Footer -->
+    <!-- Footer -->
+<footer>
+    <div class="container">
+        <div class="row">
+            <div class="col-lg-8 col-lg-offset-2 col-md-10 col-md-offset-1">
+                <ul class="list-inline text-center">
+                
+                    <li>
+                        <a href="/atom.xml">
+                            <span class="fa-stack fa-lg">
+                                <i class="fa fa-circle fa-stack-2x"></i>
+                                <i class="fa fa-rss fa-stack-1x fa-inverse"></i>
+                            </span>
+                        </a>
+                    </li>
+                
+                
+                
+                    <li>
+                        <a target="_blank" href="https://www.zhihu.com/people/80imike">
+                            <span class="fa-stack fa-lg">
+                                <i class="fa fa-circle fa-stack-2x"></i>
+                                <i class="fa  fa-stack-1x fa-inverse">知</i>
+                            </span>
+                        </a>
+                    </li>
+                
+
+                
+                    <li>
+                        <a target="_blank" href="http://weibo.com/2093524665">
+                            <span class="fa-stack fa-lg">
+                                <i class="fa fa-circle fa-stack-2x"></i>
+                                <i class="fa fa-weibo fa-stack-1x fa-inverse"></i>
+                            </span>
+                        </a>
+                    </li>
+                
+
+                
+
+                
+
+                
+
+                </ul>
+                <p class="copyright text-muted">
+                    Copyright &copy; Mike 2021 | Hosted by <a href="https://pages.coding.me" target="_blank" rel="noopener" style="font-weight: bold">Coding Pages</a>
+                    <br>
+                    Theme by <a href="http://beantech.org" target="_blank" rel="noopener">BeanTech</a> 
+                    <span style="display: inline-block; margin: 0 5px;">
+                        <i class="fa fa-heart"></i>
+                    </span> 
+                    re-Ported by <a href="http://www.huweihuang.com" target="_blank" rel="noopener">胡伟煌</a> | 
+                    <iframe
+                        style="margin-left: 2px; margin-bottom:-5px;"
+                        frameborder="0" scrolling="0" width="91px" height="20px"
+                        src="https://ghbtns.com/github-btn.html?user=huweihuang&repo=hexo-theme-huweihuang&type=star&count=true" >
+                    </iframe>
+                </p>
+            </div>
+        </div>
+    </div>
+</footer>
+
+<!-- jQuery -->
+
+<script src="/js/jquery.min.js"></script>
+
+
+<!-- Bootstrap Core JavaScript -->
+
+<script src="/js/bootstrap.min.js"></script>
+
+
+<!-- Custom Theme JavaScript -->
+
+<script src="/js/hux-blog.min.js"></script>
+
+
+
+<!-- async load function -->
+<script>
+    function async(u, c) {
+      var d = document, t = 'script',
+          o = d.createElement(t),
+          s = d.getElementsByTagName(t)[0];
+      o.src = u;
+      if (c) { o.addEventListener('load', function (e) { c(null, e); }, false); }
+      s.parentNode.insertBefore(o, s);
+    }
+</script>
+
+<!-- 
+     Because of the native support for backtick-style fenced code blocks 
+     right within the Markdown is landed in Github Pages, 
+     From V1.6, There is no need for Highlight.js, 
+     so Huxblog drops it officially.
+
+     - https://github.com/blog/2100-github-pages-now-faster-and-simpler-with-jekyll-3-0  
+     - https://help.github.com/articles/creating-and-highlighting-code-blocks/    
+-->
+<!--
+    <script>
+        async("http://cdn.bootcss.com/highlight.js/8.6/highlight.min.js", function(){
+            hljs.initHighlightingOnLoad();
+        })
+    </script>
+    <link href="http://cdn.bootcss.com/highlight.js/8.6/styles/github.min.css" rel="stylesheet">
+-->
+
+
+<!-- jquery.tagcloud.js -->
+<script>
+    // only load tagcloud.js in tag.html
+    if($('#tag_cloud').length !== 0){
+        async("https://www.hi-linux.com/js/jquery.tagcloud.js",function(){
+            $.fn.tagcloud.defaults = {
+                //size: {start: 1, end: 1, unit: 'em'},
+                color: {start: '#bbbbee', end: '#0085a1'},
+            };
+            $('#tag_cloud a').tagcloud();
+        })
+    }
+</script>
+
+<!--fastClick.js -->
+<script>
+    async("https://cdn.bootcss.com/fastclick/1.0.6/fastclick.min.js", function(){
+        var $nav = document.querySelector("nav");
+        if($nav) FastClick.attach($nav);
+    })
+</script>
+
+
+<!-- Google Analytics -->
+
+
+
+
+<!-- Baidu Tongji -->
+
+
+
+
+
+
+	<a id="rocket" href="#top" class=""></a>
+	<script type="text/javascript" src="/js/totop.js?v=1.0.0" async=""></script>
+    <script type="text/javascript" src="/js/toc.js?v=1.0.0" async=""></script>
+<!-- Image to hack wechat -->
+<img src="https://www.hi-linux.com/img/icon_wechat.png" width="0" height="0" />
+<!-- Migrate from head to bottom, no longer block render and still work -->
+
+<script>(function(w,d, s, id) {w.webpushr=w.webpushr||function(){(w.webpushr.q=w.webpushr.q||[]).push(arguments)};var js, fjs = d.getElementsByTagName(s)[0];js = d.createElement(s); js.id = id;js.src = 'https://cdn.webpushr.com/app.min.js';fjs.parentNode.appendChild(js);}(window,document, 'script', 'webpushr-jssdk'));webpushr('init','BF9JK7xV9kjWTdMx2lr6RWaPfXV7wNuZaVAJ1bfIGoBNJavqLEBVFMKLubITnCA4bh2fI9iH9tMF95nXnPt7xxY');</script></body>
+
+</html>
