@@ -6,7 +6,7 @@
   <link href="/atom.xml" rel="self"/>
   
   <link href="https://www.hi-linux.com/"/>
-  <updated>2021-07-15T08:28:23.181Z</updated>
+  <updated>2021-07-21T02:09:49.990Z</updated>
   <id>https://www.hi-linux.com/</id>
   
   <author>
@@ -15,6 +15,40 @@
   </author>
   
   <generator uri="https://hexo.io/">Hexo</generator>
+  
+  <entry>
+    <title>如何优雅的在 Linux 下开机自动重启脚本</title>
+    <link href="https://www.hi-linux.com/posts/36782.html"/>
+    <id>https://www.hi-linux.com/posts/36782.html</id>
+    <published>2021-07-21T01:00:00.000Z</published>
+    <updated>2021-07-21T02:09:49.990Z</updated>
+    
+    <content type="html"><![CDATA[<div id="vip-container"><h2><span id="简介">简介</span></h2><p>经常碰到机器断电之后需要重启一大堆服务，为了防止这种事情发生，设置开机自启的脚本十分的重要，我们习惯性的做法就是编写一个重启脚本，然后在 <code>/etc/rc.local</code> 中去完成开机执行。例如下面这样：</p><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">$ cat &#x2F;etc&#x2F;rc.local</span><br><span class="line">bash &#x2F;root&#x2F;script&#x2F;restart.sh</span><br></pre></td></tr></table></figure><p>这样的方法虽然可行，但并不优雅。今天我们就给大家介绍两种更好的实现方式：</p><h2><span id="通过-crontab-实现">通过 Crontab 实现</span></h2><p>Crontab 可以使用 <code>@reboot</code> 来执行主机启动之后的命令。首先在命令行输入：</p><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">$ crontab -e</span><br></pre></td></tr></table></figure><p>然后添加以下内容：</p><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">@reboot &#x2F;root&#x2F;script&#x2F;restart.sh</span><br></pre></td></tr></table></figure><p>完成后，这个脚本就可以在重启的时候自动执行了。其它的一些进阶玩法：</p><ul><li>在启动完成后的指定时间内运行脚本</li></ul><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"># 在启动 5 分钟后运行指定脚本</span><br><span class="line">@reboot sleep 300 &amp;&amp; &#x2F;home&#x2F;wwwjobs&#x2F;clean-static-cache.sh</span><br></pre></td></tr></table></figure><h2><span id="通过-systemd-实现">通过 Systemd 实现</span></h2><p>首先编写一个名为 restart 的 Systemd 服务：</p><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line">$ vim &#x2F;lib&#x2F;systemd&#x2F;system&#x2F;restart.service</span><br><span class="line"></span><br><span class="line">[Unit]</span><br><span class="line">Description&#x3D;restart</span><br><span class="line">After&#x3D;default.target</span><br><span class="line"></span><br><span class="line">[Service]</span><br><span class="line">ExecStart&#x3D;&#x2F;root&#x2F;script&#x2F;restart.sh</span><br><span class="line"></span><br><span class="line">[Install]</span><br><span class="line">WantedBy&#x3D;default.target</span><br></pre></td></tr></table></figure><p>然后启用这个 Systemd 服务：</p><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">$ systemctl daemon-reload</span><br><span class="line">$ systemctl enable restart.service</span><br></pre></td></tr></table></figure><p>完成后，这个服务对应的脚本就可以自动开机自启了。</p><h2><span id="参考文档">参考文档</span></h2><ul><li><a href="https://www.google.com" target="_blank" rel="noopener">https://www.google.com</a></li><li><a href="https://tinyurl.com/6ryafefw" target="_blank" rel="noopener">https://tinyurl.com/6ryafefw</a></li><li><a href="https://www.cyberciti.biz/faq/linux-execute-cron-job-after-system-reboot/" target="_blank" rel="noopener">https://www.cyberciti.biz/faq/linux-execute-cron-job-after-system-reboot/</a></li></ul></div><script src="https://my.openwrite.cn/js/readmore.js" type="text/javascript"></script><script>var isMobile = navigator.userAgent.match(/(phone|pad|pod|iPhone|iPod|ios|iPad|Android|Mobile|BlackBerry|IEMobile|MQQBrowser|JUC|Fennec|wOSBrowser|BrowserNG|WebOS|Symbian|Windows Phone)/i);if (!isMobile) {    var btw = new BTWPlugin();    btw.init({        "id": "vip-container",        "blogId": "10135-1588830050631-449",        "name": "「奇妙的 Linux 世界」",        "qrcode": "https://www.hi-linux.com/img/wechat/mp_qrcode_12.jpg",        "keyword": "VIP"    });}</script>]]></content>
+    
+    <summary type="html">
+    
+      
+      
+        
+        
+          &lt;div id=&quot;vip-container&quot;&gt;&lt;h2&gt;&lt;span id=&quot;简介&quot;&gt;简介&lt;/span&gt;&lt;/h2&gt;
+&lt;p&gt;经常碰到机器断电之后需要重启一大堆服务，为了防止这种事情发生，设置开机自启的脚本十分的重要，我们习惯性的做法就是编写一个重启脚本，然后在
+        
+      
+    
+    </summary>
+    
+    
+      <category term="Linux" scheme="https://www.hi-linux.com/categories/Linux/"/>
+    
+    
+      <category term="Linux" scheme="https://www.hi-linux.com/tags/Linux/"/>
+    
+      <category term="教程" scheme="https://www.hi-linux.com/tags/%E6%95%99%E7%A8%8B/"/>
+    
+      <category term="Shell" scheme="https://www.hi-linux.com/tags/Shell/"/>
+    
+  </entry>
   
   <entry>
     <title>推荐一款面向开发者友好的 Kubernetes 持续交付工作流管理软件 Devtron</title>
@@ -669,36 +703,6 @@
       <category term="Linux" scheme="https://www.hi-linux.com/tags/Linux/"/>
     
       <category term="Shell" scheme="https://www.hi-linux.com/tags/Shell/"/>
-    
-  </entry>
-  
-  <entry>
-    <title>推荐一款开源即时性能分析工具 Pyroscope</title>
-    <link href="https://www.hi-linux.com/posts/52545.html"/>
-    <id>https://www.hi-linux.com/posts/52545.html</id>
-    <published>2021-06-09T01:00:00.000Z</published>
-    <updated>2021-06-09T01:24:04.959Z</updated>
-    
-    <content type="html"><![CDATA[<div id="vip-container"><p>当网站上线后，流量增加或短暂功能故障，都会造成使用者体验相当不好，而这时该怎么快速找到性能的瓶颈呢？通常 CPU 达到 100% 时，有时候也很难复制及找出关键问题点。</p><p>本篇文章，我们会介绍一套工具叫 Pyroscope，让开发者可以快速找到性能瓶颈的代码。Pyroscope 目前可以支持 Python, Ruby 或 Go 的环境。本文笔者会针对 Go 环境做介绍。</p><h2><span id="什么是-pyroscope">什么是 Pyroscope？</span></h2><p>Pyroscope 是一套开源的性能即时监控平台，简单的 Server 及 Agent 架构，让开发者可以轻松监控代码性能，不管你要找 10 秒或几分钟内的性能数据，都可以快速的即时呈现，开发者也不用在意装了此监控会造成任何性能上的负担。Pyroscope 背后的储存采用 Badger 这套 Key-Value 数据库，性能上是非常好的。目前只支持 3 种语言 (Python, Ruby 及 Go) 未来会预计支持 NodeJS。假设您还没引入任何性能分析工具或平台，那 Pyroscope 会是您最好的选择。</p><a id="more"></a><h2><span id="pyroscope-架构">Pyroscope 架构</span></h2><p>如果你有打算找性能分析工具平台，Pyroscope 提供了三大优势，让开发者可以放心使用</p><ul><li>低 CPU 使用率，不会影响既有平台</li><li>可储存好几年的资料，并且可用 10 秒细颗粒度查看资料</li><li>压缩储存资料，减少浪费硬盘空间</li><li>架构只有分 Server 和 Agent，除了 Go 语言之外，Python 跟 Ruby App 都是透过 pyroscope 指令启动相关 app 来监控系统效能。</li></ul><p><img src="https://img.hi-linux.com/staticfile/36tdD2-2021-04-22-Im2TSi.jpg" alt="Pyroscope 架构图"></p><h2><span id="启动-pyroscope-服务">启动 Pyroscope 服务</span></h2><p>启动方式有两种，第一是直接用 docker 指令启动。</p><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">$ docker run -it -p 4040:4040 pyroscope&#x2F;pyroscope:latest server</span><br></pre></td></tr></table></figure><p>另一种可以用 docker-compose 启动。</p><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line">---</span><br><span class="line">services:</span><br><span class="line">  pyroscope:</span><br><span class="line">    image: &quot;pyroscope&#x2F;pyroscope:latest&quot;</span><br><span class="line">    ports:</span><br><span class="line">      - &quot;4040:4040&quot;</span><br><span class="line">    command:</span><br><span class="line">      - &quot;server&quot;</span><br></pre></td></tr></table></figure><h2><span id="安装-agent">安装 Agent</span></h2><h3><span id="在-go-语言中使用">在 Go 语言中使用</span></h3><p>本篇用 Go 语言当作示例，先 import package</p><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">import &quot;github.com&#x2F;pyroscope-io&#x2F;pyroscope&#x2F;pkg&#x2F;agent&#x2F;profiler&quot;</span><br></pre></td></tr></table></figure><p>接著在 main.go 写入底下代码即可:</p><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">profiler.Start(profiler.Config&#123;</span><br><span class="line">    ApplicationName: &quot;simple.golang.app&quot;,</span><br><span class="line">    ServerAddress:   &quot;http:&#x2F;&#x2F;pyroscope:4040&quot;,</span><br><span class="line">&#125;)</span><br></pre></td></tr></table></figure><p>其中 <code>http://pyroscope</code> 可以换成自定义的 hostname 即可，接着打开上述网址就可以看到性能监控的画面了</p><p><img src="https://img.hi-linux.com/staticfile/7hYcxe-2021-04-22-v59IxB.jpg" alt></p><p>通过画面，我们可以快速找到是 SQL 或哪个函式执行时间长。</p><p><img src="https://img.hi-linux.com/staticfile/ChNi8m-2021-04-22-YkkYNt.jpg" alt></p><h3><span id="在-python-和-ruby-语言中使用">在 Python 和 Ruby 语言中使用</span></h3><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"># If using Python</span><br><span class="line">$ pyroscope exec python manage.py runserver </span><br><span class="line"></span><br><span class="line"># If using Ruby</span><br><span class="line">$ pyroscope exec rails server</span><br></pre></td></tr></table></figure><h2><span id="心得">心得</span></h2><p>这套工具相当方便，在 Go 语言虽然可以用 pprof 快速找到问题，但是难免还是需要手动的一些地方才可以查出性能瓶颈，有了这套平台，就可以将全部 App 都进行监控，当使用者有任何问题，就可以快速透过 Pyroscope 查看哪些代码出了问题。</p><blockquote><p>本文转载自：「 小恶魔 」，原文：<a href="http://t.cn/A6c0G3dm%EF%BC%8C%E7%89%88%E6%9D%83%E5%BD%92%E5%8E%9F%E4%BD%9C%E8%80%85%E6%89%80%E6%9C%89%E3%80%82%E6%AC%A2%E8%BF%8E%E6%8A%95%E7%A8%BF%EF%BC%8C%E6%8A%95%E7%A8%BF%E9%82%AE%E7%AE%B1:" target="_blank" rel="noopener">http://t.cn/A6c0G3dm，版权归原作者所有。欢迎投稿，投稿邮箱:</a> <a href="mailto:editor@hi-linux.com">editor@hi-linux.com</a>。</p></blockquote></div><script src="https://my.openwrite.cn/js/readmore.js" type="text/javascript"></script><script>var isMobile = navigator.userAgent.match(/(phone|pad|pod|iPhone|iPod|ios|iPad|Android|Mobile|BlackBerry|IEMobile|MQQBrowser|JUC|Fennec|wOSBrowser|BrowserNG|WebOS|Symbian|Windows Phone)/i);if (!isMobile) {    var btw = new BTWPlugin();    btw.init({        "id": "vip-container",        "blogId": "10135-1588830050631-449",        "name": "「奇妙的 Linux 世界」",        "qrcode": "https://www.hi-linux.com/img/wechat/mp_qrcode_12.jpg",        "keyword": "VIP"    });}</script>]]></content>
-    
-    <summary type="html">
-    
-      &lt;p&gt;当网站上线后，流量增加或短暂功能故障，都会造成使用者体验相当不好，而这时该怎么快速找到性能的瓶颈呢？通常 CPU 达到 100% 时，有时候也很难复制及找出关键问题点。&lt;/p&gt;
-&lt;p&gt;本篇文章，我们会介绍一套工具叫 Pyroscope，让开发者可以快速找到性能瓶颈的代码。Pyroscope 目前可以支持 Python, Ruby 或 Go 的环境。本文笔者会针对 Go 环境做介绍。&lt;/p&gt;
-&lt;h2 id=&quot;什么是-Pyroscope？&quot;&gt;什么是 Pyroscope？&lt;/h2&gt;
-&lt;p&gt;Pyroscope 是一套开源的性能即时监控平台，简单的 Server 及 Agent 架构，让开发者可以轻松监控代码性能，不管你要找 10 秒或几分钟内的性能数据，都可以快速的即时呈现，开发者也不用在意装了此监控会造成任何性能上的负担。Pyroscope 背后的储存采用 Badger 这套 Key-Value 数据库，性能上是非常好的。目前只支持 3 种语言 (Python, Ruby 及 Go) 未来会预计支持 NodeJS。假设您还没引入任何性能分析工具或平台，那 Pyroscope 会是您最好的选择。&lt;/p&gt;
-    
-    </summary>
-    
-    
-      <category term="Linux" scheme="https://www.hi-linux.com/categories/Linux/"/>
-    
-    
-      <category term="Linux" scheme="https://www.hi-linux.com/tags/Linux/"/>
-    
-      <category term="工具" scheme="https://www.hi-linux.com/tags/%E5%B7%A5%E5%85%B7/"/>
-    
-      <category term="Pyroscope" scheme="https://www.hi-linux.com/tags/Pyroscope/"/>
     
   </entry>
   
