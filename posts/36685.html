@@ -1,0 +1,827 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<!-- Head tag -->
+<head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="google-site-verification" content="xBT4GhYoi5qRD5tr338pgPM5OWHHIDR6mNg1a3euekI" />
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="description" content="">
+    <meta name="keyword"  content="Linux,运维,Nginx,Zabbix,Centos,Ansible,MySQL,Python,Docker,ELK,Haproxy,Git,Nodejs,安全,技术">
+    <link rel="shortcut icon" href="/img/ironman-draw.png">
+    <!-- Place this tag in your head or just before your close body tag. -->
+    <script async defer src="https://buttons.github.io/buttons.js"></script>
+    <title>
+        
+          巧用 Xpanes 实现多服务器批量管理 - 奇妙的 Linux 世界
+        
+    </title>
+
+    <link rel="canonical" href="https://www.hi-linux.com/posts/36685.html">
+
+    <!-- Bootstrap Core CSS -->
+    
+<link rel="stylesheet" href="/css/bootstrap.min.css">
+
+
+    <!-- Custom CSS --> 
+    
+<link rel="stylesheet" href="/css/beantech.min.css">
+
+    
+    <!-- Pygments Highlight CSS -->
+    
+<link rel="stylesheet" href="/css/highlight.css">
+
+
+    
+<link rel="stylesheet" href="/css/widget.css">
+
+
+    
+<link rel="stylesheet" href="/css/rocket.css">
+
+
+    
+<link rel="stylesheet" href="/css/signature.css">
+
+
+    
+<link rel="stylesheet" href="/css/toc.css">
+
+
+    <!-- Custom Fonts -->
+    <!-- <link href="https://maxcdn.bootstrapcdn.com/font-awesome/4.3.0/css/font-awesome.min.css" rel="stylesheet" type="text/css"> -->
+    <!-- Hux change font-awesome CDN to qiniu -->
+    <link href="https://cdn.staticfile.org/font-awesome/4.5.0/css/font-awesome.min.css" rel="stylesheet" type="text/css">
+
+
+    <!-- Hux Delete, sad but pending in China
+    <link href='http://fonts.googleapis.com/css?family=Lora:400,700,400italic,700italic' rel='stylesheet' type='text/css'>
+    <link href='http://fonts.googleapis.com/css?family=Open+Sans:300italic,400italic,600italic,700italic,800italic,400,300,600,700,800' rel='stylesheet' type='text/
+    css'>
+    -->
+
+
+    <!-- HTML5 Shim and Respond.js IE8 support of HTML5 elements and media queries -->
+    <!-- WARNING: Respond.js doesn't work if you view the page via file:// -->
+    <!--[if lt IE 9]>
+        <script src="https://oss.maxcdn.com/libs/html5shiv/3.7.0/html5shiv.js"></script>
+        <script src="https://oss.maxcdn.com/libs/respond.js/1.4.2/respond.min.js"></script>
+    <![endif]-->
+
+    <!-- ga & ba script hoook -->
+    <script></script>
+<meta name="generator" content="Hexo 4.2.1"><link rel="alternate" href="/atom.xml" title="奇妙的 Linux 世界" type="application/atom+xml">
+</head>
+
+
+<!-- hack iOS CSS :active style -->
+<body ontouchstart="">
+	<!-- Modified by Yu-Hsuan Yen -->
+<!-- Post Header -->
+<style type="text/css">
+    header.intro-header{
+        
+            background-image: url('/img/header_img/building.jpg')
+            /*post*/
+        
+    }
+    
+</style>
+
+<header class="intro-header" >
+    <!-- Signature -->
+    <div id="signature">
+        <div class="container">
+            <div class="row">
+                <div class="col-lg-8 col-lg-offset-2 col-md-10 col-md-offset-1">
+                
+                    <div class="post-heading">
+                        <div class="tags">
+                            
+                              <a class="tag" href="/tags/#Linux" title="Linux">Linux</a>
+                            
+                              <a class="tag" href="/tags/#教程" title="教程">教程</a>
+                            
+                              <a class="tag" href="/tags/#Xpanes" title="Xpanes">Xpanes</a>
+                            
+                        </div>
+                        <h1>巧用 Xpanes 实现多服务器批量管理</h1>
+                        <h2 class="subheading"></h2>
+                        <span class="meta">
+                            Posted by Mike on
+                            2021-08-04
+                        </span>
+                    </div>
+                
+
+
+                </div>
+            </div>
+        </div>
+    </div>
+</header>
+
+	
+    <!-- Navigation -->
+<nav class="navbar navbar-default navbar-custom navbar-fixed-top">
+    <div class="container-fluid">
+        <!-- Brand and toggle get grouped for better mobile display -->
+        <div class="navbar-header page-scroll">
+            <button type="button" class="navbar-toggle">
+                <span class="sr-only">Toggle navigation</span>
+                <span class="icon-bar"></span>
+                <span class="icon-bar"></span>
+                <span class="icon-bar"></span>
+            </button>
+            <a class="navbar-brand" href="/">奇妙的 Linux 世界</a>
+        </div>
+
+        <!-- Collect the nav links, forms, and other content for toggling -->
+        <!-- Known Issue, found by Hux:
+            <nav>'s height woule be hold on by its content.
+            so, when navbar scale out, the <nav> will cover tags.
+            also mask any touch event of tags, unfortunately.
+        -->
+        <div id="huxblog_navbar">
+            <div class="navbar-collapse">
+                <ul class="nav navbar-nav navbar-right">
+                    <li>
+                        <a href="/">Home</a>
+                    </li>
+
+                    
+
+                        
+                    
+
+                        
+                    
+
+                        
+                        <li>
+                            <a href="/about/">About</a>
+                        </li>
+                        
+                    
+
+                        
+                        <li>
+                            <a href="/tags/">Tags</a>
+                        </li>
+                        
+                    
+
+                        
+                        <li>
+                            <a href="/archive/">Archives</a>
+                        </li>
+                        
+                    
+                    
+                </ul>
+            </div>
+        </div>
+        <!-- /.navbar-collapse -->
+    </div>
+    <!-- /.container -->
+</nav>
+<script>
+    // Drop Bootstarp low-performance Navbar
+    // Use customize navbar with high-quality material design animation
+    // in high-perf jank-free CSS3 implementation
+    var $body   = document.body;
+    var $toggle = document.querySelector('.navbar-toggle');
+    var $navbar = document.querySelector('#huxblog_navbar');
+    var $collapse = document.querySelector('.navbar-collapse');
+
+    $toggle.addEventListener('click', handleMagic)
+    function handleMagic(e){
+        if ($navbar.className.indexOf('in') > 0) {
+        // CLOSE
+            $navbar.className = " ";
+            // wait until animation end.
+            setTimeout(function(){
+                // prevent frequently toggle
+                if($navbar.className.indexOf('in') < 0) {
+                    $collapse.style.height = "0px"
+                }
+            },400)
+        }else{
+        // OPEN
+            $collapse.style.height = "auto"
+            $navbar.className += " in";
+        }
+    }
+</script>
+
+
+    <!-- Main Content -->
+    <!-- Modify by Yu-Hsuan Yen -->
+
+<!-- Post Content -->
+<article>
+    <div class="container">
+        <div class="row">
+
+            <!-- Post Container -->
+            <div class="
+                col-lg-8 col-lg-offset-2
+                col-md-10 col-md-offset-1
+                post-container">
+
+                <div id="vip-container"><blockquote>
+<p><strong>由 Tmux 提供支持的终极终端分屏器！</strong></p>
+</blockquote>
+<p>虽然我们已经可以使用 <code>tmux</code> 进行屏幕的分割和切换，但是如果需要对一批服务器进行操作的话，就只能一个一个的登录和执行了。如果使用过 <code>Xshell</code> 或者其他远程工具的话，肯定是使用过这个功能特性的，一次命令输出可以在登录的多个远程终端上面执行。现在我们可以使用 <code>tmux-xpanes</code> 来完成同样的事情了，撒花！</p>
+<a id="more"></a>
+<h2><span id="特点介绍">特点介绍</span></h2>
+<blockquote>
+<p>the features about xpanes</p>
+</blockquote>
+<ul>
+<li>Split tmux window into multiple panes</li>
+<li>将 tmux 窗口拆分为多个窗格
+<ul>
+<li>Construct command lines &amp; execute them on the panes</li>
+<li>构造命令行并在窗格上执行它们</li>
+</ul>
+</li>
+<li>Runnable from outside of tmux session</li>
+<li>Runnable from inside of tmux session</li>
+<li>Record operation log</li>
+<li>记录操作日志</li>
+<li>Flexible layout arrangement for panes</li>
+<li>窗格的灵活布局安排
+<ul>
+<li>Select layout presets</li>
+<li>选择布局预设</li>
+<li>Set columns or rows as you like</li>
+<li>根据需要设置列或行</li>
+</ul>
+</li>
+<li>Display pane title on each pane</li>
+<li>在每个窗格上显示窗格标题</li>
+<li>Generate command lines from standard input (Pipe mode)</li>
+<li>标准输入(管道模式)生成命令行</li>
+</ul>
+<h2><span id="工具安装">工具安装</span></h2>
+<blockquote>
+<p>requirements: bash3.2+ and tmux1.8+</p>
+</blockquote>
+<ul>
+<li>macOS</li>
+</ul>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">$ brew install tmux-xpanes</span><br></pre></td></tr></table></figure>
+<ul>
+<li>CentOS</li>
+</ul>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">$ sudo yum install https://dl.fedoraproject.org/pub/epel/epel-release-latest-$(rpm --<span class="built_in">eval</span> %rhel).noarch.rpm</span><br><span class="line">$ sudo yum install xpanes</span><br></pre></td></tr></table></figure>
+<ul>
+<li>Ubuntu</li>
+</ul>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">$ sudo apt install software-properties-common</span><br><span class="line">$ sudo add-apt-repository ppa:greymd/tmux-xpanes</span><br><span class="line">$ sudo apt update</span><br><span class="line">$ sudo apt install tmux-xpanes</span><br></pre></td></tr></table></figure>
+<ul>
+<li>Manual</li>
+</ul>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># Download with wget</span></span><br><span class="line">$ wget https://raw.githubusercontent.com/greymd/tmux-xpanes/v4.1.3/bin/xpanes -O ./xpanes</span><br><span class="line"></span><br><span class="line"><span class="comment"># Put it under PATH and make it executable.</span></span><br><span class="line">$ sudo install -m 0755 xpanes /usr/<span class="built_in">local</span>/bin/xpanes</span><br></pre></td></tr></table></figure>
+<ul>
+<li>Zsh Completion</li>
+</ul>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># Clone the repository</span></span><br><span class="line">$ git <span class="built_in">clone</span> https://github.com/greymd/tmux-xpanes.git /path/to/tmux-xpanes</span><br><span class="line"></span><br><span class="line"><span class="comment"># ~/.zshrc.</span></span><br><span class="line">$ <span class="built_in">source</span> /path/to/tmux-xpanes/completion.zsh</span><br></pre></td></tr></table></figure>
+<h2><span id="工具帮助">工具帮助</span></h2>
+<blockquote>
+<p>tmux-xpanes is alias of xpanes</p>
+</blockquote>
+<ul>
+<li>[Normal mode1] Outside of tmux session
+<ul>
+<li>当 <code>tmux</code> 没有打开且 <code>xpanes</code> 在终端上执行时，<code>xpanes</code> 的行为如下:</li>
+<li>它新建一个 tmux 会话，并在会话上新建窗口</li>
+<li>此外，它将窗口分隔为多个窗格</li>
+<li>最后，将会话附加上去</li>
+</ul>
+</li>
+<li>[Normal mode2] Inside of tmux session
+<ul>
+<li>当 <code>tmux</code> 已经打开并在现有的 <code>tmux</code> 会话上执行 <code>xpanes</code> 时，该命令的行为如下:</li>
+<li>它会在现有活动会话上新建一个窗口</li>
+<li>此外，它将窗口分隔为多个窗格</li>
+<li>最后，窗口将处于活动状态</li>
+</ul>
+</li>
+<li>[Pipe mode] Inside of tmux session &amp; Accepting standard input
+<ul>
+<li>当 <code>xpanes</code> 在正常模式 <code>2</code> 下接受标准输入时，<code>xpanes</code> 的行为将是一个特殊的称为“管道模式”的行为。</li>
+</ul>
+</li>
+</ul>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br></pre></td><td class="code"><pre><span class="line">Usage:</span><br><span class="line">  xpanes [OPTIONS] [argument ...]</span><br><span class="line"></span><br><span class="line">Usage(Pipe mode):</span><br><span class="line">  <span class="built_in">command</span> ... | xpanes [OPTIONS] [&lt;<span class="built_in">command</span>&gt; ...]</span><br><span class="line"></span><br><span class="line">OPTIONS:</span><br><span class="line">  -h,--<span class="built_in">help</span>                    Display this <span class="built_in">help</span> and <span class="built_in">exit</span>.</span><br><span class="line">  -V,--version                 Output version information and <span class="built_in">exit</span>.</span><br><span class="line">  -B &lt;begin-command&gt;           Run &lt;begin-command&gt; before processing &lt;<span class="built_in">command</span>&gt; <span class="keyword">in</span> each pane. Multiple options are allowed.</span><br><span class="line">  -c &lt;<span class="built_in">command</span>&gt;                 Set &lt;<span class="built_in">command</span>&gt; to be executed <span class="keyword">in</span> each pane. Default is `<span class="built_in">echo</span> &#123;&#125;`.</span><br><span class="line">  -d,--desync                  Make synchronize-panes option off <span class="keyword">in</span> new window.</span><br><span class="line">  -e                           Execute given arguments as is. Same as -c <span class="string">'&#123;&#125;'</span></span><br><span class="line">  -I &lt;repstr&gt;                  Replacing one or more occurrences of &lt;repstr&gt; <span class="keyword">in</span> <span class="built_in">command</span> provided by -c or -B. Default is `&#123;&#125;`.</span><br><span class="line">  -C NUM,--cols=NUM            Number of columns of window layout.</span><br><span class="line">  -R NUM,--rows=NUM            Number of rows of window layout.</span><br><span class="line">  -l &lt;layout&gt;                  Set the preset of window layout. Recognized layout arguments are:</span><br><span class="line">                               t    tiled</span><br><span class="line">                               eh   even-horizontal</span><br><span class="line">                               ev   even-vertical</span><br><span class="line">                               mh   main-horizontal</span><br><span class="line">                               mv   main-vertical</span><br><span class="line">  -n &lt;number&gt;                  Set the maximum number of &lt;argument&gt; taken <span class="keyword">for</span> each pane.</span><br><span class="line">  -s                           Speedy mode: Run <span class="built_in">command</span> without opening an interactive shell.</span><br><span class="line">  -ss                          Speedy mode AND close a pane automatically at the same time as process exiting.</span><br><span class="line">  -S &lt;socket-path&gt;             Set a full alternative path to the server socket.</span><br><span class="line">  -t                           Display each argument on the each pane is border as their title.</span><br><span class="line">  -x                           Create extra panes <span class="keyword">in</span> the current active window.</span><br><span class="line">  --<span class="built_in">log</span>[=&lt;directory&gt;]          Enable logging and store <span class="built_in">log</span> files to ~/.cache/xpanes/logs or &lt;directory&gt;.</span><br><span class="line">  --<span class="built_in">log</span>-format=&lt;FORMAT&gt;        Make name of <span class="built_in">log</span> files follow &lt;FORMAT&gt;. Default is `[:ARG:].<span class="built_in">log</span>.%Y-%m-%d_%H-%M-%S`.</span><br><span class="line">  --ssh                        Same as `-t -s -c <span class="string">'ssh -o StrictHostKeyChecking=no &#123;&#125;'</span>`.</span><br><span class="line">  --stay                       Do not switch to new window.</span><br><span class="line">  --bulk-cols=NUM1[,NUM2 ...]  Set number of columns on multiple rows (i.e, <span class="string">"2,2,2"</span> represents 2 cols x 3 rows).</span><br><span class="line">  --debug                      Print debug message.</span><br></pre></td></tr></table></figure>
+<h2><span id="使用介绍">使用介绍</span></h2>
+<blockquote>
+<p>介绍 xpanes 工具的使用方式和简单工作模式！</p>
+</blockquote>
+<p><img src="https://img.hi-linux.com/staticfile/learn-tmux-xpanes-tools-01-20210709162820791-2021-07-09-mNvwzx.gif" alt="使用xpanes来并发执行命令"></p>
+<table>
+<thead>
+<tr>
+<th style="text-align:left">编号</th>
+<th style="text-align:left">参数</th>
+<th style="text-align:left">含义解释</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align:left">1</td>
+<td style="text-align:left"><strong><code>-d</code></strong></td>
+<td style="text-align:left">打开的窗口不同步输出命令</td>
+</tr>
+<tr>
+<td style="text-align:left">2</td>
+<td style="text-align:left"><strong><code>-c</code></strong></td>
+<td style="text-align:left">包含需要执行的命令</td>
+</tr>
+<tr>
+<td style="text-align:left">3</td>
+<td style="text-align:left"><strong><code>-I</code></strong></td>
+<td style="text-align:left">用来指定占位符</td>
+</tr>
+<tr>
+<td style="text-align:left">4</td>
+<td style="text-align:left"><strong><code>-t</code></strong></td>
+<td style="text-align:left">可以在每个窗格边框上显示每个参数</td>
+</tr>
+<tr>
+<td style="text-align:left">5</td>
+<td style="text-align:left"><strong><code>--ssh</code></strong></td>
+<td style="text-align:left">助于忽略 openssh 的警报消息</td>
+</tr>
+<tr>
+<td style="text-align:left">6</td>
+<td style="text-align:left"><strong><code>--log</code></strong></td>
+<td style="text-align:left">记录 SSH 连接多个主机并进行日志操作</td>
+</tr>
+<tr>
+<td style="text-align:left">7</td>
+<td style="text-align:left"><strong><code>-s</code></strong></td>
+<td style="text-align:left">将不会创建新的交互式 shell 命令</td>
+</tr>
+<tr>
+<td style="text-align:left">8</td>
+<td style="text-align:left"><strong><code>-ss</code></strong></td>
+<td style="text-align:left">屏蔽信息</td>
+</tr>
+<tr>
+<td style="text-align:left">9</td>
+<td style="text-align:left"><strong><code>-x</code></strong></td>
+<td style="text-align:left">可以在现有窗口上创建新窗格</td>
+</tr>
+<tr>
+<td style="text-align:left">10</td>
+<td style="text-align:left"><strong><code>-e</code></strong></td>
+<td style="text-align:left">可以在不同的窗格上执行不同的命令</td>
+</tr>
+<tr>
+<td style="text-align:left">11</td>
+<td style="text-align:left"><strong><code>-B</code></strong></td>
+<td style="text-align:left">可以对每个窗格进行预处理</td>
+</tr>
+<tr>
+<td style="text-align:left">12</td>
+<td style="text-align:left"><strong><code>-C</code></strong></td>
+<td style="text-align:left">来控制窗口的列</td>
+</tr>
+<tr>
+<td style="text-align:left">13</td>
+<td style="text-align:left"><strong><code>-R</code></strong></td>
+<td style="text-align:left">来控制窗口的行</td>
+</tr>
+<tr>
+<td style="text-align:left">14</td>
+<td style="text-align:left"><strong><code>--bulk-cols</code></strong></td>
+<td style="text-align:left">指定对应每一行的列数</td>
+</tr>
+</tbody>
+</table>
+<ul>
+<li>执行如下命令，将使用 <code>tmux</code> 工具打开四个窗口，分别执行 <code>echo n</code> 的命令。执行完成之后，我们就可以在任意一个窗口执行命令，其他窗口均会同步执行该命令。</li>
+<li>默认情况下，执行 <code>xpanes</code> 命令之后，从键盘输入在多个窗格中是同步的。当我们使用完成之后，可以使用 <code>exit</code> 命令来退出所有打开的窗口。</li>
+</ul>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># 下面两个效果等同</span></span><br><span class="line">$ xpanes &#123;1..4&#125;</span><br><span class="line">$ xpanes 1 2 3 4</span><br><span class="line">+-------------------------------+-------------------------------+</span><br><span class="line">│$ <span class="built_in">echo</span> 1                       │$ <span class="built_in">echo</span> 2                       │</span><br><span class="line">│1                              │2                              │</span><br><span class="line">│                               │                               │</span><br><span class="line">│                               │                               │</span><br><span class="line">+-------------------------------+-------------------------------+</span><br><span class="line">│$ <span class="built_in">echo</span> 3                       │$ <span class="built_in">echo</span> 4                       │</span><br><span class="line">│3                              │4                              │</span><br><span class="line">│                               │                               │</span><br><span class="line">│                               │                               │</span><br><span class="line">+-------------------------------+-------------------------------+</span><br></pre></td></tr></table></figure>
+<ul>
+<li>如果希望，打开的窗口不同步输出命令的话，可以使用 <code>-d/--desync</code> 参数。</li>
+</ul>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># -d</span></span><br><span class="line">$ xpanes -d 1 2 3 4</span><br></pre></td></tr></table></figure>
+<ul>
+<li><code>xpanes</code> 的基本选项之一 <code>-c</code> 参数，用于表示需要执行的命令。我们使用 <code>-c</code> 参数将 <code>seq</code> 命令包裹在内，其中 <code>{}</code> 表示需要被替换的参数。这个占位符可以使用 <code>-I</code> 参数来指定。</li>
+</ul>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># -c</span></span><br><span class="line">$ xpanes -c <span class="string">'seq &#123;&#125;'</span> 1 2 3 4</span><br><span class="line">+-------------------------------+-------------------------------+</span><br><span class="line">│$ seq 1                        │$ seq 2                        │</span><br><span class="line">│1                              │1                              │</span><br><span class="line">│                               │2                              │</span><br><span class="line">│                               │                               │</span><br><span class="line">│                               │                               │</span><br><span class="line">+-------------------------------+-------------------------------+</span><br><span class="line">│$ seq 3                        │$ seq 4                        │</span><br><span class="line">│1                              │1                              │</span><br><span class="line">│2                              │2                              │</span><br><span class="line">│3                              │3                              │</span><br><span class="line">│                               │4                              │</span><br><span class="line">│                               │                               │</span><br><span class="line">+-------------------------------+-------------------------------+</span><br><span class="line"></span><br><span class="line"><span class="comment"># -I</span></span><br><span class="line">$ xpanes -I@ -c <span class="string">'seq @'</span> 1 2 3 4</span><br><span class="line"></span><br><span class="line"><span class="comment"># -c</span></span><br><span class="line">$ xpanes -c <span class="string">"ssh myuser@&#123;&#125;"</span> host1 host2</span><br><span class="line">$ xpanes -c <span class="string">"ssh -t &#123;&#125; bash -ci 'll'"</span> host-&#123;1,2,3&#125;</span><br><span class="line">$ xpanes -c <span class="string">"tail -f &#123;&#125;"</span> /var/<span class="built_in">log</span>/apache/&#123;error,access&#125;.<span class="built_in">log</span> /var/<span class="built_in">log</span>/application/&#123;error,access&#125;.<span class="built_in">log</span></span><br><span class="line">$ xpanes -c <span class="string">"ssh user@host tail -f &#123;&#125;"</span> /var/<span class="built_in">log</span>/apache/&#123;error,access&#125;.<span class="built_in">log</span> /var/<span class="built_in">log</span>/application/&#123;error,access&#125;.<span class="built_in">log</span></span><br></pre></td></tr></table></figure>
+<ul>
+<li>使用 <code>--ssh</code> 选项有助于忽略 <code>openssh</code> 的警报消息，即不需要回答是/否的问题。</li>
+</ul>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># 下面两个效果等同</span></span><br><span class="line">$ xpanes --ssh myuser1@host1 myuser2@host2</span><br><span class="line">$ xpanes -t -s -c <span class="string">"ssh -o StrictHostKeyChecking=no &#123;&#125;"</span> myuser1@host1 myuser2@host2</span><br></pre></td></tr></table></figure>
+<ul>
+<li>使用 <code>--log</code> 选项可以记录 <code>SSH</code> 连接多个主机并进行日志操作。</li>
+</ul>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line">$ xpanes --<span class="built_in">log</span>=~/operation_log -c <span class="string">"ssh &#123;&#125;"</span> user1@host1 user2@host2</span><br><span class="line">+-------------------------------+-------------------------------+</span><br><span class="line">│$ ssh user1@host1              │ $ ssh user2@host2             │</span><br><span class="line">│                               │                               │</span><br><span class="line">│                               │                               │</span><br><span class="line">│                               │                               │</span><br><span class="line">│                               │                               │</span><br><span class="line">+-------------------------------+-------------------------------+</span><br><span class="line"></span><br><span class="line">$ ls ~/operation_log/</span><br><span class="line">user1@host1-1.log.2017-03-15_21-30-07</span><br><span class="line">user2@host2-1.log.2017-03-15_21-30-07</span><br></pre></td></tr></table></figure>
+<ul>
+<li>使用 <code>-s</code> 选项，<code>xpanes</code> 将不会创建新的交互式 <code>shell</code> 命令。这样的好处在于，打开多个新窗格需要很长时间(默认登录 <code>shell</code> 会加载 <code>.zshrc</code> 配置等事情)，不想在 <code>shell</code> 历史记录中留下命令。</li>
+<li>当每个进程结束时，将显示 <strong>“窗格已死…”</strong> 之类的确认消息。如果需要禁用该消息的输出，可以使用 <code>-ss</code> 代替 <code>-s</code> 来进行屏蔽。</li>
+</ul>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br></pre></td><td class="code"><pre><span class="line">$ xpanes -s -c <span class="string">"seq &#123;&#125;"</span> 2 3 4 5</span><br><span class="line">+------------------------------------------+------------------------------------------+</span><br><span class="line">│1                                         │1                                         │</span><br><span class="line">│2                                         │2                                         │</span><br><span class="line">│Pane is dead: Press [Enter] to <span class="built_in">exit</span>...    │3                                         │</span><br><span class="line">│                                          │Pane is dead: Press [Enter] to <span class="built_in">exit</span>...    │</span><br><span class="line">│                                          │                                          │</span><br><span class="line">│                                          │                                          │</span><br><span class="line">│                                          │                                          │</span><br><span class="line">+------------------------------------------+------------------------------------------+</span><br><span class="line">│1                                         │1                                         │</span><br><span class="line">│2                                         │2                                         │</span><br><span class="line">│3                                         │3                                         │</span><br><span class="line">│4                                         │4                                         │</span><br><span class="line">│Pane is dead: Press [Enter] to <span class="built_in">exit</span>...    │5                                         │</span><br><span class="line">│                                          │Pane is dead: Press [Enter] to <span class="built_in">exit</span>...    │</span><br><span class="line">│                                          │                                          │</span><br><span class="line">│                                          │                                          │</span><br><span class="line">+------------------------------------------+------------------------------------------+</span><br><span class="line"></span><br><span class="line"><span class="comment"># 屏蔽信息</span></span><br><span class="line">$ xpanes -ss -c <span class="string">"seq &#123;&#125;"</span> 2 3 4 5</span><br></pre></td></tr></table></figure>
+<ul>
+<li>使用 <code>-t</code> 参数，可以在每个窗格边框上显示每个参数。它叫做“窗格标题”。</li>
+</ul>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># 标题</span></span><br><span class="line">$ xpanes -t -c <span class="string">"ping &#123;&#125;"</span> 192.168.1.&#123;5..8&#125;</span><br><span class="line">+------------------------------------------+------------------------------------------+</span><br><span class="line">│ping 192.168.1.5                          │ping 192.168.1.6                          │</span><br><span class="line">│                                          │                                          │</span><br><span class="line">│                                          │                                          │</span><br><span class="line">│                                          │                                          │</span><br><span class="line">│                                          │                                          │</span><br><span class="line">+---192.168.1.5----------------------------+---192.168.1.6----------------------------+</span><br><span class="line">│ping 192.168.1.7                          │ping 192.168.1.8                          │</span><br><span class="line">│                                          │                                          │</span><br><span class="line">│                                          │                                          │</span><br><span class="line">│                                          │                                          │</span><br><span class="line">│                                          │                                          │</span><br><span class="line">+---192.168.1.7----------------------------+---192.168.1.8----------------------------+</span><br></pre></td></tr></table></figure>
+<ul>
+<li>使用 <code>-x</code> 参数，可以在现有窗口上创建新窗格。</li>
+</ul>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># before</span></span><br><span class="line">+-------------------------------+-------------------------------+</span><br><span class="line">│$                              │$                              │</span><br><span class="line">│                               │                               │</span><br><span class="line">│                               │                               │</span><br><span class="line">│                               │                               │</span><br><span class="line">+-------------------------------+-------------------------------+</span><br><span class="line">│ $ xpanes -x 4 5 6                                             │</span><br><span class="line">│                                                               │</span><br><span class="line">│                                                               │</span><br><span class="line">│                                                               │</span><br><span class="line">+-------------------------------+-------------------------------+</span><br><span class="line"></span><br><span class="line"><span class="comment"># after</span></span><br><span class="line">+-------------------------------+-------------------------------+</span><br><span class="line">│$                              │$                              │</span><br><span class="line">│                               │                               │</span><br><span class="line">│                               │                               │</span><br><span class="line">│                               │                               │</span><br><span class="line">+-------------------------------+-------------------------------+</span><br><span class="line">│$ xpanes -x 4 5 6              │$ <span class="built_in">echo</span> 4                       │</span><br><span class="line">│$                              │4                              │</span><br><span class="line">│                               │$                              │</span><br><span class="line">│                               │                               │</span><br><span class="line">+-------------------------------+-------------------------------+</span><br><span class="line">│$ <span class="built_in">echo</span> 5                       │$ <span class="built_in">echo</span> 6                       │</span><br><span class="line">│5                              │6                              │</span><br><span class="line">│$                              │$                              │</span><br><span class="line">│                               │                               │</span><br><span class="line">+-------------------------------+-------------------------------+</span><br></pre></td></tr></table></figure>
+<ul>
+<li>使用 <code>-e</code> 参数，可以在不同的窗格上执行不同的命令。</li>
+</ul>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># 下面两个效果等同</span></span><br><span class="line">$ xpanes -e <span class="string">"top"</span> <span class="string">"vmstat 1"</span> <span class="string">"watch -n 1 free"</span></span><br><span class="line">$ xpanes -I@ -c <span class="string">"@"</span> <span class="string">"top"</span> <span class="string">"vmstat 1"</span> <span class="string">"watch -n 1 free"</span></span><br><span class="line">+-------------------------------+------------------------------+</span><br><span class="line">│$ top                          │$ vmstat 1                    │</span><br><span class="line">│                               │                              │</span><br><span class="line">│                               │                              │</span><br><span class="line">+-------------------------------+------------------------------+</span><br><span class="line">│$ watch -n 1 free                                             │</span><br><span class="line">│                                                              │</span><br><span class="line">│                                                              │</span><br><span class="line">+--------------------------------------------------------------+</span><br></pre></td></tr></table></figure>
+<ul>
+<li>使用 <code>-B</code> 参数，可以对每个窗格进行预处理，<code>-B</code> 选项允许在处理 <code>-c</code> 选项之前执行另一条命令。</li>
+</ul>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br></pre></td><td class="code"><pre><span class="line">$ xpanes -B <span class="string">'echo Preprocessing'</span> -c <span class="string">'echo Test'</span> _</span><br><span class="line">+-------------------------------+</span><br><span class="line">│$ <span class="built_in">echo</span> Preprocessing           │</span><br><span class="line">│Preprocessing                  │</span><br><span class="line">│$ <span class="built_in">echo</span> Test                    │</span><br><span class="line">│Test                           │</span><br><span class="line">│                               │</span><br><span class="line">+-------------------------------+</span><br><span class="line"></span><br><span class="line">$ xpanes -B <span class="string">'echo Pre1'</span> -B <span class="string">'echo Pre2'</span> -B <span class="string">'echo Pre3'</span> -c <span class="string">'echo &#123;&#125;'</span> A B C D</span><br><span class="line">+-------------------------------+------------------------------+</span><br><span class="line">│$ <span class="built_in">echo</span> Pre1                    │$ <span class="built_in">echo</span> Pre1                   │</span><br><span class="line">│Pre1                           │Pre1                          │</span><br><span class="line">│$ <span class="built_in">echo</span> Pre2                    │$ <span class="built_in">echo</span> Pre2                   │</span><br><span class="line">│Pre2                           │Pre2                          │</span><br><span class="line">│$ <span class="built_in">echo</span> Pre3                    │$ <span class="built_in">echo</span> Pre3                   │</span><br><span class="line">│Pre3                           │Pre3                          │</span><br><span class="line">│$ <span class="built_in">echo</span> A                       │$ <span class="built_in">echo</span> B                      │</span><br><span class="line">+-------------------------------+------------------------------+</span><br><span class="line">│$ <span class="built_in">echo</span> Pre1                    │$ <span class="built_in">echo</span> Pre1                   │</span><br><span class="line">│Pre1                           │Pre1                          │</span><br><span class="line">│$ <span class="built_in">echo</span> Pre2                    │$ <span class="built_in">echo</span> Pre2                   │</span><br><span class="line">│Pre2                           │Pre2                          │</span><br><span class="line">│$ <span class="built_in">echo</span> Pre3                    │$ <span class="built_in">echo</span> Pre3                   │</span><br><span class="line">│Pre3                           │Pre3                          │</span><br><span class="line">│$ <span class="built_in">echo</span> C                       │$ <span class="built_in">echo</span> D                      │</span><br><span class="line">+-------------------------------+------------------------------+</span><br></pre></td></tr></table></figure>
+<ul>
+<li>使用 <code>-C</code> 和 <code>-R</code> 参数，来控制窗口的列和行。</li>
+</ul>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br></pre></td><td class="code"><pre><span class="line">$ xpanes -C 2 AAA BBB CCC DDD</span><br><span class="line">+------------------------------+------------------------------+</span><br><span class="line">│$ <span class="built_in">echo</span> AAA                    │$ <span class="built_in">echo</span> BBB                    │</span><br><span class="line">│                              │                              │</span><br><span class="line">│                              │                              │</span><br><span class="line">+------------------------------+------------------------------+</span><br><span class="line">│$ <span class="built_in">echo</span> CCC                    │$ <span class="built_in">echo</span> DDD                    │</span><br><span class="line">│                              │                              │</span><br><span class="line">│                              │                              │</span><br><span class="line">+------------------------------+------------------------------+</span><br><span class="line"></span><br><span class="line">$ xpanes -R 5 AAA BBB CCC DDD EEE FFF GGG HHH</span><br><span class="line">+------------------------------+------------------------------+</span><br><span class="line">│$ <span class="built_in">echo</span> AAA                    │$ <span class="built_in">echo</span> BBB                    │</span><br><span class="line">│                              │                              │</span><br><span class="line">+------------------------------+------------------------------+</span><br><span class="line">│$ <span class="built_in">echo</span> CCC                    │$ <span class="built_in">echo</span> DDD                    │</span><br><span class="line">│                              │                              │</span><br><span class="line">+------------------------------+------------------------------+</span><br><span class="line">│$ <span class="built_in">echo</span> EEE                    │$ <span class="built_in">echo</span> FFF                    │</span><br><span class="line">│                              │                              │</span><br><span class="line">+------------------------------+------------------------------+</span><br><span class="line">│$ <span class="built_in">echo</span> GGG                                                   │</span><br><span class="line">│                                                             │</span><br><span class="line">+-------------------------------------------------------------+</span><br><span class="line">│$ <span class="built_in">echo</span> HHH                                                   │</span><br><span class="line">│                                                             │</span><br><span class="line">+-------------------------------------------------------------+</span><br></pre></td></tr></table></figure>
+<ul>
+<li>使用 <code>--bulk-cols</code> 参数可以接受逗号分隔的数字，每个数字对应每一行的列数。</li>
+</ul>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br></pre></td><td class="code"><pre><span class="line">$ xpanes --bulk-cols=1,3,1,2,5 &#123;A..L&#125;</span><br><span class="line">+-------------------------------------------------------------+</span><br><span class="line">│$ <span class="built_in">echo</span> A                                                     │</span><br><span class="line">│                                                             │</span><br><span class="line">+-------------------------------------------------------------+</span><br><span class="line">│$ <span class="built_in">echo</span> B            │$ <span class="built_in">echo</span> C            │$ <span class="built_in">echo</span> D           │</span><br><span class="line">│                    │                    │                   │</span><br><span class="line">+-------------------------------------------------------------+</span><br><span class="line">│$ <span class="built_in">echo</span> E                                                     │</span><br><span class="line">│                                                             │</span><br><span class="line">+-------------------------------------------------------------+</span><br><span class="line">│$ <span class="built_in">echo</span> F                      │$ <span class="built_in">echo</span> G                      │</span><br><span class="line">│                              │                              │</span><br><span class="line">+-------------------------------------------------------------+</span><br><span class="line">│$ <span class="built_in">echo</span> H     │$ <span class="built_in">echo</span> I    │$ <span class="built_in">echo</span> J    │$ <span class="built_in">echo</span> K   │$ <span class="built_in">echo</span> L │</span><br><span class="line">│             │            │            │           │         │</span><br><span class="line">+-------------------------------------------------------------+</span><br></pre></td></tr></table></figure>
+<ul>
+<li>当 <code>xpanes</code> 命令接受标准输入时，将激活管道模式。在这种模式下，<code>xpanes</code> 的行为类似于 <code>UNIX</code> 系统的 <code>xargs</code> 命令。</li>
+</ul>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br></pre></td><td class="code"><pre><span class="line">$ seq 3 | xpanes</span><br><span class="line">+------------------------------+------------------------------+</span><br><span class="line">│$ <span class="built_in">echo</span> 1                      │$ <span class="built_in">echo</span> 2                      │</span><br><span class="line">│1                             │2                             │</span><br><span class="line">│                              │                              │</span><br><span class="line">│                              │                              │</span><br><span class="line">+------------------------------+------------------------------+</span><br><span class="line">│$ <span class="built_in">echo</span> 3                                                     │</span><br><span class="line">│3                                                            │</span><br><span class="line">│                                                             │</span><br><span class="line">│                                                             │</span><br><span class="line">+------------------------------+------------------------------+</span><br><span class="line"></span><br><span class="line">$ seq 4 | xpanes seq</span><br><span class="line">$ seq 4 | xpanes -c <span class="string">'seq &#123;&#125;'</span></span><br><span class="line">$ cat ~/.ssh/config | awk <span class="string">'$1=="Host"&#123;print $2&#125;'</span> | xpanes ssh</span><br></pre></td></tr></table></figure>
+<ul>
+<li>恢复断开连接的会话，即出现异常情况的话，终端断开连接，我们也可以使用 <code>xpanes</code> 来恢复 <code>Tmux</code> 会话。</li>
+</ul>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># 默认情况会创建：~/.cache/xpanes/socket.&lt;PID&gt;</span></span><br><span class="line">$ ls ~/.cache/xpanes/socket.*</span><br><span class="line">/home/user/.cache/xpanes/socket.1234</span><br><span class="line"></span><br><span class="line"><span class="comment"># 会话恢复</span></span><br><span class="line">$ tmux -S /home/user/.cache/xpanes/socket.1234 attach</span><br></pre></td></tr></table></figure>
+<ul>
+<li>使用 <code>-S</code> 参数，与他人共享终端会话</li>
+</ul>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># 与他人共享终端会话 - user1</span></span><br><span class="line">[user1@host] $ xpanes -S /home/user1/mysocket a b c d ...</span><br><span class="line"></span><br><span class="line"><span class="comment"># 与他人共享终端会话 - user2</span></span><br><span class="line">[user2@host] $ tmux -S /home/user1/mysocket attach</span><br></pre></td></tr></table></figure>
+<h2><span id="一个彩蛋">一个彩蛋</span></h2>
+<blockquote>
+<p>Let’s play!</p>
+</blockquote>
+<ul>
+<li>terminal-parrot</li>
+</ul>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">$ yes terminal-parrot | head -n 25 | xpanes -e</span><br></pre></td></tr></table></figure>
+<p><img src="https://img.hi-linux.com/staticfile/learn-tmux-xpanes-tools-03-2021-07-09-O0WfZo.gif" alt="使用xpanes来并发执行命令 - terminal-parrot"></p>
+<ul>
+<li>sl</li>
+</ul>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">$ yes <span class="string">'sl -l'</span> | head | xpanes -elev</span><br></pre></td></tr></table></figure>
+<p><img src="https://img.hi-linux.com/staticfile/learn-tmux-xpanes-tools-02-2021-07-09-umfszo.gif" alt="使用xpanes来并发执行命令 - sl"></p>
+<h2><span id="参考文档">参考文档</span></h2>
+<ul>
+<li><a href="https://github.com/greymd/tmux-xpanes" target="_blank" rel="noopener">github tmux-xpanes</a></li>
+</ul>
+<blockquote>
+<p>本文转载自：「 Escape 的博客]」，原文：<a href="https://tinyurl.com/y6jrmejf" target="_blank" rel="noopener">https://tinyurl.com/y6jrmejf</a> ，版权归原作者所有。欢迎投稿，投稿邮箱: <a href="mailto:editor@hi-linux.com">editor@hi-linux.com</a>。</p>
+</blockquote>
+</div>
+
+			<script src="https://my.openwrite.cn/js/readmore.js" type="text/javascript"></script>
+			<script>
+			var isMobile = navigator.userAgent.match(/(phone|pad|pod|iPhone|iPod|ios|iPad|Android|Mobile|BlackBerry|IEMobile|MQQBrowser|JUC|Fennec|wOSBrowser|BrowserNG|WebOS|Symbian|Windows Phone)/i);
+			if (!isMobile) {
+			    var btw = new BTWPlugin();
+			    btw.init({
+			        "id": "vip-container",
+			        "blogId": "10135-1588830050631-449",
+			        "name": "「奇妙的 Linux 世界」",
+			        "qrcode": "https://www.hi-linux.com/img/wechat/mp_qrcode_12.jpg",
+			        "keyword": "VIP"
+			    });
+			}
+			</script>
+		
+                
+
+                <hr>
+                <!-- Pager -->
+                <ul class="pager">
+                    
+                    
+                        <li class="next">
+                            <a href="/posts/43908.html" data-toggle="tooltip" data-placement="top" title="一次由 Kubernetes HostPort 引发的服务故障排错记实">Next Post &rarr;</a>
+                        </li>
+                    
+                </ul>
+
+                <!-- duoshuo Share start -->
+                
+                <!-- 多说 Share end-->
+
+                <!-- 多说评论框 start -->
+                
+                <!-- 多说评论框 end -->
+
+                <!-- disqus comment start -->
+                
+                <!-- disqus comment end -->
+
+                
+                    <!-- disqus 评论框 start -->
+                    <div class="comment">
+                        <div id="lv-container" data-id="city" data-uid="MTAyMC8yNzg2My80NDQw"></div>
+                    </div>
+                    <!-- disqus 评论框 end -->
+                
+
+            </div>
+            
+            <!-- Tabe of Content -->
+            <!-- Table of Contents -->
+
+  
+    <style>
+      span.toc-nav-number{
+        display: none
+      }
+    </style>
+  
+    
+      <aside id="sidebar">
+        <div id="toc" class="toc-article">
+        <strong class="toc-title">Contents</strong>
+        
+          <ol class="toc-nav"><li class="toc-nav-item toc-nav-level-2"><a class="toc-nav-link" href="#vip-container"><span class="toc-nav-number">1.</span> <span class="toc-nav-text">特点介绍</span></a></li><li class="toc-nav-item toc-nav-level-2"><a class="toc-nav-link" href="#vip-container"><span class="toc-nav-number">2.</span> <span class="toc-nav-text">工具安装</span></a></li><li class="toc-nav-item toc-nav-level-2"><a class="toc-nav-link" href="#vip-container"><span class="toc-nav-number">3.</span> <span class="toc-nav-text">工具帮助</span></a></li><li class="toc-nav-item toc-nav-level-2"><a class="toc-nav-link" href="#vip-container"><span class="toc-nav-number">4.</span> <span class="toc-nav-text">使用介绍</span></a></li><li class="toc-nav-item toc-nav-level-2"><a class="toc-nav-link" href="#vip-container"><span class="toc-nav-number">5.</span> <span class="toc-nav-text">一个彩蛋</span></a></li><li class="toc-nav-item toc-nav-level-2"><a class="toc-nav-link" href="#vip-container"><span class="toc-nav-number">6.</span> <span class="toc-nav-text">参考文档</span></a></li></ol>
+        
+        </div>
+      </aside>
+    
+
+                
+            <!-- Sidebar Container -->
+            <div class="
+                col-lg-8 col-lg-offset-2
+                col-md-10 col-md-offset-1
+                sidebar-container">
+
+                <!-- Featured Tags -->
+                
+                <section>
+                    <!-- no hr -->
+                    <h5><a href="/tags/">FEATURED TAGS</a></h5>
+                    <div class="tags">
+                       
+                          <a class="tag" href="/tags/#Linux" title="Linux">Linux</a>
+                        
+                          <a class="tag" href="/tags/#教程" title="教程">教程</a>
+                        
+                          <a class="tag" href="/tags/#Xpanes" title="Xpanes">Xpanes</a>
+                        
+                    </div>
+                </section>
+                
+
+                <!-- Friends Blog -->
+                
+                <hr>
+                <h5>FRIENDS</h5>
+                <ul class="list-inline">
+
+                    
+                        <li><a href="http://www.mike.org.cn/" target="_blank">简单.生活</a></li>
+                    
+                        <li><a href="http://shang.qq.com/wpa/qunwpa?idkey=ea4c43493c2269428ac6ef6141de4b6d78e5ab2d41380ca4099b833b62884ee9" target="_blank">技术交流群</a></li>
+                    
+                        <li><a href="" target="_blank"></a></li>
+                    
+                        <li><a href="" target="_blank"></a></li>
+                    
+                </ul>
+                
+            </div>
+        </div>
+    </div>
+</article>
+
+
+
+
+
+
+    <!-- 来必力City版公共JS代码 start (一个网页只需插入一次) -->
+    <script type="text/javascript">
+       (function(d, s) {
+           var j, e = d.getElementsByTagName(s)[0];
+    
+           if (typeof LivereTower === 'function') { return; }
+    
+           j = d.createElement(s);
+           j.src = 'https://cdn-city.livere.com/js/embed.dist.js';
+           j.async = true;
+    
+           e.parentNode.insertBefore(j, e);
+       })(document, 'script');
+    </script>
+    <noscript>为正常使用来必力评论功能请激活JavaScript</noscript>
+    <!-- 来必力City版 公共JS代码 end -->
+
+
+
+<!-- async load function -->
+<script>
+    function async(u, c) {
+      var d = document, t = 'script',
+          o = d.createElement(t),
+          s = d.getElementsByTagName(t)[0];
+      o.src = u;
+      if (c) { o.addEventListener('load', function (e) { c(null, e); }, false); }
+      s.parentNode.insertBefore(o, s);
+    }
+</script>
+<!-- anchor-js, Doc:http://bryanbraun.github.io/anchorjs/ -->
+<script>
+    async("https://cdn.bootcss.com/anchor-js/1.1.1/anchor.min.js",function(){
+        anchors.options = {
+          visible: 'hover',
+          placement: 'left',
+          icon: 'ℬ'
+        };
+        anchors.add().remove('.intro-header h1').remove('.subheading').remove('.sidebar-container h5');
+    })
+</script>
+<style>
+    /* place left on bigger screen */
+    @media all and (min-width: 800px) {
+        .anchorjs-link{
+            position: absolute;
+            left: -0.75em;
+            font-size: 1.1em;
+            margin-top : -0.1em;
+        }
+    }
+</style>
+
+
+
+    <!-- Footer -->
+    <!-- Footer -->
+<footer>
+    <div class="container">
+        <div class="row">
+            <div class="col-lg-8 col-lg-offset-2 col-md-10 col-md-offset-1">
+                <ul class="list-inline text-center">
+                
+                    <li>
+                        <a href="/atom.xml">
+                            <span class="fa-stack fa-lg">
+                                <i class="fa fa-circle fa-stack-2x"></i>
+                                <i class="fa fa-rss fa-stack-1x fa-inverse"></i>
+                            </span>
+                        </a>
+                    </li>
+                
+                
+                
+                    <li>
+                        <a target="_blank" href="https://www.zhihu.com/people/80imike">
+                            <span class="fa-stack fa-lg">
+                                <i class="fa fa-circle fa-stack-2x"></i>
+                                <i class="fa  fa-stack-1x fa-inverse">知</i>
+                            </span>
+                        </a>
+                    </li>
+                
+
+                
+                    <li>
+                        <a target="_blank" href="http://weibo.com/2093524665">
+                            <span class="fa-stack fa-lg">
+                                <i class="fa fa-circle fa-stack-2x"></i>
+                                <i class="fa fa-weibo fa-stack-1x fa-inverse"></i>
+                            </span>
+                        </a>
+                    </li>
+                
+
+                
+
+                
+
+                
+
+                </ul>
+                <p class="copyright text-muted">
+                    Copyright &copy; Mike 2021 | Hosted by <a href="https://pages.coding.me" target="_blank" rel="noopener" style="font-weight: bold">Coding Pages</a>
+                    <br>
+                    Theme by <a href="http://beantech.org" target="_blank" rel="noopener">BeanTech</a> 
+                    <span style="display: inline-block; margin: 0 5px;">
+                        <i class="fa fa-heart"></i>
+                    </span> 
+                    re-Ported by <a href="http://www.huweihuang.com" target="_blank" rel="noopener">胡伟煌</a> | 
+                    <iframe
+                        style="margin-left: 2px; margin-bottom:-5px;"
+                        frameborder="0" scrolling="0" width="91px" height="20px"
+                        src="https://ghbtns.com/github-btn.html?user=huweihuang&repo=hexo-theme-huweihuang&type=star&count=true" >
+                    </iframe>
+                </p>
+            </div>
+        </div>
+    </div>
+</footer>
+
+<!-- jQuery -->
+
+<script src="/js/jquery.min.js"></script>
+
+
+<!-- Bootstrap Core JavaScript -->
+
+<script src="/js/bootstrap.min.js"></script>
+
+
+<!-- Custom Theme JavaScript -->
+
+<script src="/js/hux-blog.min.js"></script>
+
+
+
+<!-- async load function -->
+<script>
+    function async(u, c) {
+      var d = document, t = 'script',
+          o = d.createElement(t),
+          s = d.getElementsByTagName(t)[0];
+      o.src = u;
+      if (c) { o.addEventListener('load', function (e) { c(null, e); }, false); }
+      s.parentNode.insertBefore(o, s);
+    }
+</script>
+
+<!-- 
+     Because of the native support for backtick-style fenced code blocks 
+     right within the Markdown is landed in Github Pages, 
+     From V1.6, There is no need for Highlight.js, 
+     so Huxblog drops it officially.
+
+     - https://github.com/blog/2100-github-pages-now-faster-and-simpler-with-jekyll-3-0  
+     - https://help.github.com/articles/creating-and-highlighting-code-blocks/    
+-->
+<!--
+    <script>
+        async("http://cdn.bootcss.com/highlight.js/8.6/highlight.min.js", function(){
+            hljs.initHighlightingOnLoad();
+        })
+    </script>
+    <link href="http://cdn.bootcss.com/highlight.js/8.6/styles/github.min.css" rel="stylesheet">
+-->
+
+
+<!-- jquery.tagcloud.js -->
+<script>
+    // only load tagcloud.js in tag.html
+    if($('#tag_cloud').length !== 0){
+        async("https://www.hi-linux.com/js/jquery.tagcloud.js",function(){
+            $.fn.tagcloud.defaults = {
+                //size: {start: 1, end: 1, unit: 'em'},
+                color: {start: '#bbbbee', end: '#0085a1'},
+            };
+            $('#tag_cloud a').tagcloud();
+        })
+    }
+</script>
+
+<!--fastClick.js -->
+<script>
+    async("https://cdn.bootcss.com/fastclick/1.0.6/fastclick.min.js", function(){
+        var $nav = document.querySelector("nav");
+        if($nav) FastClick.attach($nav);
+    })
+</script>
+
+
+<!-- Google Analytics -->
+
+
+
+
+<!-- Baidu Tongji -->
+
+
+
+
+
+
+	<a id="rocket" href="#top" class=""></a>
+	<script type="text/javascript" src="/js/totop.js?v=1.0.0" async=""></script>
+    <script type="text/javascript" src="/js/toc.js?v=1.0.0" async=""></script>
+<!-- Image to hack wechat -->
+<img src="https://www.hi-linux.com/img/icon_wechat.png" width="0" height="0" />
+<!-- Migrate from head to bottom, no longer block render and still work -->
+
+<script>(function(w,d, s, id) {w.webpushr=w.webpushr||function(){(w.webpushr.q=w.webpushr.q||[]).push(arguments)};var js, fjs = d.getElementsByTagName(s)[0];js = d.createElement(s); js.id = id;js.src = 'https://cdn.webpushr.com/app.min.js';fjs.parentNode.appendChild(js);}(window,document, 'script', 'webpushr-jssdk'));webpushr('init','BF9JK7xV9kjWTdMx2lr6RWaPfXV7wNuZaVAJ1bfIGoBNJavqLEBVFMKLubITnCA4bh2fI9iH9tMF95nXnPt7xxY');</script></body>
+
+</html>
