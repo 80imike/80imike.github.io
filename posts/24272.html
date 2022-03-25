@@ -1,0 +1,737 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<!-- Head tag -->
+<head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="google-site-verification" content="xBT4GhYoi5qRD5tr338pgPM5OWHHIDR6mNg1a3euekI" />
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="description" content="">
+    <meta name="keyword"  content="Linux,运维,Nginx,Zabbix,Centos,Ansible,MySQL,Python,Docker,ELK,Haproxy,Git,Nodejs,安全,技术">
+    <link rel="shortcut icon" href="/img/ironman-draw.png">
+    <!-- Place this tag in your head or just before your close body tag. -->
+    <script async defer src="https://buttons.github.io/buttons.js"></script>
+    <title>
+        
+          零代码变更，巧用 Reloader 快速实现 Kubernetes 的 Configmap 和 Secret 热更新 - 奇妙的 Linux 世界
+        
+    </title>
+
+    <link rel="canonical" href="https://www.hi-linux.com/posts/24272.html">
+
+    <!-- Bootstrap Core CSS -->
+    
+<link rel="stylesheet" href="/css/bootstrap.min.css">
+
+
+    <!-- Custom CSS --> 
+    
+<link rel="stylesheet" href="/css/beantech.min.css">
+
+    
+    <!-- Pygments Highlight CSS -->
+    
+<link rel="stylesheet" href="/css/highlight.css">
+
+
+    
+<link rel="stylesheet" href="/css/widget.css">
+
+
+    
+<link rel="stylesheet" href="/css/rocket.css">
+
+
+    
+<link rel="stylesheet" href="/css/signature.css">
+
+
+    
+<link rel="stylesheet" href="/css/toc.css">
+
+
+    <!-- Custom Fonts -->
+    <!-- <link href="https://maxcdn.bootstrapcdn.com/font-awesome/4.3.0/css/font-awesome.min.css" rel="stylesheet" type="text/css"> -->
+    <!-- Hux change font-awesome CDN to qiniu -->
+    <link href="https://cdn.staticfile.org/font-awesome/4.5.0/css/font-awesome.min.css" rel="stylesheet" type="text/css">
+
+
+    <!-- Hux Delete, sad but pending in China
+    <link href='http://fonts.googleapis.com/css?family=Lora:400,700,400italic,700italic' rel='stylesheet' type='text/css'>
+    <link href='http://fonts.googleapis.com/css?family=Open+Sans:300italic,400italic,600italic,700italic,800italic,400,300,600,700,800' rel='stylesheet' type='text/
+    css'>
+    -->
+
+
+    <!-- HTML5 Shim and Respond.js IE8 support of HTML5 elements and media queries -->
+    <!-- WARNING: Respond.js doesn't work if you view the page via file:// -->
+    <!--[if lt IE 9]>
+        <script src="https://oss.maxcdn.com/libs/html5shiv/3.7.0/html5shiv.js"></script>
+        <script src="https://oss.maxcdn.com/libs/respond.js/1.4.2/respond.min.js"></script>
+    <![endif]-->
+
+    <!-- ga & ba script hoook -->
+    <script></script>
+<meta name="generator" content="Hexo 4.2.1"><link rel="alternate" href="/atom.xml" title="奇妙的 Linux 世界" type="application/atom+xml">
+</head>
+
+
+<!-- hack iOS CSS :active style -->
+<body ontouchstart="">
+	<!-- Modified by Yu-Hsuan Yen -->
+<!-- Post Header -->
+<style type="text/css">
+    header.intro-header{
+        
+            background-image: url('/img/header_img/building.jpg')
+            /*post*/
+        
+    }
+    
+</style>
+
+<header class="intro-header" >
+    <!-- Signature -->
+    <div id="signature">
+        <div class="container">
+            <div class="row">
+                <div class="col-lg-8 col-lg-offset-2 col-md-10 col-md-offset-1">
+                
+                    <div class="post-heading">
+                        <div class="tags">
+                            
+                              <a class="tag" href="/tags/#技巧" title="技巧">技巧</a>
+                            
+                              <a class="tag" href="/tags/#Linux" title="Linux">Linux</a>
+                            
+                              <a class="tag" href="/tags/#Kubernetes" title="Kubernetes">Kubernetes</a>
+                            
+                        </div>
+                        <h1>零代码变更，巧用 Reloader 快速实现 Kubernetes 的 Configmap 和 Secret 热更新</h1>
+                        <h2 class="subheading"></h2>
+                        <span class="meta">
+                            Posted by Mike on
+                            2021-03-15
+                        </span>
+                    </div>
+                
+
+
+                </div>
+            </div>
+        </div>
+    </div>
+</header>
+
+	
+    <!-- Navigation -->
+<nav class="navbar navbar-default navbar-custom navbar-fixed-top">
+    <div class="container-fluid">
+        <!-- Brand and toggle get grouped for better mobile display -->
+        <div class="navbar-header page-scroll">
+            <button type="button" class="navbar-toggle">
+                <span class="sr-only">Toggle navigation</span>
+                <span class="icon-bar"></span>
+                <span class="icon-bar"></span>
+                <span class="icon-bar"></span>
+            </button>
+            <a class="navbar-brand" href="/">奇妙的 Linux 世界</a>
+        </div>
+
+        <!-- Collect the nav links, forms, and other content for toggling -->
+        <!-- Known Issue, found by Hux:
+            <nav>'s height woule be hold on by its content.
+            so, when navbar scale out, the <nav> will cover tags.
+            also mask any touch event of tags, unfortunately.
+        -->
+        <div id="huxblog_navbar">
+            <div class="navbar-collapse">
+                <ul class="nav navbar-nav navbar-right">
+                    <li>
+                        <a href="/">Home</a>
+                    </li>
+
+                    
+
+                        
+                    
+
+                        
+                    
+
+                        
+                        <li>
+                            <a href="/about/">About</a>
+                        </li>
+                        
+                    
+
+                        
+                        <li>
+                            <a href="/archive/">Archives</a>
+                        </li>
+                        
+                    
+
+                        
+                        <li>
+                            <a href="/tags/">Tags</a>
+                        </li>
+                        
+                    
+                    
+                </ul>
+            </div>
+        </div>
+        <!-- /.navbar-collapse -->
+    </div>
+    <!-- /.container -->
+</nav>
+<script>
+    // Drop Bootstarp low-performance Navbar
+    // Use customize navbar with high-quality material design animation
+    // in high-perf jank-free CSS3 implementation
+    var $body   = document.body;
+    var $toggle = document.querySelector('.navbar-toggle');
+    var $navbar = document.querySelector('#huxblog_navbar');
+    var $collapse = document.querySelector('.navbar-collapse');
+
+    $toggle.addEventListener('click', handleMagic)
+    function handleMagic(e){
+        if ($navbar.className.indexOf('in') > 0) {
+        // CLOSE
+            $navbar.className = " ";
+            // wait until animation end.
+            setTimeout(function(){
+                // prevent frequently toggle
+                if($navbar.className.indexOf('in') < 0) {
+                    $collapse.style.height = "0px"
+                }
+            },400)
+        }else{
+        // OPEN
+            $collapse.style.height = "auto"
+            $navbar.className += " in";
+        }
+    }
+</script>
+
+
+    <!-- Main Content -->
+    <!-- Modify by Yu-Hsuan Yen -->
+
+<!-- Post Content -->
+<article>
+    <div class="container">
+        <div class="row">
+
+            <!-- Post Container -->
+            <div class="
+                col-lg-8 col-lg-offset-2
+                col-md-10 col-md-offset-1
+                post-container">
+
+                <div id="vip-container"><h2><span id="背景">背景</span></h2>
+<h3><span id="11-配置中心问题">1.1 配置中心问题</span></h3>
+<p>在云原生中配置中心，例如：<code>Configmap</code>和<code>Secret</code>对象，虽然可以进行直接更新资源对象</p>
+<ul>
+<li>对于引用这些有些不变的配置是可以打包到镜像中的，那可变的配置呢？</li>
+<li>信息泄漏，很容易引发安全风险，尤其是一些敏感信息，比如密码、密钥等。</li>
+<li>每次配置更新后，都要重新打包一次，升级应用。镜像版本过多，也给镜像管理和镜像中心存储带来很大的负担。</li>
+<li>定制化太严重，可扩展能力差，且不容易复用。</li>
+</ul>
+<a id="more"></a>
+<h3><span id="12-使用方式">1.2 使用方式</span></h3>
+<p><code>Configmap</code>或<code>Secret</code>使用有两种方式，一种是<code>env</code>系统变量赋值，一种是<code>volume</code>挂载赋值，env写入系统的configmap是不会热更新的，而volume写入的方式支持热更新！</p>
+<ul>
+<li>对于env环境的，必须要滚动更新pod才能生效，也就是删除老的pod，重新使用镜像拉起新pod加载环境变量才能生效。</li>
+<li>对于volume的方式，虽然内容变了，但是需要我们的应用直接监控configmap的变动，或者一直去更新环境变量才能在这种情况下达到热更新的目的。</li>
+</ul>
+<p>应用不支持热更新，可以在业务容器中启动一个sidercar容器，监控configmap的变动，更新配置文件，或者也滚动更新pod达到更新配置的效果。</p>
+<h2><span id="解决方案">解决方案</span></h2>
+<p>ConfigMap 和 Secret 是 Kubernetes 常用的保存配置数据的对象，你可以根据需要选择合适的对象存储数据。通过 Volume 方式挂载到 Pod 内的，kubelet 都会定期进行更新。但是通过环境变量注入到容器中，这样无法感知到 ConfigMap 或 Secret 的内容更新。</p>
+<p>目前如何让 Pod 内的业务感知到 ConfigMap 或 Secret 的变化，还是一个待解决的问题。但是我们还是有一些 Workaround 的。</p>
+<p>如果业务自身支持 reload 配置的话，比如nginx -s reload，可以通过 inotify 感知到文件更新，或者直接定期进行 reload（这里可以配合我们的 readinessProbe 一起使用）。</p>
+<p>如果我们的业务没有这个能力，考虑到不可变基础设施的思想，我们是不是可以采用滚动升级的方式进行？没错，这是一个非常好的方法。目前有个开源工具Reloader，它就是采用这种方式，通过 watch ConfigMap 和 Secret，一旦发现对象更新，就自动触发对 Deployment 或 StatefulSet 等工作负载对象进行滚动升级。</p>
+<h2><span id="reloader简介">reloader简介</span></h2>
+<h3><span id="31-reloader简介">3.1 reloader简介</span></h3>
+<p><code>Reloader</code> 可以观察 ConfigMap 和 Secret 中的变化，并通过相关的 deploymentconfiggs、 deploymentconfiggs、 deploymonset 和 statefulset 对 Pods 进行滚动升级。</p>
+<h3><span id="32-reloader安装">3.2 reloader安装</span></h3>
+<ul>
+<li>helm安装</li>
+</ul>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">$ helm repo add stakater https:&#x2F;&#x2F;stakater.github.io&#x2F;stakater-charts</span><br><span class="line">$ helm repo update</span><br><span class="line">$ helm install stakater&#x2F;reloader</span><br></pre></td></tr></table></figure>
+<ul>
+<li>Kustomize</li>
+</ul>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">$ kubectl apply -k https:&#x2F;&#x2F;github.com&#x2F;stakater&#x2F;Reloader&#x2F;deployments&#x2F;kubernetes</span><br></pre></td></tr></table></figure>
+<ul>
+<li>资源清单安装</li>
+</ul>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br></pre></td><td class="code"><pre><span class="line">$ kubectl apply -f https:&#x2F;&#x2F;raw.githubusercontent.com&#x2F;stakater&#x2F;Reloader&#x2F;master&#x2F;deployments&#x2F;kubernetes&#x2F;reloader.yaml</span><br><span class="line"></span><br><span class="line"># 在此安装在common-service 名称空间下，</span><br><span class="line">[root@master reloader]# kubectl apply -f reloader.yaml </span><br><span class="line">clusterrole.rbac.authorization.k8s.io&#x2F;reloader-reloader-role created</span><br><span class="line">clusterrolebinding.rbac.authorization.k8s.io&#x2F;reloader-reloader-role-binding created</span><br><span class="line">deployment.apps&#x2F;reloader-reloader created</span><br><span class="line">serviceaccount&#x2F;reloader-reloader created</span><br><span class="line">[root@master reloader]# kubectl get all -n common-service </span><br><span class="line">NAME                                     READY   STATUS    RESTARTS   AGE</span><br><span class="line">pod&#x2F;reloader-reloader-66d46d5885-nx64t   1&#x2F;1     Running   0          15s</span><br><span class="line"></span><br><span class="line">NAME                                READY   UP-TO-DATE   AVAILABLE   AGE</span><br><span class="line">deployment.apps&#x2F;reloader-reloader   1&#x2F;1     1            1           16s</span><br><span class="line"></span><br><span class="line">NAME                                           DESIRED   CURRENT   READY   AGE</span><br><span class="line">replicaset.apps&#x2F;reloader-reloader-66d46d5885   1         1         1       16s</span><br></pre></td></tr></table></figure>
+<ul>
+<li>配置忽略</li>
+</ul>
+<p><code>reloader</code> 能够配置忽略cm或者secrets资源，可以通过配置在reader deploy中的spec.template.spec.containers.args，如果两个都忽略，那就缩小deploy为0，或者不部署reoader。</p>
+<table>
+<thead>
+<tr>
+<th style="text-align:left">Args</th>
+<th style="text-align:left">Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align:left">–resources-to-ignore=configMaps</td>
+<td style="text-align:left">To ignore configMaps</td>
+</tr>
+<tr>
+<td style="text-align:left">–resources-to-ignore=secrets</td>
+<td style="text-align:left">To ignore secrets</td>
+</tr>
+</tbody>
+</table>
+<h3><span id="33-配置">3.3 配置</span></h3>
+<h4><span id="331-自动更新">3.3.1 自动更新</span></h4>
+<p><code>reloader.stakater.com/search</code> 和 <code>reloader.stakater.com/auto</code> 并不在一起工作。如果你在你的部署上有一个 <a href="http://reloader.stakater.com/auto" target="_blank" rel="noopener">reloader.stakater.com/auto</a> : &quot;true&quot;的注释，该资源对象引用的所有configmap或这secret的改变都会重启该资源，不管他们是否有 <a href="http://reloader.stakater.com/match" target="_blank" rel="noopener">reloader.stakater.com/match</a> : &quot;true&quot;的注释。</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">kind: Deployment</span><br><span class="line">metadata:</span><br><span class="line">  annotations:</span><br><span class="line">    reloader.stakater.com&#x2F;auto: &quot;true&quot;</span><br><span class="line">spec:</span><br><span class="line">  template: metadata:</span><br></pre></td></tr></table></figure>
+<h4><span id="332-指定更新">3.3.2 指定更新</span></h4>
+<p>指定一个特定的configmap或者secret，只有在我们指定的配置图或秘密被改变时才会触发滚动升级，这样，它不会触发滚动升级所有配置图或秘密在部署，后台登录或状态设置中使用。</p>
+<p>一个指定deployment资源对象，在引用的configmap或者secret种，只有<code>reloader.stakater.com/match: &quot;true&quot;</code>为true才会出发更新，为false或者不进行标记，该资源对象都不会监视配置的变化而重启。</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">kind: Deployment</span><br><span class="line">metadata:</span><br><span class="line">  annotations:</span><br><span class="line">    reloader.stakater.com&#x2F;search: &quot;true&quot;</span><br><span class="line">spec:</span><br><span class="line">  template:</span><br></pre></td></tr></table></figure>
+<p>cm 配置</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">kind: ConfigMap</span><br><span class="line">metadata:</span><br><span class="line">  annotations:</span><br><span class="line">    reloader.stakater.com&#x2F;match: &quot;true&quot;</span><br><span class="line">data:</span><br><span class="line">  key: value</span><br></pre></td></tr></table></figure>
+<h4><span id="333-指定cm">3.3.3 指定cm</span></h4>
+<p>如果一个deployment挂载有多个cm或者的场景下，我们只希望更新特定一个cm后，deploy发生滚动更新，更新其他的cm，deploy不更新，这种场景可以将cm在deploy中指定为单个或着列表实现。</p>
+<p>例如：一个deploy有挂载nginx-cm1和nginx-cm2两个configmap，只想nginx-cm1更新的时候deploy才发生滚动更新，此时无需在两个cm中配置注解，只需要在deploy中写入<code>configmap.reloader.stakater.com/reload:nginx-cm1</code>，其中nginx-cm1如果发生更新，deploy就会触发滚动更新。</p>
+<p>如果多个cm直接用逗号隔开</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br></pre></td><td class="code"><pre><span class="line"># configmap对象</span><br><span class="line">kind: Deployment</span><br><span class="line">metadata:</span><br><span class="line">  annotations:</span><br><span class="line">    configmap.reloader.stakater.com&#x2F;reload: &quot;nginx-cm1&quot;</span><br><span class="line">spec:</span><br><span class="line">  template: metadata:</span><br><span class="line"></span><br><span class="line"># secret对象</span><br><span class="line">kind: Deployment</span><br><span class="line">metadata:</span><br><span class="line">  annotations:</span><br><span class="line">    secret.reloader.stakater.com&#x2F;reload: &quot;foo-secret&quot;</span><br><span class="line">spec:</span><br><span class="line">  template: metadata:</span><br></pre></td></tr></table></figure>
+<blockquote>
+<p>无需在cm或secret中添加注解，只需要在引用资源对象中添加注解即可。</p>
+</blockquote>
+<h2><span id="测试">测试</span></h2>
+<h3><span id="41-deploy">4.1 deploy</span></h3>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br></pre></td><td class="code"><pre><span class="line">apiVersion: apps&#x2F;v1</span><br><span class="line">kind: Deployment</span><br><span class="line">metadata:</span><br><span class="line">  annotations:</span><br><span class="line">   # reloader.stakater.com&#x2F;auto: &quot;true&quot;</span><br><span class="line">    reloader.stakater.com&#x2F;search: &quot;true&quot;</span><br><span class="line">  labels:</span><br><span class="line">    run: nginx</span><br><span class="line">  name: nginx</span><br><span class="line">  namespace: default</span><br><span class="line">spec:</span><br><span class="line">  replicas: 1</span><br><span class="line">  selector:</span><br><span class="line">    matchLabels:</span><br><span class="line">      run: nginx</span><br><span class="line">  template:</span><br><span class="line">    metadata:</span><br><span class="line">      labels:</span><br><span class="line">        run: nginx</span><br><span class="line">    spec:</span><br><span class="line">      containers:</span><br><span class="line">      - image: nginx</span><br><span class="line">        name: nginx</span><br><span class="line">        volumeMounts:</span><br><span class="line">        # 必须匹配volumes的名称,定义configmap</span><br><span class="line">        - name: nginx-cm</span><br><span class="line">          mountPath: &#x2F;data&#x2F;cfg</span><br><span class="line">          readOnly: true</span><br><span class="line">      volumes:</span><br><span class="line">      # 定义逻辑卷的名称</span><br><span class="line">      - name: nginx-cm</span><br><span class="line">        configMap:</span><br><span class="line">          # 使用configmap资源的名称</span><br><span class="line">          name: nginx-cm</span><br><span class="line">          items:</span><br><span class="line">          # 使用configmap中到那个key</span><br><span class="line">          - key: config.yaml</span><br><span class="line">            # 使用configmap中到key映射到容器中到文件名称</span><br><span class="line">            path: config.yaml</span><br><span class="line">            mode: 0644</span><br></pre></td></tr></table></figure>
+<h3><span id="42-configmap">4.2 configmap</span></h3>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br></pre></td><td class="code"><pre><span class="line">apiVersion: v1</span><br><span class="line">data:</span><br><span class="line">  config.yaml: |</span><br><span class="line">    # project settings</span><br><span class="line"></span><br><span class="line">    # go2cloud_api service config</span><br><span class="line">    DEFAULT_CONF:</span><br><span class="line">      port: 8888</span><br><span class="line">    # data disk api</span><br><span class="line">    UNITTEST_TENCENT_ZONE: ap-chongqing-1</span><br><span class="line">kind: ConfigMap</span><br><span class="line">metadata:</span><br><span class="line">  name: nginx-cm</span><br><span class="line">  annotations:</span><br><span class="line">    reloader.stakater.com&#x2F;match: &quot;true&quot;</span><br></pre></td></tr></table></figure>
+<h3><span id="43-测试">4.3 测试</span></h3>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br></pre></td><td class="code"><pre><span class="line">[root@master ns-default]# kubectl  get po</span><br><span class="line">NAME                     READY   STATUS    RESTARTS   AGE</span><br><span class="line">nginx-68c9bf4ff7-9gmg6   1&#x2F;1     Running   0          10m</span><br><span class="line">[root@master ns-default]# kubectl  get cm</span><br><span class="line">NAME       DATA   AGE</span><br><span class="line">nginx-cm   1      28m</span><br><span class="line"># 更新cm内容</span><br><span class="line">[root@master ns-default]# kubectl edit cm nginx-cm </span><br><span class="line">configmap&#x2F;nginx-cm edited</span><br><span class="line"># 查看po发生了滚动更新，重新加载配置文件</span><br><span class="line">[root@master ns-default]# kubectl get po</span><br><span class="line">NAME                     READY   STATUS              RESTARTS   AGE</span><br><span class="line">nginx-66c758b548-9dllm   0&#x2F;1     ContainerCreating   0          4s</span><br><span class="line">nginx-68c9bf4ff7-9gmg6   1&#x2F;1     Running             0          10m</span><br></pre></td></tr></table></figure>
+<h2><span id="reloader-使用注意事项">Reloader 使用注意事项</span></h2>
+<ul>
+<li>Reloader 为全局资源对象，建议部署在一个公共服务的ns下，然后其他ns也可以正常使用reloader特性。</li>
+<li><a href="http://Reloader.stakater.com/auto" target="_blank" rel="noopener">Reloader.stakater.com/auto</a> : 如果配置configmap或者secret在 deploymentconfigmap/deployment/daemonsets/Statefulsets</li>
+<li><a href="http://secret.reloader.stakater.com/reload" target="_blank" rel="noopener">secret.reloader.stakater.com/reload</a> 或者 <a href="http://configmap.reloader.stakater.com/reload" target="_blank" rel="noopener">configmap.reloader.stakater.com/reload</a> 注释中被使用，那么 true 只会重新加载 pod，不管使用的是 configmap 还是 secret。</li>
+<li><a href="http://reloader.stakater.com/search" target="_blank" rel="noopener">reloader.stakater.com/search</a> 和 <a href="http://reloader.stakater.com/auto" target="_blank" rel="noopener">reloader.stakater.com/auto</a> 不能同时使用。如果你在你的部署上有一个 <a href="http://reloader.stakater.com/auto" target="_blank" rel="noopener">reloader.stakater.com/auto</a> : &quot;true&quot;的注释，那么它总是会在你修改了 configmaps 或者使用了机密之后重新启动，不管他们是否有 <a href="http://reloader.stakater.com/match" target="_blank" rel="noopener">reloader.stakater.com/match</a> : &quot;true&quot;的注释。</li>
+</ul>
+<h2><span id="反思">反思</span></h2>
+<p>Reloader通过 watch ConfigMap 和 Secret，一旦发现对象更新，就自动触发对 Deployment 或 StatefulSet 等工作负载对象进行滚动升级。</p>
+<p>如果我们的应用内部没有去实时监控配置文件，利用该方式可以非常方便的实现配置的热更新。</p>
+<h2><span id="参考链接">参考链接</span></h2>
+<ul>
+<li><a href="https://github.com/stakater/Reloader" target="_blank" rel="noopener">https://github.com/stakater/Reloader</a></li>
+</ul>
+<blockquote>
+<p>本文转载自：「 掘金 」，原文：<a href="https://tinyurl.com/6w4ukjrb" target="_blank" rel="noopener">https://tinyurl.com/6w4ukjrb</a> ，版权归原作者所有。欢迎投稿，投稿邮箱: <a href="mailto:editor@hi-linux.com">editor@hi-linux.com</a>。</p>
+</blockquote>
+</div>
+
+			<script src="https://my.openwrite.cn/js/readmore.js" type="text/javascript"></script>
+			<script>
+			var isMobile = navigator.userAgent.match(/(phone|pad|pod|iPhone|iPod|ios|iPad|Android|Mobile|BlackBerry|IEMobile|MQQBrowser|JUC|Fennec|wOSBrowser|BrowserNG|WebOS|Symbian|Windows Phone)/i);
+			if (!isMobile) {
+			    var btw = new BTWPlugin();
+			    btw.init({
+			        "id": "vip-container",
+			        "blogId": "10135-1588830050631-449",
+			        "name": "「奇妙的 Linux 世界」",
+			        "qrcode": "https://www.hi-linux.com/img/wechat/mp_qrcode_12.jpg",
+			        "keyword": "VIP"
+			    });
+			}
+			</script>
+		
+                
+
+                <hr>
+                <!-- Pager -->
+                <ul class="pager">
+                    
+                        <li class="previous">
+                            <a href="/posts/32693.html" data-toggle="tooltip" data-placement="top" title="如何优雅的给 Docker 配置网络代理">&larr; Previous Post</a>
+                        </li>
+                    
+                    
+                        <li class="next">
+                            <a href="/posts/31636.html" data-toggle="tooltip" data-placement="top" title="6 个超实用的 Sudo 命令使用技巧">Next Post &rarr;</a>
+                        </li>
+                    
+                </ul>
+
+                <!-- duoshuo Share start -->
+                
+                <!-- 多说 Share end-->
+
+                <!-- 多说评论框 start -->
+                
+                <!-- 多说评论框 end -->
+
+                <!-- disqus comment start -->
+                
+                <!-- disqus comment end -->
+
+                
+                    <!-- disqus 评论框 start -->
+                    <div class="comment">
+                        <div id="lv-container" data-id="city" data-uid="MTAyMC8yNzg2My80NDQw"></div>
+                    </div>
+                    <!-- disqus 评论框 end -->
+                
+
+            </div>
+            
+            <!-- Tabe of Content -->
+            <!-- Table of Contents -->
+
+  
+    <style>
+      span.toc-nav-number{
+        display: none
+      }
+    </style>
+  
+    
+      <aside id="sidebar">
+        <div id="toc" class="toc-article">
+        <strong class="toc-title">Contents</strong>
+        
+          <ol class="toc-nav"><li class="toc-nav-item toc-nav-level-2"><a class="toc-nav-link" href="#vip-container"><span class="toc-nav-number">1.</span> <span class="toc-nav-text">背景</span></a><ol class="toc-nav-child"><li class="toc-nav-item toc-nav-level-3"><a class="toc-nav-link" href="#vip-container"><span class="toc-nav-number">1.1.</span> <span class="toc-nav-text">1.1 配置中心问题</span></a></li><li class="toc-nav-item toc-nav-level-3"><a class="toc-nav-link" href="#vip-container"><span class="toc-nav-number">1.2.</span> <span class="toc-nav-text">1.2 使用方式</span></a></li></ol></li><li class="toc-nav-item toc-nav-level-2"><a class="toc-nav-link" href="#vip-container"><span class="toc-nav-number">2.</span> <span class="toc-nav-text">解决方案</span></a></li><li class="toc-nav-item toc-nav-level-2"><a class="toc-nav-link" href="#vip-container"><span class="toc-nav-number">3.</span> <span class="toc-nav-text">reloader简介</span></a><ol class="toc-nav-child"><li class="toc-nav-item toc-nav-level-3"><a class="toc-nav-link" href="#vip-container"><span class="toc-nav-number">3.1.</span> <span class="toc-nav-text">3.1 reloader简介</span></a></li><li class="toc-nav-item toc-nav-level-3"><a class="toc-nav-link" href="#vip-container"><span class="toc-nav-number">3.2.</span> <span class="toc-nav-text">3.2 reloader安装</span></a></li><li class="toc-nav-item toc-nav-level-3"><a class="toc-nav-link" href="#vip-container"><span class="toc-nav-number">3.3.</span> <span class="toc-nav-text">3.3 配置</span></a><ol class="toc-nav-child"><li class="toc-nav-item toc-nav-level-4"><a class="toc-nav-link" href="#vip-container"><span class="toc-nav-number">3.3.1.</span> <span class="toc-nav-text">3.3.1 自动更新</span></a></li><li class="toc-nav-item toc-nav-level-4"><a class="toc-nav-link" href="#vip-container"><span class="toc-nav-number">3.3.2.</span> <span class="toc-nav-text">3.3.2 指定更新</span></a></li><li class="toc-nav-item toc-nav-level-4"><a class="toc-nav-link" href="#vip-container"><span class="toc-nav-number">3.3.3.</span> <span class="toc-nav-text">3.3.3 指定cm</span></a></li></ol></li></ol></li><li class="toc-nav-item toc-nav-level-2"><a class="toc-nav-link" href="#vip-container"><span class="toc-nav-number">4.</span> <span class="toc-nav-text">测试</span></a><ol class="toc-nav-child"><li class="toc-nav-item toc-nav-level-3"><a class="toc-nav-link" href="#vip-container"><span class="toc-nav-number">4.1.</span> <span class="toc-nav-text">4.1 deploy</span></a></li><li class="toc-nav-item toc-nav-level-3"><a class="toc-nav-link" href="#vip-container"><span class="toc-nav-number">4.2.</span> <span class="toc-nav-text">4.2 configmap</span></a></li><li class="toc-nav-item toc-nav-level-3"><a class="toc-nav-link" href="#vip-container"><span class="toc-nav-number">4.3.</span> <span class="toc-nav-text">4.3 测试</span></a></li></ol></li><li class="toc-nav-item toc-nav-level-2"><a class="toc-nav-link" href="#vip-container"><span class="toc-nav-number">5.</span> <span class="toc-nav-text">Reloader 使用注意事项</span></a></li><li class="toc-nav-item toc-nav-level-2"><a class="toc-nav-link" href="#vip-container"><span class="toc-nav-number">6.</span> <span class="toc-nav-text">反思</span></a></li><li class="toc-nav-item toc-nav-level-2"><a class="toc-nav-link" href="#vip-container"><span class="toc-nav-number">7.</span> <span class="toc-nav-text">参考链接</span></a></li></ol>
+        
+        </div>
+      </aside>
+    
+
+                
+            <!-- Sidebar Container -->
+            <div class="
+                col-lg-8 col-lg-offset-2
+                col-md-10 col-md-offset-1
+                sidebar-container">
+
+                <!-- Featured Tags -->
+                
+                <section>
+                    <!-- no hr -->
+                    <h5><a href="/tags/">FEATURED TAGS</a></h5>
+                    <div class="tags">
+                       
+                          <a class="tag" href="/tags/#技巧" title="技巧">技巧</a>
+                        
+                          <a class="tag" href="/tags/#Linux" title="Linux">Linux</a>
+                        
+                          <a class="tag" href="/tags/#Kubernetes" title="Kubernetes">Kubernetes</a>
+                        
+                    </div>
+                </section>
+                
+
+                <!-- Friends Blog -->
+                
+                <hr>
+                <h5>FRIENDS</h5>
+                <ul class="list-inline">
+
+                    
+                        <li><a href="http://www.mike.org.cn/" target="_blank">简单.生活</a></li>
+                    
+                        <li><a href="http://shang.qq.com/wpa/qunwpa?idkey=ea4c43493c2269428ac6ef6141de4b6d78e5ab2d41380ca4099b833b62884ee9" target="_blank">技术交流群</a></li>
+                    
+                        <li><a href="" target="_blank"></a></li>
+                    
+                        <li><a href="" target="_blank"></a></li>
+                    
+                </ul>
+                
+            </div>
+        </div>
+    </div>
+</article>
+
+
+
+
+
+
+    <!-- 来必力City版公共JS代码 start (一个网页只需插入一次) -->
+    <script type="text/javascript">
+       (function(d, s) {
+           var j, e = d.getElementsByTagName(s)[0];
+    
+           if (typeof LivereTower === 'function') { return; }
+    
+           j = d.createElement(s);
+           j.src = 'https://cdn-city.livere.com/js/embed.dist.js';
+           j.async = true;
+    
+           e.parentNode.insertBefore(j, e);
+       })(document, 'script');
+    </script>
+    <noscript>为正常使用来必力评论功能请激活JavaScript</noscript>
+    <!-- 来必力City版 公共JS代码 end -->
+
+
+
+<!-- async load function -->
+<script>
+    function async(u, c) {
+      var d = document, t = 'script',
+          o = d.createElement(t),
+          s = d.getElementsByTagName(t)[0];
+      o.src = u;
+      if (c) { o.addEventListener('load', function (e) { c(null, e); }, false); }
+      s.parentNode.insertBefore(o, s);
+    }
+</script>
+<!-- anchor-js, Doc:http://bryanbraun.github.io/anchorjs/ -->
+<script>
+    async("https://cdn.bootcss.com/anchor-js/1.1.1/anchor.min.js",function(){
+        anchors.options = {
+          visible: 'hover',
+          placement: 'left',
+          icon: 'ℬ'
+        };
+        anchors.add().remove('.intro-header h1').remove('.subheading').remove('.sidebar-container h5');
+    })
+</script>
+<style>
+    /* place left on bigger screen */
+    @media all and (min-width: 800px) {
+        .anchorjs-link{
+            position: absolute;
+            left: -0.75em;
+            font-size: 1.1em;
+            margin-top : -0.1em;
+        }
+    }
+</style>
+
+
+
+    <!-- Footer -->
+    <!-- Footer -->
+<footer>
+    <div class="container">
+        <div class="row">
+            <div class="col-lg-8 col-lg-offset-2 col-md-10 col-md-offset-1">
+                <ul class="list-inline text-center">
+                <% if (config.RSS) { %>
+                    <li>
+                        <a href="<%= config.root + 'atom.xml' %>">
+                            <span class="fa-stack fa-lg">
+                                <i class="fa fa-circle fa-stack-2x"></i>
+                                <i class="fa fa-rss fa-stack-1x fa-inverse"></i>
+                            </span>
+                        </a>
+                    </li>
+                <% } %>
+                <% if (config.twitter_username) { %>
+                    <li>
+                        <a target="_blank" href="https://twitter.com/<%= config.twitter_username %>">
+                            <span class="fa-stack fa-lg">
+                                <i class="fa fa-circle fa-stack-2x"></i>
+                                <i class="fa fa-twitter fa-stack-1x fa-inverse"></i>
+                            </span>
+                        </a>
+                    </li>
+                <% } %>
+                <% if (config.zhihu_username) { %>
+                    <li>
+                        <a target="_blank" href="https://www.zhihu.com/people/<%= config.zhihu_username %>">
+                            <span class="fa-stack fa-lg">
+                                <i class="fa fa-circle fa-stack-2x"></i>
+                                <i class="fa  fa-stack-1x fa-inverse">知</i>
+                            </span>
+                        </a>
+                    </li>
+                <% } %>
+
+                <% if (config.weibo_username) { %>
+                    <li>
+                        <a target="_blank" href="http://weibo.com/<%= config.weibo_username %>">
+                            <span class="fa-stack fa-lg">
+                                <i class="fa fa-circle fa-stack-2x"></i>
+                                <i class="fa fa-weibo fa-stack-1x fa-inverse"></i>
+                            </span>
+                        </a>
+                    </li>
+                <% } %>
+
+                <% if (config.facebook_username) { %>
+                    <li>
+                        <a target="_blank" href="https://www.facebook.com/<%= config.facebook_username %>">
+                            <span class="fa-stack fa-lg">
+                                <i class="fa fa-circle fa-stack-2x"></i>
+                                <i class="fa fa-facebook fa-stack-1x fa-inverse"></i>
+                            </span>
+                        </a>
+                    </li>
+                <% } %>
+
+                <% if (config.github_username) { %>
+                    <li>
+                        <a target="_blank"  href="https://github.com/<%= config.github_username %>">
+                            <span class="fa-stack fa-lg">
+                                <i class="fa fa-circle fa-stack-2x"></i>
+                                <i class="fa fa-github fa-stack-1x fa-inverse"></i>
+                            </span>
+                        </a>
+                    </li>
+                <% } %>
+
+                <% if (config.linkedin_username) { %>
+                    <li>
+                        <a target="_blank"  href="https://www.linkedin.com/in/<%= config.linkedin_username %>">
+                            <span class="fa-stack fa-lg">
+                                <i class="fa fa-circle fa-stack-2x"></i>
+                                <i class="fa fa-linkedin fa-stack-1x fa-inverse"></i>
+                            </span>
+                        </a>
+                    </li>
+                <% } %>
+
+                </ul>
+                <p class="copyright text-muted">
+                    Copyright &copy; <%= config.author %> <%= new Date().getFullYear() %> | Hosted by <a href="https://pages.coding.me" target="_blank" rel="noopener" style="font-weight: bold">Coding Pages</a>
+                    <br>
+                    Theme by <a href="http://beantech.org" target="_blank" rel="noopener">BeanTech</a> 
+                    <span style="display: inline-block; margin: 0 5px;">
+                        <i class="fa fa-heart"></i>
+                    </span> 
+                    re-Ported by <a href="http://www.huweihuang.com" target="_blank" rel="noopener">胡伟煌</a> | 
+                    <iframe
+                        style="margin-left: 2px; margin-bottom:-5px;"
+                        frameborder="0" scrolling="0" width="91px" height="20px"
+                        src="https://ghbtns.com/github-btn.html?user=huweihuang&repo=hexo-theme-huweihuang&type=star&count=true" >
+                    </iframe>
+                </p>
+            </div>
+        </div>
+    </div>
+</footer>
+
+<!-- jQuery -->
+<%- js('js/jquery.min.js') %>
+
+<!-- Bootstrap Core JavaScript -->
+<%- js('js/bootstrap.min.js') %>
+
+<!-- Custom Theme JavaScript -->
+<%- js('js/hux-blog.min.js') %>
+
+
+<!-- async load function -->
+<script>
+    function async(u, c) {
+      var d = document, t = 'script',
+          o = d.createElement(t),
+          s = d.getElementsByTagName(t)[0];
+      o.src = u;
+      if (c) { o.addEventListener('load', function (e) { c(null, e); }, false); }
+      s.parentNode.insertBefore(o, s);
+    }
+</script>
+
+<!-- 
+     Because of the native support for backtick-style fenced code blocks 
+     right within the Markdown is landed in Github Pages, 
+     From V1.6, There is no need for Highlight.js, 
+     so Huxblog drops it officially.
+
+     - https://github.com/blog/2100-github-pages-now-faster-and-simpler-with-jekyll-3-0  
+     - https://help.github.com/articles/creating-and-highlighting-code-blocks/    
+-->
+<!--
+    <script>
+        async("http://cdn.bootcss.com/highlight.js/8.6/highlight.min.js", function(){
+            hljs.initHighlightingOnLoad();
+        })
+    </script>
+    <link href="http://cdn.bootcss.com/highlight.js/8.6/styles/github.min.css" rel="stylesheet">
+-->
+
+
+<!-- jquery.tagcloud.js -->
+<script>
+    // only load tagcloud.js in tag.html
+    if($('#tag_cloud').length !== 0){
+        async("<%= config.url%><%= config.root%>js/jquery.tagcloud.js",function(){
+            $.fn.tagcloud.defaults = {
+                //size: {start: 1, end: 1, unit: 'em'},
+                color: {start: '#bbbbee', end: '#0085a1'},
+            };
+            $('#tag_cloud a').tagcloud();
+        })
+    }
+</script>
+
+<!--fastClick.js -->
+<script>
+    async("https://cdn.bootcss.com/fastclick/1.0.6/fastclick.min.js", function(){
+        var $nav = document.querySelector("nav");
+        if($nav) FastClick.attach($nav);
+    })
+</script>
+
+
+<!-- Google Analytics -->
+
+<% if (config.ga_track_id) { %>
+<script>
+    // dynamic User by Hux
+    var _gaId = '<%= config.ga_track_id %>';
+    var _gaDomain = '<%= config.ga_domain %>';
+
+    // Originial
+    (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+    (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+    m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+    })(window,document,'script','//www.google-analytics.com/analytics.js','ga');
+
+    ga('create', _gaId, _gaDomain);
+    ga('send', 'pageview');
+</script>
+
+<% } %>
+
+
+<!-- Baidu Tongji -->
+<% if (config.ba_track_id) { %>
+<script>
+    // dynamic User by Hux
+    var _baId = '<%= config.ba_track_id %>';
+
+    // Originial
+    var _hmt = _hmt || [];
+    (function() {
+      var hm = document.createElement("script");
+      hm.src = "//hm.baidu.com/hm.js?" + _baId;
+      var s = document.getElementsByTagName("script")[0];
+      s.parentNode.insertBefore(hm, s);
+    })();
+</script>
+<% } %>
+
+
+
+
+
+	<a id="rocket" href="#top" class=""></a>
+	<script type="text/javascript" src="/js/totop.js?v=1.0.0" async=""></script>
+    <script type="text/javascript" src="/js/toc.js?v=1.0.0" async=""></script>
+<!-- Image to hack wechat -->
+<img src="https://www.hi-linux.com/img/icon_wechat.png" width="0" height="0" />
+<!-- Migrate from head to bottom, no longer block render and still work -->
+
+<script>(function(w,d, s, id) {w.webpushr=w.webpushr||function(){(w.webpushr.q=w.webpushr.q||[]).push(arguments)};var js, fjs = d.getElementsByTagName(s)[0];js = d.createElement(s); js.id = id;js.src = 'https://cdn.webpushr.com/app.min.js';fjs.parentNode.appendChild(js);}(window,document, 'script', 'webpushr-jssdk'));webpushr('init','BF9JK7xV9kjWTdMx2lr6RWaPfXV7wNuZaVAJ1bfIGoBNJavqLEBVFMKLubITnCA4bh2fI9iH9tMF95nXnPt7xxY');</script></body>
+
+</html>
