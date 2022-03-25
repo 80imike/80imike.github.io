@@ -1,0 +1,656 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<!-- Head tag -->
+<head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="google-site-verification" content="xBT4GhYoi5qRD5tr338pgPM5OWHHIDR6mNg1a3euekI" />
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="description" content="">
+    <meta name="keyword"  content="Linux,运维,Nginx,Zabbix,Centos,Ansible,MySQL,Python,Docker,ELK,Haproxy,Git,Nodejs,安全,技术">
+    <link rel="shortcut icon" href="/img/ironman-draw.png">
+    <!-- Place this tag in your head or just before your close body tag. -->
+    <script async defer src="https://buttons.github.io/buttons.js"></script>
+    <title>
+        
+          如何在命令行快速获取公网动态 IP 地址 - 奇妙的 Linux 世界
+        
+    </title>
+
+    <link rel="canonical" href="https://www.hi-linux.com/posts/39230.html">
+
+    <!-- Bootstrap Core CSS -->
+    
+<link rel="stylesheet" href="/css/bootstrap.min.css">
+
+
+    <!-- Custom CSS --> 
+    
+<link rel="stylesheet" href="/css/beantech.min.css">
+
+    
+    <!-- Pygments Highlight CSS -->
+    
+<link rel="stylesheet" href="/css/highlight.css">
+
+
+    
+<link rel="stylesheet" href="/css/widget.css">
+
+
+    
+<link rel="stylesheet" href="/css/rocket.css">
+
+
+    
+<link rel="stylesheet" href="/css/signature.css">
+
+
+    
+<link rel="stylesheet" href="/css/toc.css">
+
+
+    <!-- Custom Fonts -->
+    <!-- <link href="https://maxcdn.bootstrapcdn.com/font-awesome/4.3.0/css/font-awesome.min.css" rel="stylesheet" type="text/css"> -->
+    <!-- Hux change font-awesome CDN to qiniu -->
+    <link href="https://cdn.staticfile.org/font-awesome/4.5.0/css/font-awesome.min.css" rel="stylesheet" type="text/css">
+
+
+    <!-- Hux Delete, sad but pending in China
+    <link href='http://fonts.googleapis.com/css?family=Lora:400,700,400italic,700italic' rel='stylesheet' type='text/css'>
+    <link href='http://fonts.googleapis.com/css?family=Open+Sans:300italic,400italic,600italic,700italic,800italic,400,300,600,700,800' rel='stylesheet' type='text/
+    css'>
+    -->
+
+
+    <!-- HTML5 Shim and Respond.js IE8 support of HTML5 elements and media queries -->
+    <!-- WARNING: Respond.js doesn't work if you view the page via file:// -->
+    <!--[if lt IE 9]>
+        <script src="https://oss.maxcdn.com/libs/html5shiv/3.7.0/html5shiv.js"></script>
+        <script src="https://oss.maxcdn.com/libs/respond.js/1.4.2/respond.min.js"></script>
+    <![endif]-->
+
+    <!-- ga & ba script hoook -->
+    <script></script>
+<meta name="generator" content="Hexo 4.2.1"><link rel="alternate" href="/atom.xml" title="奇妙的 Linux 世界" type="application/atom+xml">
+</head>
+
+
+<!-- hack iOS CSS :active style -->
+<body ontouchstart="">
+	<!-- Modified by Yu-Hsuan Yen -->
+<!-- Post Header -->
+<style type="text/css">
+    header.intro-header{
+        
+            background-image: url('/img/header_img/building.jpg')
+            /*post*/
+        
+    }
+    
+</style>
+
+<header class="intro-header" >
+    <!-- Signature -->
+    <div id="signature">
+        <div class="container">
+            <div class="row">
+                <div class="col-lg-8 col-lg-offset-2 col-md-10 col-md-offset-1">
+                
+                    <div class="post-heading">
+                        <div class="tags">
+                            
+                              <a class="tag" href="/tags/#技巧" title="技巧">技巧</a>
+                            
+                              <a class="tag" href="/tags/#Linux" title="Linux">Linux</a>
+                            
+                              <a class="tag" href="/tags/#Shell" title="Shell">Shell</a>
+                            
+                        </div>
+                        <h1>如何在命令行快速获取公网动态 IP 地址</h1>
+                        <h2 class="subheading"></h2>
+                        <span class="meta">
+                            Posted by Mike on
+                            2022-03-04
+                        </span>
+                    </div>
+                
+
+
+                </div>
+            </div>
+        </div>
+    </div>
+</header>
+
+	
+    <!-- Navigation -->
+<nav class="navbar navbar-default navbar-custom navbar-fixed-top">
+    <div class="container-fluid">
+        <!-- Brand and toggle get grouped for better mobile display -->
+        <div class="navbar-header page-scroll">
+            <button type="button" class="navbar-toggle">
+                <span class="sr-only">Toggle navigation</span>
+                <span class="icon-bar"></span>
+                <span class="icon-bar"></span>
+                <span class="icon-bar"></span>
+            </button>
+            <a class="navbar-brand" href="/">奇妙的 Linux 世界</a>
+        </div>
+
+        <!-- Collect the nav links, forms, and other content for toggling -->
+        <!-- Known Issue, found by Hux:
+            <nav>'s height woule be hold on by its content.
+            so, when navbar scale out, the <nav> will cover tags.
+            also mask any touch event of tags, unfortunately.
+        -->
+        <div id="huxblog_navbar">
+            <div class="navbar-collapse">
+                <ul class="nav navbar-nav navbar-right">
+                    <li>
+                        <a href="/">Home</a>
+                    </li>
+
+                    
+
+                        
+                    
+
+                        
+                    
+
+                        
+                        <li>
+                            <a href="/about/">About</a>
+                        </li>
+                        
+                    
+
+                        
+                        <li>
+                            <a href="/archive/">Archives</a>
+                        </li>
+                        
+                    
+
+                        
+                        <li>
+                            <a href="/tags/">Tags</a>
+                        </li>
+                        
+                    
+                    
+                </ul>
+            </div>
+        </div>
+        <!-- /.navbar-collapse -->
+    </div>
+    <!-- /.container -->
+</nav>
+<script>
+    // Drop Bootstarp low-performance Navbar
+    // Use customize navbar with high-quality material design animation
+    // in high-perf jank-free CSS3 implementation
+    var $body   = document.body;
+    var $toggle = document.querySelector('.navbar-toggle');
+    var $navbar = document.querySelector('#huxblog_navbar');
+    var $collapse = document.querySelector('.navbar-collapse');
+
+    $toggle.addEventListener('click', handleMagic)
+    function handleMagic(e){
+        if ($navbar.className.indexOf('in') > 0) {
+        // CLOSE
+            $navbar.className = " ";
+            // wait until animation end.
+            setTimeout(function(){
+                // prevent frequently toggle
+                if($navbar.className.indexOf('in') < 0) {
+                    $collapse.style.height = "0px"
+                }
+            },400)
+        }else{
+        // OPEN
+            $collapse.style.height = "auto"
+            $navbar.className += " in";
+        }
+    }
+</script>
+
+
+    <!-- Main Content -->
+    <!-- Modify by Yu-Hsuan Yen -->
+
+<!-- Post Content -->
+<article>
+    <div class="container">
+        <div class="row">
+
+            <!-- Post Container -->
+            <div class="
+                col-lg-8 col-lg-offset-2
+                col-md-10 col-md-offset-1
+                post-container">
+
+                <div id="vip-container"><p>如何确定公网IP地址是一个让很多家用宽带朋友们经常遇到的问题，毕竟固定IP地址总是价格不菲因而不适用于家庭宽带，而我们的电信宽带运营商（ISP）往往给我们分配的是动态IP地址，之所以称作为动态IP地址，是因为每次拨号得到的IP地址可能会不一样，还有更骚的操作就是有的运营商每天或不定期在某个时间刷新IP地址池，这样已经获得的IP地址将会被强制释放并分配新的IP地址。</p>
+<p>这对于我们一些运行在家用带宽下的服务带来了影响——需要重新设置服务端 IP 地址，比如监控、网络存储等等，这时候 DDNS 就发挥作用的，现在大部分路由器内置了 DDNS 客户端，比如花生壳等服务客户端，但是这些客户端存在收费、不稳定以及刷新间隔小等问题，对于自己有域名的朋友可以使用 DNS 服务商的 API 自己实现 IP 更新操作，比如阿里云（Aliyun）、Cloudflare 均可以实现。</p>
+<p>对于 DDNS 如何使用 API 更新不在本文叙述范围内，但调用 API 有个关键参数那就是公网IP地址，如何获取当前运营商分配的公网 IP地址呢？除了问路由器外（打开路由器管理界面找到 WAN 口信息）我们还可以通过一些网络服务进行检测。</p>
+<a id="more"></a>
+<h2><span id="使用-shell-命令获取公网-ip-地址">使用 Shell 命令获取公网 IP 地址</span></h2>
+<h3><span id="浏览器方式">浏览器方式</span></h3>
+<p>如果我们使用浏览器打开这个地址<a href="https://checkip.amazonaws.com/" target="_blank" rel="noopener">checkip.amazonaws.com</a>你就会发现你的公网IP地址赫然在目，互联网上的服务器总是能够知道是什么 IP地址的客户端发起了连接，当然就可以通过这种方式获取公网 IP，同样功能的网站有很多，这里列举部分我收集到的：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line">https:&#x2F;&#x2F;checkip.amazonaws.com</span><br><span class="line">https:&#x2F;&#x2F;api.ipify.org</span><br><span class="line">https:&#x2F;&#x2F;ifconfig.me&#x2F;ip</span><br><span class="line">https:&#x2F;&#x2F;icanhazip.com</span><br><span class="line">https:&#x2F;&#x2F;ipinfo.io&#x2F;ip</span><br><span class="line">https:&#x2F;&#x2F;ipecho.net&#x2F;plain</span><br><span class="line">https:&#x2F;&#x2F;checkipv4.dedyn.io</span><br></pre></td></tr></table></figure>
+<h3><span id="curl-方式">cURL 方式</span></h3>
+<p>在命令行下我们当然不能为这点小事随便启动浏览器，我们可以请出另外一个功能强大的工具，那就是<a href="https://curl.se/" target="_blank" rel="noopener">curl</a>，cURL 是一个利用URL语法在命令行下工作的文件传输工具，关于cURL的快速用法可以参考阮一峰的网络日志<a href="https://www.ruanyifeng.com/blog/2019/09/curl-reference.html" target="_blank" rel="noopener">《curl 的用法指南》</a>，这里不再详述，最简单的用法就是<code>curl 你要请求的网址</code>，比如<code>curl checkip.amazonaws.com</code>。</p>
+<h3><span id="使用-dig-命令">使用 dig 命令</span></h3>
+<p>首次在别人脚本中看到这个方式获取公网IP觉得比较新奇，命令如下：</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">dig +short myip.opendns.com @resolver1.opendns.com</span><br></pre></td></tr></table></figure>
+<p>这个是由OpenDNS提供的服务，如果你的主机上没有安装dig命令，对于Debian系列系统可以通过<code>apt-get install dnsutils</code>安装，这个命令的原理是指定<code>resolver1.opendns.com</code>为域名<code>myip.opendns.com</code>的解析服务器，为什么要指定，主要是避免 DNS 下游服务器缓存，另外这个指定的解析服务器被 OpenDNS 进行了特殊配置，其始终将域名<code>myip.opendns.com</code>解析为发起 DNS 请求的客户端 IP 地址，这样也就实现了查找公网 IP的功能。</p>
+<p>这个和 cURL 方式比有什么优势呢？当然是数据量更小传输更快，毕竟使用 cURL 发起 HTTP 请求必然会导致协议头等无关信息的交换，如果启用了 HTTPS/TLS 那么还要进行加密协商，效率会比较低，当然这种方式的缺点就是 DNS 查询容易被运营商审计和过滤，稳定性略差，不过我测试下来除了偶尔查询失败外其余情况是完全 OK 的。</p>
+<h2><span id="使用-shell-脚本获取公网-ip-地址">使用 Shell 脚本获取公网 IP 地址</span></h2>
+<p>至此我有个新的主意，那就是首先采用 dig 命令快速检索公网 IP 地址，如果失败则切换到 cURL 的方式，为了避免 cURL 单一服务器失败，采用轮询或者随机的方式，尽可能提高成功率。</p>
+<p>使用 Bash Shell 脚本 do it，比如获取公网 IPv4 的脚本如下：</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">#!/bin/bash</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># This script try to ensure gets the current IP address (as assigned by the ISP) from</span></span><br><span class="line"><span class="comment"># OpenDNS and other online services as fallbacks</span></span><br><span class="line"></span><br><span class="line">hosts=(<span class="string">"checkip.amazonaws.com"</span> <span class="string">"api.ipify.org"</span> <span class="string">"ifconfig.me/ip"</span> <span class="string">"icanhazip.com"</span> <span class="string">"ipinfo.io/ip"</span> <span class="string">"ipecho.net/plain"</span> <span class="string">"checkipv4.dedyn.io"</span>)</span><br><span class="line"></span><br><span class="line">CURL=`<span class="built_in">which</span> curl`</span><br><span class="line">DIG=`<span class="built_in">which</span> dig`</span><br><span class="line"></span><br><span class="line">check=$(<span class="variable">$DIG</span> +short myip.opendns.com @resolver1.opendns.com A) </span><br><span class="line"></span><br><span class="line"><span class="keyword">if</span> [ ! $? -eq 0 ] || [ -z <span class="string">"<span class="variable">$check</span>"</span> ] || [[ ! <span class="variable">$check</span> =~ ^[0-9]+\.[0-9]+\.[0-9]+\.[0-9]+$ ]]; <span class="keyword">then</span></span><br><span class="line">    <span class="built_in">echo</span> <span class="string">"Unable to get your public IP address by OpenDNS service, try to another way."</span></span><br><span class="line">    count=<span class="variable">$&#123;#hosts[@]&#125;</span></span><br><span class="line"></span><br><span class="line">    <span class="keyword">while</span> [ -z <span class="string">"<span class="variable">$check</span>"</span> ] &amp;&amp; [[ <span class="variable">$count</span> -ne 0 ]]; <span class="keyword">do</span></span><br><span class="line">        selectedhost=<span class="variable">$&#123;hosts[ $RANDOM % $&#123;#hosts[@]&#125;</span> ]&#125;</span><br><span class="line">        check=$(<span class="variable">$CURL</span> -4s https://<span class="variable">$selectedhost</span> | grep <span class="string">'[^[:blank:]]'</span>) &amp;&amp; &#123;</span><br><span class="line">            <span class="keyword">if</span> [ -n <span class="string">"<span class="variable">$check</span>"</span> ] &amp;&amp; [[ <span class="variable">$check</span> =~ ^[0-9]+\.[0-9]+\.[0-9]+\.[0-9]+$ ]]; <span class="keyword">then</span></span><br><span class="line">                <span class="built_in">break</span></span><br><span class="line">            <span class="keyword">else</span></span><br><span class="line">                check=<span class="string">""</span></span><br><span class="line">                count=$(expr <span class="variable">$count</span> - 1)</span><br><span class="line">                <span class="built_in">echo</span> <span class="string">"The host <span class="variable">$selectedhost</span> returned an invalid IP address."</span></span><br><span class="line">            <span class="keyword">fi</span></span><br><span class="line">        &#125; || &#123;</span><br><span class="line">            check=<span class="string">""</span></span><br><span class="line">            count=$(expr <span class="variable">$count</span> - 1)</span><br><span class="line">            <span class="built_in">echo</span> <span class="string">"The host <span class="variable">$selectedhost</span> did not respond."</span></span><br><span class="line">        &#125;</span><br><span class="line">    <span class="keyword">done</span></span><br><span class="line"><span class="keyword">fi</span></span><br><span class="line"></span><br><span class="line"><span class="keyword">if</span> [ -z <span class="string">"<span class="variable">$check</span>"</span> ]; <span class="keyword">then</span></span><br><span class="line">    <span class="built_in">echo</span> <span class="string">"Unable to get your public IP address. Please check your internet connection."</span></span><br><span class="line">    <span class="built_in">exit</span> 1</span><br><span class="line"><span class="keyword">fi</span></span><br><span class="line"></span><br><span class="line"><span class="built_in">echo</span> <span class="string">"Your public IP address is <span class="variable">$check</span>"</span></span><br><span class="line"></span><br><span class="line"><span class="built_in">exit</span> 0</span><br></pre></td></tr></table></figure>
+<p>上述脚本可以看出首先我使用 dig 方式查询 OpenDNS，如果查询失败或者返回为空或者不是 IP 地址，那么进入cURL模式，这里将可用服务器添加到 hosts 列表，并且随机抽取一个进行cURL，这里使用了<code>curl -4s</code>参数<code>-4s</code>分别表示仅使用 IPv4 方式连接（确保获取 IPv4 地址）和抑制进度条和错误信息，如果抽取的服务发生错误，那么进入循环再抽取一个，直到循环满最大 hosts 数停止。</p>
+<h2><span id="总结">总结</span></h2>
+<p>大部分脚本甚至一些程序仅使用了一种方式获取公网 IP，但是互联网上这些服务往往是不可靠的，如果你所选用的服务出现故障，那么将会影响到你后续业务的开展，所以本文的核心思想还是多个备份，另外对于 cURL 方式采用随机确保所谓的“负载平衡”，避免 fallback 时过度请求某个服务导致 IP 被 Ban。</p>
+<blockquote>
+<p>本文转载自：「 王晔的博客 」，原文：<a href="https://tinyurl.com/2p95wpue" target="_blank" rel="noopener">https://tinyurl.com/2p95wpue</a> ，版权归原作者所有。欢迎投稿，投稿邮箱: <a href="mailto:editor@hi-linux.com">editor@hi-linux.com</a>。</p>
+</blockquote>
+</div>
+
+			<script src="https://my.openwrite.cn/js/readmore.js" type="text/javascript"></script>
+			<script>
+			var isMobile = navigator.userAgent.match(/(phone|pad|pod|iPhone|iPod|ios|iPad|Android|Mobile|BlackBerry|IEMobile|MQQBrowser|JUC|Fennec|wOSBrowser|BrowserNG|WebOS|Symbian|Windows Phone)/i);
+			if (!isMobile) {
+			    var btw = new BTWPlugin();
+			    btw.init({
+			        "id": "vip-container",
+			        "blogId": "10135-1588830050631-449",
+			        "name": "「奇妙的 Linux 世界」",
+			        "qrcode": "https://www.hi-linux.com/img/wechat/mp_qrcode_12.jpg",
+			        "keyword": "VIP"
+			    });
+			}
+			</script>
+		
+                
+
+                <hr>
+                <!-- Pager -->
+                <ul class="pager">
+                    
+                    
+                        <li class="next">
+                            <a href="/posts/7852.html" data-toggle="tooltip" data-placement="top" title="如何让一个创业公司优雅的进行云原生之旅">Next Post &rarr;</a>
+                        </li>
+                    
+                </ul>
+
+                <!-- duoshuo Share start -->
+                
+                <!-- 多说 Share end-->
+
+                <!-- 多说评论框 start -->
+                
+                <!-- 多说评论框 end -->
+
+                <!-- disqus comment start -->
+                
+                <!-- disqus comment end -->
+
+                
+                    <!-- disqus 评论框 start -->
+                    <div class="comment">
+                        <div id="lv-container" data-id="city" data-uid="MTAyMC8yNzg2My80NDQw"></div>
+                    </div>
+                    <!-- disqus 评论框 end -->
+                
+
+            </div>
+            
+            <!-- Tabe of Content -->
+            <!-- Table of Contents -->
+
+  
+    <style>
+      span.toc-nav-number{
+        display: none
+      }
+    </style>
+  
+    
+      <aside id="sidebar">
+        <div id="toc" class="toc-article">
+        <strong class="toc-title">Contents</strong>
+        
+          <ol class="toc-nav"><li class="toc-nav-item toc-nav-level-2"><a class="toc-nav-link" href="#vip-container"><span class="toc-nav-number">1.</span> <span class="toc-nav-text">使用 Shell 命令获取公网 IP 地址</span></a><ol class="toc-nav-child"><li class="toc-nav-item toc-nav-level-3"><a class="toc-nav-link" href="#vip-container"><span class="toc-nav-number">1.1.</span> <span class="toc-nav-text">浏览器方式</span></a></li><li class="toc-nav-item toc-nav-level-3"><a class="toc-nav-link" href="#vip-container"><span class="toc-nav-number">1.2.</span> <span class="toc-nav-text">cURL 方式</span></a></li><li class="toc-nav-item toc-nav-level-3"><a class="toc-nav-link" href="#vip-container"><span class="toc-nav-number">1.3.</span> <span class="toc-nav-text">使用 dig 命令</span></a></li></ol></li><li class="toc-nav-item toc-nav-level-2"><a class="toc-nav-link" href="#vip-container"><span class="toc-nav-number">2.</span> <span class="toc-nav-text">使用 Shell 脚本获取公网 IP 地址</span></a></li><li class="toc-nav-item toc-nav-level-2"><a class="toc-nav-link" href="#vip-container"><span class="toc-nav-number">3.</span> <span class="toc-nav-text">总结</span></a></li></ol>
+        
+        </div>
+      </aside>
+    
+
+                
+            <!-- Sidebar Container -->
+            <div class="
+                col-lg-8 col-lg-offset-2
+                col-md-10 col-md-offset-1
+                sidebar-container">
+
+                <!-- Featured Tags -->
+                
+                <section>
+                    <!-- no hr -->
+                    <h5><a href="/tags/">FEATURED TAGS</a></h5>
+                    <div class="tags">
+                       
+                          <a class="tag" href="/tags/#技巧" title="技巧">技巧</a>
+                        
+                          <a class="tag" href="/tags/#Linux" title="Linux">Linux</a>
+                        
+                          <a class="tag" href="/tags/#Shell" title="Shell">Shell</a>
+                        
+                    </div>
+                </section>
+                
+
+                <!-- Friends Blog -->
+                
+                <hr>
+                <h5>FRIENDS</h5>
+                <ul class="list-inline">
+
+                    
+                        <li><a href="http://www.mike.org.cn/" target="_blank">简单.生活</a></li>
+                    
+                        <li><a href="http://shang.qq.com/wpa/qunwpa?idkey=ea4c43493c2269428ac6ef6141de4b6d78e5ab2d41380ca4099b833b62884ee9" target="_blank">技术交流群</a></li>
+                    
+                        <li><a href="" target="_blank"></a></li>
+                    
+                        <li><a href="" target="_blank"></a></li>
+                    
+                </ul>
+                
+            </div>
+        </div>
+    </div>
+</article>
+
+
+
+
+
+
+    <!-- 来必力City版公共JS代码 start (一个网页只需插入一次) -->
+    <script type="text/javascript">
+       (function(d, s) {
+           var j, e = d.getElementsByTagName(s)[0];
+    
+           if (typeof LivereTower === 'function') { return; }
+    
+           j = d.createElement(s);
+           j.src = 'https://cdn-city.livere.com/js/embed.dist.js';
+           j.async = true;
+    
+           e.parentNode.insertBefore(j, e);
+       })(document, 'script');
+    </script>
+    <noscript>为正常使用来必力评论功能请激活JavaScript</noscript>
+    <!-- 来必力City版 公共JS代码 end -->
+
+
+
+<!-- async load function -->
+<script>
+    function async(u, c) {
+      var d = document, t = 'script',
+          o = d.createElement(t),
+          s = d.getElementsByTagName(t)[0];
+      o.src = u;
+      if (c) { o.addEventListener('load', function (e) { c(null, e); }, false); }
+      s.parentNode.insertBefore(o, s);
+    }
+</script>
+<!-- anchor-js, Doc:http://bryanbraun.github.io/anchorjs/ -->
+<script>
+    async("https://cdn.bootcss.com/anchor-js/1.1.1/anchor.min.js",function(){
+        anchors.options = {
+          visible: 'hover',
+          placement: 'left',
+          icon: 'ℬ'
+        };
+        anchors.add().remove('.intro-header h1').remove('.subheading').remove('.sidebar-container h5');
+    })
+</script>
+<style>
+    /* place left on bigger screen */
+    @media all and (min-width: 800px) {
+        .anchorjs-link{
+            position: absolute;
+            left: -0.75em;
+            font-size: 1.1em;
+            margin-top : -0.1em;
+        }
+    }
+</style>
+
+
+
+    <!-- Footer -->
+    <!-- Footer -->
+<footer>
+    <div class="container">
+        <div class="row">
+            <div class="col-lg-8 col-lg-offset-2 col-md-10 col-md-offset-1">
+                <ul class="list-inline text-center">
+                <% if (config.RSS) { %>
+                    <li>
+                        <a href="<%= config.root + 'atom.xml' %>">
+                            <span class="fa-stack fa-lg">
+                                <i class="fa fa-circle fa-stack-2x"></i>
+                                <i class="fa fa-rss fa-stack-1x fa-inverse"></i>
+                            </span>
+                        </a>
+                    </li>
+                <% } %>
+                <% if (config.twitter_username) { %>
+                    <li>
+                        <a target="_blank" href="https://twitter.com/<%= config.twitter_username %>">
+                            <span class="fa-stack fa-lg">
+                                <i class="fa fa-circle fa-stack-2x"></i>
+                                <i class="fa fa-twitter fa-stack-1x fa-inverse"></i>
+                            </span>
+                        </a>
+                    </li>
+                <% } %>
+                <% if (config.zhihu_username) { %>
+                    <li>
+                        <a target="_blank" href="https://www.zhihu.com/people/<%= config.zhihu_username %>">
+                            <span class="fa-stack fa-lg">
+                                <i class="fa fa-circle fa-stack-2x"></i>
+                                <i class="fa  fa-stack-1x fa-inverse">知</i>
+                            </span>
+                        </a>
+                    </li>
+                <% } %>
+
+                <% if (config.weibo_username) { %>
+                    <li>
+                        <a target="_blank" href="http://weibo.com/<%= config.weibo_username %>">
+                            <span class="fa-stack fa-lg">
+                                <i class="fa fa-circle fa-stack-2x"></i>
+                                <i class="fa fa-weibo fa-stack-1x fa-inverse"></i>
+                            </span>
+                        </a>
+                    </li>
+                <% } %>
+
+                <% if (config.facebook_username) { %>
+                    <li>
+                        <a target="_blank" href="https://www.facebook.com/<%= config.facebook_username %>">
+                            <span class="fa-stack fa-lg">
+                                <i class="fa fa-circle fa-stack-2x"></i>
+                                <i class="fa fa-facebook fa-stack-1x fa-inverse"></i>
+                            </span>
+                        </a>
+                    </li>
+                <% } %>
+
+                <% if (config.github_username) { %>
+                    <li>
+                        <a target="_blank"  href="https://github.com/<%= config.github_username %>">
+                            <span class="fa-stack fa-lg">
+                                <i class="fa fa-circle fa-stack-2x"></i>
+                                <i class="fa fa-github fa-stack-1x fa-inverse"></i>
+                            </span>
+                        </a>
+                    </li>
+                <% } %>
+
+                <% if (config.linkedin_username) { %>
+                    <li>
+                        <a target="_blank"  href="https://www.linkedin.com/in/<%= config.linkedin_username %>">
+                            <span class="fa-stack fa-lg">
+                                <i class="fa fa-circle fa-stack-2x"></i>
+                                <i class="fa fa-linkedin fa-stack-1x fa-inverse"></i>
+                            </span>
+                        </a>
+                    </li>
+                <% } %>
+
+                </ul>
+                <p class="copyright text-muted">
+                    Copyright &copy; <%= config.author %> <%= new Date().getFullYear() %> | Hosted by <a href="https://pages.coding.me" target="_blank" rel="noopener" style="font-weight: bold">Coding Pages</a>
+                    <br>
+                    Theme by <a href="http://beantech.org" target="_blank" rel="noopener">BeanTech</a> 
+                    <span style="display: inline-block; margin: 0 5px;">
+                        <i class="fa fa-heart"></i>
+                    </span> 
+                    re-Ported by <a href="http://www.huweihuang.com" target="_blank" rel="noopener">胡伟煌</a> | 
+                    <iframe
+                        style="margin-left: 2px; margin-bottom:-5px;"
+                        frameborder="0" scrolling="0" width="91px" height="20px"
+                        src="https://ghbtns.com/github-btn.html?user=huweihuang&repo=hexo-theme-huweihuang&type=star&count=true" >
+                    </iframe>
+                </p>
+            </div>
+        </div>
+    </div>
+</footer>
+
+<!-- jQuery -->
+<%- js('js/jquery.min.js') %>
+
+<!-- Bootstrap Core JavaScript -->
+<%- js('js/bootstrap.min.js') %>
+
+<!-- Custom Theme JavaScript -->
+<%- js('js/hux-blog.min.js') %>
+
+
+<!-- async load function -->
+<script>
+    function async(u, c) {
+      var d = document, t = 'script',
+          o = d.createElement(t),
+          s = d.getElementsByTagName(t)[0];
+      o.src = u;
+      if (c) { o.addEventListener('load', function (e) { c(null, e); }, false); }
+      s.parentNode.insertBefore(o, s);
+    }
+</script>
+
+<!-- 
+     Because of the native support for backtick-style fenced code blocks 
+     right within the Markdown is landed in Github Pages, 
+     From V1.6, There is no need for Highlight.js, 
+     so Huxblog drops it officially.
+
+     - https://github.com/blog/2100-github-pages-now-faster-and-simpler-with-jekyll-3-0  
+     - https://help.github.com/articles/creating-and-highlighting-code-blocks/    
+-->
+<!--
+    <script>
+        async("http://cdn.bootcss.com/highlight.js/8.6/highlight.min.js", function(){
+            hljs.initHighlightingOnLoad();
+        })
+    </script>
+    <link href="http://cdn.bootcss.com/highlight.js/8.6/styles/github.min.css" rel="stylesheet">
+-->
+
+
+<!-- jquery.tagcloud.js -->
+<script>
+    // only load tagcloud.js in tag.html
+    if($('#tag_cloud').length !== 0){
+        async("<%= config.url%><%= config.root%>js/jquery.tagcloud.js",function(){
+            $.fn.tagcloud.defaults = {
+                //size: {start: 1, end: 1, unit: 'em'},
+                color: {start: '#bbbbee', end: '#0085a1'},
+            };
+            $('#tag_cloud a').tagcloud();
+        })
+    }
+</script>
+
+<!--fastClick.js -->
+<script>
+    async("https://cdn.bootcss.com/fastclick/1.0.6/fastclick.min.js", function(){
+        var $nav = document.querySelector("nav");
+        if($nav) FastClick.attach($nav);
+    })
+</script>
+
+
+<!-- Google Analytics -->
+
+<% if (config.ga_track_id) { %>
+<script>
+    // dynamic User by Hux
+    var _gaId = '<%= config.ga_track_id %>';
+    var _gaDomain = '<%= config.ga_domain %>';
+
+    // Originial
+    (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+    (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+    m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+    })(window,document,'script','//www.google-analytics.com/analytics.js','ga');
+
+    ga('create', _gaId, _gaDomain);
+    ga('send', 'pageview');
+</script>
+
+<% } %>
+
+
+<!-- Baidu Tongji -->
+<% if (config.ba_track_id) { %>
+<script>
+    // dynamic User by Hux
+    var _baId = '<%= config.ba_track_id %>';
+
+    // Originial
+    var _hmt = _hmt || [];
+    (function() {
+      var hm = document.createElement("script");
+      hm.src = "//hm.baidu.com/hm.js?" + _baId;
+      var s = document.getElementsByTagName("script")[0];
+      s.parentNode.insertBefore(hm, s);
+    })();
+</script>
+<% } %>
+
+
+
+
+
+	<a id="rocket" href="#top" class=""></a>
+	<script type="text/javascript" src="/js/totop.js?v=1.0.0" async=""></script>
+    <script type="text/javascript" src="/js/toc.js?v=1.0.0" async=""></script>
+<!-- Image to hack wechat -->
+<img src="https://www.hi-linux.com/img/icon_wechat.png" width="0" height="0" />
+<!-- Migrate from head to bottom, no longer block render and still work -->
+
+<script>(function(w,d, s, id) {w.webpushr=w.webpushr||function(){(w.webpushr.q=w.webpushr.q||[]).push(arguments)};var js, fjs = d.getElementsByTagName(s)[0];js = d.createElement(s); js.id = id;js.src = 'https://cdn.webpushr.com/app.min.js';fjs.parentNode.appendChild(js);}(window,document, 'script', 'webpushr-jssdk'));webpushr('init','BF9JK7xV9kjWTdMx2lr6RWaPfXV7wNuZaVAJ1bfIGoBNJavqLEBVFMKLubITnCA4bh2fI9iH9tMF95nXnPt7xxY');</script></body>
+
+</html>
