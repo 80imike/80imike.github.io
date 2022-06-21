@@ -1,0 +1,658 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<!-- Head tag -->
+<head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="google-site-verification" content="xBT4GhYoi5qRD5tr338pgPM5OWHHIDR6mNg1a3euekI" />
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="description" content="">
+    <meta name="keyword"  content="Linux,运维,Nginx,Zabbix,Centos,Ansible,MySQL,Python,Docker,ELK,Haproxy,Git,Nodejs,安全,技术">
+    <link rel="shortcut icon" href="/img/ironman-draw.png">
+    <!-- Place this tag in your head or just before your close body tag. -->
+    <script async defer src="https://buttons.github.io/buttons.js"></script>
+    <title>
+        
+          Kubernetes Pod 多网卡解决方案 Multus 入门指南 - 奇妙的 Linux 世界
+        
+    </title>
+
+    <link rel="canonical" href="https://www.hi-linux.com/posts/5706.html">
+
+    <!-- Bootstrap Core CSS -->
+    
+<link rel="stylesheet" href="/css/bootstrap.min.css">
+
+
+    <!-- Custom CSS --> 
+    
+<link rel="stylesheet" href="/css/beantech.min.css">
+
+    
+    <!-- Pygments Highlight CSS -->
+    
+<link rel="stylesheet" href="/css/highlight.css">
+
+
+    
+<link rel="stylesheet" href="/css/widget.css">
+
+
+    
+<link rel="stylesheet" href="/css/rocket.css">
+
+
+    
+<link rel="stylesheet" href="/css/signature.css">
+
+
+    
+<link rel="stylesheet" href="/css/toc.css">
+
+
+    <!-- Custom Fonts -->
+    <!-- <link href="https://maxcdn.bootstrapcdn.com/font-awesome/4.3.0/css/font-awesome.min.css" rel="stylesheet" type="text/css"> -->
+    <!-- Hux change font-awesome CDN to qiniu -->
+    <link href="https://cdn.staticfile.org/font-awesome/4.5.0/css/font-awesome.min.css" rel="stylesheet" type="text/css">
+
+
+    <!-- Hux Delete, sad but pending in China
+    <link href='http://fonts.googleapis.com/css?family=Lora:400,700,400italic,700italic' rel='stylesheet' type='text/css'>
+    <link href='http://fonts.googleapis.com/css?family=Open+Sans:300italic,400italic,600italic,700italic,800italic,400,300,600,700,800' rel='stylesheet' type='text/
+    css'>
+    -->
+
+
+    <!-- HTML5 Shim and Respond.js IE8 support of HTML5 elements and media queries -->
+    <!-- WARNING: Respond.js doesn't work if you view the page via file:// -->
+    <!--[if lt IE 9]>
+        <script src="https://oss.maxcdn.com/libs/html5shiv/3.7.0/html5shiv.js"></script>
+        <script src="https://oss.maxcdn.com/libs/respond.js/1.4.2/respond.min.js"></script>
+    <![endif]-->
+
+    <!-- ga & ba script hoook -->
+    <script></script>
+<meta name="generator" content="Hexo 4.2.1"><link rel="alternate" href="/atom.xml" title="奇妙的 Linux 世界" type="application/atom+xml">
+</head>
+
+
+<!-- hack iOS CSS :active style -->
+<body ontouchstart="">
+	<!-- Modified by Yu-Hsuan Yen -->
+<!-- Post Header -->
+<style type="text/css">
+    header.intro-header{
+        
+            background-image: url('/img/header_img/building.jpg')
+            /*post*/
+        
+    }
+    
+</style>
+
+<header class="intro-header" >
+    <!-- Signature -->
+    <div id="signature">
+        <div class="container">
+            <div class="row">
+                <div class="col-lg-8 col-lg-offset-2 col-md-10 col-md-offset-1">
+                
+                    <div class="post-heading">
+                        <div class="tags">
+                            
+                              <a class="tag" href="/tags/#Linux" title="Linux">Linux</a>
+                            
+                              <a class="tag" href="/tags/#Kubernetes" title="Kubernetes">Kubernetes</a>
+                            
+                              <a class="tag" href="/tags/#Multus" title="Multus">Multus</a>
+                            
+                        </div>
+                        <h1>Kubernetes Pod 多网卡解决方案 Multus 入门指南</h1>
+                        <h2 class="subheading"></h2>
+                        <span class="meta">
+                            Posted by Mike on
+                            2022-06-21
+                        </span>
+                    </div>
+                
+
+
+                </div>
+            </div>
+        </div>
+    </div>
+</header>
+
+	
+    <!-- Navigation -->
+<nav class="navbar navbar-default navbar-custom navbar-fixed-top">
+    <div class="container-fluid">
+        <!-- Brand and toggle get grouped for better mobile display -->
+        <div class="navbar-header page-scroll">
+            <button type="button" class="navbar-toggle">
+                <span class="sr-only">Toggle navigation</span>
+                <span class="icon-bar"></span>
+                <span class="icon-bar"></span>
+                <span class="icon-bar"></span>
+            </button>
+            <a class="navbar-brand" href="/">奇妙的 Linux 世界</a>
+        </div>
+
+        <!-- Collect the nav links, forms, and other content for toggling -->
+        <!-- Known Issue, found by Hux:
+            <nav>'s height woule be hold on by its content.
+            so, when navbar scale out, the <nav> will cover tags.
+            also mask any touch event of tags, unfortunately.
+        -->
+        <div id="huxblog_navbar">
+            <div class="navbar-collapse">
+                <ul class="nav navbar-nav navbar-right">
+                    <li>
+                        <a href="/">Home</a>
+                    </li>
+
+                    
+
+                        
+                    
+
+                        
+                    
+
+                        
+                        <li>
+                            <a href="/about/">About</a>
+                        </li>
+                        
+                    
+
+                        
+                        <li>
+                            <a href="/archive/">Archives</a>
+                        </li>
+                        
+                    
+
+                        
+                        <li>
+                            <a href="/tags/">Tags</a>
+                        </li>
+                        
+                    
+                    
+                </ul>
+            </div>
+        </div>
+        <!-- /.navbar-collapse -->
+    </div>
+    <!-- /.container -->
+</nav>
+<script>
+    // Drop Bootstarp low-performance Navbar
+    // Use customize navbar with high-quality material design animation
+    // in high-perf jank-free CSS3 implementation
+    var $body   = document.body;
+    var $toggle = document.querySelector('.navbar-toggle');
+    var $navbar = document.querySelector('#huxblog_navbar');
+    var $collapse = document.querySelector('.navbar-collapse');
+
+    $toggle.addEventListener('click', handleMagic)
+    function handleMagic(e){
+        if ($navbar.className.indexOf('in') > 0) {
+        // CLOSE
+            $navbar.className = " ";
+            // wait until animation end.
+            setTimeout(function(){
+                // prevent frequently toggle
+                if($navbar.className.indexOf('in') < 0) {
+                    $collapse.style.height = "0px"
+                }
+            },400)
+        }else{
+        // OPEN
+            $collapse.style.height = "auto"
+            $navbar.className += " in";
+        }
+    }
+</script>
+
+
+    <!-- Main Content -->
+    <!-- Modify by Yu-Hsuan Yen -->
+
+<!-- Post Content -->
+<article>
+    <div class="container">
+        <div class="row">
+
+            <!-- Post Container -->
+            <div class="
+                col-lg-8 col-lg-offset-2
+                col-md-10 col-md-offset-1
+                post-container">
+
+                <div id="vip-container"><p>在 Kubernetes中，网络是非常重要的一个领域。 Kubernetes 本身不提供网络解决方案，但是提供了 CN I规范。这些规范被许多 CNI 插件（例如 WeaveNet，Flannel，Calico 等）遵守。这些插件中任何一个都可以在集群上使用和部署以提供网络解决方案。该网络称为集群的默认网络。此默认网络使 Pods 不仅可以在同一节点上而且可以在群集中的各个节点之间相互通信。</p>
+<p>随着发展，Kubernetes 缺乏支持 VNF 中多个网络接口的所需功能。传统上，网络功能使用多个网络接口分离控制，管理和控制用户/数据的网络平面。他们还用于支持不同的协议，满足不同的调整和配置要求。</p>
+<p>为了解决这个需求，英特尔实现了 MULTUS 的 CNI 插件，其中提供了将多个接口添加到 Pod 的功能。这允许 POD 通过不同的接口连接到多个网络，并且每个接口都将使用其自己的 CNI 插件。</p>
+<a id="more"></a>
+<p>下面是 Multus CNI 提供的连接到 Pod 的网络接口的图示。该图显示了具有三个接口的容器：<code>eth0</code>，<code>net0</code>和<code>net1</code>。 <code>eth0</code>连接 Kubernetes 集群网络以连接kubernetes服务器/服务（例如 Kubernetes api-server，kubelet 等）。 <code>net0</code>和<code>net1</code>是其他网络附件，并通过使用其他 CNI 插件（例如vlan / vxlan / ptp）连接到其他网络。</p>
+<p><img src="https://img.hi-linux.com/staticfile/1460000022848627-2022-06-16-tAgyzp.jpeg" alt></p>
+<h2><span id="multus-工作原理">MULTUS 工作原理</span></h2>
+<p>Kubernetes 当前没有提供为POD添加额外的接口选项的规定，或支持多个 CNI 插件同时工作的规定，但是它确实提供了一种由 API 服务器扩展受支持的API的机制。使用 “自定义资源定义” 可以做到这一点。 MULTUS依赖于 “自定义资源定义” 来存储其他接口和CNI插件所需的信息。</p>
+<p><img src="https://img.hi-linux.com/staticfile/1460000022848626-20220616140455500-2022-06-16-l02xpE.jpeg" alt></p>
+<p>我们首先需要确保将 MULTUS 二进制文件放置在 <code>/opt/cni/bin</code> 位置的所有节点上，并在<code>/etc/cni/net.d</code>位置创建一个新的配置文件。与 MULTUS 使用的 kubeconfig 文件一起使用。</p>
+<p>在<code>/etc/cni/net.d</code>中创建的新配置文件基于集群中已经存在的默认网络配置。</p>
+<p>在此之后，CRD 用于定义新的种类名称 “NetworkAttachmentDefinition”，以及服务帐户和 MULTUS 的集群角色以及相应的绑定。这个新的集群角色将提供对随 CRD 添加的新 API 组以及默认 API 组中 Pod 资源的访问权限。</p>
+<p>然后创建类型为 “NetworkAttachmentDefinition” 的客户资源实例，该实例稍后将在创建具有多个接口的 Pod 时使用。</p>
+<h2><span id="部署示例">部署示例</span></h2>
+<p>在本文中，我们将多次提及两件事：</p>
+<ul>
+<li>“默认网络” - 这是您的Pod到Pod网络。这就是集群中 Pod 之间相互通信的方式，以及它们之间的连通性。一般而言，这被称为名为 eth0 的接口。此接口始终连接到您的 Pod，以便它们之间可以相互连接。除此之外，我们还将添加接口。</li>
+<li>“ CRD”    - 自定义资源定义。自定义资源是扩展 Kubernetes API 的一种方式。我们在这里使用这些存储 Multus 可以读取的一些信息。首先，我们使用它们来存储附加到您的 Pod 的每个其他接口的配置。</li>
+</ul>
+<p>目前支持 Kubernetes 1.16+ 版本。</p>
+<h2><span id="安装">安装</span></h2>
+<p>我们建议的用于部署 Multus 的快速入门方法是使用 Daemonset（在群集中的每个节点上运行 Pod 的方法）进行部署，该 Pod 会安装 Multus 二进制文件并配置 Multus 以供使用。</p>
+<p>首先，克隆此 GitHub 存储库。</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">$ git clone https:&#x2F;&#x2F;github.com&#x2F;intel&#x2F;multus-cni.git &amp;&amp; cd multus-cni</span><br></pre></td></tr></table></figure>
+<p>我们将在此存储库中使用带有kubectl的YAML文件。</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">$ cat .&#x2F;images&#x2F;multus-daemonset.yml | kubectl apply -f -</span><br></pre></td></tr></table></figure>
+<h3><span id="multus-daemonset-完成了那些工作">Multus daemonset 完成了那些工作？</span></h3>
+<ul>
+<li>启动 Multus 守护程序集，这会在每个节点上运行一个pod，从而在<code>/opt/cni/bin</code>中的每个节点上放置一个 Multus 二进制文件</li>
+<li>按照字母顺序读取<code>/etc/cni/net.d</code>中的第一个配置文件，并为 Multus 创建一个新的配置文件，即<code>/etc/cni/net.d/00-multus.conf</code>，此配置是自动生成并基于默认网络配置（假定是按字母顺序排列的第一个配置）</li>
+<li>在每个节点上创建一个<code>/etc/cni/net.d/multus.d</code>目录，其中包含用于 Multus 访问 Kubernetes API 的身份验证信息。</li>
+</ul>
+<h2><span id="创建其他接口">创建其他接口</span></h2>
+<p>我们要做的第一件事是为我们附加到Pod的每个其他接口创建配置。我们将通过创建自定义资源来做到这一点。快速入门安装的一部分会创建一个 “CRD” （自定义资源定义，它是我们保留这些自定义资源的位置），我们将在其中存储每个接口的配置。</p>
+<h3><span id="cni-配置">CNI 配置</span></h3>
+<p>我们将添加的每个配置都是CNI配置。如果您不熟悉它们，让我们快速分解它们。这是一个示例CNI配置：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">&#123;</span><br><span class="line">  &quot;cniVersion&quot;: &quot;0.3.0&quot;,</span><br><span class="line">  &quot;type&quot;: &quot;loopback&quot;,</span><br><span class="line">  &quot;additional&quot;: &quot;information&quot;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>CNI配置是 JSON，我们这里有一个结构，其中包含一些我们感兴趣的东西：</p>
+<ul>
+<li><code>cniVersion</code>：告诉每个 CNI 插件正在使用哪个版本，如果使用的版本太晚（或太早），则可以提供插件信息。</li>
+<li><code>type</code>：告诉 CNI 在磁盘上调用哪个二进制文件。每个 CNI 插件都是一个二进制文件。通常，这些二进制文件存储在每个节点上的<code>/opt/cni/bin</code>中，并且 CNI 执行此二进制文件。在这种情况下，我们指定了<code>loopback</code>二进制文件（它将创建一个<code>loopback</code>类型的网络接口）。如果这是您首次安装 Multus，则可能需要验证 “type” 字段中的插件是否确实在<code>/opt/cni/bin</code>目录中。</li>
+<li><code>additional</code>：此字段以此处为例，每个 CNI 插件都可以在JSON中指定所需的任何配置参数。这些特定于您在 “type” 字段中调用的二进制文件。</li>
+</ul>
+<p>当 CNI 配置更改时，您不需要重新加载或刷新 Kubelets。每次创建和删除 Pod 时都会读取这些内容。因此，如果您更改配置，它将在下一次创建 Pod 时应用。如果现有 Pod 需要新配置，则可能需要重新启动。</p>
+<h3><span id="将配置存储为自定义资源">将配置存储为自定义资源</span></h3>
+<p>因此，我们要创建一个附加接口。让我们创建一个 macvlan 接口供 Pod 使用。我们将创建一个自定义资源，该资源定义接口的 CNI 配置。</p>
+<p>请注意，在以下命令中有一种：<code>NetworkAttachmentDefinition</code>。这是我们配置的名字-它是 Kubernetes 的自定义扩展，定义了我们如何将网络连接到 Pod。</p>
+<p>其次，注意配置字段。您将看到这是一个 CNI 配置，就像我们前面解释的那样。</p>
+<p>最后但非常重要的一点是，在元数据下注意 name 字段-在这里我们为该配置指定名称，这是我们告诉 pod 使用此配置的方式。这里的名称是<code>macvlan-conf</code>-我们正在为 macvlan 创建配置。</p>
+<p>这是创建此示例配置的命令：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br></pre></td><td class="code"><pre><span class="line">apiVersion: &quot;k8s.cni.cncf.io&#x2F;v1&quot;</span><br><span class="line">kind: NetworkAttachmentDefinition</span><br><span class="line">metadata:</span><br><span class="line">  name: macvlan-conf</span><br><span class="line">spec:</span><br><span class="line">  config: &#39;&#123;</span><br><span class="line">      &quot;cniVersion&quot;: &quot;0.3.0&quot;,</span><br><span class="line">      &quot;type&quot;: &quot;macvlan&quot;,</span><br><span class="line">      &quot;master&quot;: &quot;eth0&quot;,</span><br><span class="line">      &quot;mode&quot;: &quot;bridge&quot;,</span><br><span class="line">      &quot;ipam&quot;: &#123;</span><br><span class="line">        &quot;type&quot;: &quot;host-local&quot;,</span><br><span class="line">        &quot;subnet&quot;: &quot;192.168.1.0&#x2F;24&quot;,</span><br><span class="line">        &quot;rangeStart&quot;: &quot;192.168.1.200&quot;,</span><br><span class="line">        &quot;rangeEnd&quot;: &quot;192.168.1.216&quot;,</span><br><span class="line">        &quot;routes&quot;: [</span><br><span class="line">          &#123; &quot;dst&quot;: &quot;0.0.0.0&#x2F;0&quot; &#125;</span><br><span class="line">        ],</span><br><span class="line">        &quot;gateway&quot;: &quot;192.168.1.1&quot;</span><br><span class="line">      &#125;</span><br><span class="line">    &#125;&#39;</span><br></pre></td></tr></table></figure>
+<blockquote>
+<p>本示例使用 eth0 作为主参数，此主参数应与集群中主机上的接口名称匹配。</p>
+</blockquote>
+<p>您可以查看使用 kubectl 创建的配置，方法如下：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">$ kubectl get network-attachment-definitions</span><br></pre></td></tr></table></figure>
+<p>您可以通过描述它们来获得更多详细信息：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">$ kubectl describe network-attachment-definitions macvlan-conf</span><br></pre></td></tr></table></figure>
+<h3><span id="创建一个附加附加接口的pod">创建一个附加附加接口的Pod</span></h3>
+<p>我们将创建一个 pod。就像您之前可能创建的任何pod一样，它看起来都很熟悉，但是，我们将有一个特殊的注释字段-在这种情况下，我们将有一个名为<code>k8s.v1.cni.cncf.io/networks</code>的注释。如上创建的，该字段以逗号分隔的列表列出了 NetworkAttachmentDefinitions 的名称。请注意，在下面的命令中，我们具有 <code>k8s.v1.cni.cncf.io/networks</code> 的注释：<code>macvlan-conf</code>其中<code>macvlan-conf</code>是我们在创建配置时使用的名称。</p>
+<p>让我们继续使用以下命令创建一个 pod：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line">apiVersion: v1</span><br><span class="line">kind: Pod</span><br><span class="line">metadata:</span><br><span class="line">  name: samplepod</span><br><span class="line">  annotations:</span><br><span class="line">    k8s.v1.cni.cncf.io&#x2F;networks: macvlan-conf</span><br><span class="line">spec:</span><br><span class="line">  containers:</span><br><span class="line">  - name: samplepod</span><br><span class="line">    command: [&quot;&#x2F;bin&#x2F;ash&quot;, &quot;-c&quot;, &quot;trap : TERM INT; sleep infinity &amp; wait&quot;]</span><br><span class="line">    image: alpine</span><br></pre></td></tr></table></figure>
+<p>您现在可以检查Pod并查看连接了哪些接口，如下所示：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">$ kubectl exec -it samplepod -- ip a</span><br></pre></td></tr></table></figure>
+<p>您应该看到，有 3 个接口：</p>
+<ul>
+<li><code>lo</code>环回接口</li>
+<li><code>eth0</code>我们的默认网络</li>
+<li><code>net1</code>是我们使用macvlan配置创建的新接口</li>
+</ul>
+<h3><span id="网络状态-annotations">网络状态 Annotations</span></h3>
+<p>为了确认，请使用<code>kubectl describe pod pod samplepod</code>，然后会有一个注释部分，类似于以下内容：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br></pre></td><td class="code"><pre><span class="line">Annotations:        k8s.v1.cni.cncf.io&#x2F;networks: macvlan-conf</span><br><span class="line">                    k8s.v1.cni.cncf.io&#x2F;networks-status:</span><br><span class="line">                      [&#123;</span><br><span class="line">                          &quot;name&quot;: &quot;cbr0&quot;,</span><br><span class="line">                          &quot;ips&quot;: [</span><br><span class="line">                              &quot;10.244.1.73&quot;</span><br><span class="line">                          ],</span><br><span class="line">                          &quot;default&quot;: true,</span><br><span class="line">                          &quot;dns&quot;: &#123;&#125;</span><br><span class="line">                      &#125;,&#123;</span><br><span class="line">                          &quot;name&quot;: &quot;macvlan-conf&quot;,</span><br><span class="line">                          &quot;interface&quot;: &quot;net1&quot;,</span><br><span class="line">                          &quot;ips&quot;: [</span><br><span class="line">                              &quot;192.168.1.205&quot;</span><br><span class="line">                          ],</span><br><span class="line">                          &quot;mac&quot;: &quot;86:1d:96:ff:55:0d&quot;,</span><br><span class="line">                          &quot;dns&quot;: &#123;&#125;</span><br><span class="line">                      &#125;]</span><br></pre></td></tr></table></figure>
+<p>该元数据告诉我们，我们有两个成功运行的 CNI 插件。</p>
+<h3><span id="如果我想要更多接口怎么办">如果我想要更多接口怎么办？</span></h3>
+<p>您可以通过创建更多的自定义资源，然后在pod的注释中引用它们，来向pod添加更多接口。您还可以重复使用配置，例如，要将两个 macvlan 接口附加到 Pod，可以创建如下 Pod：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line">apiVersion: v1</span><br><span class="line">kind: Pod</span><br><span class="line">metadata:</span><br><span class="line">  name: samplepod</span><br><span class="line">  annotations:</span><br><span class="line">    k8s.v1.cni.cncf.io&#x2F;networks: macvlan-conf,macvlan-conf</span><br><span class="line">spec:</span><br><span class="line">  containers:</span><br><span class="line">  - name: samplepod</span><br><span class="line">    command: [&quot;&#x2F;bin&#x2F;ash&quot;, &quot;-c&quot;, &quot;trap : TERM INT; sleep infinity &amp; wait&quot;]</span><br><span class="line">    image: alpine</span><br></pre></td></tr></table></figure>
+<p>请注意，注释现在读取为<code>k8s.v1.cni.cncf.io/networks：macvlan-conf，macvlan-conf</code>。如果我们有两次使用相同的配置，并用逗号分隔。</p>
+<h2><span id="参考资料">参考资料</span></h2>
+<ul>
+<li><a href="https://zhuanlan.zhihu.com/p/73863683" target="_blank" rel="noopener">https://zhuanlan.zhihu.com/p/73863683</a></li>
+</ul>
+<blockquote>
+<p>本文转载自：「 Houmin 的博客 」，原文：<a href="https://url.hi-linux.com/uV1ne" target="_blank" rel="noopener">https://url.hi-linux.com/uV1ne</a> ，版权归原作者所有。欢迎投稿，投稿邮箱: <a href="mailto:editor@hi-linux.com">editor@hi-linux.com</a>。</p>
+</blockquote>
+</div>
+
+			<script src="https://my.openwrite.cn/js/readmore.js" type="text/javascript"></script>
+			<script>
+			var isMobile = navigator.userAgent.match(/(phone|pad|pod|iPhone|iPod|ios|iPad|Android|Mobile|BlackBerry|IEMobile|MQQBrowser|JUC|Fennec|wOSBrowser|BrowserNG|WebOS|Symbian|Windows Phone)/i);
+			if (!isMobile) {
+			    var btw = new BTWPlugin();
+			    btw.init({
+			        "id": "vip-container",
+			        "blogId": "10135-1588830050631-449",
+			        "name": "「奇妙的 Linux 世界」",
+			        "qrcode": "https://www.hi-linux.com/img/wechat/mp_qrcode_12.jpg",
+			        "keyword": "VIP"
+			    });
+			}
+			</script>
+		
+                
+
+                <hr>
+                <!-- Pager -->
+                <ul class="pager">
+                    
+                    
+                        <li class="next">
+                            <a href="/posts/8579.html" data-toggle="tooltip" data-placement="top" title="如何在 Mac 上愉快的使用 Docker">Next Post &rarr;</a>
+                        </li>
+                    
+                </ul>
+
+                <!-- duoshuo Share start -->
+                
+                <!-- 多说 Share end-->
+
+                <!-- 多说评论框 start -->
+                
+                <!-- 多说评论框 end -->
+
+                <!-- disqus comment start -->
+                
+                <!-- disqus comment end -->
+
+                
+                    <!-- disqus 评论框 start -->
+                    <div class="comment">
+                        <div id="lv-container" data-id="city" data-uid="MTAyMC8yNzg2My80NDQw"></div>
+                    </div>
+                    <!-- disqus 评论框 end -->
+                
+
+            </div>
+            
+            <!-- Tabe of Content -->
+            <!-- Table of Contents -->
+
+  
+    <style>
+      span.toc-nav-number{
+        display: none
+      }
+    </style>
+  
+    
+      <aside id="sidebar">
+        <div id="toc" class="toc-article">
+        <strong class="toc-title">Contents</strong>
+        
+          <ol class="toc-nav"><li class="toc-nav-item toc-nav-level-2"><a class="toc-nav-link" href="#vip-container"><span class="toc-nav-number">1.</span> <span class="toc-nav-text">MULTUS 工作原理</span></a></li><li class="toc-nav-item toc-nav-level-2"><a class="toc-nav-link" href="#vip-container"><span class="toc-nav-number">2.</span> <span class="toc-nav-text">部署示例</span></a></li><li class="toc-nav-item toc-nav-level-2"><a class="toc-nav-link" href="#vip-container"><span class="toc-nav-number">3.</span> <span class="toc-nav-text">安装</span></a><ol class="toc-nav-child"><li class="toc-nav-item toc-nav-level-3"><a class="toc-nav-link" href="#vip-container"><span class="toc-nav-number">3.1.</span> <span class="toc-nav-text">Multus daemonset 完成了那些工作？</span></a></li></ol></li><li class="toc-nav-item toc-nav-level-2"><a class="toc-nav-link" href="#vip-container"><span class="toc-nav-number">4.</span> <span class="toc-nav-text">创建其他接口</span></a><ol class="toc-nav-child"><li class="toc-nav-item toc-nav-level-3"><a class="toc-nav-link" href="#vip-container"><span class="toc-nav-number">4.1.</span> <span class="toc-nav-text">CNI 配置</span></a></li><li class="toc-nav-item toc-nav-level-3"><a class="toc-nav-link" href="#vip-container"><span class="toc-nav-number">4.2.</span> <span class="toc-nav-text">将配置存储为自定义资源</span></a></li><li class="toc-nav-item toc-nav-level-3"><a class="toc-nav-link" href="#vip-container"><span class="toc-nav-number">4.3.</span> <span class="toc-nav-text">创建一个附加附加接口的Pod</span></a></li><li class="toc-nav-item toc-nav-level-3"><a class="toc-nav-link" href="#vip-container"><span class="toc-nav-number">4.4.</span> <span class="toc-nav-text">网络状态 Annotations</span></a></li><li class="toc-nav-item toc-nav-level-3"><a class="toc-nav-link" href="#vip-container"><span class="toc-nav-number">4.5.</span> <span class="toc-nav-text">如果我想要更多接口怎么办？</span></a></li></ol></li><li class="toc-nav-item toc-nav-level-2"><a class="toc-nav-link" href="#vip-container"><span class="toc-nav-number">5.</span> <span class="toc-nav-text">参考资料</span></a></li></ol>
+        
+        </div>
+      </aside>
+    
+
+                
+            <!-- Sidebar Container -->
+            <div class="
+                col-lg-8 col-lg-offset-2
+                col-md-10 col-md-offset-1
+                sidebar-container">
+
+                <!-- Featured Tags -->
+                
+                <section>
+                    <!-- no hr -->
+                    <h5><a href="/tags/">FEATURED TAGS</a></h5>
+                    <div class="tags">
+                       
+                          <a class="tag" href="/tags/#Linux" title="Linux">Linux</a>
+                        
+                          <a class="tag" href="/tags/#Kubernetes" title="Kubernetes">Kubernetes</a>
+                        
+                          <a class="tag" href="/tags/#Multus" title="Multus">Multus</a>
+                        
+                    </div>
+                </section>
+                
+
+                <!-- Friends Blog -->
+                
+                <hr>
+                <h5>FRIENDS</h5>
+                <ul class="list-inline">
+
+                    
+                        <li><a href="http://www.mike.org.cn/" target="_blank">简单.生活</a></li>
+                    
+                        <li><a href="http://shang.qq.com/wpa/qunwpa?idkey=ea4c43493c2269428ac6ef6141de4b6d78e5ab2d41380ca4099b833b62884ee9" target="_blank">技术交流群</a></li>
+                    
+                        <li><a href="" target="_blank"></a></li>
+                    
+                        <li><a href="" target="_blank"></a></li>
+                    
+                </ul>
+                
+            </div>
+        </div>
+    </div>
+</article>
+
+
+
+
+
+
+    <!-- 来必力City版公共JS代码 start (一个网页只需插入一次) -->
+    <script type="text/javascript">
+       (function(d, s) {
+           var j, e = d.getElementsByTagName(s)[0];
+    
+           if (typeof LivereTower === 'function') { return; }
+    
+           j = d.createElement(s);
+           j.src = 'https://cdn-city.livere.com/js/embed.dist.js';
+           j.async = true;
+    
+           e.parentNode.insertBefore(j, e);
+       })(document, 'script');
+    </script>
+    <noscript>为正常使用来必力评论功能请激活JavaScript</noscript>
+    <!-- 来必力City版 公共JS代码 end -->
+
+
+
+<!-- async load function -->
+<script>
+    function async(u, c) {
+      var d = document, t = 'script',
+          o = d.createElement(t),
+          s = d.getElementsByTagName(t)[0];
+      o.src = u;
+      if (c) { o.addEventListener('load', function (e) { c(null, e); }, false); }
+      s.parentNode.insertBefore(o, s);
+    }
+</script>
+<!-- anchor-js, Doc:http://bryanbraun.github.io/anchorjs/ -->
+<script>
+    async("https://cdn.bootcss.com/anchor-js/1.1.1/anchor.min.js",function(){
+        anchors.options = {
+          visible: 'hover',
+          placement: 'left',
+          icon: 'ℬ'
+        };
+        anchors.add().remove('.intro-header h1').remove('.subheading').remove('.sidebar-container h5');
+    })
+</script>
+<style>
+    /* place left on bigger screen */
+    @media all and (min-width: 800px) {
+        .anchorjs-link{
+            position: absolute;
+            left: -0.75em;
+            font-size: 1.1em;
+            margin-top : -0.1em;
+        }
+    }
+</style>
+
+
+
+    <!-- Footer -->
+    <!-- Footer -->
+<footer>
+    <div class="container">
+        <div class="row">
+            <div class="col-lg-8 col-lg-offset-2 col-md-10 col-md-offset-1">
+                <ul class="list-inline text-center">
+                
+                    <li>
+                        <a href="/atom.xml">
+                            <span class="fa-stack fa-lg">
+                                <i class="fa fa-circle fa-stack-2x"></i>
+                                <i class="fa fa-rss fa-stack-1x fa-inverse"></i>
+                            </span>
+                        </a>
+                    </li>
+                
+                
+                
+                    <li>
+                        <a target="_blank" href="https://www.zhihu.com/people/80imike">
+                            <span class="fa-stack fa-lg">
+                                <i class="fa fa-circle fa-stack-2x"></i>
+                                <i class="fa  fa-stack-1x fa-inverse">知</i>
+                            </span>
+                        </a>
+                    </li>
+                
+
+                
+                    <li>
+                        <a target="_blank" href="http://weibo.com/2093524665">
+                            <span class="fa-stack fa-lg">
+                                <i class="fa fa-circle fa-stack-2x"></i>
+                                <i class="fa fa-weibo fa-stack-1x fa-inverse"></i>
+                            </span>
+                        </a>
+                    </li>
+                
+
+                
+
+                
+
+                
+
+                </ul>
+                <p class="copyright text-muted">
+                    Copyright &copy; Mike 2022 | Hosted by <a href="https://pages.coding.me" target="_blank" rel="noopener" style="font-weight: bold">Coding Pages</a>
+                    <br>
+                    Theme by <a href="http://beantech.org" target="_blank" rel="noopener">BeanTech</a> 
+                    <span style="display: inline-block; margin: 0 5px;">
+                        <i class="fa fa-heart"></i>
+                    </span> 
+                    re-Ported by <a href="http://www.huweihuang.com" target="_blank" rel="noopener">胡伟煌</a> | 
+                    <iframe
+                        style="margin-left: 2px; margin-bottom:-5px;"
+                        frameborder="0" scrolling="0" width="91px" height="20px"
+                        src="https://ghbtns.com/github-btn.html?user=huweihuang&repo=hexo-theme-huweihuang&type=star&count=true" >
+                    </iframe>
+                </p>
+            </div>
+        </div>
+    </div>
+</footer>
+
+<!-- jQuery -->
+
+<script src="/js/jquery.min.js"></script>
+
+
+<!-- Bootstrap Core JavaScript -->
+
+<script src="/js/bootstrap.min.js"></script>
+
+
+<!-- Custom Theme JavaScript -->
+
+<script src="/js/hux-blog.min.js"></script>
+
+
+
+<!-- async load function -->
+<script>
+    function async(u, c) {
+      var d = document, t = 'script',
+          o = d.createElement(t),
+          s = d.getElementsByTagName(t)[0];
+      o.src = u;
+      if (c) { o.addEventListener('load', function (e) { c(null, e); }, false); }
+      s.parentNode.insertBefore(o, s);
+    }
+</script>
+
+<!-- 
+     Because of the native support for backtick-style fenced code blocks 
+     right within the Markdown is landed in Github Pages, 
+     From V1.6, There is no need for Highlight.js, 
+     so Huxblog drops it officially.
+
+     - https://github.com/blog/2100-github-pages-now-faster-and-simpler-with-jekyll-3-0  
+     - https://help.github.com/articles/creating-and-highlighting-code-blocks/    
+-->
+<!--
+    <script>
+        async("http://cdn.bootcss.com/highlight.js/8.6/highlight.min.js", function(){
+            hljs.initHighlightingOnLoad();
+        })
+    </script>
+    <link href="http://cdn.bootcss.com/highlight.js/8.6/styles/github.min.css" rel="stylesheet">
+-->
+
+
+<!-- jquery.tagcloud.js -->
+<script>
+    // only load tagcloud.js in tag.html
+    if($('#tag_cloud').length !== 0){
+        async("https://www.hi-linux.com/js/jquery.tagcloud.js",function(){
+            $.fn.tagcloud.defaults = {
+                //size: {start: 1, end: 1, unit: 'em'},
+                color: {start: '#bbbbee', end: '#0085a1'},
+            };
+            $('#tag_cloud a').tagcloud();
+        })
+    }
+</script>
+
+<!--fastClick.js -->
+<script>
+    async("https://cdn.bootcss.com/fastclick/1.0.6/fastclick.min.js", function(){
+        var $nav = document.querySelector("nav");
+        if($nav) FastClick.attach($nav);
+    })
+</script>
+
+
+<!-- Google Analytics -->
+
+
+
+
+<!-- Baidu Tongji -->
+
+
+
+<script async defer data-website-id="0d8da2a4-a24e-4240-9304-00a6e347ddfe"
+    src="https://umami.hi-linux.com/umami.js"></script>
+
+
+
+	<a id="rocket" href="#top" class=""></a>
+	<script type="text/javascript" src="/js/totop.js?v=1.0.0" async=""></script>
+    <script type="text/javascript" src="/js/toc.js?v=1.0.0" async=""></script>
+<!-- Image to hack wechat -->
+<img src="https://www.hi-linux.com/img/icon_wechat.png" width="0" height="0" />
+<!-- Migrate from head to bottom, no longer block render and still work -->
+
+<script>(function(w,d, s, id) {w.webpushr=w.webpushr||function(){(w.webpushr.q=w.webpushr.q||[]).push(arguments)};var js, fjs = d.getElementsByTagName(s)[0];js = d.createElement(s); js.id = id;js.src = 'https://cdn.webpushr.com/app.min.js';fjs.parentNode.appendChild(js);}(window,document, 'script', 'webpushr-jssdk'));webpushr('init','BF9JK7xV9kjWTdMx2lr6RWaPfXV7wNuZaVAJ1bfIGoBNJavqLEBVFMKLubITnCA4bh2fI9iH9tMF95nXnPt7xxY');</script></body>
+
+</html>
