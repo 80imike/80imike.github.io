@@ -1,0 +1,860 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<!-- Head tag -->
+<head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="google-site-verification" content="xBT4GhYoi5qRD5tr338pgPM5OWHHIDR6mNg1a3euekI" />
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="description" content="">
+    <meta name="keyword"  content="Linux,运维,Nginx,Zabbix,Centos,Ansible,MySQL,Python,Docker,ELK,Haproxy,Git,Nodejs,安全,技术">
+    <link rel="shortcut icon" href="/img/ironman-draw.png">
+    <!-- Place this tag in your head or just before your close body tag. -->
+    <script async defer src="https://buttons.github.io/buttons.js"></script>
+    <title>
+        
+          为什么只有 13 台根服务器 - 奇妙的 Linux 世界
+        
+    </title>
+
+    <link rel="canonical" href="https://www.hi-linux.com/posts/48287.html">
+
+    <!-- Bootstrap Core CSS -->
+    
+<link rel="stylesheet" href="/css/bootstrap.min.css">
+
+
+    <!-- Custom CSS --> 
+    
+<link rel="stylesheet" href="/css/beantech.min.css">
+
+    
+    <!-- Pygments Highlight CSS -->
+    
+<link rel="stylesheet" href="/css/highlight.css">
+
+
+    
+<link rel="stylesheet" href="/css/widget.css">
+
+
+    
+<link rel="stylesheet" href="/css/rocket.css">
+
+
+    
+<link rel="stylesheet" href="/css/signature.css">
+
+
+    
+<link rel="stylesheet" href="/css/toc.css">
+
+
+    <!-- Custom Fonts -->
+    <!-- <link href="https://maxcdn.bootstrapcdn.com/font-awesome/4.3.0/css/font-awesome.min.css" rel="stylesheet" type="text/css"> -->
+    <!-- Hux change font-awesome CDN to qiniu -->
+    <link href="https://cdn.staticfile.org/font-awesome/4.5.0/css/font-awesome.min.css" rel="stylesheet" type="text/css">
+
+
+    <!-- Hux Delete, sad but pending in China
+    <link href='http://fonts.googleapis.com/css?family=Lora:400,700,400italic,700italic' rel='stylesheet' type='text/css'>
+    <link href='http://fonts.googleapis.com/css?family=Open+Sans:300italic,400italic,600italic,700italic,800italic,400,300,600,700,800' rel='stylesheet' type='text/
+    css'>
+    -->
+
+
+    <!-- HTML5 Shim and Respond.js IE8 support of HTML5 elements and media queries -->
+    <!-- WARNING: Respond.js doesn't work if you view the page via file:// -->
+    <!--[if lt IE 9]>
+        <script src="https://oss.maxcdn.com/libs/html5shiv/3.7.0/html5shiv.js"></script>
+        <script src="https://oss.maxcdn.com/libs/respond.js/1.4.2/respond.min.js"></script>
+    <![endif]-->
+
+    <!-- ga & ba script hoook -->
+    <script></script>
+<meta name="generator" content="Hexo 4.2.1"><link rel="alternate" href="/atom.xml" title="奇妙的 Linux 世界" type="application/atom+xml">
+</head>
+
+
+<!-- hack iOS CSS :active style -->
+<body ontouchstart="">
+	<!-- Modified by Yu-Hsuan Yen -->
+<!-- Post Header -->
+<style type="text/css">
+    header.intro-header{
+        
+            background-image: url('/img/header_img/building.jpg')
+            /*post*/
+        
+    }
+    
+</style>
+
+<header class="intro-header" >
+    <!-- Signature -->
+    <div id="signature">
+        <div class="container">
+            <div class="row">
+                <div class="col-lg-8 col-lg-offset-2 col-md-10 col-md-offset-1">
+                
+                    <div class="post-heading">
+                        <div class="tags">
+                            
+                              <a class="tag" href="/tags/#技巧" title="技巧">技巧</a>
+                            
+                              <a class="tag" href="/tags/#Linux" title="Linux">Linux</a>
+                            
+                              <a class="tag" href="/tags/#DNS" title="DNS">DNS</a>
+                            
+                        </div>
+                        <h1>为什么只有 13 台根服务器</h1>
+                        <h2 class="subheading"></h2>
+                        <span class="meta">
+                            Posted by Mike on
+                            2023-06-08
+                        </span>
+                    </div>
+                
+
+
+                </div>
+            </div>
+        </div>
+    </div>
+</header>
+
+	
+    <!-- Navigation -->
+<nav class="navbar navbar-default navbar-custom navbar-fixed-top">
+    <div class="container-fluid">
+        <!-- Brand and toggle get grouped for better mobile display -->
+        <div class="navbar-header page-scroll">
+            <button type="button" class="navbar-toggle">
+                <span class="sr-only">Toggle navigation</span>
+                <span class="icon-bar"></span>
+                <span class="icon-bar"></span>
+                <span class="icon-bar"></span>
+            </button>
+            <a class="navbar-brand" href="/">奇妙的 Linux 世界</a>
+        </div>
+
+        <!-- Collect the nav links, forms, and other content for toggling -->
+        <!-- Known Issue, found by Hux:
+            <nav>'s height woule be hold on by its content.
+            so, when navbar scale out, the <nav> will cover tags.
+            also mask any touch event of tags, unfortunately.
+        -->
+        <div id="huxblog_navbar">
+            <div class="navbar-collapse">
+                <ul class="nav navbar-nav navbar-right">
+                    <li>
+                        <a href="/">Home</a>
+                    </li>
+
+                    
+
+                        
+                    
+
+                        
+                    
+
+                        
+                        <li>
+                            <a href="/about/">About</a>
+                        </li>
+                        
+                    
+
+                        
+                        <li>
+                            <a href="/archive/">Archives</a>
+                        </li>
+                        
+                    
+
+                        
+                        <li>
+                            <a href="/tags/">Tags</a>
+                        </li>
+                        
+                    
+                    
+                </ul>
+            </div>
+        </div>
+        <!-- /.navbar-collapse -->
+    </div>
+    <!-- /.container -->
+</nav>
+<script>
+    // Drop Bootstarp low-performance Navbar
+    // Use customize navbar with high-quality material design animation
+    // in high-perf jank-free CSS3 implementation
+    var $body   = document.body;
+    var $toggle = document.querySelector('.navbar-toggle');
+    var $navbar = document.querySelector('#huxblog_navbar');
+    var $collapse = document.querySelector('.navbar-collapse');
+
+    $toggle.addEventListener('click', handleMagic)
+    function handleMagic(e){
+        if ($navbar.className.indexOf('in') > 0) {
+        // CLOSE
+            $navbar.className = " ";
+            // wait until animation end.
+            setTimeout(function(){
+                // prevent frequently toggle
+                if($navbar.className.indexOf('in') < 0) {
+                    $collapse.style.height = "0px"
+                }
+            },400)
+        }else{
+        // OPEN
+            $collapse.style.height = "auto"
+            $navbar.className += " in";
+        }
+    }
+</script>
+
+
+    <!-- Main Content -->
+    <!-- Modify by Yu-Hsuan Yen -->
+
+<!-- Post Content -->
+<article>
+    <div class="container">
+        <div class="row">
+
+            <!-- Post Container -->
+            <div class="
+                col-lg-8 col-lg-offset-2
+                col-md-10 col-md-offset-1
+                post-container">
+
+                <div id="vip-container"><p>网上很多人都说 DNS 根服务器只有 13 台，中国一台也没有。在网络世界，中国被美国卡住了脖子。那 DNS 根服务器真的只有 13 台吗？如果是，那原因又是什么？今天就给大家说道说道。</p>
+<h2><span id="dns-基本概念">DNS 基本概念</span></h2>
+<p>在回答这个问题之前，我们需要先回顾一些基本概念。DNS 是一种分层结构，这种层级就体现在域名的『点』里。以我的域名为例，<code>TAOSHU.IN</code> 它的完整域名其实是 <code>TAOSHU.IN.</code>。注意最后有一个点。它分三个层级，结结构为<code>.</code> ➜ <code>IN</code> ➜ <code>TAOSHU</code>。</p>
+<p>DNS 又是分布式系统，每一层级都有自己的解析服务器。<code>.</code>是第一层级，它的解析服务器就是根服务器。第二层级是对应我们常说的<code>COM/NET</code>等顶级域名 TLD，而我用的<code>IN</code>是印度的国家域名，跟中国的<code>CN</code>一样，它们都是 CCTLD，也就是所谓的国家顶级域名。<code>TAOSHU</code> 就是普通的一级域名。每个域名都可以自行设置子域名，不受上级域名限制。</p>
+<p>域名解析过程也是分布式的。还是以<code>TAOSHU.IN</code>为例。客户端先找到根服务器的地址，并其查询<code>IN</code>的解析服务器。再向<code>IN</code>的服务器查询<code>TAOSHU.IN</code>的服务器。最后向<code>TAOSHU.IN</code> 的服务器查询具体的解析记录，比如 A 记录等。</p>
+<p>更多关于 DNS 的细节，请参考的另一篇<a href="https://taoshu.in/dns/dns-intro.html" target="_blank" rel="noopener">文章</a>。</p>
+<a id="more"></a>
+<h2><span id="当前根服务器">当前根服务器</span></h2>
+<p>从上面的过程可知，所有的 DNS 查询都从根服务器开始。所以根服务器是整个 DNS 系统的核心。如果根服务器出现故障，那所有 DNS 查询都会失败！为了避免出现这种问题，人们设置了多个 DNS 根服务器。发展到现在，互联网社区累计设置了 13 台，它们分别是：</p>
+<table>
+<thead>
+<tr>
+<th style="text-align:left">主机名</th>
+<th style="text-align:left">IP 地址</th>
+<th style="text-align:left">运营机构</th>
+<th style="text-align:left">国家</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align:left"><a href="http://a.root-servers.net" target="_blank" rel="noopener">a.root-servers.net</a></td>
+<td style="text-align:left">198.41.0.4, 2001:503:ba3e::2:30</td>
+<td style="text-align:left">Verisign, Inc.</td>
+<td style="text-align:left">美国</td>
+</tr>
+<tr>
+<td style="text-align:left"><a href="http://b.root-servers.net" target="_blank" rel="noopener">b.root-servers.net</a></td>
+<td style="text-align:left">199.9.14.201, 2001:500:200::b</td>
+<td style="text-align:left">University of Southern California, Information Sciences Institute</td>
+<td style="text-align:left">美国</td>
+</tr>
+<tr>
+<td style="text-align:left"><a href="http://c.root-servers.net" target="_blank" rel="noopener">c.root-servers.net</a></td>
+<td style="text-align:left">192.33.4.12, 2001:500:2::c</td>
+<td style="text-align:left">Cogent Communications</td>
+<td style="text-align:left">美国</td>
+</tr>
+<tr>
+<td style="text-align:left"><a href="http://d.root-servers.net" target="_blank" rel="noopener">d.root-servers.net</a></td>
+<td style="text-align:left">199.7.91.13, 2001:500:2d::d</td>
+<td style="text-align:left">University of Maryland</td>
+<td style="text-align:left">美国</td>
+</tr>
+<tr>
+<td style="text-align:left"><a href="http://e.root-servers.net" target="_blank" rel="noopener">e.root-servers.net</a></td>
+<td style="text-align:left">192.203.230.10, 2001:500:a8::e</td>
+<td style="text-align:left">NASA (Ames Research Center)</td>
+<td style="text-align:left">美国</td>
+</tr>
+<tr>
+<td style="text-align:left"><a href="http://f.root-servers.net" target="_blank" rel="noopener">f.root-servers.net</a></td>
+<td style="text-align:left">192.5.5.241, 2001:500:2f::f</td>
+<td style="text-align:left">Internet Systems Consortium, Inc.</td>
+<td style="text-align:left">美国</td>
+</tr>
+<tr>
+<td style="text-align:left"><a href="http://g.root-servers.net" target="_blank" rel="noopener">g.root-servers.net</a></td>
+<td style="text-align:left">192.112.36.4, 2001:500:12::d0d</td>
+<td style="text-align:left">US Department of Defense (NIC)</td>
+<td style="text-align:left">美国</td>
+</tr>
+<tr>
+<td style="text-align:left"><a href="http://h.root-servers.net" target="_blank" rel="noopener">h.root-servers.net</a></td>
+<td style="text-align:left">198.97.190.53, 2001:500:1::53</td>
+<td style="text-align:left">US Army (Research Lab)</td>
+<td style="text-align:left">美国</td>
+</tr>
+<tr>
+<td style="text-align:left"><a href="http://i.root-servers.net" target="_blank" rel="noopener">i.root-servers.net</a></td>
+<td style="text-align:left">192.36.148.17, 2001:7fe::53</td>
+<td style="text-align:left">Netnod</td>
+<td style="text-align:left">瑞典</td>
+</tr>
+<tr>
+<td style="text-align:left"><a href="http://j.root-servers.net" target="_blank" rel="noopener">j.root-servers.net</a></td>
+<td style="text-align:left">192.58.128.30, 2001:503:c27::2:30</td>
+<td style="text-align:left">Verisign, Inc.</td>
+<td style="text-align:left">美国</td>
+</tr>
+<tr>
+<td style="text-align:left"><a href="http://k.root-servers.net" target="_blank" rel="noopener">k.root-servers.net</a></td>
+<td style="text-align:left">193.0.14.129, 2001:7fd::1</td>
+<td style="text-align:left">RIPE NCC</td>
+<td style="text-align:left">荷兰</td>
+</tr>
+<tr>
+<td style="text-align:left"><a href="http://l.root-servers.net" target="_blank" rel="noopener">l.root-servers.net</a></td>
+<td style="text-align:left">199.7.83.42, 2001:500:9f::42</td>
+<td style="text-align:left">ICANN</td>
+<td style="text-align:left">国际</td>
+</tr>
+<tr>
+<td style="text-align:left"><a href="http://m.root-servers.net" target="_blank" rel="noopener">m.root-servers.net</a></td>
+<td style="text-align:left">202.12.27.33, 2001:dc3::35</td>
+<td style="text-align:left">WIDE Project</td>
+<td style="text-align:left">日本</td>
+</tr>
+</tbody>
+</table>
+<p>资料来源：IANA<a href="https://taoshu.in/dns/13-roots.html?utm_source=pocket_saves#fn1" target="_blank" rel="noopener">1</a> 资料截止时间：2023年06月06日</p>
+<p>在 1984 年，Jon Postel 和 Paul Mockapetris 在南加州大学设立了世界上第一台根服务器<a href="https://taoshu.in/dns/13-roots.html?utm_source=pocket_saves#fn2" target="_blank" rel="noopener">2</a>。到了 1990 年，根服务器的数量扩展到了 7 台，分属不同的组织给护，但全都在美国。到了 1991 年，KTH 在瑞典设立一台根服务器。这是首次在美国之外部署根服务器。此后一直有旧的根服务器退役，新的服务器入役。到了 1995 年，根服务器已经扩展到 9 台。这个时候就遇到了<strong>技术瓶颈，无法添加新的根服务器</strong>了。</p>
+<p>到底是什么技术瓶颈呢？这就得说说 DNS 的底层实现细节了。</p>
+<h2><span id="priming-查询">Priming 查询</span></h2>
+<p>前面说所有的 DNS 查询都从根服务器开始。那客户端怎么知道当前有哪些根服务器呢？没什么好办法，就是在各自的代码中写死！对，是硬编码。但我们前面也说了，在役的根服务器并非一成不变，写死的话新添加的服务怎么生效呢？</p>
+<p>这就用到了所谓的 Priming Queries<a href="https://taoshu.in/dns/13-roots.html?utm_source=pocket_saves#fn3" target="_blank" rel="noopener">3</a>。简单来说，所有 DNS 解析客户端都随软件附带一个列表文件，里面有当前所有根服务器的信息，包括域名、IP地址等信息。这个文件叫 Root Hints，可以从 IANA 官网<a href="https://taoshu.in/dns/13-roots.html?utm_source=pocket_saves#fn4" target="_blank" rel="noopener">4</a>下载。但考虑到根服务器的列表可能会变，所以客户端需要定期<strong>从已知的根服务器查询当前最新的服务器列表</strong>，用的也是 DNS 协议，这类请求叫作 Priming 查询。</p>
+<p>对于客户端来说，它先从 Root Hints 中根据某种规则<a href="https://taoshu.in/dns/13-roots.html?utm_source=pocket_saves#fn5" target="_blank" rel="noopener">5</a>选出一台根服务器，然后向它查询最新的根服务器列表，并本机缓存一段时间，过期之前都以该列表为准。</p>
+<p>因为 Priming 查询也是用 DNS 协议，自然也走 UDP 传输。互联网早期 IP 网络的最大传输单元长度(MTU)也就五百多字节，所以 DNS 回复信息的最大长度同样不能太长。所以 DNS 协议规定回复信息不能超过 512 字节。这就是添加根服务器遇到的技术瓶颈。</p>
+<p>其实解决这个问题很容易，完全可以要求客户端使用 TCP 连接传输 Priming 查询结果嘛。可惜当时没有采用这种方案。不过，如果是我，也不会选 TCP 方案。因为所有 DNS 查询都走 UDP 协议，简单而统一。虽然 DNS 也支持使用 TCP，但让 Priming 查询单独走 TCP 明显会让系统变得很复杂。</p>
+<p>社区最终决定想办法压缩查询结果长度。</p>
+<h2><span id="报文结构与编码">报文结构与编码</span></h2>
+<p>DNS 报文结构如下，分为五个部分<a href="https://taoshu.in/dns/13-roots.html?utm_source=pocket_saves#fn6" target="_blank" rel="noopener">6</a>。</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line">+---------------------+</span><br><span class="line">|        Header       |</span><br><span class="line">+---------------------+</span><br><span class="line">|       Question      | the question for the name server</span><br><span class="line">+---------------------+</span><br><span class="line">|        Answer       | RRs answering the question</span><br><span class="line">+---------------------+</span><br><span class="line">|      Authority      | RRs pointing toward an authority</span><br><span class="line">+---------------------+</span><br><span class="line">|      Additional     | RRs holding additional information</span><br><span class="line">+---------------------+</span><br></pre></td></tr></table></figure>
+<h3><span id="header">Header</span></h3>
+<p>Header 为报文头信息，长度固定为 12 字节，结构如下：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br></pre></td><td class="code"><pre><span class="line">  0  1  2  3  4  5  6  7  8  9  0  1  2  3  4  5</span><br><span class="line">+--+--+--+--+--+--+--+--+--+--+--+--+--+--+--+--+</span><br><span class="line">|                      ID                       |</span><br><span class="line">+--+--+--+--+--+--+--+--+--+--+--+--+--+--+--+--+</span><br><span class="line">|QR|   Opcode  |AA|TC|RD|RA|   Z    |   RCODE   |</span><br><span class="line">+--+--+--+--+--+--+--+--+--+--+--+--+--+--+--+--+</span><br><span class="line">|                    QDCOUNT                    |</span><br><span class="line">+--+--+--+--+--+--+--+--+--+--+--+--+--+--+--+--+</span><br><span class="line">|                    ANCOUNT                    |</span><br><span class="line">+--+--+--+--+--+--+--+--+--+--+--+--+--+--+--+--+</span><br><span class="line">|                    NSCOUNT                    |</span><br><span class="line">+--+--+--+--+--+--+--+--+--+--+--+--+--+--+--+--+</span><br><span class="line">|                    ARCOUNT                    |</span><br><span class="line">+--+--+--+--+--+--+--+--+--+--+--+--+--+--+--+--+</span><br></pre></td></tr></table></figure>
+<p>Header 中跟本文内内直接相关的就是 QDCOUNT/ANCOUNT/NSCOUNT/ARCOUNT 这四个字段，分别表示后续 Question/Answer/Authority/Additional 段的数量。</p>
+<h3><span id="question">Question</span></h3>
+<p>Question 段保存查询请求信息，通长只有一个。它分成三个部分。后两个部分表示查询类型和网络类型。含义不重要，重要的是长度固定为 4 字节。</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line">  0  1  2  3  4  5  6  7  8  9  0  1  2  3  4  5</span><br><span class="line">+--+--+--+--+--+--+--+--+--+--+--+--+--+--+--+--+</span><br><span class="line">|                                               |</span><br><span class="line">&#x2F;                     QNAME                     &#x2F;</span><br><span class="line">&#x2F;                                               &#x2F;</span><br><span class="line">+--+--+--+--+--+--+--+--+--+--+--+--+--+--+--+--+</span><br><span class="line">|                     QTYPE                     |</span><br><span class="line">+--+--+--+--+--+--+--+--+--+--+--+--+--+--+--+--+</span><br><span class="line">|                     QCLASS                    |</span><br><span class="line">+--+--+--+--+--+--+--+--+--+--+--+--+--+--+--+--+</span><br></pre></td></tr></table></figure>
+<p>第一部分 QNAME 长度可变，保存查询的域名。但存储的方式有点特别。以域名<code>A.ROOT-SERVERS.NET.</code> 为例，它会分成三部分<code>A</code>、<code>ROOT-SERVERS</code>和<code>NET</code>。每一部分称作一个标签(Label)， QNAME 字段只保存标签，不保存<code>.</code>。每个标签用第一个字节记录当前标签长度，后面跟着标签内容。最后用一个长度为零的标签表示结尾。所以完整的 QNAME 字段编码为：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br></pre></td><td class="code"><pre><span class="line">   +--+--+--+--+--+--+--+--+--+--+--+--+--+--+--+--+</span><br><span class="line">20 |           1           |           A           |</span><br><span class="line">   +--+--+--+--+--+--+--+--+--+--+--+--+--+--+--+--+</span><br><span class="line">22 |           12          |           R           |</span><br><span class="line">   +--+--+--+--+--+--+--+--+--+--+--+--+--+--+--+--+</span><br><span class="line">24 |           O           |           O           |</span><br><span class="line">   +--+--+--+--+--+--+--+--+--+--+--+--+--+--+--+--+</span><br><span class="line">26 |           T           |           -           |</span><br><span class="line">   +--+--+--+--+--+--+--+--+--+--+--+--+--+--+--+--+</span><br><span class="line">28 |           S           |           E           |</span><br><span class="line">   +--+--+--+--+--+--+--+--+--+--+--+--+--+--+--+--+</span><br><span class="line">30 |           R           |           V           |</span><br><span class="line">   +--+--+--+--+--+--+--+--+--+--+--+--+--+--+--+--+</span><br><span class="line">32 |           E           |           R           |</span><br><span class="line">   +--+--+--+--+--+--+--+--+--+--+--+--+--+--+--+--+</span><br><span class="line">34 |           S           |           3           |</span><br><span class="line">   +--+--+--+--+--+--+--+--+--+--+--+--+--+--+--+--+</span><br><span class="line">36 |           N           |           E           |</span><br><span class="line">   +--+--+--+--+--+--+--+--+--+--+--+--+--+--+--+--+</span><br><span class="line">38 |           T           |           0           |</span><br><span class="line">   +--+--+--+--+--+--+--+--+--+--+--+--+--+--+--+--+</span><br></pre></td></tr></table></figure>
+<p>长度为 20 字节。特别的，对于根域名<code>.</code>，它的 QNAME 编码是：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">   +--+--+--+--+--+--+--+--+--+--+--+--+--+--+--+--+</span><br><span class="line">20 |           0           |                       |</span><br><span class="line">   +--+--+--+--+--+--+--+--+--+--+--+--+--+--+--+--+</span><br></pre></td></tr></table></figure>
+<p>长度为 1 字节。</p>
+<h3><span id="answer">Answer</span></h3>
+<p>Answer 段是服务器返回的响应结果。数量为一条到多条不等。每一条称为一个 RR，全称是 Resource Record。其结构如下：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br></pre></td><td class="code"><pre><span class="line">  0  1  2  3  4  5  6  7  8  9  0  1  2  3  4  5</span><br><span class="line">+--+--+--+--+--+--+--+--+--+--+--+--+--+--+--+--+</span><br><span class="line">|                                               |</span><br><span class="line">&#x2F;                                               &#x2F;</span><br><span class="line">&#x2F;                      NAME                     &#x2F;</span><br><span class="line">|                                               |</span><br><span class="line">+--+--+--+--+--+--+--+--+--+--+--+--+--+--+--+--+</span><br><span class="line">|                      TYPE                     |</span><br><span class="line">+--+--+--+--+--+--+--+--+--+--+--+--+--+--+--+--+</span><br><span class="line">|                     CLASS                     |</span><br><span class="line">+--+--+--+--+--+--+--+--+--+--+--+--+--+--+--+--+</span><br><span class="line">|                      TTL                      |</span><br><span class="line">|                                               |</span><br><span class="line">+--+--+--+--+--+--+--+--+--+--+--+--+--+--+--+--+</span><br><span class="line">|                   RDLENGTH                    |</span><br><span class="line">+--+--+--+--+--+--+--+--+--+--+--+--+--+--+--+--|</span><br><span class="line">&#x2F;                     RDATA                     &#x2F;</span><br><span class="line">&#x2F;                                               &#x2F;</span><br><span class="line">+--+--+--+--+--+--+--+--+--+--+--+--+--+--+--+--+</span><br></pre></td></tr></table></figure>
+<p>RR 跟前面的 Question 相比多了 TTL/RDLENGTH/RDATA 三个字段。TTL 表示有效时长， RDLENGTH 表示后续 RDATA 的长度，RDATA 保存实际的响应数据。根据 TYPE 和 CLASS 的不同，RDATA 内容也各不相同。在 Priming 查询中，RDATA 保存各根服务器的域名，编码跟前 Question 中的 QNAME 一样。</p>
+<p>如果服务器返回如下一条 RR 数据：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">.       518400  IN      NS      a.root-servers.net.</span><br></pre></td></tr></table></figure>
+<p>那么 RR 的总长度是 1+2+2+4+2+20=31 字节。</p>
+<h3><span id="authority">Authority</span></h3>
+<p>Authority 段用来返回待查询域名的权威服务器信息。比如我们尝试向根服务器直接查询 <code>TAOSHU.IN</code> 的 <code>A</code> 记录，根服务器就会在 Authority 段返回 <code>IN</code> 域名的解析服器。因为根服务器并不保存<code>TAOSHU.IN</code>的域名信息。不过在本文中，Priming 查询的权威服务器就是根服务器，所以此段长度为零。</p>
+<p>最后的 Additional 段用来返回一些附加信息。Answer 中只有域名信息。我们希望直接返回 IP 地址，所以需要用到 Additional 段。Additional 中也是一条一条的 PR，计算方式跟 Answer 的一模一样。</p>
+<p>因为 Priming 查询会返回所有的根服务器域名及其对应的 IP 地址<a href="https://taoshu.in/dns/13-roots.html?utm_source=pocket_saves#fn7" target="_blank" rel="noopener">7</a>，所以根服务器数量越多，返回的数据就越长。但 DNS 协议规定最长只能是 512 字节，这就产生了瓶颈。</p>
+<p>到了 1995 年，已经开通了 9 台根服务器，Priming 查询结果快要超过 512 字节了。社区开始着手解决这个问题。方案是标签压缩。</p>
+<h3><span id="标签压缩">标签压缩</span></h3>
+<p>压缩办法也很简单，就是在 NAME 中引入<strong>指针结构</strong>：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">+--+--+--+--+--+--+--+--+--+--+--+--+--+--+--+--+</span><br><span class="line">| 1  1|                OFFSET                   |</span><br><span class="line">+--+--+--+--+--+--+--+--+--+--+--+--+--+--+--+--+</span><br></pre></td></tr></table></figure>
+<p>DNS 还有一个规定，域名的长度不能超过 63 字节。NAME 中第一个字节表示长度，最大值就是 63，二进制表示为<code>00111111</code>，可见高两位是零。于是大家约定高两位设为<code>11</code>的时候，后面的 14 位就表示从报文 Header 开始的偏移量。这样一来，如果多个 RR 的域名中有相同的部分，就不需要重复传输，减少响应长度。</p>
+<p>举个例子，比如要同时返回<code>A.ROOT-SERVERS.NET</code>和<code>B.ROOT-SERVERS.NET</code>两个域名，显然它们有共同的后缀<code>ROOT-SERVERS.NET</code>。假设<code>A.ROOT-SERVERS.NET</code>的偏移量为 20，那么可以表示为：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br></pre></td><td class="code"><pre><span class="line">A.ROOT-SERVERS.NET</span><br><span class="line">   +--+--+--+--+--+--+--+--+--+--+--+--+--+--+--+--+</span><br><span class="line">20 |           1           |           A           |</span><br><span class="line">   +--+--+--+--+--+--+--+--+--+--+--+--+--+--+--+--+</span><br><span class="line">22 |           12          |           R           |</span><br><span class="line">   +--+--+--+--+--+--+--+--+--+--+--+--+--+--+--+--+</span><br><span class="line">24 |           O           |           O           |</span><br><span class="line">   +--+--+--+--+--+--+--+--+--+--+--+--+--+--+--+--+</span><br><span class="line">26 |           T           |           -           |</span><br><span class="line">   +--+--+--+--+--+--+--+--+--+--+--+--+--+--+--+--+</span><br><span class="line">28 |           S           |           E           |</span><br><span class="line">   +--+--+--+--+--+--+--+--+--+--+--+--+--+--+--+--+</span><br><span class="line">30 |           R           |           V           |</span><br><span class="line">   +--+--+--+--+--+--+--+--+--+--+--+--+--+--+--+--+</span><br><span class="line">32 |           E           |           R           |</span><br><span class="line">   +--+--+--+--+--+--+--+--+--+--+--+--+--+--+--+--+</span><br><span class="line">34 |           S           |           3           |</span><br><span class="line">   +--+--+--+--+--+--+--+--+--+--+--+--+--+--+--+--+</span><br><span class="line">36 |           N           |           E           |</span><br><span class="line">   +--+--+--+--+--+--+--+--+--+--+--+--+--+--+--+--+</span><br><span class="line">38 |           T           |           0           |</span><br><span class="line">   +--+--+--+--+--+--+--+--+--+--+--+--+--+--+--+--+</span><br><span class="line">B.ROOT-SERVERS.NET</span><br><span class="line">   +--+--+--+--+--+--+--+--+--+--+--+--+--+--+--+--+</span><br><span class="line">40 |           1           |           B           |</span><br><span class="line">   +--+--+--+--+--+--+--+--+--+--+--+--+--+--+--+--+</span><br><span class="line">44 | 1  1|                20                       |</span><br><span class="line">   +--+--+--+--+--+--+--+--+--+--+--+--+--+--+--+--+</span><br><span class="line">46 |           0           |                       |</span><br><span class="line">   +--+--+--+--+--+--+--+--+--+--+--+--+--+--+--+--+</span><br></pre></td></tr></table></figure>
+<p>利用标签压缩技术，域名<code>B.ROOT-SERVERS.NET</code>只需要占用 5 个字节，比 <code>A.ROOT-SERVERS.NET</code> 节省了 15 个字节。</p>
+<h2><span id="根服务器更名">根服务器更名</span></h2>
+<p>要想使用压缩，前提是所有域名有重复的部分。但之前的根服务器域名不相同，这就得改名。到了 1995 年，社区统一的域名为根服务器重新编组并部署标签压缩功能。</p>
+<table>
+<thead>
+<tr>
+<th style="text-align:left">旧域名</th>
+<th style="text-align:left">新域名</th>
+<th style="text-align:left">运营机构</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align:left"><a href="http://NS.INTERNIC.NET" target="_blank" rel="noopener">NS.INTERNIC.NET</a></td>
+<td style="text-align:left"><a href="http://A.ROOT-SERVERS.NET" target="_blank" rel="noopener">A.ROOT-SERVERS.NET</a></td>
+<td style="text-align:left">InterNIC (operated by NSI)</td>
+</tr>
+<tr>
+<td style="text-align:left"><a href="http://NS1.ISI.EDU" target="_blank" rel="noopener">NS1.ISI.EDU</a></td>
+<td style="text-align:left"><a href="http://B.ROOT-SERVERS.NET" target="_blank" rel="noopener">B.ROOT-SERVERS.NET</a></td>
+<td style="text-align:left">Information Sciences Institute, USC</td>
+</tr>
+<tr>
+<td style="text-align:left"><a href="http://C.PSI.NET" target="_blank" rel="noopener">C.PSI.NET</a></td>
+<td style="text-align:left"><a href="http://C.ROOT-SERVERS.NET" target="_blank" rel="noopener">C.ROOT-SERVERS.NET</a></td>
+<td style="text-align:left">PSINet</td>
+</tr>
+<tr>
+<td style="text-align:left"><a href="http://TERP.UMD.EDU" target="_blank" rel="noopener">TERP.UMD.EDU</a></td>
+<td style="text-align:left"><a href="http://D.ROOT-SERVERS.NET" target="_blank" rel="noopener">D.ROOT-SERVERS.NET</a></td>
+<td style="text-align:left">University of Maryland</td>
+</tr>
+<tr>
+<td style="text-align:left"><a href="http://NS.NASA.GOV" target="_blank" rel="noopener">NS.NASA.GOV</a></td>
+<td style="text-align:left"><a href="http://E.ROOT-SERVERS.NET" target="_blank" rel="noopener">E.ROOT-SERVERS.NET</a></td>
+<td style="text-align:left">NASA Ames Research Center</td>
+</tr>
+<tr>
+<td style="text-align:left"><a href="http://NS.ISC.ORG" target="_blank" rel="noopener">NS.ISC.ORG</a></td>
+<td style="text-align:left"><a href="http://F.ROOT-SERVERS.NET" target="_blank" rel="noopener">F.ROOT-SERVERS.NET</a></td>
+<td style="text-align:left">Internet Software Consortium</td>
+</tr>
+<tr>
+<td style="text-align:left">NS.NIC.DDN.MIL</td>
+<td style="text-align:left"><a href="http://G.ROOT-SERVERS.NET" target="_blank" rel="noopener">G.ROOT-SERVERS.NET</a></td>
+<td style="text-align:left">GSI (operated by NSI)</td>
+</tr>
+<tr>
+<td style="text-align:left">AOS.ARL.ARMY .MIL</td>
+<td style="text-align:left"><a href="http://H.ROOT-SERVERS.NET" target="_blank" rel="noopener">H.ROOT-SERVERS.NET</a></td>
+<td style="text-align:left">U.S. Army Research Lab</td>
+</tr>
+<tr>
+<td style="text-align:left"><a href="http://NIC.NORDU.NET" target="_blank" rel="noopener">NIC.NORDU.NET</a></td>
+<td style="text-align:left"><a href="http://I.ROOT-SERVERS.NET" target="_blank" rel="noopener">I.ROOT-SERVERS.NET</a></td>
+<td style="text-align:left">NORDUnet</td>
+</tr>
+</tbody>
+</table>
+<p>上线之后，为新的根服务器留出了空间。于是在 1997 年，又上线了 J/K/L/M 四台根服务器。</p>
+<p>这时候 Priming 查询响应的返回值有多大呢？我们可以算一下：</p>
+<ul>
+<li>Header 固定 12 字节</li>
+<li>第一个 PR 保存完整域名，31 字节</li>
+<li>另外 12 PR 保存压缩后的域名，12*15 = 180 字节</li>
+<li>13 个 PR 保存 A 记录，13 * 16 = 208 字节<a href="https://taoshu.in/dns/13-roots.html?utm_source=pocket_saves#fn8" target="_blank" rel="noopener">8</a></li>
+<li>Question 段中 QTYPE 和 QCLASS 字段， 4 字节</li>
+<li>Question 段中 QNAME 字段，1 字节</li>
+</ul>
+<p>总共为 12+31+180+208+4+1=436 字节。剩余可用 512−436=76 字节。一组台服务器需要额外占用 15+16=31 字节。理论上还可以再添加两台根服务器，也就是最多15台。</p>
+<p>如果只管根服务器功能，确实还可以添加。但是早期的根服务器同时也是<code>COM/NET/ORG</code>的解析服务器。客户端可以向根服器发起针对特定<code>COM</code>域名的 Priming 查询。因为响应结果需要包含查询域名 QNAME，所以上面说的 76 字节中至少要保留 64 字节给 QNAME。这样就只剩下 12 字节。所以就不能再添加新的根服务器了。</p>
+<h2><span id="ipv6-与-anycast">IPv6 与 Anycast</span></h2>
+<p>虽然理论上是不能再加新的根服务器了，但后来网络不断发展，UDP 报文早已不需要把长度限制到 512 字节。而且引入 IPv6 网络后，Priming 查询结果中还需要返回 AAAA 记录， 512 个字节肯定不够用。所以社区又设计了 EDNS0<a href="https://taoshu.in/dns/13-roots.html?utm_source=pocket_saves#fn9" target="_blank" rel="noopener">9</a> 来支持返回超过 512 字节的 DNS 响应。</p>
+<p>理论上还是可以继续添加新的根服务器。但为什么不加了呢？那是因为有了更先进的技术 Anycast，中文译作任播。任播，可以简单理解为允许不同网络中的计算机共用一个 IP 地址，同时对外提供 DNS 查询服务。互联网会根据客户端的位置将请求路由到就近的计算机。</p>
+<p>Anycast 技术将原来的单台服务器变成了一组多台服务器。到了2002年，J根服务器首次部署 Anycast 功能。到现在为止，前面说的13台根服务器严格来说是 13 个域名并且对应 13 对 IPv4 和 IPv6 地址。每对地址之后都通过 Anycast 部署了很多台实例，总计有超过 1500 台根服务器实例。这些实例又称为根<strong>镜像服务器</strong>。</p>
+<h2><span id="中国根服务器镜像">中国根服务器镜像</span></h2>
+<p>虽说中国没有自己的根服务器，但境内还是有不少根镜像服务器：</p>
+<table>
+<thead>
+<tr>
+<th style="text-align:center">编号</th>
+<th style="text-align:left">城市</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align:center">A</td>
+<td style="text-align:left">广州</td>
+</tr>
+<tr>
+<td style="text-align:center">D</td>
+<td style="text-align:left">香港 台北</td>
+</tr>
+<tr>
+<td style="text-align:center">E</td>
+<td style="text-align:left">台北</td>
+</tr>
+<tr>
+<td style="text-align:center">F</td>
+<td style="text-align:left">北京 重庆 杭州 高雄 南宁 台北</td>
+</tr>
+<tr>
+<td style="text-align:center">I</td>
+<td style="text-align:left">北京 香港 沈阳 台北</td>
+</tr>
+<tr>
+<td style="text-align:center">J</td>
+<td style="text-align:left">北京 香港 湖州 上海</td>
+</tr>
+<tr>
+<td style="text-align:center">K</td>
+<td style="text-align:left">北京 广州 贵阳 台北</td>
+</tr>
+<tr>
+<td style="text-align:center">L</td>
+<td style="text-align:left">北京 长沙 海口 上海 武汉 西宁 新北 郑州</td>
+</tr>
+<tr>
+<td style="text-align:center">M</td>
+<td style="text-align:left">高雄</td>
+</tr>
+</tbody>
+</table>
+<p>资料来源：<a href="https://root-servers.org/" target="_blank" rel="noopener">https://root-servers.org</a> 资料截止时间：2023年06月06日</p>
+<p>大家不妨通过 Ping 命令测一下，上面的几个根服务器的延迟都在 50ms 左右，一看就是在国内，不然不会这么快。</p>
+<p>那为什么中国没有自己的根服务器呢？这个问题涉及到世界互联网的发展史和中国的互联网发展历程，我会专门撰文讲解。敬请期待。</p>
+<hr>
+<ol>
+<li><a href="https://www.iana.org/domains/root/servers" target="_blank" rel="noopener">https://www.iana.org/domains/root/servers</a><a href="https://taoshu.in/dns/13-roots.html?utm_source=pocket_saves#fnref1" target="_blank" rel="noopener">↩︎</a></li>
+<li><a href="https://www.icann.org/en/system/files/files/rssac-023-04nov16-en.pdf" target="_blank" rel="noopener">https://www.icann.org/en/system/files/files/rssac-023-04nov16-en.pdf</a><a href="https://taoshu.in/dns/13-roots.html?utm_source=pocket_saves#fnref2" target="_blank" rel="noopener">↩︎</a></li>
+<li><a href="https://datatracker.ietf.org/doc/html/rfc8109" target="_blank" rel="noopener">https://datatracker.ietf.org/doc/html/rfc8109</a><a href="https://taoshu.in/dns/13-roots.html?utm_source=pocket_saves#fnref3" target="_blank" rel="noopener">↩︎</a></li>
+<li><a href="https://www.iana.org/domains/root/files" target="_blank" rel="noopener">https://www.iana.org/domains/root/files</a><a href="https://taoshu.in/dns/13-roots.html?utm_source=pocket_saves#fnref4" target="_blank" rel="noopener">↩︎</a></li>
+<li>如何选择没有公开的标准。有的实现会随机选，有的会根据 Ping 延迟选择最近的。<a href="https://taoshu.in/dns/13-roots.html?utm_source=pocket_saves#fnref5" target="_blank" rel="noopener">↩︎</a></li>
+<li><a href="https://datatracker.ietf.org/doc/html/rfc1035" target="_blank" rel="noopener">https://datatracker.ietf.org/doc/html/rfc1035</a><a href="https://taoshu.in/dns/13-roots.html?utm_source=pocket_saves#fnref6" target="_blank" rel="noopener">↩︎</a></li>
+<li>早期只有 IPv4，所以只会返回 A 记录。IPv6 出现后还需要返回对应的 AAAA 记录。<a href="https://taoshu.in/dns/13-roots.html?utm_source=pocket_saves#fnref7" target="_blank" rel="noopener">↩︎</a></li>
+<li>因为 IP 地址各不相同，自然也无法压缩。<a href="https://taoshu.in/dns/13-roots.html?utm_source=pocket_saves#fnref8" target="_blank" rel="noopener">↩︎</a></li>
+<li><a href="https://www.rfc-editor.org/rfc/rfc6891.html" target="_blank" rel="noopener">https://www.rfc-editor.org/rfc/rfc6891.html</a><a href="https://taoshu.in/dns/13-roots.html?utm_source=pocket_saves#fnref9" target="_blank" rel="noopener">↩︎</a></li>
+</ol>
+<blockquote>
+<p>本文转载自：「 涛叔的博客 」，原文：<a href="https://taoshu.in/dns/13-roots.html" target="_blank" rel="noopener">https://taoshu.in/dns/13-roots.html</a> ，版权归原作者所有。欢迎投稿，投稿邮箱: <a href="mailto:editor@hi-linux.com">editor@hi-linux.com</a>。</p>
+</blockquote>
+</div>
+
+			<script src="https://my.openwrite.cn/js/readmore.js" type="text/javascript"></script>
+			<script>
+			var isMobile = navigator.userAgent.match(/(phone|pad|pod|iPhone|iPod|ios|iPad|Android|Mobile|BlackBerry|IEMobile|MQQBrowser|JUC|Fennec|wOSBrowser|BrowserNG|WebOS|Symbian|Windows Phone)/i);
+			if (!isMobile) {
+			    var btw = new BTWPlugin();
+			    btw.init({
+			        "id": "vip-container",
+			        "blogId": "10135-1588830050631-449",
+			        "name": "「奇妙的 Linux 世界」",
+			        "qrcode": "https://www.hi-linux.com/img/wechat/mp_qrcode_12.jpg",
+			        "keyword": "VIP"
+			    });
+			}
+			</script>
+		
+                
+
+                <hr>
+                <!-- Pager -->
+                <ul class="pager">
+                    
+                        <li class="previous">
+                            <a href="/posts/43069.html" data-toggle="tooltip" data-placement="top" title="作为一名软件工程师，我在 20 年职业生涯中学到的事情">&larr; Previous Post</a>
+                        </li>
+                    
+                    
+                        <li class="next">
+                            <a href="/posts/43918.html" data-toggle="tooltip" data-placement="top" title="如何使用 zSwap 提高系统性能">Next Post &rarr;</a>
+                        </li>
+                    
+                </ul>
+
+                <!-- duoshuo Share start -->
+                
+                <!-- 多说 Share end-->
+
+                <!-- 多说评论框 start -->
+                
+                <!-- 多说评论框 end -->
+
+                <!-- disqus comment start -->
+                
+                <!-- disqus comment end -->
+
+                
+                    <!-- disqus 评论框 start -->
+                    <div class="comment">
+                        <div id="lv-container" data-id="city" data-uid="MTAyMC8yNzg2My80NDQw"></div>
+                    </div>
+                    <!-- disqus 评论框 end -->
+                
+
+            </div>
+            
+            <!-- Tabe of Content -->
+            <!-- Table of Contents -->
+
+  
+    <style>
+      span.toc-nav-number{
+        display: none
+      }
+    </style>
+  
+    
+      <aside id="sidebar">
+        <div id="toc" class="toc-article">
+        <strong class="toc-title">Contents</strong>
+        
+          <ol class="toc-nav"><li class="toc-nav-item toc-nav-level-2"><a class="toc-nav-link" href="#vip-container"><span class="toc-nav-number">1.</span> <span class="toc-nav-text">DNS 基本概念</span></a></li><li class="toc-nav-item toc-nav-level-2"><a class="toc-nav-link" href="#vip-container"><span class="toc-nav-number">2.</span> <span class="toc-nav-text">当前根服务器</span></a></li><li class="toc-nav-item toc-nav-level-2"><a class="toc-nav-link" href="#vip-container"><span class="toc-nav-number">3.</span> <span class="toc-nav-text">Priming 查询</span></a></li><li class="toc-nav-item toc-nav-level-2"><a class="toc-nav-link" href="#vip-container"><span class="toc-nav-number">4.</span> <span class="toc-nav-text">报文结构与编码</span></a><ol class="toc-nav-child"><li class="toc-nav-item toc-nav-level-3"><a class="toc-nav-link" href="#vip-container"><span class="toc-nav-number">4.1.</span> <span class="toc-nav-text">Header</span></a></li><li class="toc-nav-item toc-nav-level-3"><a class="toc-nav-link" href="#vip-container"><span class="toc-nav-number">4.2.</span> <span class="toc-nav-text">Question</span></a></li><li class="toc-nav-item toc-nav-level-3"><a class="toc-nav-link" href="#vip-container"><span class="toc-nav-number">4.3.</span> <span class="toc-nav-text">Answer</span></a></li><li class="toc-nav-item toc-nav-level-3"><a class="toc-nav-link" href="#vip-container"><span class="toc-nav-number">4.4.</span> <span class="toc-nav-text">Authority</span></a></li><li class="toc-nav-item toc-nav-level-3"><a class="toc-nav-link" href="#vip-container"><span class="toc-nav-number">4.5.</span> <span class="toc-nav-text">标签压缩</span></a></li></ol></li><li class="toc-nav-item toc-nav-level-2"><a class="toc-nav-link" href="#vip-container"><span class="toc-nav-number">5.</span> <span class="toc-nav-text">根服务器更名</span></a></li><li class="toc-nav-item toc-nav-level-2"><a class="toc-nav-link" href="#vip-container"><span class="toc-nav-number">6.</span> <span class="toc-nav-text">IPv6 与 Anycast</span></a></li><li class="toc-nav-item toc-nav-level-2"><a class="toc-nav-link" href="#vip-container"><span class="toc-nav-number">7.</span> <span class="toc-nav-text">中国根服务器镜像</span></a></li></ol>
+        
+        </div>
+      </aside>
+    
+
+                
+            <!-- Sidebar Container -->
+            <div class="
+                col-lg-8 col-lg-offset-2
+                col-md-10 col-md-offset-1
+                sidebar-container">
+
+                <!-- Featured Tags -->
+                
+                <section>
+                    <!-- no hr -->
+                    <h5><a href="/tags/">FEATURED TAGS</a></h5>
+                    <div class="tags">
+                       
+                          <a class="tag" href="/tags/#技巧" title="技巧">技巧</a>
+                        
+                          <a class="tag" href="/tags/#Linux" title="Linux">Linux</a>
+                        
+                          <a class="tag" href="/tags/#DNS" title="DNS">DNS</a>
+                        
+                    </div>
+                </section>
+                
+
+                <!-- Friends Blog -->
+                
+                <hr>
+                <h5>FRIENDS</h5>
+                <ul class="list-inline">
+
+                    
+                        <li><a href="http://www.mike.org.cn/" target="_blank">简单.生活</a></li>
+                    
+                        <li><a href="http://shang.qq.com/wpa/qunwpa?idkey=ea4c43493c2269428ac6ef6141de4b6d78e5ab2d41380ca4099b833b62884ee9" target="_blank">技术交流群</a></li>
+                    
+                        <li><a href="" target="_blank"></a></li>
+                    
+                        <li><a href="" target="_blank"></a></li>
+                    
+                </ul>
+                
+            </div>
+        </div>
+    </div>
+</article>
+
+
+
+
+
+
+    <!-- 来必力City版公共JS代码 start (一个网页只需插入一次) -->
+    <script type="text/javascript">
+       (function(d, s) {
+           var j, e = d.getElementsByTagName(s)[0];
+    
+           if (typeof LivereTower === 'function') { return; }
+    
+           j = d.createElement(s);
+           j.src = 'https://cdn-city.livere.com/js/embed.dist.js';
+           j.async = true;
+    
+           e.parentNode.insertBefore(j, e);
+       })(document, 'script');
+    </script>
+    <noscript>为正常使用来必力评论功能请激活JavaScript</noscript>
+    <!-- 来必力City版 公共JS代码 end -->
+
+
+
+<!-- async load function -->
+<script>
+    function async(u, c) {
+      var d = document, t = 'script',
+          o = d.createElement(t),
+          s = d.getElementsByTagName(t)[0];
+      o.src = u;
+      if (c) { o.addEventListener('load', function (e) { c(null, e); }, false); }
+      s.parentNode.insertBefore(o, s);
+    }
+</script>
+<!-- anchor-js, Doc:http://bryanbraun.github.io/anchorjs/ -->
+<script>
+    async("https://cdn.bootcss.com/anchor-js/1.1.1/anchor.min.js",function(){
+        anchors.options = {
+          visible: 'hover',
+          placement: 'left',
+          icon: 'ℬ'
+        };
+        anchors.add().remove('.intro-header h1').remove('.subheading').remove('.sidebar-container h5');
+    })
+</script>
+<style>
+    /* place left on bigger screen */
+    @media all and (min-width: 800px) {
+        .anchorjs-link{
+            position: absolute;
+            left: -0.75em;
+            font-size: 1.1em;
+            margin-top : -0.1em;
+        }
+    }
+</style>
+
+
+
+    <!-- Footer -->
+    <!-- Footer -->
+<footer>
+    <div class="container">
+        <div class="row">
+            <div class="col-lg-8 col-lg-offset-2 col-md-10 col-md-offset-1">
+                <ul class="list-inline text-center">
+                
+                    <li>
+                        <a href="/atom.xml">
+                            <span class="fa-stack fa-lg">
+                                <i class="fa fa-circle fa-stack-2x"></i>
+                                <i class="fa fa-rss fa-stack-1x fa-inverse"></i>
+                            </span>
+                        </a>
+                    </li>
+                
+                
+                
+                    <li>
+                        <a target="_blank" href="https://www.zhihu.com/people/80imike">
+                            <span class="fa-stack fa-lg">
+                                <i class="fa fa-circle fa-stack-2x"></i>
+                                <i class="fa  fa-stack-1x fa-inverse">知</i>
+                            </span>
+                        </a>
+                    </li>
+                
+
+                
+                    <li>
+                        <a target="_blank" href="http://weibo.com/2093524665">
+                            <span class="fa-stack fa-lg">
+                                <i class="fa fa-circle fa-stack-2x"></i>
+                                <i class="fa fa-weibo fa-stack-1x fa-inverse"></i>
+                            </span>
+                        </a>
+                    </li>
+                
+
+                
+
+                
+
+                
+
+                </ul>
+                <p class="copyright text-muted">
+                    Copyright &copy; Mike 2023 | Hosted by <a href="https://pages.coding.me" target="_blank" rel="noopener" style="font-weight: bold">Coding Pages</a>
+                    <br>
+                    Theme by <a href="http://beantech.org" target="_blank" rel="noopener">BeanTech</a> 
+                    <span style="display: inline-block; margin: 0 5px;">
+                        <i class="fa fa-heart"></i>
+                    </span> 
+                    re-Ported by <a href="http://www.huweihuang.com" target="_blank" rel="noopener">胡伟煌</a> | 
+                    <iframe
+                        style="margin-left: 2px; margin-bottom:-5px;"
+                        frameborder="0" scrolling="0" width="91px" height="20px"
+                        src="https://ghbtns.com/github-btn.html?user=huweihuang&repo=hexo-theme-huweihuang&type=star&count=true" >
+                    </iframe>
+                </p>
+            </div>
+        </div>
+    </div>
+</footer>
+
+<!-- jQuery -->
+
+<script src="/js/jquery.min.js"></script>
+
+
+<!-- Bootstrap Core JavaScript -->
+
+<script src="/js/bootstrap.min.js"></script>
+
+
+<!-- Custom Theme JavaScript -->
+
+<script src="/js/hux-blog.min.js"></script>
+
+
+
+<!-- async load function -->
+<script>
+    function async(u, c) {
+      var d = document, t = 'script',
+          o = d.createElement(t),
+          s = d.getElementsByTagName(t)[0];
+      o.src = u;
+      if (c) { o.addEventListener('load', function (e) { c(null, e); }, false); }
+      s.parentNode.insertBefore(o, s);
+    }
+</script>
+
+<!-- 
+     Because of the native support for backtick-style fenced code blocks 
+     right within the Markdown is landed in Github Pages, 
+     From V1.6, There is no need for Highlight.js, 
+     so Huxblog drops it officially.
+
+     - https://github.com/blog/2100-github-pages-now-faster-and-simpler-with-jekyll-3-0  
+     - https://help.github.com/articles/creating-and-highlighting-code-blocks/    
+-->
+<!--
+    <script>
+        async("http://cdn.bootcss.com/highlight.js/8.6/highlight.min.js", function(){
+            hljs.initHighlightingOnLoad();
+        })
+    </script>
+    <link href="http://cdn.bootcss.com/highlight.js/8.6/styles/github.min.css" rel="stylesheet">
+-->
+
+
+<!-- jquery.tagcloud.js -->
+<script>
+    // only load tagcloud.js in tag.html
+    if($('#tag_cloud').length !== 0){
+        async("https://www.hi-linux.com/js/jquery.tagcloud.js",function(){
+            $.fn.tagcloud.defaults = {
+                //size: {start: 1, end: 1, unit: 'em'},
+                color: {start: '#bbbbee', end: '#0085a1'},
+            };
+            $('#tag_cloud a').tagcloud();
+        })
+    }
+</script>
+
+<!--fastClick.js -->
+<script>
+    async("https://cdn.bootcss.com/fastclick/1.0.6/fastclick.min.js", function(){
+        var $nav = document.querySelector("nav");
+        if($nav) FastClick.attach($nav);
+    })
+</script>
+
+
+<!-- Google Analytics -->
+
+
+
+
+<!-- Baidu Tongji -->
+
+
+
+<script async defer data-website-id="0d8da2a4-a24e-4240-9304-00a6e347ddfe"
+    src="https://umami.hi-linux.com/umami.js"></script>
+
+
+
+	<a id="rocket" href="#top" class=""></a>
+	<script type="text/javascript" src="/js/totop.js?v=1.0.0" async=""></script>
+    <script type="text/javascript" src="/js/toc.js?v=1.0.0" async=""></script>
+<!-- Image to hack wechat -->
+<img src="https://www.hi-linux.com/img/icon_wechat.png" width="0" height="0" />
+<!-- Migrate from head to bottom, no longer block render and still work -->
+
+<script>(function(w,d, s, id) {w.webpushr=w.webpushr||function(){(w.webpushr.q=w.webpushr.q||[]).push(arguments)};var js, fjs = d.getElementsByTagName(s)[0];js = d.createElement(s); js.id = id;js.src = 'https://cdn.webpushr.com/app.min.js';fjs.parentNode.appendChild(js);}(window,document, 'script', 'webpushr-jssdk'));webpushr('init','BF9JK7xV9kjWTdMx2lr6RWaPfXV7wNuZaVAJ1bfIGoBNJavqLEBVFMKLubITnCA4bh2fI9iH9tMF95nXnPt7xxY');</script></body>
+
+</html>

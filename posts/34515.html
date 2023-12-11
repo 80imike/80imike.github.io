@@ -1,0 +1,664 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<!-- Head tag -->
+<head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="google-site-verification" content="xBT4GhYoi5qRD5tr338pgPM5OWHHIDR6mNg1a3euekI" />
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="description" content="">
+    <meta name="keyword"  content="Linux,运维,Nginx,Zabbix,Centos,Ansible,MySQL,Python,Docker,ELK,Haproxy,Git,Nodejs,安全,技术">
+    <link rel="shortcut icon" href="/img/ironman-draw.png">
+    <!-- Place this tag in your head or just before your close body tag. -->
+    <script async defer src="https://buttons.github.io/buttons.js"></script>
+    <title>
+        
+          Nginx 是如何解决惊群效应的？ - 奇妙的 Linux 世界
+        
+    </title>
+
+    <link rel="canonical" href="https://www.hi-linux.com/posts/34515.html">
+
+    <!-- Bootstrap Core CSS -->
+    
+<link rel="stylesheet" href="/css/bootstrap.min.css">
+
+
+    <!-- Custom CSS --> 
+    
+<link rel="stylesheet" href="/css/beantech.min.css">
+
+    
+    <!-- Pygments Highlight CSS -->
+    
+<link rel="stylesheet" href="/css/highlight.css">
+
+
+    
+<link rel="stylesheet" href="/css/widget.css">
+
+
+    
+<link rel="stylesheet" href="/css/rocket.css">
+
+
+    
+<link rel="stylesheet" href="/css/signature.css">
+
+
+    
+<link rel="stylesheet" href="/css/toc.css">
+
+
+    <!-- Custom Fonts -->
+    <!-- <link href="https://maxcdn.bootstrapcdn.com/font-awesome/4.3.0/css/font-awesome.min.css" rel="stylesheet" type="text/css"> -->
+    <!-- Hux change font-awesome CDN to qiniu -->
+    <link href="https://cdn.staticfile.org/font-awesome/4.5.0/css/font-awesome.min.css" rel="stylesheet" type="text/css">
+
+
+    <!-- Hux Delete, sad but pending in China
+    <link href='http://fonts.googleapis.com/css?family=Lora:400,700,400italic,700italic' rel='stylesheet' type='text/css'>
+    <link href='http://fonts.googleapis.com/css?family=Open+Sans:300italic,400italic,600italic,700italic,800italic,400,300,600,700,800' rel='stylesheet' type='text/
+    css'>
+    -->
+
+
+    <!-- HTML5 Shim and Respond.js IE8 support of HTML5 elements and media queries -->
+    <!-- WARNING: Respond.js doesn't work if you view the page via file:// -->
+    <!--[if lt IE 9]>
+        <script src="https://oss.maxcdn.com/libs/html5shiv/3.7.0/html5shiv.js"></script>
+        <script src="https://oss.maxcdn.com/libs/respond.js/1.4.2/respond.min.js"></script>
+    <![endif]-->
+
+    <!-- ga & ba script hoook -->
+    <script></script>
+<meta name="generator" content="Hexo 4.2.1"><link rel="alternate" href="/atom.xml" title="奇妙的 Linux 世界" type="application/atom+xml">
+</head>
+
+
+<!-- hack iOS CSS :active style -->
+<body ontouchstart="">
+	<!-- Modified by Yu-Hsuan Yen -->
+<!-- Post Header -->
+<style type="text/css">
+    header.intro-header{
+        
+            background-image: url('/img/header_img/building.jpg')
+            /*post*/
+        
+    }
+    
+</style>
+
+<header class="intro-header" >
+    <!-- Signature -->
+    <div id="signature">
+        <div class="container">
+            <div class="row">
+                <div class="col-lg-8 col-lg-offset-2 col-md-10 col-md-offset-1">
+                
+                    <div class="post-heading">
+                        <div class="tags">
+                            
+                              <a class="tag" href="/tags/#技巧" title="技巧">技巧</a>
+                            
+                              <a class="tag" href="/tags/#Linux" title="Linux">Linux</a>
+                            
+                              <a class="tag" href="/tags/#Nginx" title="Nginx">Nginx</a>
+                            
+                        </div>
+                        <h1>Nginx 是如何解决惊群效应的？</h1>
+                        <h2 class="subheading"></h2>
+                        <span class="meta">
+                            Posted by Mike on
+                            2023-09-12
+                        </span>
+                    </div>
+                
+
+
+                </div>
+            </div>
+        </div>
+    </div>
+</header>
+
+	
+    <!-- Navigation -->
+<nav class="navbar navbar-default navbar-custom navbar-fixed-top">
+    <div class="container-fluid">
+        <!-- Brand and toggle get grouped for better mobile display -->
+        <div class="navbar-header page-scroll">
+            <button type="button" class="navbar-toggle">
+                <span class="sr-only">Toggle navigation</span>
+                <span class="icon-bar"></span>
+                <span class="icon-bar"></span>
+                <span class="icon-bar"></span>
+            </button>
+            <a class="navbar-brand" href="/">奇妙的 Linux 世界</a>
+        </div>
+
+        <!-- Collect the nav links, forms, and other content for toggling -->
+        <!-- Known Issue, found by Hux:
+            <nav>'s height woule be hold on by its content.
+            so, when navbar scale out, the <nav> will cover tags.
+            also mask any touch event of tags, unfortunately.
+        -->
+        <div id="huxblog_navbar">
+            <div class="navbar-collapse">
+                <ul class="nav navbar-nav navbar-right">
+                    <li>
+                        <a href="/">Home</a>
+                    </li>
+
+                    
+
+                        
+                    
+
+                        
+                    
+
+                        
+                        <li>
+                            <a href="/about/">About</a>
+                        </li>
+                        
+                    
+
+                        
+                        <li>
+                            <a href="/archive/">Archives</a>
+                        </li>
+                        
+                    
+
+                        
+                        <li>
+                            <a href="/tags/">Tags</a>
+                        </li>
+                        
+                    
+                    
+                </ul>
+            </div>
+        </div>
+        <!-- /.navbar-collapse -->
+    </div>
+    <!-- /.container -->
+</nav>
+<script>
+    // Drop Bootstarp low-performance Navbar
+    // Use customize navbar with high-quality material design animation
+    // in high-perf jank-free CSS3 implementation
+    var $body   = document.body;
+    var $toggle = document.querySelector('.navbar-toggle');
+    var $navbar = document.querySelector('#huxblog_navbar');
+    var $collapse = document.querySelector('.navbar-collapse');
+
+    $toggle.addEventListener('click', handleMagic)
+    function handleMagic(e){
+        if ($navbar.className.indexOf('in') > 0) {
+        // CLOSE
+            $navbar.className = " ";
+            // wait until animation end.
+            setTimeout(function(){
+                // prevent frequently toggle
+                if($navbar.className.indexOf('in') < 0) {
+                    $collapse.style.height = "0px"
+                }
+            },400)
+        }else{
+        // OPEN
+            $collapse.style.height = "auto"
+            $navbar.className += " in";
+        }
+    }
+</script>
+
+
+    <!-- Main Content -->
+    <!-- Modify by Yu-Hsuan Yen -->
+
+<!-- Post Content -->
+<article>
+    <div class="container">
+        <div class="row">
+
+            <!-- Post Container -->
+            <div class="
+                col-lg-8 col-lg-offset-2
+                col-md-10 col-md-offset-1
+                post-container">
+
+                <div id="vip-container"><h2><span id="前置知识">前置知识</span></h2>
+<ul>
+<li>linux 网络处理的基本方法：bind listen accept</li>
+<li>epoll 的基本方法：epoll_create epoll_ctl epoll_wait</li>
+</ul>
+<h2><span id="什么是惊群效应">什么是惊群效应？</span></h2>
+<p>第一次听到的这个名词的时候觉得很是有趣，不知道是个什么意思，总觉得又是奇怪的中文翻译导致的。</p>
+<p>复杂的说（来源于网络）TLDR;</p>
+<blockquote>
+<p>惊群效应（thundering herd）是指多进程（多线程）在同时阻塞等待同一个事件的时候（休眠状态），如果等待的这个事件发生，那么他就会唤醒等待的所有进程（或者线程），但是最终却只能有一个进程（线程）获得这个时间的“控制权”，对该事件进行处理，而其他进程（线程）获取“控制权”失败，只能重新进入休眠状态，这种现象和性能浪费就叫做惊群效应。</p>
+</blockquote>
+<p>简单的讲（我的大白话）</p>
+<blockquote>
+<p>有一道雷打下来，把很多人都吵醒了，但只有其中一个人去收衣服了。<br>
+也就是：<br>
+有一个请求过来了，把很多进程都唤醒了，但只有其中一个能最终处理。</p>
+</blockquote>
+<a id="more"></a>
+<h3><span id="原因amp问题">原因&amp;问题</span></h3>
+<p>说起来其实也简单，多数时候为了提高应用的请求处理能力，会使用多进程（多线程）去监听请求，当请求来时，因为都有能力处理，所以就都被唤醒了。</p>
+<p>而问题就是，最终还是只能有一个进程能来处理。当请求多了，不停地唤醒、休眠、唤醒、休眠，做了很多的无用功，上下文切换又累，对吧。那怎么解决这个问题呢？下面就是今天要看的重点，我们看看 nginx 是如何解决这个问题的。</p>
+<h2><span id="nginx-架构">Nginx 架构</span></h2>
+<p>第一点我们需要了解 nginx 大致的架构是怎么样的。nginx 将进程分为 master 和 worker 两类，非常常见的一种 M-S 策略，也就是 master 负责统筹管理 worker，当然它也负责如：启动、读取配置文件，监听处理各种信号等工作。</p>
+<p><img src="https://img.hi-linux.com/staticfile/hsz3mL-2023-09-11-A7PETT.png" alt></p>
+<p>图片来自： <a href="https://aosabook.org/en/v2/nginx.html" target="_blank" rel="noopener">https://aosabook.org/en/v2/nginx.html</a></p>
+<p>但是，第一个要注意的问题就出现了，master 的工作有且只有这些，对于请求来说它是不管的，就如同图中所示，请求是直接被 worker 处理的。如此一来，请求应该被哪个 worker 处理呢？worker 内部又是如何处理请求的呢？</p>
+<h2><span id="nginx-使用-epoll">Nginx 使用 epoll</span></h2>
+<p>接下来我们就要知道 nginx 是如何使用 epoll 来处理请求的。下面可能会涉及到一些源码的内容，但不用担心，你不需要全部理解，只需要知道它们的作用就可以了。顺便我会简单描述一下我是如何去找到这些源码的位置的。</p>
+<h3><span id="master-的工作">Master 的工作</span></h3>
+<p>其实 Master 并不是毫无作为，至少端口是它来占的。<br>
+<a href="https://github.com/nginx/nginx/blob/b489ba83e9be446923facfe1a2fe392be3095d1f/src/core/ngx_connection.c#L407C13-L407C13" target="_blank" rel="noopener">https://github.com/nginx/nginx/blob/b489ba83e9be446923facfe1a2fe392be3095d1f/src/core/ngx_connection.c#L407C13-L407C13</a></p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line">ngx_open_listening_sockets(ngx_cycle_t *cycle)</span><br><span class="line">&#123;</span><br><span class="line">    .....</span><br><span class="line">    for (i &#x3D; 0; i &lt; cycle-&gt;listening.nelts; i++) &#123;</span><br><span class="line">        .....</span><br><span class="line">        if (bind(s, ls[i].sockaddr, ls[i].socklen) &#x3D;&#x3D; -1) &#123;</span><br><span class="line"></span><br><span class="line">        if (listen(s, ls[i].backlog) &#x3D;&#x3D; -1) &#123;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>那么，根据我们 nginx.conf 的配置文件，看需要监听哪个端口，于是就去 bind 的了，这里没问题。</p>
+<p>【发现源码】这里我是直接在代码里面搜 bind 方法去找的，因为我知道，不管你怎么样，你总是要绑定端口的</p>
+<p>然后是创建 worker 的，虽不起眼，但很关键。 <a href="https://github.com/nginx/nginx/blob/b489ba83e9be446923facfe1a2fe392be3095d1f/src/os/unix/ngx_process.c#L186" target="_blank" rel="noopener">https://github.com/nginx/nginx/blob/b489ba83e9be446923facfe1a2fe392be3095d1f/src/os/unix/ngx_process.c#L186</a></p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">ngx_spawn_process(ngx_cycle_t *cycle, ngx_spawn_proc_pt proc, void *data,</span><br><span class="line">    char *name, ngx_int_t respawn)</span><br><span class="line">&#123;</span><br><span class="line">    ....</span><br><span class="line">    pid &#x3D; fork();</span><br></pre></td></tr></table></figure>
+<blockquote>
+<p>【发现源码】这里我直接搜 fork，整个项目里面需要 fork 的情况只有两个地方，很快就找到了 worker</p>
+</blockquote>
+<p>由于是 fork 创建的，也就是复制了一份 task_struct 结构。所以 master 的几乎全部它都有。</p>
+<h3><span id="worker-的工作">Worker 的工作</span></h3>
+<p>Nginx 有一个分模块的思想，它将不同功能分成了不同的模块，而 epoll 自然就是在 ngx_epoll_module.c 中了</p>
+<p><a href="https://github.com/nginx/nginx/blob/b489ba83e9be446923facfe1a2fe392be3095d1f/src/event/modules/ngx_epoll_module.c#L330C23-L330C23" target="_blank" rel="noopener">https://github.com/nginx/nginx/blob/b489ba83e9be446923facfe1a2fe392be3095d1f/src/event/modules/ngx_epoll_module.c#L330C23-L330C23</a></p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line">ngx_epoll_init(ngx_cycle_t *cycle, ngx_msec_t timer)</span><br><span class="line">&#123;</span><br><span class="line">    ngx_epoll_conf_t  *epcf;</span><br><span class="line"></span><br><span class="line">    epcf &#x3D; ngx_event_get_conf(cycle-&gt;conf_ctx, ngx_epoll_module);</span><br><span class="line">    </span><br><span class="line">    if (ep &#x3D;&#x3D; -1) &#123;</span><br><span class="line">        ep &#x3D; epoll_create(cycle-&gt;connection_n &#x2F; 2);</span><br></pre></td></tr></table></figure>
+<p>其他不重要，就连 epoll_ctl 和 epoll_wait 也不重要了，这里你需要知道的就是，从调用链路来看，是 worker 创建的 epoll 对象，也就是每个 worker 都有自己的 epoll 对象，而监听的sokcet 是一样的！</p>
+<blockquote>
+<p>【发现源码】这里更加直接，搜索 epoll_create 肯定就能找到</p>
+</blockquote>
+<h3><span id="问题的关键">问题的关键</span></h3>
+<p>此时问题的关键基本就能了解了，每个 worker 都有处理能力，请求来了此时应该唤醒谁呢？讲道理那不是所有 epoll 都会有事件，所有 worker 都 accept 请求？显然这样是不行的。那么 nginx 是如何解决的呢？</p>
+<h2><span id="如何解决">如何解决</span></h2>
+<p>解决方式一共有三种，下面我们一个个来看：</p>
+<ol>
+<li>accept_mutex（应用层的解决方案）</li>
+<li>EPOLLEXCLUSIVE（内核层的解决方案）</li>
+<li>SO_REUSEPORT（内核层的解决方案）</li>
+</ol>
+<h3><span id="accept_mutex">accept_mutex</span></h3>
+<p>看到 mutex 可能你就知道了，锁嘛！这也是对于高并发处理的 ”基操“ 遇事不决加锁，没错，加锁肯定能解决问题。 <a href="https://github.com/nginx/nginx/blob/b489ba83e9be446923facfe1a2fe392be3095d1f/src/event/ngx_event_accept.c#L328" target="_blank" rel="noopener">https://github.com/nginx/nginx/blob/b489ba83e9be446923facfe1a2fe392be3095d1f/src/event/ngx_event_accept.c#L328</a></p>
+<p>具体代码就不展示了，其中细节很多，但本质很容易理解，就是当请求来了，谁拿到了这个锁，谁就去处理。没拿到的就不管了。锁的问题很直接，除了慢没啥不好的，但至少很公平。</p>
+<h3><span id="epollexclusive">EPOLLEXCLUSIVE</span></h3>
+<blockquote>
+<p>EPOLLEXCLUSIVE 是 2016 年 4.5+ 内核新添加的一个 epoll 的标识。它降低了多个进程/线程通过 epoll_ctl 添加共享 fd 引发的惊群概率，使得一个事件发生时，只唤醒一个正在 epoll_wait 阻塞等待唤醒的进程（而不是全部唤醒）。</p>
+</blockquote>
+<p>关键是：每次内核只唤醒一个睡眠的进程处理资源</p>
+<p>但，这个方案不是完美的解决了，它仅是降低了概率哦。为什么这样说呢？相比于原来全部唤醒，那肯定是好了不少，降低了冲突。但由于本质来说 socket 是共享的，当前进程处理完成的时间不确定，在后面被唤醒的进程可能会发现当前的 socket 已经被之前唤醒的进程处理掉了。</p>
+<h3><span id="so_reuseport">SO_REUSEPORT</span></h3>
+<p>Nginx 在 1.9.1 版本加入了这个功能 <a href="https://www.nginx.com/blog/socket-sharding-nginx-release-1-9-1/" target="_blank" rel="noopener">https://www.nginx.com/blog/socket-sharding-nginx-release-1-9-1/</a></p>
+<p>其本质是利用了 Linux 的 reuseport 的特性，使用 reuseport 内核允许多个进程 listening socket 到同一个端口上，而从内核层面做了负载均衡，每次唤醒其中一个进程。</p>
+<p>反应到 Nginx 上就是，每个 Worker 进程都创建独立的 listening socket，监听相同的端口，accept 时只有一个进程会获得连接。效果就和下图所示一样。</p>
+<p><img src="https://img.hi-linux.com/staticfile/UjOzmp-2023-09-11-5Q4Vve.png" alt></p>
+<p>而使用方式则是：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line">http &#123;</span><br><span class="line">     server &#123;</span><br><span class="line">          listen 80 reuseport;</span><br><span class="line">          server_name  localhost;</span><br><span class="line">          # ...</span><br><span class="line">     &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>从官方的测试情况来看确实是厉害</p>
+<p><img src="https://img.hi-linux.com/staticfile/2UzsJK-2023-09-11-63Mvfo.png" alt></p>
+<p>当然，正所谓：完事无绝对，技术无银弹。这个方案的问题在于内核是不知道你忙还是不忙的。只会无脑的丢给你。与之前的抢锁对比，抢锁的进程一定是不忙的，现在手上的工作都已经忙不过来了，没机会去抢锁了；而这个方案可能导致，如果当前进程忙不过来了，还是会只要根据 reuseport 的负载规则轮到你了就会发送给你，所以会导致有的请求被前面慢的请求卡住了。</p>
+<h2><span id="总结">总结</span></h2>
+<p>本文，从了解什么 ”惊群效应“ 到 nginx 架构和 epoll 处理的原理，最终分析三种不同的处理 “惊群效应” 的方案。分析到这里，我想你应该明白其实 nginx 这个多队列服务模型是所存在的一些问题，只不过绝大多数场景已经完完全全够用了。</p>
+<h2><span id="参考链接">参考链接</span></h2>
+<ul>
+<li>这一篇对于 nginx 锁内部实现有详细解析</li>
+<li><a href="https://aosabook.org/en/v2/nginx.html" target="_blank" rel="noopener">https://aosabook.org/en/v2/nginx.html</a></li>
+<li>epoll和惊群</li>
+</ul>
+<blockquote>
+<p>本文转载自：「 LinkinStar’s Blog 」，原文：<a href="https://url.hi-linux.com/1472i" target="_blank" rel="noopener">https://url.hi-linux.com/1472i</a> ，版权归原作者所有。欢迎投稿，投稿邮箱: <a href="mailto:editor@hi-linux.com">editor@hi-linux.com</a>。</p>
+</blockquote>
+</div>
+
+			<script src="https://my.openwrite.cn/js/readmore.js" type="text/javascript"></script>
+			<script>
+			var isMobile = navigator.userAgent.match(/(phone|pad|pod|iPhone|iPod|ios|iPad|Android|Mobile|BlackBerry|IEMobile|MQQBrowser|JUC|Fennec|wOSBrowser|BrowserNG|WebOS|Symbian|Windows Phone)/i);
+			if (!isMobile) {
+			    var btw = new BTWPlugin();
+			    btw.init({
+			        "id": "vip-container",
+			        "blogId": "10135-1588830050631-449",
+			        "name": "「奇妙的 Linux 世界」",
+			        "qrcode": "https://www.hi-linux.com/img/wechat/mp_qrcode_12.jpg",
+			        "keyword": "VIP"
+			    });
+			}
+			</script>
+		
+                
+
+                <hr>
+                <!-- Pager -->
+                <ul class="pager">
+                    
+                        <li class="previous">
+                            <a href="/posts/4852.html" data-toggle="tooltip" data-placement="top" title="一文带你搞懂公网、私网、内网、外网的区别">&larr; Previous Post</a>
+                        </li>
+                    
+                    
+                        <li class="next">
+                            <a href="/posts/43069.html" data-toggle="tooltip" data-placement="top" title="作为一名软件工程师，我在 20 年职业生涯中学到的事情">Next Post &rarr;</a>
+                        </li>
+                    
+                </ul>
+
+                <!-- duoshuo Share start -->
+                
+                <!-- 多说 Share end-->
+
+                <!-- 多说评论框 start -->
+                
+                <!-- 多说评论框 end -->
+
+                <!-- disqus comment start -->
+                
+                <!-- disqus comment end -->
+
+                
+                    <!-- disqus 评论框 start -->
+                    <div class="comment">
+                        <div id="lv-container" data-id="city" data-uid="MTAyMC8yNzg2My80NDQw"></div>
+                    </div>
+                    <!-- disqus 评论框 end -->
+                
+
+            </div>
+            
+            <!-- Tabe of Content -->
+            <!-- Table of Contents -->
+
+  
+    <style>
+      span.toc-nav-number{
+        display: none
+      }
+    </style>
+  
+    
+      <aside id="sidebar">
+        <div id="toc" class="toc-article">
+        <strong class="toc-title">Contents</strong>
+        
+          <ol class="toc-nav"><li class="toc-nav-item toc-nav-level-2"><a class="toc-nav-link" href="#vip-container"><span class="toc-nav-number">1.</span> <span class="toc-nav-text">前置知识</span></a></li><li class="toc-nav-item toc-nav-level-2"><a class="toc-nav-link" href="#vip-container"><span class="toc-nav-number">2.</span> <span class="toc-nav-text">什么是惊群效应？</span></a><ol class="toc-nav-child"><li class="toc-nav-item toc-nav-level-3"><a class="toc-nav-link" href="#vip-container"><span class="toc-nav-number">2.1.</span> <span class="toc-nav-text">原因&amp;问题</span></a></li></ol></li><li class="toc-nav-item toc-nav-level-2"><a class="toc-nav-link" href="#vip-container"><span class="toc-nav-number">3.</span> <span class="toc-nav-text">Nginx 架构</span></a></li><li class="toc-nav-item toc-nav-level-2"><a class="toc-nav-link" href="#vip-container"><span class="toc-nav-number">4.</span> <span class="toc-nav-text">Nginx 使用 epoll</span></a><ol class="toc-nav-child"><li class="toc-nav-item toc-nav-level-3"><a class="toc-nav-link" href="#vip-container"><span class="toc-nav-number">4.1.</span> <span class="toc-nav-text">Master 的工作</span></a></li><li class="toc-nav-item toc-nav-level-3"><a class="toc-nav-link" href="#vip-container"><span class="toc-nav-number">4.2.</span> <span class="toc-nav-text">Worker 的工作</span></a></li><li class="toc-nav-item toc-nav-level-3"><a class="toc-nav-link" href="#vip-container"><span class="toc-nav-number">4.3.</span> <span class="toc-nav-text">问题的关键</span></a></li></ol></li><li class="toc-nav-item toc-nav-level-2"><a class="toc-nav-link" href="#vip-container"><span class="toc-nav-number">5.</span> <span class="toc-nav-text">如何解决</span></a><ol class="toc-nav-child"><li class="toc-nav-item toc-nav-level-3"><a class="toc-nav-link" href="#vip-container"><span class="toc-nav-number">5.1.</span> <span class="toc-nav-text">accept_mutex</span></a></li><li class="toc-nav-item toc-nav-level-3"><a class="toc-nav-link" href="#vip-container"><span class="toc-nav-number">5.2.</span> <span class="toc-nav-text">EPOLLEXCLUSIVE</span></a></li><li class="toc-nav-item toc-nav-level-3"><a class="toc-nav-link" href="#vip-container"><span class="toc-nav-number">5.3.</span> <span class="toc-nav-text">SO_REUSEPORT</span></a></li></ol></li><li class="toc-nav-item toc-nav-level-2"><a class="toc-nav-link" href="#vip-container"><span class="toc-nav-number">6.</span> <span class="toc-nav-text">总结</span></a></li><li class="toc-nav-item toc-nav-level-2"><a class="toc-nav-link" href="#vip-container"><span class="toc-nav-number">7.</span> <span class="toc-nav-text">参考链接</span></a></li></ol>
+        
+        </div>
+      </aside>
+    
+
+                
+            <!-- Sidebar Container -->
+            <div class="
+                col-lg-8 col-lg-offset-2
+                col-md-10 col-md-offset-1
+                sidebar-container">
+
+                <!-- Featured Tags -->
+                
+                <section>
+                    <!-- no hr -->
+                    <h5><a href="/tags/">FEATURED TAGS</a></h5>
+                    <div class="tags">
+                       
+                          <a class="tag" href="/tags/#技巧" title="技巧">技巧</a>
+                        
+                          <a class="tag" href="/tags/#Linux" title="Linux">Linux</a>
+                        
+                          <a class="tag" href="/tags/#Nginx" title="Nginx">Nginx</a>
+                        
+                    </div>
+                </section>
+                
+
+                <!-- Friends Blog -->
+                
+                <hr>
+                <h5>FRIENDS</h5>
+                <ul class="list-inline">
+
+                    
+                        <li><a href="http://www.mike.org.cn/" target="_blank">简单.生活</a></li>
+                    
+                        <li><a href="http://shang.qq.com/wpa/qunwpa?idkey=ea4c43493c2269428ac6ef6141de4b6d78e5ab2d41380ca4099b833b62884ee9" target="_blank">技术交流群</a></li>
+                    
+                        <li><a href="" target="_blank"></a></li>
+                    
+                        <li><a href="" target="_blank"></a></li>
+                    
+                </ul>
+                
+            </div>
+        </div>
+    </div>
+</article>
+
+
+
+
+
+
+    <!-- 来必力City版公共JS代码 start (一个网页只需插入一次) -->
+    <script type="text/javascript">
+       (function(d, s) {
+           var j, e = d.getElementsByTagName(s)[0];
+    
+           if (typeof LivereTower === 'function') { return; }
+    
+           j = d.createElement(s);
+           j.src = 'https://cdn-city.livere.com/js/embed.dist.js';
+           j.async = true;
+    
+           e.parentNode.insertBefore(j, e);
+       })(document, 'script');
+    </script>
+    <noscript>为正常使用来必力评论功能请激活JavaScript</noscript>
+    <!-- 来必力City版 公共JS代码 end -->
+
+
+
+<!-- async load function -->
+<script>
+    function async(u, c) {
+      var d = document, t = 'script',
+          o = d.createElement(t),
+          s = d.getElementsByTagName(t)[0];
+      o.src = u;
+      if (c) { o.addEventListener('load', function (e) { c(null, e); }, false); }
+      s.parentNode.insertBefore(o, s);
+    }
+</script>
+<!-- anchor-js, Doc:http://bryanbraun.github.io/anchorjs/ -->
+<script>
+    async("https://cdn.bootcss.com/anchor-js/1.1.1/anchor.min.js",function(){
+        anchors.options = {
+          visible: 'hover',
+          placement: 'left',
+          icon: 'ℬ'
+        };
+        anchors.add().remove('.intro-header h1').remove('.subheading').remove('.sidebar-container h5');
+    })
+</script>
+<style>
+    /* place left on bigger screen */
+    @media all and (min-width: 800px) {
+        .anchorjs-link{
+            position: absolute;
+            left: -0.75em;
+            font-size: 1.1em;
+            margin-top : -0.1em;
+        }
+    }
+</style>
+
+
+
+    <!-- Footer -->
+    <!-- Footer -->
+<footer>
+    <div class="container">
+        <div class="row">
+            <div class="col-lg-8 col-lg-offset-2 col-md-10 col-md-offset-1">
+                <ul class="list-inline text-center">
+                
+                    <li>
+                        <a href="/atom.xml">
+                            <span class="fa-stack fa-lg">
+                                <i class="fa fa-circle fa-stack-2x"></i>
+                                <i class="fa fa-rss fa-stack-1x fa-inverse"></i>
+                            </span>
+                        </a>
+                    </li>
+                
+                
+                
+                    <li>
+                        <a target="_blank" href="https://www.zhihu.com/people/80imike">
+                            <span class="fa-stack fa-lg">
+                                <i class="fa fa-circle fa-stack-2x"></i>
+                                <i class="fa  fa-stack-1x fa-inverse">知</i>
+                            </span>
+                        </a>
+                    </li>
+                
+
+                
+                    <li>
+                        <a target="_blank" href="http://weibo.com/2093524665">
+                            <span class="fa-stack fa-lg">
+                                <i class="fa fa-circle fa-stack-2x"></i>
+                                <i class="fa fa-weibo fa-stack-1x fa-inverse"></i>
+                            </span>
+                        </a>
+                    </li>
+                
+
+                
+
+                
+
+                
+
+                </ul>
+                <p class="copyright text-muted">
+                    Copyright &copy; Mike 2023 | Hosted by <a href="https://pages.coding.me" target="_blank" rel="noopener" style="font-weight: bold">Coding Pages</a>
+                    <br>
+                    Theme by <a href="http://beantech.org" target="_blank" rel="noopener">BeanTech</a> 
+                    <span style="display: inline-block; margin: 0 5px;">
+                        <i class="fa fa-heart"></i>
+                    </span> 
+                    re-Ported by <a href="http://www.huweihuang.com" target="_blank" rel="noopener">胡伟煌</a> | 
+                    <iframe
+                        style="margin-left: 2px; margin-bottom:-5px;"
+                        frameborder="0" scrolling="0" width="91px" height="20px"
+                        src="https://ghbtns.com/github-btn.html?user=huweihuang&repo=hexo-theme-huweihuang&type=star&count=true" >
+                    </iframe>
+                </p>
+            </div>
+        </div>
+    </div>
+</footer>
+
+<!-- jQuery -->
+
+<script src="/js/jquery.min.js"></script>
+
+
+<!-- Bootstrap Core JavaScript -->
+
+<script src="/js/bootstrap.min.js"></script>
+
+
+<!-- Custom Theme JavaScript -->
+
+<script src="/js/hux-blog.min.js"></script>
+
+
+
+<!-- async load function -->
+<script>
+    function async(u, c) {
+      var d = document, t = 'script',
+          o = d.createElement(t),
+          s = d.getElementsByTagName(t)[0];
+      o.src = u;
+      if (c) { o.addEventListener('load', function (e) { c(null, e); }, false); }
+      s.parentNode.insertBefore(o, s);
+    }
+</script>
+
+<!-- 
+     Because of the native support for backtick-style fenced code blocks 
+     right within the Markdown is landed in Github Pages, 
+     From V1.6, There is no need for Highlight.js, 
+     so Huxblog drops it officially.
+
+     - https://github.com/blog/2100-github-pages-now-faster-and-simpler-with-jekyll-3-0  
+     - https://help.github.com/articles/creating-and-highlighting-code-blocks/    
+-->
+<!--
+    <script>
+        async("http://cdn.bootcss.com/highlight.js/8.6/highlight.min.js", function(){
+            hljs.initHighlightingOnLoad();
+        })
+    </script>
+    <link href="http://cdn.bootcss.com/highlight.js/8.6/styles/github.min.css" rel="stylesheet">
+-->
+
+
+<!-- jquery.tagcloud.js -->
+<script>
+    // only load tagcloud.js in tag.html
+    if($('#tag_cloud').length !== 0){
+        async("https://www.hi-linux.com/js/jquery.tagcloud.js",function(){
+            $.fn.tagcloud.defaults = {
+                //size: {start: 1, end: 1, unit: 'em'},
+                color: {start: '#bbbbee', end: '#0085a1'},
+            };
+            $('#tag_cloud a').tagcloud();
+        })
+    }
+</script>
+
+<!--fastClick.js -->
+<script>
+    async("https://cdn.bootcss.com/fastclick/1.0.6/fastclick.min.js", function(){
+        var $nav = document.querySelector("nav");
+        if($nav) FastClick.attach($nav);
+    })
+</script>
+
+
+<!-- Google Analytics -->
+
+
+
+
+<!-- Baidu Tongji -->
+
+
+
+<script async defer data-website-id="0d8da2a4-a24e-4240-9304-00a6e347ddfe"
+    src="https://umami.hi-linux.com/umami.js"></script>
+
+
+
+	<a id="rocket" href="#top" class=""></a>
+	<script type="text/javascript" src="/js/totop.js?v=1.0.0" async=""></script>
+    <script type="text/javascript" src="/js/toc.js?v=1.0.0" async=""></script>
+<!-- Image to hack wechat -->
+<img src="https://www.hi-linux.com/img/icon_wechat.png" width="0" height="0" />
+<!-- Migrate from head to bottom, no longer block render and still work -->
+
+<script>(function(w,d, s, id) {w.webpushr=w.webpushr||function(){(w.webpushr.q=w.webpushr.q||[]).push(arguments)};var js, fjs = d.getElementsByTagName(s)[0];js = d.createElement(s); js.id = id;js.src = 'https://cdn.webpushr.com/app.min.js';fjs.parentNode.appendChild(js);}(window,document, 'script', 'webpushr-jssdk'));webpushr('init','BF9JK7xV9kjWTdMx2lr6RWaPfXV7wNuZaVAJ1bfIGoBNJavqLEBVFMKLubITnCA4bh2fI9iH9tMF95nXnPt7xxY');</script></body>
+
+</html>
