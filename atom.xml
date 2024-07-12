@@ -41,9 +41,9 @@
     
       <category term="Linux" scheme="https://www.hi-linux.com/tags/Linux/"/>
     
-      <category term="程序员" scheme="https://www.hi-linux.com/tags/%E7%A8%8B%E5%BA%8F%E5%91%98/"/>
-    
       <category term="IT" scheme="https://www.hi-linux.com/tags/IT/"/>
+    
+      <category term="程序员" scheme="https://www.hi-linux.com/tags/%E7%A8%8B%E5%BA%8F%E5%91%98/"/>
     
   </entry>
   
@@ -80,6 +80,34 @@
   </entry>
   
   <entry>
+    <title>一款 AI 编写的 Kubernetes 实用小工具，助你一键批量检查容器服务健康状态</title>
+    <link href="https://www.hi-linux.com/posts/13493.html"/>
+    <id>https://www.hi-linux.com/posts/13493.html</id>
+    <published>2024-07-12T01:00:00.000Z</published>
+    <updated>2024-07-12T05:48:14.828Z</updated>
+    
+    <content type="html"><![CDATA[<div id="vip-container"><p><code>check-k8s-network</code> 是一款 AI 编写的 <code>Kubernetes</code> 网络连通性检查小工具，它主要用于检查 <code>Kubernetes</code> 集群中各个容器的网络连通性，支持 <code>ICMP</code>、<code>TCP</code>、<code>UDP</code> 和 <code>HTTP</code> 检查。</p><p>你可以在指定的命名空间内查找符合条件的 <code>Pod</code>，并对其进行网络连通性进行自动检测。</p><a id="more"></a><h2><span id="安装">安装</span></h2><p><code>check-k8s-network</code> 使用 <code>Python</code> 编写，需要安装 <code>Python 3.9</code> 版本和一些依赖库。</p><p>为了更好的体验，我们发布了 <code>Docker</code> 镜像，你只需要下载 <code>Docker</code> 镜像即可使用。</p><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">$ docker pull 80imike/check-k8s-network:latest</span><br></pre></td></tr></table></figure><h2><span id="常用参数说明">常用参数说明</span></h2><ul><li><code>-n, --namespace</code>：指定 Kubernetes 命名空间，默认值为 <code>default</code>。</li><li><code>-c, --container</code>：指定容器名，根据该容器名匹配 Pod，支持模糊匹配。</li><li><code>-i, --icmp</code>：使用 ICMP 协议进行检查。</li><li><code>-t, --tcp</code>：使用 TCP 协议进行检查，并指定端口号。</li><li><code>-u, --udp</code>：使用 UDP 协议进行检查，并指定端口号。</li><li><code>-w, --http</code>：使用 HTTP 协议进行检查，并指定 URL。</li><li><code>--auto-http</code>：自动查找当前 Pod 的 IP 和服务端口进行 HTTP 检查。</li><li><code>--auto-tcp</code>：自动查找当前 Pod 的 IP 和服务端口进行 TCP 检查。</li><li><code>--auto-udp</code>：自动查找当前 Pod 的 IP 和服务端口进行 UDP 检查。</li><li><code>--all</code>：同时使用 ICMP、TCP、UDP 和 HTTP 四种检查方式进行检测。</li></ul><h2><span id="输出结果">输出结果</span></h2><p><code>check-k8s-network</code> 会输出一个包含检查结果的表格，内容包括:</p><ul><li>序号</li><li>检查类型</li><li>源 Pod</li><li>目标</li><li>结果 (成功 or 失败)</li><li>错误信息</li></ul><p>该表格会对每个 Pod 进行自动排序，并对结果进行对齐和格式化。</p><h2><span id="使用示例">使用示例</span></h2><h3><span id="常用使用示例">常用使用示例</span></h3><blockquote><p>注意：</p><ol><li>该工具请在 <code>Kubernetes</code> 集群内的主机上使用，并确保您所在主机上已经配置了 K8s 集群认证文件 <code>~/.kube/config</code>。</li><li>-v 参数用于将宿主机上的 <code>~/.kube/config</code> 文件映射到容器内的 <code>/root/.kube/config</code> 文件中，以便容器内的 <code>Python</code> 脚本可以访问 <code>Kubernetes</code> 集群。</li></ol></blockquote><ol><li>检查指定命名空间下所有 Pod 的 ICMP 连通性:</li></ol><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">$ docker run --network host --rm \</span><br><span class="line">  -v ~/.kube/config:/root/.kube/config \</span><br><span class="line">  80imike/check-k8s-network:latest -n hi-linux --icmp</span><br></pre></td></tr></table></figure><p><img src="https://img.hi-linux.com/staticfile/1HVocZ-2024-07-11-qZm7ag.png" alt></p><ol start="2"><li>检查指定命名空间和 Pod 的 TCP 连通性 (需指定端口):</li></ol><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">$ docker run --network host --rm \</span><br><span class="line">  -v ~/.kube/config:/root/.kube/config \</span><br><span class="line">  80imike/check-k8s-network:latest -n hi-linux -c blog --tcp 80</span><br></pre></td></tr></table></figure><p><img src="https://img.hi-linux.com/staticfile/JYMaK7-2024-07-11-fjEccG.png" alt></p><ol start="3"><li>检查指定命名空间下所有 Pod 的 HTTP 连通性 (自动查找端口):</li></ol><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">$ docker run --network host --rm \</span><br><span class="line">  -v ~/.kube/config:/root/.kube/config \</span><br><span class="line">  80imike/check-k8s-network:latest -n hi-linux --auto-http</span><br></pre></td></tr></table></figure><p><img src="https://img.hi-linux.com/staticfile/J7Q7XU-2024-07-11-oMi64k.png" alt></p><ol start="4"><li>检查指定命名空间下所有 Pod 的 TCP 连通性 (自动查找端口):</li></ol><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">$ docker run --network host --rm \</span><br><span class="line">  -v ~/.kube/config:/root/.kube/config \</span><br><span class="line">  80imike/check-k8s-network:latest -n hi-linux --auto-tcp</span><br></pre></td></tr></table></figure><p><img src="https://img.hi-linux.com/staticfile/5CjNDB-2024-07-11-ZU4f05.png" alt></p><ol start="5"><li>检查指定命名空间下所有 Pod 的 UDP 连通性 (自动查找端口):</li></ol><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">$ docker run --network host --rm \</span><br><span class="line">  -v ~/.kube/config:/root/.kube/config \</span><br><span class="line">  80imike/check-k8s-network:latest -n kube-system --auto-udp</span><br></pre></td></tr></table></figure><p><img src="https://img.hi-linux.com/staticfile/532xFu-2024-07-11-93IN70.png" alt></p><ol start="6"><li>同时检查指定命名空间下所有 Pod 的 ICMP、TCP、UDP 和 HTTP 连通性:</li></ol><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">$ docker run --network host --rm \</span><br><span class="line">  -v ~/.kube/config:/root/.kube/config \</span><br><span class="line">  80imike/check-k8s-network:latest -n hi-linux --all</span><br></pre></td></tr></table></figure><p><img src="https://img.hi-linux.com/staticfile/zta14M-2024-07-11-f5JQKN.png" alt></p><h3><span id="一些复杂的参数组合示例">一些复杂的参数组合示例</span></h3><ol><li>对特定命名空间中名为 <code>blog</code> 的容器执行 ICMP 和指定 TCP（端口 80）检查:</li></ol><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">$ docker run --network host --rm \</span><br><span class="line">  -v ~/.kube/config:/root/.kube/config \</span><br><span class="line">  80imike/check-k8s-network:latest -n hi-linux -c blog --icmp --tcp 80</span><br></pre></td></tr></table></figure><p><img src="https://img.hi-linux.com/staticfile/TEdkSC-2024-07-11-2kK9WG.png" alt></p><ol start="2"><li>对特定命名空间中名为 <code>blog</code> 的容器同时执行 ICMP、TCP 、UDP 和 HTTP 检查：</li></ol><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">$ docker run --network host --rm \</span><br><span class="line">  -v ~/.kube/config:/root/.kube/config \</span><br><span class="line">  80imike/check-k8s-network:latest -n hi-linux -c blog --icmp --auto-tcp --auto-udp --auto-http</span><br></pre></td></tr></table></figure><p><img src="https://img.hi-linux.com/staticfile/YzyC8J-2024-07-11-5tJAWu.png" alt></p><h2><span id="总结">总结</span></h2><p><code>check-k8s-network</code> 这款小工具，是我尝试 <code>AI</code> 编程的一次小成果。所有代码全部通过和 <code>ChatGPT</code> 对话编写完成，<code>Docker</code> 镜像和使用文档大部分也是 <code>AI</code> 编写的。</p><p><code>check-k8s-network</code> 可以帮助你快速检查 <code>Kubernetes</code> 集群中容器的网络连通性，非常适合需要批量检查容器网络连接状态的场景。</p></div><script src="https://my.openwrite.cn/js/readmore.js" type="text/javascript"></script><script>var isMobile = navigator.userAgent.match(/(phone|pad|pod|iPhone|iPod|ios|iPad|Android|Mobile|BlackBerry|IEMobile|MQQBrowser|JUC|Fennec|wOSBrowser|BrowserNG|WebOS|Symbian|Windows Phone)/i);if (!isMobile) {    var btw = new BTWPlugin();    btw.init({        "id": "vip-container",        "blogId": "10135-1588830050631-449",        "name": "「奇妙的 Linux 世界」",        "qrcode": "https://www.hi-linux.com/img/wechat/mp_qrcode_12.jpg",        "keyword": "VIP"    });}</script>]]></content>
+    
+    <summary type="html">
+    
+      &lt;p&gt;&lt;code&gt;check-k8s-network&lt;/code&gt; 是一款 AI 编写的 &lt;code&gt;Kubernetes&lt;/code&gt; 网络连通性检查小工具，它主要用于检查 &lt;code&gt;Kubernetes&lt;/code&gt; 集群中各个容器的网络连通性，支持 &lt;code&gt;ICMP&lt;/code&gt;、&lt;code&gt;TCP&lt;/code&gt;、&lt;code&gt;UDP&lt;/code&gt; 和 &lt;code&gt;HTTP&lt;/code&gt; 检查。&lt;/p&gt;
+&lt;p&gt;你可以在指定的命名空间内查找符合条件的 &lt;code&gt;Pod&lt;/code&gt;，并对其进行网络连通性进行自动检测。&lt;/p&gt;
+    
+    </summary>
+    
+    
+      <category term="Linux" scheme="https://www.hi-linux.com/categories/Linux/"/>
+    
+    
+      <category term="Docker" scheme="https://www.hi-linux.com/tags/Docker/"/>
+    
+      <category term="Kubernetes" scheme="https://www.hi-linux.com/tags/Kubernetes/"/>
+    
+      <category term="AI" scheme="https://www.hi-linux.com/tags/AI/"/>
+    
+  </entry>
+  
+  <entry>
     <title>无需安装，单文件即可本地轻松运行 LLM 的神器 LLAMAfile</title>
     <link href="https://www.hi-linux.com/posts/37686.html"/>
     <id>https://www.hi-linux.com/posts/37686.html</id>
@@ -103,9 +131,9 @@
     
       <category term="Linux" scheme="https://www.hi-linux.com/tags/Linux/"/>
     
-      <category term="Llamafile" scheme="https://www.hi-linux.com/tags/Llamafile/"/>
-    
       <category term="AI" scheme="https://www.hi-linux.com/tags/AI/"/>
+    
+      <category term="Llamafile" scheme="https://www.hi-linux.com/tags/Llamafile/"/>
     
   </entry>
   
@@ -567,35 +595,6 @@
   </entry>
   
   <entry>
-    <title>如何利用谷歌邮箱别名功能获取无限 Gmail 邮箱</title>
-    <link href="https://www.hi-linux.com/posts/41141.html"/>
-    <id>https://www.hi-linux.com/posts/41141.html</id>
-    <published>2023-02-23T01:00:00.000Z</published>
-    <updated>2023-02-23T07:10:24.912Z</updated>
-    
-    <content type="html"><![CDATA[<div id="vip-container"><p>我们注册有些国外的服务时，是不能用国内邮箱注册的，这时一个 Gmail 邮箱就显得很有必要。而有时候我们会需要注册多个账号，当然你可以用多个 Gmail 邮箱来注册。</p><p>但多个 Gmail 邮箱又不好管理，而且现在 Gmail 邮箱也不是那么好注册了，这时你就会需要下面我要介绍的内容了，利用 Gmail 邮箱的别名功能来实现同一邮箱获取无限多个 Gmail 邮箱号。</p><p>在这之前你需要有一个谷歌账号（Gmail邮箱）。没有的话去到这里注册：<a href="http://mail.google.com/" target="_blank" rel="noopener">http://mail.google.com</a>（目前注册需要正确上网，请自行搜索解决）。</p><a id="more"></a><h2><span id="gmail-邮箱别名设置">Gmail 邮箱别名设置</span></h2><p>这里我们假设你的 Gmail 邮箱为：<code>abcdef@gmail.com</code> ，那就可以通过以下办法得到无限的谷歌邮箱别名。</p><h3><span id="1用户名之间加-英文半角">1.用户名之间加 <code>.</code> （英文半角）</span></h3><blockquote><p><strong>例如：</strong> <code>abc.def@gmail.com</code></p><p>因为 Gmail 的用户名是不区分 <code>.</code> 符号的，所以下面其实都是同一个用户名</p></blockquote><ul><li>abcde.f</li><li>a.bcdef</li><li>ab.cdef</li><li>a.b.cdef</li><li>abc.d.ef</li></ul><h3><span id="2用户名后面加-任意字符">2.用户名后面加 <code>+任意字符</code></span></h3><blockquote><p><strong>例如：</strong> <code>abcdef+dev@gmail.com</code></p><p><code>+</code> 号后面可以是任意字符，例如：</p></blockquote><ul><li>+dev</li><li>+my</li><li>+sub</li><li>……</li></ul><p>**PS：**使用“+”号法，在许多网站注册时候，并不识别邮箱地址中的“+”，会提示你邮箱错误。</p><h3><span id="3改变用户名中任意字符的大小写">3.改变用户名中任意字符的大小写</span></h3><blockquote><p><strong>例如：</strong> <code>aBCdef@gmail.com</code></p><p>可以是用户名里的某个或多个字符，</p></blockquote><ul><li><a href="mailto:Abcdef@gmail.com">Abcdef@gmail.com</a></li><li><a href="mailto:AbcDeF@gmail.com">AbcDeF@gmail.com</a></li><li><a href="mailto:abcdEf@gmail.com">abcdEf@gmail.com</a></li></ul><h3><span id="4-把后缀变为-googlemailcom">4. 把后缀变为 <code>googlemail.com</code></span></h3><blockquote><p>因为之前 Gmail 在某些国家的商标没有谈好，不能使用 Gmail 商标，只好用 googlemail，这个很好理解。（貌似现在全球的商标都已经谈妥了）</p></blockquote><p><strong>例如：</strong> <code>abcdef@googlemail.com</code></p><h3><span id="5以上4种方法的结合">５.以上４种方法的结合</span></h3><blockquote><p>可以结合上面的4种方法来实现理论上的无限别名。例如：</p></blockquote><ul><li><a href="mailto:aBcdef+dev@googlemail.com">aBcdef+dev@googlemail.com</a></li><li><a href="mailto:AbcDEf+sub@googlemail.com">AbcDEf+sub@googlemail.com</a></li></ul><h2><span id="总结">总结</span></h2><p>了解了上面的 Gmail 别名设置的方法后，当你要注册一些服务的时候，只要在填写Gmail邮箱的时候填写通过上述的方法得到的别名邮箱就可以了。无需到 Gmail 设置，所有的别名邮箱的邮件都会发送到你原来的邮箱 <code>abcdef@gmail.com</code> 中。</p><blockquote><p>本文转载自：「涅哥社区」，原文：<a href="https://url.hi-linux.com/RiANA" target="_blank" rel="noopener">https://url.hi-linux.com/RiANA</a> ，版权归原作者所有。欢迎投稿，投稿邮箱: <a href="mailto:editor@hi-linux.com">editor@hi-linux.com</a>。</p></blockquote></div><script src="https://my.openwrite.cn/js/readmore.js" type="text/javascript"></script><script>var isMobile = navigator.userAgent.match(/(phone|pad|pod|iPhone|iPod|ios|iPad|Android|Mobile|BlackBerry|IEMobile|MQQBrowser|JUC|Fennec|wOSBrowser|BrowserNG|WebOS|Symbian|Windows Phone)/i);if (!isMobile) {    var btw = new BTWPlugin();    btw.init({        "id": "vip-container",        "blogId": "10135-1588830050631-449",        "name": "「奇妙的 Linux 世界」",        "qrcode": "https://www.hi-linux.com/img/wechat/mp_qrcode_12.jpg",        "keyword": "VIP"    });}</script>]]></content>
-    
-    <summary type="html">
-    
-      &lt;p&gt;我们注册有些国外的服务时，是不能用国内邮箱注册的，这时一个 Gmail 邮箱就显得很有必要。而有时候我们会需要注册多个账号，当然你可以用多个 Gmail 邮箱来注册。&lt;/p&gt;
-&lt;p&gt;但多个 Gmail 邮箱又不好管理，而且现在 Gmail 邮箱也不是那么好注册了，这时你就会需要下面我要介绍的内容了，利用 Gmail 邮箱的别名功能来实现同一邮箱获取无限多个 Gmail 邮箱号。&lt;/p&gt;
-&lt;p&gt;在这之前你需要有一个谷歌账号（Gmail邮箱）。没有的话去到这里注册：&lt;a href=&quot;http://mail.google.com/&quot; target=&quot;_blank&quot; rel=&quot;noopener&quot;&gt;http://mail.google.com&lt;/a&gt;（目前注册需要正确上网，请自行搜索解决）。&lt;/p&gt;
-    
-    </summary>
-    
-    
-      <category term="Linux" scheme="https://www.hi-linux.com/categories/Linux/"/>
-    
-    
-      <category term="Linux" scheme="https://www.hi-linux.com/tags/Linux/"/>
-    
-      <category term="Google" scheme="https://www.hi-linux.com/tags/Google/"/>
-    
-      <category term="Gmail" scheme="https://www.hi-linux.com/tags/Gmail/"/>
-    
-  </entry>
-  
-  <entry>
     <title>如何使用 zSwap 提高系统性能</title>
     <link href="https://www.hi-linux.com/posts/43918.html"/>
     <id>https://www.hi-linux.com/posts/43918.html</id>
@@ -626,19 +625,19 @@
   </entry>
   
   <entry>
-    <title>如何在 sudo 提权后使用别名命令</title>
-    <link href="https://www.hi-linux.com/posts/35352.html"/>
-    <id>https://www.hi-linux.com/posts/35352.html</id>
-    <published>2023-02-13T01:00:00.000Z</published>
-    <updated>2023-02-13T02:54:35.575Z</updated>
+    <title>如何利用谷歌邮箱别名功能获取无限 Gmail 邮箱</title>
+    <link href="https://www.hi-linux.com/posts/41141.html"/>
+    <id>https://www.hi-linux.com/posts/41141.html</id>
+    <published>2023-02-23T01:00:00.000Z</published>
+    <updated>2023-02-23T07:10:24.912Z</updated>
     
-    <content type="html"><![CDATA[<div id="vip-container"><p>一般来说，<code>sudo</code>会忽略通过<code>.bashrc</code>文件、<code>.bash_aliases</code>文件或者<code>alias</code>命令设置的别名命令(aliased commands)。</p><p>比如，我们经常将<code>ll</code>用作<code>ls -lh</code>命令的别名。然后，我们输入<code>ll</code>，终端将会返回一个关于当前目录的长列表。但是，当我们输入<code>sudo ll</code>时，终端将会返回:</p><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">$ sudo ll</span><br><span class="line">&#x3D;&gt;  sudo: ll: command not found</span><br></pre></td></tr></table></figure><a id="more"></a><h2><span id="解决方案">解决方案</span></h2><p>我们给<code>shutdown</code>命令创建一个别名，当<code>rotorrent</code>运行的时候尝试输入这个别名去关机，我们可以看到系统不会关机。想要运行<code>/sbin/shutdown</code>需要root权限，然而<code>sudo</code>会完全忽略<code>shutdown</code>的这个别名。解决办法是，我们需要添加另一个别名:</p><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">alias sudo&#x3D;&#39;sudo &#39;</span><br></pre></td></tr></table></figure><p><code>sudo</code>后面的那个空格将会告诉<code>bash</code>，去检查跟在空格后面的命令是否也是一个别名。bash手册(通过<code>man bash</code>查看)上面是这么描述的:</p><blockquote><p>If the last character of the alias value is a blank, then the next command word following the alias is also checked for alias expansion. 如果别名值的最后一个字符是空格，将会检查”跟在别名后的下一个命令”是否也是别名扩展。</p></blockquote><p>下面是我机器<code>.bash_aliases</code>文件中的一些别名设置(因为系统才安装，可能以后会加更多别名设置):</p><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line"># Shortcuts</span><br><span class="line">alias ll&#x3D;&#39;ls -lh&#39;</span><br><span class="line">alias la&#x3D;&#39;ls -lhA&#39;</span><br><span class="line">alias l&#x3D;&#39;ls&#39;</span><br><span class="line">alias c&#x3D;&#39;clear&#39;</span><br><span class="line">alias x&#x3D;&#39;exit&#39;</span><br><span class="line">alias q&#x3D;&#39;exit&#39;</span><br><span class="line"></span><br><span class="line"># Don&#39;t run shutdown if rtorrent is running - as long as there&#39;s a screen with &quot;tor&quot; in its name, shutdown won&#39;t run (unless you call &#x2F;sbin&#x2F;shutdown, or unalias it)</span><br><span class="line">alias shutdown&#x3D;&#39;&#x2F;home&#x2F;james&#x2F;scripts&#x2F;safe.shutdown.sh&#39;</span><br><span class="line"></span><br><span class="line"># When using sudo, use alias expansion (otherwise sudo ignores your aliases)</span><br><span class="line">alias sudo&#x3D;&#39;sudo &#39;</span><br></pre></td></tr></table></figure><h2><span id="参考文档">参考文档</span></h2><ol><li><a href="http://www.shellperson.net/using-sudo-with-an-alias/" target="_blank" rel="noopener">Using sudo with an alias</a></li></ol><blockquote><p>本文转载自：「 Legolas’ Blogs 」，原文：<a href="https://url.hi-linux.com/lAqFF" target="_blank" rel="noopener">https://url.hi-linux.com/lAqFF</a> ，版权归原作者所有。欢迎投稿，投稿邮箱: <a href="mailto:editor@hi-linux.com">editor@hi-linux.com</a>。</p></blockquote></div><script src="https://my.openwrite.cn/js/readmore.js" type="text/javascript"></script><script>var isMobile = navigator.userAgent.match(/(phone|pad|pod|iPhone|iPod|ios|iPad|Android|Mobile|BlackBerry|IEMobile|MQQBrowser|JUC|Fennec|wOSBrowser|BrowserNG|WebOS|Symbian|Windows Phone)/i);if (!isMobile) {    var btw = new BTWPlugin();    btw.init({        "id": "vip-container",        "blogId": "10135-1588830050631-449",        "name": "「奇妙的 Linux 世界」",        "qrcode": "https://www.hi-linux.com/img/wechat/mp_qrcode_12.jpg",        "keyword": "VIP"    });}</script>]]></content>
+    <content type="html"><![CDATA[<div id="vip-container"><p>我们注册有些国外的服务时，是不能用国内邮箱注册的，这时一个 Gmail 邮箱就显得很有必要。而有时候我们会需要注册多个账号，当然你可以用多个 Gmail 邮箱来注册。</p><p>但多个 Gmail 邮箱又不好管理，而且现在 Gmail 邮箱也不是那么好注册了，这时你就会需要下面我要介绍的内容了，利用 Gmail 邮箱的别名功能来实现同一邮箱获取无限多个 Gmail 邮箱号。</p><p>在这之前你需要有一个谷歌账号（Gmail邮箱）。没有的话去到这里注册：<a href="http://mail.google.com/" target="_blank" rel="noopener">http://mail.google.com</a>（目前注册需要正确上网，请自行搜索解决）。</p><a id="more"></a><h2><span id="gmail-邮箱别名设置">Gmail 邮箱别名设置</span></h2><p>这里我们假设你的 Gmail 邮箱为：<code>abcdef@gmail.com</code> ，那就可以通过以下办法得到无限的谷歌邮箱别名。</p><h3><span id="1用户名之间加-英文半角">1.用户名之间加 <code>.</code> （英文半角）</span></h3><blockquote><p><strong>例如：</strong> <code>abc.def@gmail.com</code></p><p>因为 Gmail 的用户名是不区分 <code>.</code> 符号的，所以下面其实都是同一个用户名</p></blockquote><ul><li>abcde.f</li><li>a.bcdef</li><li>ab.cdef</li><li>a.b.cdef</li><li>abc.d.ef</li></ul><h3><span id="2用户名后面加-任意字符">2.用户名后面加 <code>+任意字符</code></span></h3><blockquote><p><strong>例如：</strong> <code>abcdef+dev@gmail.com</code></p><p><code>+</code> 号后面可以是任意字符，例如：</p></blockquote><ul><li>+dev</li><li>+my</li><li>+sub</li><li>……</li></ul><p>**PS：**使用“+”号法，在许多网站注册时候，并不识别邮箱地址中的“+”，会提示你邮箱错误。</p><h3><span id="3改变用户名中任意字符的大小写">3.改变用户名中任意字符的大小写</span></h3><blockquote><p><strong>例如：</strong> <code>aBCdef@gmail.com</code></p><p>可以是用户名里的某个或多个字符，</p></blockquote><ul><li><a href="mailto:Abcdef@gmail.com">Abcdef@gmail.com</a></li><li><a href="mailto:AbcDeF@gmail.com">AbcDeF@gmail.com</a></li><li><a href="mailto:abcdEf@gmail.com">abcdEf@gmail.com</a></li></ul><h3><span id="4-把后缀变为-googlemailcom">4. 把后缀变为 <code>googlemail.com</code></span></h3><blockquote><p>因为之前 Gmail 在某些国家的商标没有谈好，不能使用 Gmail 商标，只好用 googlemail，这个很好理解。（貌似现在全球的商标都已经谈妥了）</p></blockquote><p><strong>例如：</strong> <code>abcdef@googlemail.com</code></p><h3><span id="5以上4种方法的结合">５.以上４种方法的结合</span></h3><blockquote><p>可以结合上面的4种方法来实现理论上的无限别名。例如：</p></blockquote><ul><li><a href="mailto:aBcdef+dev@googlemail.com">aBcdef+dev@googlemail.com</a></li><li><a href="mailto:AbcDEf+sub@googlemail.com">AbcDEf+sub@googlemail.com</a></li></ul><h2><span id="总结">总结</span></h2><p>了解了上面的 Gmail 别名设置的方法后，当你要注册一些服务的时候，只要在填写Gmail邮箱的时候填写通过上述的方法得到的别名邮箱就可以了。无需到 Gmail 设置，所有的别名邮箱的邮件都会发送到你原来的邮箱 <code>abcdef@gmail.com</code> 中。</p><blockquote><p>本文转载自：「涅哥社区」，原文：<a href="https://url.hi-linux.com/RiANA" target="_blank" rel="noopener">https://url.hi-linux.com/RiANA</a> ，版权归原作者所有。欢迎投稿，投稿邮箱: <a href="mailto:editor@hi-linux.com">editor@hi-linux.com</a>。</p></blockquote></div><script src="https://my.openwrite.cn/js/readmore.js" type="text/javascript"></script><script>var isMobile = navigator.userAgent.match(/(phone|pad|pod|iPhone|iPod|ios|iPad|Android|Mobile|BlackBerry|IEMobile|MQQBrowser|JUC|Fennec|wOSBrowser|BrowserNG|WebOS|Symbian|Windows Phone)/i);if (!isMobile) {    var btw = new BTWPlugin();    btw.init({        "id": "vip-container",        "blogId": "10135-1588830050631-449",        "name": "「奇妙的 Linux 世界」",        "qrcode": "https://www.hi-linux.com/img/wechat/mp_qrcode_12.jpg",        "keyword": "VIP"    });}</script>]]></content>
     
     <summary type="html">
     
-      &lt;p&gt;一般来说，&lt;code&gt;sudo&lt;/code&gt;会忽略通过&lt;code&gt;.bashrc&lt;/code&gt;文件、&lt;code&gt;.bash_aliases&lt;/code&gt;文件或者&lt;code&gt;alias&lt;/code&gt;命令设置的别名命令(aliased commands)。&lt;/p&gt;
-&lt;p&gt;比如，我们经常将&lt;code&gt;ll&lt;/code&gt;用作&lt;code&gt;ls -lh&lt;/code&gt;命令的别名。然后，我们输入&lt;code&gt;ll&lt;/code&gt;，终端将会返回一个关于当前目录的长列表。但是，当我们输入&lt;code&gt;sudo ll&lt;/code&gt;时，终端将会返回:&lt;/p&gt;
-&lt;figure class=&quot;highlight plain&quot;&gt;&lt;table&gt;&lt;tr&gt;&lt;td class=&quot;gutter&quot;&gt;&lt;pre&gt;&lt;span class=&quot;line&quot;&gt;1&lt;/span&gt;&lt;br&gt;&lt;span class=&quot;line&quot;&gt;2&lt;/span&gt;&lt;br&gt;&lt;/pre&gt;&lt;/td&gt;&lt;td class=&quot;code&quot;&gt;&lt;pre&gt;&lt;span class=&quot;line&quot;&gt;$ sudo ll&lt;/span&gt;&lt;br&gt;&lt;span class=&quot;line&quot;&gt;&amp;#x3D;&amp;gt;  sudo: ll: command not found&lt;/span&gt;&lt;br&gt;&lt;/pre&gt;&lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;&lt;/figure&gt;
+      &lt;p&gt;我们注册有些国外的服务时，是不能用国内邮箱注册的，这时一个 Gmail 邮箱就显得很有必要。而有时候我们会需要注册多个账号，当然你可以用多个 Gmail 邮箱来注册。&lt;/p&gt;
+&lt;p&gt;但多个 Gmail 邮箱又不好管理，而且现在 Gmail 邮箱也不是那么好注册了，这时你就会需要下面我要介绍的内容了，利用 Gmail 邮箱的别名功能来实现同一邮箱获取无限多个 Gmail 邮箱号。&lt;/p&gt;
+&lt;p&gt;在这之前你需要有一个谷歌账号（Gmail邮箱）。没有的话去到这里注册：&lt;a href=&quot;http://mail.google.com/&quot; target=&quot;_blank&quot; rel=&quot;noopener&quot;&gt;http://mail.google.com&lt;/a&gt;（目前注册需要正确上网，请自行搜索解决）。&lt;/p&gt;
     
     </summary>
     
@@ -646,9 +645,11 @@
       <category term="Linux" scheme="https://www.hi-linux.com/categories/Linux/"/>
     
     
-      <category term="技巧" scheme="https://www.hi-linux.com/tags/%E6%8A%80%E5%B7%A7/"/>
-    
       <category term="Linux" scheme="https://www.hi-linux.com/tags/Linux/"/>
+    
+      <category term="Google" scheme="https://www.hi-linux.com/tags/Google/"/>
+    
+      <category term="Gmail" scheme="https://www.hi-linux.com/tags/Gmail/"/>
     
   </entry>
   
