@@ -1,0 +1,724 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<!-- Head tag -->
+<head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="google-site-verification" content="xBT4GhYoi5qRD5tr338pgPM5OWHHIDR6mNg1a3euekI" />
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="description" content="">
+    <meta name="keyword"  content="Linux,运维,Nginx,Zabbix,Centos,Ansible,MySQL,Python,Docker,Kubernetes,K3s,AI,WireGuard,ELK,Haproxy,Git,Nodejs,安全,技术">
+    <link rel="shortcut icon" href="/img/ironman-draw.png">
+    <!-- Place this tag in your head or just before your close body tag. -->
+    <script async defer src="https://buttons.github.io/buttons.js"></script>
+    <title>
+        
+          5 分钟搞定 Docker 应用登录认证！这款开源神器支持 Google/Github 登录，小白也能玩转 - 奇妙的 Linux 世界
+        
+    </title>
+
+    <link rel="canonical" href="https://www.hi-linux.com/posts/61432.html">
+
+    <!-- Bootstrap Core CSS -->
+    
+<link rel="stylesheet" href="/css/bootstrap.min.css">
+
+
+    <!-- Custom CSS --> 
+    
+<link rel="stylesheet" href="/css/beantech.min.css">
+
+    
+    <!-- Pygments Highlight CSS -->
+    
+<link rel="stylesheet" href="/css/highlight.css">
+
+
+    
+<link rel="stylesheet" href="/css/widget.css">
+
+
+    
+<link rel="stylesheet" href="/css/rocket.css">
+
+
+    
+<link rel="stylesheet" href="/css/signature.css">
+
+
+    
+<link rel="stylesheet" href="/css/toc.css">
+
+
+    <!-- Custom Fonts -->
+    <!-- <link href="https://maxcdn.bootstrapcdn.com/font-awesome/4.3.0/css/font-awesome.min.css" rel="stylesheet" type="text/css"> -->
+    <!-- Hux change font-awesome CDN to qiniu -->
+    <link href="https://cdn.staticfile.org/font-awesome/4.5.0/css/font-awesome.min.css" rel="stylesheet" type="text/css">
+
+
+    <!-- Hux Delete, sad but pending in China
+    <link href='http://fonts.googleapis.com/css?family=Lora:400,700,400italic,700italic' rel='stylesheet' type='text/css'>
+    <link href='http://fonts.googleapis.com/css?family=Open+Sans:300italic,400italic,600italic,700italic,800italic,400,300,600,700,800' rel='stylesheet' type='text/
+    css'>
+    -->
+
+
+    <!-- HTML5 Shim and Respond.js IE8 support of HTML5 elements and media queries -->
+    <!-- WARNING: Respond.js doesn't work if you view the page via file:// -->
+    <!--[if lt IE 9]>
+        <script src="https://oss.maxcdn.com/libs/html5shiv/3.7.0/html5shiv.js"></script>
+        <script src="https://oss.maxcdn.com/libs/respond.js/1.4.2/respond.min.js"></script>
+    <![endif]-->
+
+    <!-- ga & ba script hoook -->
+    <script></script>
+<meta name="generator" content="Hexo 4.2.1"><link rel="alternate" href="/atom.xml" title="奇妙的 Linux 世界" type="application/atom+xml">
+</head>
+
+
+<!-- hack iOS CSS :active style -->
+<body ontouchstart="">
+	<!-- Modified by Yu-Hsuan Yen -->
+<!-- Post Header -->
+<style type="text/css">
+    header.intro-header{
+        
+            background-image: url('/img/header_img/building.jpg')
+            /*post*/
+        
+    }
+    
+</style>
+
+<header class="intro-header" >
+    <!-- Signature -->
+    <div id="signature">
+        <div class="container">
+            <div class="row">
+                <div class="col-lg-8 col-lg-offset-2 col-md-10 col-md-offset-1">
+                
+                    <div class="post-heading">
+                        <div class="tags">
+                            
+                              <a class="tag" href="/tags/#技巧" title="技巧">技巧</a>
+                            
+                              <a class="tag" href="/tags/#Linux" title="Linux">Linux</a>
+                            
+                              <a class="tag" href="/tags/#Docker" title="Docker">Docker</a>
+                            
+                        </div>
+                        <h1>5 分钟搞定 Docker 应用登录认证！这款开源神器支持 Google/Github 登录，小白也能玩转</h1>
+                        <h2 class="subheading"></h2>
+                        <span class="meta">
+                            Posted by Mike on
+                            2025-08-18
+                        </span>
+                    </div>
+                
+
+
+                </div>
+            </div>
+        </div>
+    </div>
+</header>
+
+	
+    <!-- Navigation -->
+<nav class="navbar navbar-default navbar-custom navbar-fixed-top">
+    <div class="container-fluid">
+        <!-- Brand and toggle get grouped for better mobile display -->
+        <div class="navbar-header page-scroll">
+            <button type="button" class="navbar-toggle">
+                <span class="sr-only">Toggle navigation</span>
+                <span class="icon-bar"></span>
+                <span class="icon-bar"></span>
+                <span class="icon-bar"></span>
+            </button>
+            <a class="navbar-brand" href="/">奇妙的 Linux 世界</a>
+        </div>
+
+        <!-- Collect the nav links, forms, and other content for toggling -->
+        <!-- Known Issue, found by Hux:
+            <nav>'s height woule be hold on by its content.
+            so, when navbar scale out, the <nav> will cover tags.
+            also mask any touch event of tags, unfortunately.
+        -->
+        <div id="huxblog_navbar">
+            <div class="navbar-collapse">
+                <ul class="nav navbar-nav navbar-right">
+                    <li>
+                        <a href="/">Home</a>
+                    </li>
+
+                    
+
+                        
+                    
+
+                        
+                    
+
+                        
+                        <li>
+                            <a href="/about/">About</a>
+                        </li>
+                        
+                    
+
+                        
+                        <li>
+                            <a href="/tags/">Tags</a>
+                        </li>
+                        
+                    
+
+                        
+                        <li>
+                            <a href="/archive/">Archives</a>
+                        </li>
+                        
+                    
+                    
+                </ul>
+            </div>
+        </div>
+        <!-- /.navbar-collapse -->
+    </div>
+    <!-- /.container -->
+</nav>
+<script>
+    // Drop Bootstarp low-performance Navbar
+    // Use customize navbar with high-quality material design animation
+    // in high-perf jank-free CSS3 implementation
+    var $body   = document.body;
+    var $toggle = document.querySelector('.navbar-toggle');
+    var $navbar = document.querySelector('#huxblog_navbar');
+    var $collapse = document.querySelector('.navbar-collapse');
+
+    $toggle.addEventListener('click', handleMagic)
+    function handleMagic(e){
+        if ($navbar.className.indexOf('in') > 0) {
+        // CLOSE
+            $navbar.className = " ";
+            // wait until animation end.
+            setTimeout(function(){
+                // prevent frequently toggle
+                if($navbar.className.indexOf('in') < 0) {
+                    $collapse.style.height = "0px"
+                }
+            },400)
+        }else{
+        // OPEN
+            $collapse.style.height = "auto"
+            $navbar.className += " in";
+        }
+    }
+</script>
+
+
+    <!-- Main Content -->
+    <!-- Modify by Yu-Hsuan Yen -->
+
+<!-- Post Content -->
+<article>
+    <div class="container">
+        <div class="row">
+
+            <!-- Post Container -->
+            <div class="
+                col-lg-8 col-lg-offset-2
+                col-md-10 col-md-offset-1
+                post-container">
+
+                <div id="vip-container"><p><img src="https://img.hi-linux.com/staticfile/tinyauth-dark-2025-08-17-0oTdex.jpg" alt></p>
+<h2><span id="引言为什么需要-tinyauth">引言：为什么需要 Tinyauth？</span></h2>
+<p>你是否在自建家庭服务器时，为保护 Docker 应用而头疼？想给 Jellyfin、Homer 等应用加个登录屏，却发现 Authelia、Keycloak 这些工具配置复杂、资源占用大？</p>
+<p>别急，今天我们要聊的 Tinyauth，就是那个简单到 “让人想尖叫” 的开源神器！它轻量、易用，能在 5 分钟内为你的 Docker 应用加上一层安全防护。</p>
+<p>准备好了吗？让我们一起解锁 Tinyauth 的魅力！</p>
+<a id="more"></a>
+<h2><span id="tinyauth-是什么核心功能一览">Tinyauth 是什么？核心功能一览</span></h2>
+<p>Tinyauth 是由 GitHub 用户 steveiliop56 开发的一个开源认证中间件，专为 Docker 应用设计。</p>
+<p>它的目标简单粗暴：用最少的配置，为你的应用加上一个登录屏。无论是家庭服务器还是小型项目，Tinyauth 都能让你快速上手。</p>
+<blockquote>
+<p>GitHub 仓库地址：<a href="https://github.com/steveiliop56/tinyauth" target="_blank" rel="noopener">https://github.com/steveiliop56/tinyauth</a></p>
+</blockquote>
+<h3><span id="核心功能简单就是它的超能力">核心功能：简单就是它的超能力</span></h3>
+<ol>
+<li>
+<p>一键式登录屏：Tinyauth 提供简洁的用户名/密码登录界面，无需复杂配置。输入用户名和密码，保护你的应用就是这么简单！</p>
+</li>
+<li>
+<p>OAuth 集成：支持 Google、GitHub 和任何通用 OAuth 提供商登录。想用 Google 账号一键登录？Tinyauth 安排得明明白白！</p>
+</li>
+<li>
+<p>兼容主流代理：完美支持 Traefik、Nginx、Caddy 等反向代理，适配你的现有环境。</p>
+</li>
+<li>
+<p>轻量高效：基于 Go 语言开发，仅需 20MB 空间，启动快如闪电，资源占用低到你几乎感觉不到它的存在。</p>
+</li>
+<li>
+<p>灵活的访问控制：通过环境变量设置白名单，控制谁能访问你的应用。想限制某些用户？Tinyauth 轻松搞定！</p>
+</li>
+<li>
+<p>HTTP Basic Auth 支持：无需 cookie，直接通过命令行或代码访问应用，开发者的福音！</p>
+</li>
+</ol>
+<p>Tinyauth 的设计哲学是 “极简”。没有数据库，没有繁琐的 YAML 文件，只需几个环境变量，就能让你的应用安全又优雅。</p>
+<h2><span id="为什么选择-tinyauth">为什么选择 Tinyauth？</span></h2>
+<p>想象一下，你花了一整个周末折腾 Authelia，结果还是被复杂的配置文件搞得晕头转向。或者你只是想保护家里的 Plex 服务器，却发现 Keycloak 的设置比你的服务器本身还复杂！</p>
+<p>Tinyauth 就是为这样的场景而生。它就像一个贴心的朋友，帮你快速解决问题，让你有更多时间享受自建服务的乐趣。</p>
+<p>Reddit 上的自托管爱好者对 Tinyauth 赞不绝口：“花了 20 分钟，Tinyauth 就跑起来了，简单到爆！”还有人说：“终于有个工具不逼我读 500 页文档！”</p>
+<p>这些评价是不是让你也心动了？Tinyauth 不仅能满足 IT 从业者的需求，连科技爱好者都能轻松上手。</p>
+<h2><span id="安装-tinyauth5-分钟上手">安装 Tinyauth：5 分钟上手</span></h2>
+<p>Tinyauth 的安装过程简单到让人想给它点个赞。下面我们一步步教你如何部署。</p>
+<h3><span id="环境准备">环境准备</span></h3>
+<ul>
+<li>Docker：确保你的系统已安装 Docker 和 Docker Compose。</li>
+<li>反向代理：Tinyauth 支持 Traefik、Nginx 或 Caddy，推荐使用 Traefik。</li>
+<li>域名：准备一个域名（如 <a href="http://tinyauth.example.com" target="_blank" rel="noopener">tinyauth.example.com</a>），所有应用需在此域名下。</li>
+</ul>
+<h3><span id="安装步骤">安装步骤</span></h3>
+<ol>
+<li>
+<p>拉取 Tinyauth 镜像</p>
+<p>打开终端，运行以下命令拉取最新版本的 Tinyauth 镜像：</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">$ docker pull ghcr.io/steveiliop56/tinyauth:v3</span><br></pre></td></tr></table></figure>
+</li>
+<li>
+<p>生成密钥</p>
+<p>Tinyauth 需要一个 32 位密钥用于加密。运行以下命令生成：</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">$ openssl rand -base64 32 | tr -dc <span class="string">'a-zA-Z0-9'</span> | head -c 32 &amp;&amp; <span class="built_in">echo</span></span><br></pre></td></tr></table></figure>
+<p>记下生成的密钥，后面会用到。</p>
+</li>
+<li>
+<p>创建用户</p>
+<p>Tinyauth 使用 bcrypt 哈希存储用户密码。运行以下命令创建用户：</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">$ docker run -i -t --rm ghcr.io/steveiliop56/tinyauth:v3 user create --interactive</span><br></pre></td></tr></table></figure>
+<p>按照提示输入用户名和密码，生成类似 <code>user:$2a$10$UdLYoJ5lgPsC0RKqYH/jMua7zIn0g9kPqWmhYayJYLaZQ/FTmH2/u</code> 的哈希值。</p>
+</li>
+<li>
+<p>配置 Docker Compose</p>
+<p>创建一个 docker-compose.yml 文件，添加以下内容：</p>
+<figure class="highlight yaml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br></pre></td><td class="code"><pre><span class="line"><span class="attr">services:</span></span><br><span class="line">  <span class="attr">traefik:</span></span><br><span class="line">    <span class="attr">image:</span> <span class="string">traefik:v3.3</span></span><br><span class="line">    <span class="attr">container_name:</span> <span class="string">traefik</span></span><br><span class="line">    <span class="attr">command:</span> <span class="string">--api.insecure=true</span> <span class="string">--providers.docker</span></span><br><span class="line">    <span class="attr">ports:</span></span><br><span class="line">      <span class="bullet">-</span> <span class="number">80</span><span class="string">:80</span></span><br><span class="line">    <span class="attr">volumes:</span></span><br><span class="line">      <span class="bullet">-</span> <span class="string">/var/run/docker.sock:/var/run/docker.sock</span></span><br><span class="line">  <span class="attr">whoami:</span></span><br><span class="line">    <span class="attr">image:</span> <span class="string">traefik/whoami:latest</span></span><br><span class="line">    <span class="attr">container_name:</span> <span class="string">whoami</span></span><br><span class="line">    <span class="attr">labels:</span></span><br><span class="line">      <span class="attr">traefik.enable:</span> <span class="literal">true</span></span><br><span class="line">      <span class="attr">traefik.http.routers.nginx.rule:</span> <span class="string">Host(`whoami.example.com`)</span></span><br><span class="line">      <span class="attr">traefik.http.routers.nginx.middlewares:</span> <span class="string">tinyauth</span></span><br><span class="line">  <span class="attr">tinyauth:</span></span><br><span class="line">    <span class="attr">image:</span> <span class="string">ghcr.io/steveiliop56/tinyauth:v3</span></span><br><span class="line">    <span class="attr">container_name:</span> <span class="string">tinyauth</span></span><br><span class="line">    <span class="attr">environment:</span></span><br><span class="line">      <span class="bullet">-</span> <span class="string">SECRET=你的密钥</span></span><br><span class="line">      <span class="bullet">-</span> <span class="string">APP_URL=https://tinyauth.example.com</span></span><br><span class="line">      <span class="bullet">-</span> <span class="string">USERS=你的用户名:密码哈希</span></span><br><span class="line">    <span class="attr">labels:</span></span><br><span class="line">      <span class="attr">traefik.enable:</span> <span class="literal">true</span></span><br><span class="line">      <span class="attr">traefik.http.routers.tinyauth.rule:</span> <span class="string">Host(`tinyauth.example.com`)</span></span><br><span class="line">      <span class="attr">traefik.http.middlewares.tinyauth.forwardauth.address:</span> <span class="string">http://tinyauth:3000/api/auth/traefik</span></span><br></pre></td></tr></table></figure>
+<p>将 SECRET 替换为生成的密钥，USERS 替换为用户名和密码哈希，<code>APP_URL</code> 替换为你的域名。</p>
+</li>
+<li>
+<p>启动服务</p>
+<p>在 docker-compose.yml 所在目录运行：</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">$ docker-compose up -d</span><br></pre></td></tr></table></figure>
+</li>
+<li>
+<p>验证安装</p>
+<p>访问 <code>whoami.example.com</code>，你应该被重定向到 Tinyauth 登录页面。输入用户名和密码，登录后即可访问应用。默认用户为 <code>user</code>，密码为 <code>password</code>（仅用于测试，记得更换！）。</p>
+</li>
+</ol>
+<h2><span id="使用-tinyauth让安全更简单">使用 Tinyauth：让安全更简单</span></h2>
+<p>安装完成后，Tinyauth 的使用就像喝水一样简单。以下是几种常见场景的用法。</p>
+<ol>
+<li>保护单个应用</li>
+</ol>
+<p>想保护某个 Docker 应用？只需在应用的 Docker Compose 配置中添加 Traefik 标签：</p>
+<figure class="highlight yaml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="attr">labels:</span></span><br><span class="line">  <span class="attr">traefik.http.routers.myapp.middlewares:</span> <span class="string">tinyauth</span></span><br></pre></td></tr></table></figure>
+<p>保存并重启服务，访问应用时就会弹出 Tinyauth 登录屏。</p>
+<ol start="2">
+<li>配置 OAuth 登录</li>
+</ol>
+<p>想用 Google 或 GitHub 登录？Tinyauth 支持 OAuth，配置也超简单：</p>
+<ul>
+<li>
+<p>获取 OAuth 凭证：在 Google 或 GitHub 开发者控制台创建应用，获取 <code>CLIENT_ID</code> 和 <code>CLIENT_SECRET</code>。</p>
+</li>
+<li>
+<p>更新环境变量：在 docker-compose.yml 中添加：</p>
+<figure class="highlight yaml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="attr">environment:</span></span><br><span class="line">  <span class="bullet">-</span> <span class="string">GOOGLE_CLIENT_ID=你的</span> <span class="string">Google</span> <span class="string">客户端</span> <span class="string">ID</span></span><br><span class="line">  <span class="bullet">-</span> <span class="string">GOOGLE_CLIENT_SECRET=你的</span> <span class="string">Google</span> <span class="string">客户端密钥</span></span><br></pre></td></tr></table></figure>
+</li>
+<li>
+<p>重启服务：运行 <code>docker-compose up -d</code>，访问登录页面，选择 Google 登录即可。</p>
+</li>
+</ul>
+<ol start="3">
+<li>设置访问控制</li>
+</ol>
+<p>想限制某些用户访问特定应用？在应用的标签中添加白名单：</p>
+<figure class="highlight yaml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="attr">labels:</span></span><br><span class="line">  <span class="attr">traefik.http.routers.myapp.middlewares:</span> <span class="string">tinyauth</span></span><br><span class="line">  <span class="attr">tinyauth.users:</span> <span class="string">user1,user2</span></span><br><span class="line">  <span class="attr">tinyauth.oauth.whitelist:</span> <span class="string">user1@example.com,user2@example.com</span></span><br></pre></td></tr></table></figure>
+<p>未在白名单中的用户将被重定向到 “未授权” 页面。</p>
+<ol start="4">
+<li>使用 HTTP Basic Auth</li>
+</ol>
+<p>开发者福利！Tinyauth 支持 HTTP Basic Auth，无需登录页面即可通过命令行访问：</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">$ curl -u user:password https://whoami.example.com</span><br></pre></td></tr></table></figure>
+<p>这对脚本和 API 调用特别友好。</p>
+<h2><span id="进阶技巧让-tinyauth-更强大">进阶技巧：让 Tinyauth 更强大</span></h2>
+<ul>
+<li>
+<p>自定义标题：通过环境变量 <code>APP_TITLE</code> 设置登录页面标题，如 <code>APP_TITLE=我的超级登录屏</code>。</p>
+</li>
+<li>
+<p>调整会话时间：通过 <code>SESSION_EXPIRY</code> 设置 cookie 有效期，单位为秒，默认 7200 秒（2 小时）。</p>
+</li>
+<li>
+<p>调试日志：设置 <code>LOG_LEVEL=1</code> 启用详细日志，排查问题更轻松。</p>
+</li>
+<li>
+<p>加入社区：Tinyauth 有一个 Discord 服务器，加入后可以与开发者和其他用户交流，获取最新动态。</p>
+</li>
+</ul>
+<h2><span id="tinyauth-适合谁">Tinyauth 适合谁？</span></h2>
+<p>Tinyauth 专为家庭服务器和小型项目设计。如果你需要企业级功能（如复杂权限管理），可能需要 Authelia 或 Keycloak。但对于个人用户或自托管爱好者，Tinyauth 的简单性和高效性无人能敌。</p>
+<blockquote>
+<p>小贴士：在 Docker Compose 中，bcrypt 哈希中的 <code>$</code> 需要写成 <code>$$</code>，否则 Docker 会误认为是变量。</p>
+</blockquote>
+<h2><span id="总结tinyauth简单安全的代名词">总结：Tinyauth，简单安全的代名词</span></h2>
+<p>Tinyauth 就像一个轻量级 “门卫”，为你的 Docker 应用提供简单而可靠的保护。</p>
+<p>无需繁琐配置，几分钟就能搞定登录屏，支持 OAuth、兼容主流代理，简直是自托管爱好者的梦中情人！</p>
+<p>无论你是 IT 从业者还是科技爱好者，Tinyauth 都能让你轻松上手，省下时间去享受自建服务的乐趣。</p>
+<p>快去试试吧！访问 <a href="https://tinyauth.app" target="_blank" rel="noopener">Tinyauth 官网</a> 查看完整文档，或者加入 <a href="https://discord.com/invite/tinyauth" target="_blank" rel="noopener">Discord 社区</a> 与大家分享你的经验。你的服务器安全，从 Tinyauth 开始！</p>
+<blockquote>
+<p>想让更多人知道这个神器？分享这篇文章到你的朋友圈，或者在 Reddit、X 上晒晒你的 Tinyauth 搭建心得吧！</p>
+</blockquote>
+</div>
+
+			<script src="https://my.openwrite.cn/js/readmore.js" type="text/javascript"></script>
+			<script>
+			var isMobile = navigator.userAgent.match(/(phone|pad|pod|iPhone|iPod|ios|iPad|Android|Mobile|BlackBerry|IEMobile|MQQBrowser|JUC|Fennec|wOSBrowser|BrowserNG|WebOS|Symbian|Windows Phone)/i);
+			if (!isMobile) {
+			    var btw = new BTWPlugin();
+			    btw.init({
+			        "id": "vip-container",
+			        "blogId": "10135-1588830050631-449",
+			        "name": "「奇妙的 Linux 世界」",
+			        "qrcode": "https://www.hi-linux.com/img/wechat/mp_qrcode_12.jpg",
+			        "keyword": "VIP"
+			    });
+			}
+			</script>
+		
+                
+
+                <hr>
+                <!-- Pager -->
+                <ul class="pager">
+                    
+                        <li class="previous">
+                            <a href="/posts/51647.html" data-toggle="tooltip" data-placement="top" title="掌握这 9 个 IT 新技术：让你轻松驾驭技术浪潮，成为团队核心，轻松逆袭职场！">&larr; Previous Post</a>
+                        </li>
+                    
+                    
+                        <li class="next">
+                            <a href="/posts/5624.html" data-toggle="tooltip" data-placement="top" title="别再用 Ping了！这款开源工具支持 ICMP/TCP/UDP/HTTP 全协议 + 可视化，强 10 倍！">Next Post &rarr;</a>
+                        </li>
+                    
+                </ul>
+
+                <!-- duoshuo Share start -->
+                
+                <!-- 多说 Share end-->
+
+                <!-- 多说评论框 start -->
+                
+                <!-- 多说评论框 end -->
+
+                <!-- disqus comment start -->
+                
+                <!-- disqus comment end -->
+
+                
+                    <!-- disqus 评论框 start -->
+                    <div class="comment">
+                        <div id="lv-container" data-id="city" data-uid="MTAyMC8yNzg2My80NDQw"></div>
+                    </div>
+                    <!-- disqus 评论框 end -->
+                
+
+            </div>
+            
+            <!-- Tabe of Content -->
+            <!-- Table of Contents -->
+
+  
+    <style>
+      span.toc-nav-number{
+        display: none
+      }
+    </style>
+  
+    
+      <aside id="sidebar">
+        <div id="toc" class="toc-article">
+        <strong class="toc-title">Contents</strong>
+        
+          <ol class="toc-nav"><li class="toc-nav-item toc-nav-level-2"><a class="toc-nav-link" href="#vip-container"><span class="toc-nav-number">1.</span> <span class="toc-nav-text">引言：为什么需要 Tinyauth？</span></a></li><li class="toc-nav-item toc-nav-level-2"><a class="toc-nav-link" href="#vip-container"><span class="toc-nav-number">2.</span> <span class="toc-nav-text">Tinyauth 是什么？核心功能一览</span></a><ol class="toc-nav-child"><li class="toc-nav-item toc-nav-level-3"><a class="toc-nav-link" href="#vip-container"><span class="toc-nav-number">2.1.</span> <span class="toc-nav-text">核心功能：简单就是它的超能力</span></a></li></ol></li><li class="toc-nav-item toc-nav-level-2"><a class="toc-nav-link" href="#vip-container"><span class="toc-nav-number">3.</span> <span class="toc-nav-text">为什么选择 Tinyauth？</span></a></li><li class="toc-nav-item toc-nav-level-2"><a class="toc-nav-link" href="#vip-container"><span class="toc-nav-number">4.</span> <span class="toc-nav-text">安装 Tinyauth：5 分钟上手</span></a><ol class="toc-nav-child"><li class="toc-nav-item toc-nav-level-3"><a class="toc-nav-link" href="#vip-container"><span class="toc-nav-number">4.1.</span> <span class="toc-nav-text">环境准备</span></a></li><li class="toc-nav-item toc-nav-level-3"><a class="toc-nav-link" href="#vip-container"><span class="toc-nav-number">4.2.</span> <span class="toc-nav-text">安装步骤</span></a></li></ol></li><li class="toc-nav-item toc-nav-level-2"><a class="toc-nav-link" href="#vip-container"><span class="toc-nav-number">5.</span> <span class="toc-nav-text">使用 Tinyauth：让安全更简单</span></a></li><li class="toc-nav-item toc-nav-level-2"><a class="toc-nav-link" href="#vip-container"><span class="toc-nav-number">6.</span> <span class="toc-nav-text">进阶技巧：让 Tinyauth 更强大</span></a></li><li class="toc-nav-item toc-nav-level-2"><a class="toc-nav-link" href="#vip-container"><span class="toc-nav-number">7.</span> <span class="toc-nav-text">Tinyauth 适合谁？</span></a></li><li class="toc-nav-item toc-nav-level-2"><a class="toc-nav-link" href="#vip-container"><span class="toc-nav-number">8.</span> <span class="toc-nav-text">总结：Tinyauth，简单安全的代名词</span></a></li></ol>
+        
+        </div>
+      </aside>
+    
+
+                
+            <!-- Sidebar Container -->
+            <div class="
+                col-lg-8 col-lg-offset-2
+                col-md-10 col-md-offset-1
+                sidebar-container">
+
+                <!-- Featured Tags -->
+                
+                <section>
+                    <!-- no hr -->
+                    <h5><a href="/tags/">FEATURED TAGS</a></h5>
+                    <div class="tags">
+                       
+                          <a class="tag" href="/tags/#技巧" title="技巧">技巧</a>
+                        
+                          <a class="tag" href="/tags/#Linux" title="Linux">Linux</a>
+                        
+                          <a class="tag" href="/tags/#Docker" title="Docker">Docker</a>
+                        
+                    </div>
+                </section>
+                
+
+                <!-- Friends Blog -->
+                
+                <hr>
+                <h5>FRIENDS</h5>
+                <ul class="list-inline">
+
+                    
+                        <li><a href="https://bestgeek.org/" target="_blank">极客视界</a></li>
+                    
+                        <li><a href="https://666666.dev/" target="_blank">IT 人必备工具箱</a></li>
+                    
+                        <li><a href="https://mp.weixin.qq.com/s/ZgoeD1FBp7eouyxBte4MWw" target="_blank">Linux 技术交流群</a></li>
+                    
+                        <li><a href="" target="_blank"></a></li>
+                    
+                        <li><a href="" target="_blank"></a></li>
+                    
+                </ul>
+                
+            </div>
+        </div>
+    </div>
+</article>
+
+
+
+
+
+
+    <!-- 来必力City版公共JS代码 start (一个网页只需插入一次) -->
+    <script type="text/javascript">
+       (function(d, s) {
+           var j, e = d.getElementsByTagName(s)[0];
+    
+           if (typeof LivereTower === 'function') { return; }
+    
+           j = d.createElement(s);
+           j.src = 'https://cdn-city.livere.com/js/embed.dist.js';
+           j.async = true;
+    
+           e.parentNode.insertBefore(j, e);
+       })(document, 'script');
+    </script>
+    <noscript>为正常使用来必力评论功能请激活JavaScript</noscript>
+    <!-- 来必力City版 公共JS代码 end -->
+
+
+
+<!-- async load function -->
+<script>
+    function async(u, c) {
+      var d = document, t = 'script',
+          o = d.createElement(t),
+          s = d.getElementsByTagName(t)[0];
+      o.src = u;
+      if (c) { o.addEventListener('load', function (e) { c(null, e); }, false); }
+      s.parentNode.insertBefore(o, s);
+    }
+</script>
+<!-- anchor-js, Doc:http://bryanbraun.github.io/anchorjs/ -->
+<script>
+    async("https://cdn.bootcss.com/anchor-js/1.1.1/anchor.min.js",function(){
+        anchors.options = {
+          visible: 'hover',
+          placement: 'left',
+          icon: 'ℬ'
+        };
+        anchors.add().remove('.intro-header h1').remove('.subheading').remove('.sidebar-container h5');
+    })
+</script>
+<style>
+    /* place left on bigger screen */
+    @media all and (min-width: 800px) {
+        .anchorjs-link{
+            position: absolute;
+            left: -0.75em;
+            font-size: 1.1em;
+            margin-top : -0.1em;
+        }
+    }
+</style>
+
+
+
+    <!-- Footer -->
+    <!-- Footer -->
+<footer>
+    <div class="container">
+        <div class="row">
+            <div class="col-lg-8 col-lg-offset-2 col-md-10 col-md-offset-1">
+                <ul class="list-inline text-center">
+                
+                    <li>
+                        <a href="/atom.xml">
+                            <span class="fa-stack fa-lg">
+                                <i class="fa fa-circle fa-stack-2x"></i>
+                                <i class="fa fa-rss fa-stack-1x fa-inverse"></i>
+                            </span>
+                        </a>
+                    </li>
+                
+                
+                
+                    <li>
+                        <a target="_blank" href="https://www.zhihu.com/people/80imike">
+                            <span class="fa-stack fa-lg">
+                                <i class="fa fa-circle fa-stack-2x"></i>
+                                <i class="fa  fa-stack-1x fa-inverse">知</i>
+                            </span>
+                        </a>
+                    </li>
+                
+
+                
+                    <li>
+                        <a target="_blank" href="http://weibo.com/2093524665">
+                            <span class="fa-stack fa-lg">
+                                <i class="fa fa-circle fa-stack-2x"></i>
+                                <i class="fa fa-weibo fa-stack-1x fa-inverse"></i>
+                            </span>
+                        </a>
+                    </li>
+                
+
+                
+
+                
+
+                
+
+                </ul>
+                <p class="copyright text-muted">
+                    Copyright &copy; Mike 2025 | Hosted by <a href="https://pages.coding.me" target="_blank" rel="noopener" style="font-weight: bold">Coding Pages</a>
+                    <br>
+                    Theme by <a href="http://beantech.org" target="_blank" rel="noopener">BeanTech</a> 
+                    <span style="display: inline-block; margin: 0 5px;">
+                        <i class="fa fa-heart"></i>
+                    </span> 
+                    re-Ported by <a href="http://www.huweihuang.com" target="_blank" rel="noopener">胡伟煌</a> | 
+                    <iframe
+                        style="margin-left: 2px; margin-bottom:-5px;"
+                        frameborder="0" scrolling="0" width="91px" height="20px"
+                        src="https://ghbtns.com/github-btn.html?user=huweihuang&repo=hexo-theme-huweihuang&type=star&count=true" >
+                    </iframe>
+                </p>
+            </div>
+        </div>
+    </div>
+</footer>
+
+<!-- jQuery -->
+
+<script src="/js/jquery.min.js"></script>
+
+
+<!-- Bootstrap Core JavaScript -->
+
+<script src="/js/bootstrap.min.js"></script>
+
+
+<!-- Custom Theme JavaScript -->
+
+<script src="/js/hux-blog.min.js"></script>
+
+
+
+<!-- async load function -->
+<script>
+    function async(u, c) {
+      var d = document, t = 'script',
+          o = d.createElement(t),
+          s = d.getElementsByTagName(t)[0];
+      o.src = u;
+      if (c) { o.addEventListener('load', function (e) { c(null, e); }, false); }
+      s.parentNode.insertBefore(o, s);
+    }
+</script>
+
+<!-- 
+     Because of the native support for backtick-style fenced code blocks 
+     right within the Markdown is landed in Github Pages, 
+     From V1.6, There is no need for Highlight.js, 
+     so Huxblog drops it officially.
+
+     - https://github.com/blog/2100-github-pages-now-faster-and-simpler-with-jekyll-3-0  
+     - https://help.github.com/articles/creating-and-highlighting-code-blocks/    
+-->
+<!--
+    <script>
+        async("http://cdn.bootcss.com/highlight.js/8.6/highlight.min.js", function(){
+            hljs.initHighlightingOnLoad();
+        })
+    </script>
+    <link href="http://cdn.bootcss.com/highlight.js/8.6/styles/github.min.css" rel="stylesheet">
+-->
+
+
+<!-- jquery.tagcloud.js -->
+<script>
+    // only load tagcloud.js in tag.html
+    if($('#tag_cloud').length !== 0){
+        async("https://www.hi-linux.com/js/jquery.tagcloud.js",function(){
+            $.fn.tagcloud.defaults = {
+                //size: {start: 1, end: 1, unit: 'em'},
+                color: {start: '#bbbbee', end: '#0085a1'},
+            };
+            $('#tag_cloud a').tagcloud();
+        })
+    }
+</script>
+
+<!--fastClick.js -->
+<script>
+    async("https://cdn.bootcss.com/fastclick/1.0.6/fastclick.min.js", function(){
+        var $nav = document.querySelector("nav");
+        if($nav) FastClick.attach($nav);
+    })
+</script>
+
+
+<!-- Google Analytics -->
+
+
+
+
+<!-- Baidu Tongji -->
+
+
+
+<script defer src="https://umami.hi-linux.com/script.js"
+    data-website-id="db99ccfc-f114-4595-8f3b-9dd1fbd3bf19"></script>
+
+
+	<a id="rocket" href="#top" class=""></a>
+	<script type="text/javascript" src="/js/totop.js?v=1.0.0" async=""></script>
+    <script type="text/javascript" src="/js/toc.js?v=1.0.0" async=""></script>
+<!-- Image to hack wechat -->
+<img src="https://www.hi-linux.com/img/icon_wechat.png" width="0" height="0" />
+<!-- Migrate from head to bottom, no longer block render and still work -->
+
+<script>(function(w,d, s, id) {w.webpushr=w.webpushr||function(){(w.webpushr.q=w.webpushr.q||[]).push(arguments)};var js, fjs = d.getElementsByTagName(s)[0];js = d.createElement(s); js.id = id;js.src = 'https://cdn.webpushr.com/app.min.js';fjs.parentNode.appendChild(js);}(window,document, 'script', 'webpushr-jssdk'));webpushr('init','BF9JK7xV9kjWTdMx2lr6RWaPfXV7wNuZaVAJ1bfIGoBNJavqLEBVFMKLubITnCA4bh2fI9iH9tMF95nXnPt7xxY');</script></body>
+
+</html>
