@@ -1,0 +1,678 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<!-- Head tag -->
+<head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="google-site-verification" content="xBT4GhYoi5qRD5tr338pgPM5OWHHIDR6mNg1a3euekI" />
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="description" content="">
+    <meta name="keyword"  content="Linux,运维,Nginx,Zabbix,Centos,Ansible,MySQL,Python,Docker,Kubernetes,K3s,AI,WireGuard,ELK,Haproxy,Git,Nodejs,安全,技术">
+    <link rel="shortcut icon" href="/img/ironman-draw.png">
+    <!-- Place this tag in your head or just before your close body tag. -->
+    <script async defer src="https://buttons.github.io/buttons.js"></script>
+    <title>
+        
+          别再手动翻 Docker 容器日志了！3 行配置搞定容器监控，效率翻倍 - 奇妙的 Linux 世界
+        
+    </title>
+
+    <link rel="canonical" href="https://www.hi-linux.com/posts/9898.html">
+
+    <!-- Bootstrap Core CSS -->
+    
+<link rel="stylesheet" href="/css/bootstrap.min.css">
+
+
+    <!-- Custom CSS --> 
+    
+<link rel="stylesheet" href="/css/beantech.min.css">
+
+    
+    <!-- Pygments Highlight CSS -->
+    
+<link rel="stylesheet" href="/css/highlight.css">
+
+
+    
+<link rel="stylesheet" href="/css/widget.css">
+
+
+    
+<link rel="stylesheet" href="/css/rocket.css">
+
+
+    
+<link rel="stylesheet" href="/css/signature.css">
+
+
+    
+<link rel="stylesheet" href="/css/toc.css">
+
+
+    <!-- Custom Fonts -->
+    <!-- <link href="https://maxcdn.bootstrapcdn.com/font-awesome/4.3.0/css/font-awesome.min.css" rel="stylesheet" type="text/css"> -->
+    <!-- Hux change font-awesome CDN to qiniu -->
+    <link href="https://cdn.staticfile.org/font-awesome/4.5.0/css/font-awesome.min.css" rel="stylesheet" type="text/css">
+
+
+    <!-- Hux Delete, sad but pending in China
+    <link href='http://fonts.googleapis.com/css?family=Lora:400,700,400italic,700italic' rel='stylesheet' type='text/css'>
+    <link href='http://fonts.googleapis.com/css?family=Open+Sans:300italic,400italic,600italic,700italic,800italic,400,300,600,700,800' rel='stylesheet' type='text/
+    css'>
+    -->
+
+
+    <!-- HTML5 Shim and Respond.js IE8 support of HTML5 elements and media queries -->
+    <!-- WARNING: Respond.js doesn't work if you view the page via file:// -->
+    <!--[if lt IE 9]>
+        <script src="https://oss.maxcdn.com/libs/html5shiv/3.7.0/html5shiv.js"></script>
+        <script src="https://oss.maxcdn.com/libs/respond.js/1.4.2/respond.min.js"></script>
+    <![endif]-->
+
+    <!-- ga & ba script hoook -->
+    <script></script>
+<meta name="generator" content="Hexo 4.2.1"><link rel="alternate" href="/atom.xml" title="奇妙的 Linux 世界" type="application/atom+xml">
+</head>
+
+
+<!-- hack iOS CSS :active style -->
+<body ontouchstart="">
+	<!-- Modified by Yu-Hsuan Yen -->
+<!-- Post Header -->
+<style type="text/css">
+    header.intro-header{
+        
+            background-image: url('/img/header_img/building.jpg')
+            /*post*/
+        
+    }
+    
+</style>
+
+<header class="intro-header" >
+    <!-- Signature -->
+    <div id="signature">
+        <div class="container">
+            <div class="row">
+                <div class="col-lg-8 col-lg-offset-2 col-md-10 col-md-offset-1">
+                
+                    <div class="post-heading">
+                        <div class="tags">
+                            
+                              <a class="tag" href="/tags/#技巧" title="技巧">技巧</a>
+                            
+                              <a class="tag" href="/tags/#Linux" title="Linux">Linux</a>
+                            
+                              <a class="tag" href="/tags/#Docker" title="Docker">Docker</a>
+                            
+                        </div>
+                        <h1>别再手动翻 Docker 容器日志了！3 行配置搞定容器监控，效率翻倍</h1>
+                        <h2 class="subheading"></h2>
+                        <span class="meta">
+                            Posted by Mike on
+                            2025-08-23
+                        </span>
+                    </div>
+                
+
+
+                </div>
+            </div>
+        </div>
+    </div>
+</header>
+
+	
+    <!-- Navigation -->
+<nav class="navbar navbar-default navbar-custom navbar-fixed-top">
+    <div class="container-fluid">
+        <!-- Brand and toggle get grouped for better mobile display -->
+        <div class="navbar-header page-scroll">
+            <button type="button" class="navbar-toggle">
+                <span class="sr-only">Toggle navigation</span>
+                <span class="icon-bar"></span>
+                <span class="icon-bar"></span>
+                <span class="icon-bar"></span>
+            </button>
+            <a class="navbar-brand" href="/">奇妙的 Linux 世界</a>
+        </div>
+
+        <!-- Collect the nav links, forms, and other content for toggling -->
+        <!-- Known Issue, found by Hux:
+            <nav>'s height woule be hold on by its content.
+            so, when navbar scale out, the <nav> will cover tags.
+            also mask any touch event of tags, unfortunately.
+        -->
+        <div id="huxblog_navbar">
+            <div class="navbar-collapse">
+                <ul class="nav navbar-nav navbar-right">
+                    <li>
+                        <a href="/">Home</a>
+                    </li>
+
+                    
+
+                        
+                    
+
+                        
+                    
+
+                        
+                        <li>
+                            <a href="/about/">About</a>
+                        </li>
+                        
+                    
+
+                        
+                        <li>
+                            <a href="/tags/">Tags</a>
+                        </li>
+                        
+                    
+
+                        
+                        <li>
+                            <a href="/archive/">Archives</a>
+                        </li>
+                        
+                    
+                    
+                </ul>
+            </div>
+        </div>
+        <!-- /.navbar-collapse -->
+    </div>
+    <!-- /.container -->
+</nav>
+<script>
+    // Drop Bootstarp low-performance Navbar
+    // Use customize navbar with high-quality material design animation
+    // in high-perf jank-free CSS3 implementation
+    var $body   = document.body;
+    var $toggle = document.querySelector('.navbar-toggle');
+    var $navbar = document.querySelector('#huxblog_navbar');
+    var $collapse = document.querySelector('.navbar-collapse');
+
+    $toggle.addEventListener('click', handleMagic)
+    function handleMagic(e){
+        if ($navbar.className.indexOf('in') > 0) {
+        // CLOSE
+            $navbar.className = " ";
+            // wait until animation end.
+            setTimeout(function(){
+                // prevent frequently toggle
+                if($navbar.className.indexOf('in') < 0) {
+                    $collapse.style.height = "0px"
+                }
+            },400)
+        }else{
+        // OPEN
+            $collapse.style.height = "auto"
+            $navbar.className += " in";
+        }
+    }
+</script>
+
+
+    <!-- Main Content -->
+    <!-- Modify by Yu-Hsuan Yen -->
+
+<!-- Post Content -->
+<article>
+    <div class="container">
+        <div class="row">
+
+            <!-- Post Container -->
+            <div class="
+                col-lg-8 col-lg-offset-2
+                col-md-10 col-md-offset-1
+                post-container">
+
+                <div id="vip-container"><p>你是否曾为 Docker 容器日志的监控而头疼？想在关键时刻收到错误警报，却不想搭建复杂的日志系统？</p>
+<p>别担心，今天我要为你介绍一款超实用、轻量级的开源工具 —— <code>clemcer/loggifly</code>！</p>
+<p>它能让你的日志监控变得简单又智能，堪称 IT 从业者和科技爱好者的 “救星”！快来一起解锁它的魅力吧！</p>
+<h2><span id="什么是-loggifly简单又强大的日志监控神器">什么是 LoggiFly？简单又强大的日志监控神器</span></h2>
+<p><img src="https://img.hi-linux.com/staticfile/1l3ipc-2025-08-23-igHhiS.png" alt></p>
+<p>LoggiFly 是一个开源工具，专门为 Docker 和 Podman 容器日志监控而生。它能实时扫描容器日志，捕捉你关心的关键词或模式，并在第一时间通过通知服务（如 Discord、Slack 或 Telegram）提醒你。</p>
+<p>无论是服务器崩溃、登录失败，还是其他关键事件，LoggiFly 都能帮你 “眼观六路，耳听八方”。</p>
+<p>它的最大亮点？轻量！无需复杂的日志堆栈，LoggiFly 运行在一个小型容器中，直接连接 Docker 或 Podman 的 Socket，资源占用极低。更棒的是，它支持灵活的配置，既适合新手快速上手，也能满足高级用户的需求。</p>
+<blockquote>
+<p>Github 仓库地址：<a href="https://github.com/clemcer/loggifly" target="_blank" rel="noopener">https://github.com/clemcer/loggifly</a></p>
+</blockquote>
+<a id="more"></a>
+<h2><span id="核心功能让你的日志-开口说话">核心功能：让你的日志 “开口说话”</span></h2>
+<p>LoggiFly 的功能强大且直击痛点，下面是它的核心亮点：</p>
+<ol>
+<li>
+<p>关键词与正则表达式监控 LoggiFly 能捕捉日志中的特定关键词（如 “error” 或 “failed login”），甚至支持复杂的正则表达式，适合捕捉多行日志或特定模式。比如，想监控 Vaultwarden 的登录失败？只需设置关键词 “failed login”，LoggiFly 就会在日志出现时立即通知你。</p>
+</li>
+<li>
+<p>灵活的通知方式支持 Ntfy、Apprise 和自定义 Webhook，覆盖 100 多种通知服务。你可以用 Discord 接收警报，也可以用 Telegram 实时获取通知。想让通知更个性化？LoggiFly 允许自定义标题、优先级和标签，消息格式由你掌控！</p>
+</li>
+<li>
+<p>自动执行容器操作发现问题后，LoggiFly 不仅能通知你，还能自动执行操作，比如重启或停止容器。比如，当检测到 “critical error”时，它可以自动重启问题容器，省去手动干预的麻烦。</p>
+</li>
+<li>
+<p>日志附件支持担心通知不够详细？LoggiFly 支持将日志片段作为附件发送，方便你快速定位问题。</p>
+</li>
+<li>
+<p>支持 Docker 和 Podman 无论你是 Docker 忠粉还是 Podman 新手，LoggiFly 都能无缝兼容。它甚至支持 Podman 的 rootless 模式，灵活适应各种环境。</p>
+</li>
+<li>
+<p>简单与高级配置并存新手可以用环境变量快速配置，高级用户则可以通过 config.yaml 文件实现细粒度的控制，比如为不同容器设置不同关键词或通知规则。</p>
+</li>
+</ol>
+<p>这些功能让 LoggiFly 成为一款 “即插即用” 的工具，既能满足简单需求，也能应对复杂场景。无论你是个人开发者还是运维工程师，它都能帮你省时省力！</p>
+<h2><span id="安装-loggifly3-分钟搞定部署">安装 LoggiFly：3 分钟搞定部署</span></h2>
+<p>LoggiFly 的安装过程简单到飞起！无论你用 Docker、Docker Swarm 还是 Podman，只需几步就能让它跑起来。以下是详细步骤：</p>
+<ol>
+<li>
+<p>准备工作确保你的系统已安装 Docker 或 Podman，并且 Docker Socket（/var/run/docker.sock）可访问。如果用 Podman，确保支持 quadlets（用于 rootless 模式）。</p>
+</li>
+<li>
+<p>使用 Docker Compose 部署</p>
+</li>
+</ol>
+<p>推荐使用 Docker Compose，配置文件简单直观。以下是一个最小化的配置示例：</p>
+<figure class="highlight yaml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line"><span class="attr">version:</span> <span class="string">"3.8"</span></span><br><span class="line"><span class="attr">services:</span></span><br><span class="line">  <span class="attr">loggifly:</span></span><br><span class="line">    <span class="attr">image:</span> <span class="string">ghcr.io/clemcer/loggifly:latest</span></span><br><span class="line">    <span class="attr">container_name:</span> <span class="string">loggifly</span></span><br><span class="line">    <span class="attr">volumes:</span></span><br><span class="line">      <span class="bullet">-</span> <span class="string">/var/run/docker.sock:/var/run/docker.sock:ro</span></span><br><span class="line">    <span class="attr">environment:</span></span><br><span class="line">      <span class="attr">NTFY_URL:</span> <span class="string">"https://ntfy.sh"</span></span><br><span class="line">      <span class="attr">NTFY_TOPIC:</span> <span class="string">"your_topic"</span></span><br><span class="line">      <span class="attr">CONTAINERS:</span> <span class="string">"vaultwarden,audiobookshelf"</span></span><br><span class="line">      <span class="attr">GLOBAL_KEYWORDS:</span> <span class="string">"error,failed login"</span></span><br><span class="line">    <span class="attr">restart:</span> <span class="string">unless-stopped</span></span><br></pre></td></tr></table></figure>
+<p>保存为 docker-compose.yml，然后运行：</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">$ docker-compose up -d</span><br></pre></td></tr></table></figure>
+<p>这会启动 LoggiFly，监控 vaultwarden 和 audiobookshelf 容器的日志，寻找 “error”和“failed login”关键词，并通过 Ntfy 发送通知。</p>
+<ol start="3">
+<li>使用 Docker 命令行部署</li>
+</ol>
+<p>不想用 Compose？直接用 Docker 命令也行：</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line">$ docker run --name loggifly \</span><br><span class="line">  -v /var/run/docker.sock:/var/run/docker.sock:ro \</span><br><span class="line">  -e NTFY_URL=https://ntfy.sh \</span><br><span class="line">  -e NTFY_TOPIC=your_topic \</span><br><span class="line">  -e CONTAINERS=vaultwarden,audiobookshelf \</span><br><span class="line">  -e GLOBAL_KEYWORDS=<span class="string">"error,failed login"</span> \</span><br><span class="line">  --restart unless-stopped \</span><br><span class="line">  ghcr.io/clemcer/loggifly:latest</span><br></pre></td></tr></table></figure>
+<ol start="4">
+<li>使用配置文件（高级用户）</li>
+</ol>
+<p>想解锁更多功能？可以挂载 config.yaml 文件。创建一个 config.yaml，放在 <code>./loggifly/config</code> 目录下：</p>
+<figure class="highlight yaml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line"><span class="attr">containers:</span></span><br><span class="line">  <span class="attr">vaultwarden:</span></span><br><span class="line">    <span class="attr">keywords:</span></span><br><span class="line">      <span class="bullet">-</span> <span class="attr">keyword:</span> <span class="string">"failed login"</span></span><br><span class="line">        <span class="attr">notification_title:</span> <span class="string">"Vaultwarden 登录失败"</span></span><br><span class="line">        <span class="attr">attach_logfile:</span> <span class="literal">true</span></span><br><span class="line"><span class="attr">notifications:</span></span><br><span class="line">  <span class="attr">ntfy:</span></span><br><span class="line">    <span class="attr">url:</span> <span class="string">"https://ntfy.sh"</span></span><br><span class="line">    <span class="attr">topic:</span> <span class="string">"your_topic"</span></span><br></pre></td></tr></table></figure>
+<p>然后修改 Docker Compose 配置，挂载 config 目录：</p>
+<figure class="highlight yaml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line"><span class="attr">version:</span> <span class="string">"3.8"</span></span><br><span class="line"><span class="attr">services:</span></span><br><span class="line">  <span class="attr">loggifly:</span></span><br><span class="line">    <span class="attr">image:</span> <span class="string">ghcr.io/clemcer/loggifly:latest</span></span><br><span class="line">    <span class="attr">container_name:</span> <span class="string">loggifly</span></span><br><span class="line">    <span class="attr">volumes:</span></span><br><span class="line">      <span class="bullet">-</span> <span class="string">/var/run/docker.sock:/var/run/docker.sock:ro</span></span><br><span class="line">      <span class="bullet">-</span> <span class="string">./loggifly/config:/config</span></span><br><span class="line">    <span class="attr">restart:</span> <span class="string">unless-stopped</span></span><br></pre></td></tr></table></figure>
+<p>运行后，LoggiFly 会自动加载 config.yaml，实现更精细的监控。</p>
+<ol start="5">
+<li>Podman 用户</li>
+</ol>
+<p>Podman 用户可以用类似的方式部署，支持 rootless 模式。具体配置可参考官方文档：<a href="https://clemcer.github.io/loggifly/guide/podman.html" target="_blank" rel="noopener">https://clemcer.github.io/loggifly/guide/podman.html</a></p>
+<h2><span id="使用-loggifly从新手到高手的进阶之路">使用 LoggiFly：从新手到高手的进阶之路</span></h2>
+<p>安装完成后，LoggiFly 已经开始默默守护你的容器日志了！但如何让它发挥最大价值？以下是使用技巧：</p>
+<h3><span id="快速上手环境变量配置">快速上手：环境变量配置</span></h3>
+<p>新手建议从环境变量开始，只需设置几个关键变量：</p>
+<ul>
+<li><code>NTFY_URL</code> 和 <code>NTFY_TOPIC</code>：配置 Ntfy 通知服务。</li>
+<li>CONTAINERS：指定要监控的容器名称，多个容器用逗号分隔。</li>
+<li><code>GLOBAL_KEYWORDS</code>：设置全局关键词，如 “error,failed login”。</li>
+</ul>
+<p>这样，你就能快速收到日志警报。比如，Vaultwarden 日志出现 “failed login”时，Discord 会立刻弹出通知。</p>
+<h3><span id="进阶玩法configyaml-精细化配置">进阶玩法：config.yaml 精细化配置</span></h3>
+<p>想更精准地监控？使用 config.yaml 文件吧！它支持：</p>
+<ul>
+<li>容器级配置：为不同容器设置不同关键词或操作。</li>
+<li>正则表达式：捕捉复杂日志模式，比如 “<code>^healthcheck:.\*</code>”。</li>
+<li>通知定制：设置通知标题、优先级、标签，甚至为每个关键词指定不同的通知服务。</li>
+<li>排除关键词：避免无关日志触发通知，比如忽略“debug”日志。</li>
+</ul>
+<p>一个高级配置示例：</p>
+<figure class="highlight yaml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br></pre></td><td class="code"><pre><span class="line"><span class="attr">settings:</span></span><br><span class="line">  <span class="attr">excluded_keywords:</span></span><br><span class="line">    <span class="bullet">-</span> <span class="string">"debug"</span></span><br><span class="line">    <span class="bullet">-</span> <span class="attr">regex:</span> <span class="string">"^healthcheck:.*"</span></span><br><span class="line"><span class="attr">containers:</span></span><br><span class="line">  <span class="attr">audiobookshelf:</span></span><br><span class="line">    <span class="attr">keywords:</span></span><br><span class="line">      <span class="bullet">-</span> <span class="attr">keyword:</span> <span class="string">"download requested"</span></span><br><span class="line">        <span class="attr">action:</span> <span class="string">restart</span></span><br><span class="line">        <span class="attr">notification_title:</span> <span class="string">"新下载请求！"</span></span><br><span class="line">        <span class="attr">attach_logfile:</span> <span class="literal">true</span></span><br><span class="line"><span class="attr">notifications:</span></span><br><span class="line">  <span class="attr">apprise:</span></span><br><span class="line">    <span class="attr">url:</span> <span class="string">"discord://webhook-url"</span></span><br></pre></td></tr></table></figure>
+<p>这个配置会监控 audiobookshelf 容器的 “download requested” 日志，触发时自动重启容器并发送 Discord 通知，附带日志文件。</p>
+<h3><span id="实战案例it-从业者的福音">实战案例：IT 从业者的福音</span></h3>
+<p>想象一下，你是一个自托管爱好者，运行着 Vaultwarden 和 Audiobookshelf。每次有人尝试登录失败，你都希望收到通知；每次有新下载请求，你想自动重启容器以确保服务稳定。</p>
+<p>LoggiFly 让这一切变得简单！Reddit 用户分享，他们用 LoggiFly 监控自托管服务，极大提升了运维效率。</p>
+<h2><span id="为什么选择-loggifly与你产生共鸣的理由">为什么选择 LoggiFly？与你产生共鸣的理由</span></h2>
+<p>作为 IT 从业者或科技爱好者，你一定遇到过这样的场景：服务器凌晨报错，但你早上才发现；或者某个服务日志里藏着关键信息，却被淹没在海量数据中。</p>
+<p>LoggiFly 就像你的 “私人助理”，帮你实时捕捉关键信息，解放你的时间和精力。它的开源特性也让人心动。</p>
+<p>MIT 许可证允许你自由修改和分发代码，社区活跃，开发者 clemcer 积极响应反馈。Reddit 上有用户感叹：“LoggiFly 让我从繁琐的日志检查中解脱，100k+ 下载量不是吹的！”</p>
+<p>更重要的是，LoggiFly 让你感受到掌控一切的快感。无论是个人项目还是企业级运维，它都能让你轻松应对，真正做到 “技术改变生活”。</p>
+<h2><span id="总结loggifly值得你一试">总结：LoggiFly，值得你一试！</span></h2>
+<p>LoggiFly 是一个简单、强大、灵活的 Docker 日志监控工具。它的核心功能 —— 关键词监控、灵活通知、自动操作 —— 让日志管理变得轻松有趣。</p>
+<p>安装只需几分钟，配置既支持新手快速上手，也满足高手深度定制。无论你是想监控服务器错误，还是希望为自托管服务添加智能通知，LoggiFly 都是你的不二之选。</p>
+<p>还在等什么？快去 GitHub 给 clemcer/loggifly 点个 Star，部署到你的服务器试试吧！分享这篇文章给你的技术圈好友，让他们也体验这款神器的魅力！</p>
+</div>
+
+			<script src="https://my.openwrite.cn/js/readmore.js" type="text/javascript"></script>
+			<script>
+			var isMobile = navigator.userAgent.match(/(phone|pad|pod|iPhone|iPod|ios|iPad|Android|Mobile|BlackBerry|IEMobile|MQQBrowser|JUC|Fennec|wOSBrowser|BrowserNG|WebOS|Symbian|Windows Phone)/i);
+			if (!isMobile) {
+			    var btw = new BTWPlugin();
+			    btw.init({
+			        "id": "vip-container",
+			        "blogId": "10135-1588830050631-449",
+			        "name": "「奇妙的 Linux 世界」",
+			        "qrcode": "https://www.hi-linux.com/img/wechat/mp_qrcode_12.jpg",
+			        "keyword": "VIP"
+			    });
+			}
+			</script>
+		
+                
+
+                <hr>
+                <!-- Pager -->
+                <ul class="pager">
+                    
+                        <li class="previous">
+                            <a href="/posts/50924.html" data-toggle="tooltip" data-placement="top" title="断点续传+去重+多协议+无依赖秒部署！这款 25.9K Star 的开源文件服务器让 NAS 都汗颜">&larr; Previous Post</a>
+                        </li>
+                    
+                    
+                        <li class="next">
+                            <a href="/posts/44817.html" data-toggle="tooltip" data-placement="top" title="下一代编辑器黑马！37.2K Star 的 Lapce，凭什么让程序员扔掉 VSCode？">Next Post &rarr;</a>
+                        </li>
+                    
+                </ul>
+
+                <!-- duoshuo Share start -->
+                
+                <!-- 多说 Share end-->
+
+                <!-- 多说评论框 start -->
+                
+                <!-- 多说评论框 end -->
+
+                <!-- disqus comment start -->
+                
+                <!-- disqus comment end -->
+
+                
+                    <!-- disqus 评论框 start -->
+                    <div class="comment">
+                        <div id="lv-container" data-id="city" data-uid="MTAyMC8yNzg2My80NDQw"></div>
+                    </div>
+                    <!-- disqus 评论框 end -->
+                
+
+            </div>
+            
+            <!-- Tabe of Content -->
+            <!-- Table of Contents -->
+
+  
+    <style>
+      span.toc-nav-number{
+        display: none
+      }
+    </style>
+  
+    
+      <aside id="sidebar">
+        <div id="toc" class="toc-article">
+        <strong class="toc-title">Contents</strong>
+        
+          <ol class="toc-nav"><li class="toc-nav-item toc-nav-level-2"><a class="toc-nav-link" href="#vip-container"><span class="toc-nav-number">1.</span> <span class="toc-nav-text">什么是 LoggiFly？简单又强大的日志监控神器</span></a></li><li class="toc-nav-item toc-nav-level-2"><a class="toc-nav-link" href="#vip-container"><span class="toc-nav-number">2.</span> <span class="toc-nav-text">核心功能：让你的日志 “开口说话”</span></a></li><li class="toc-nav-item toc-nav-level-2"><a class="toc-nav-link" href="#vip-container"><span class="toc-nav-number">3.</span> <span class="toc-nav-text">安装 LoggiFly：3 分钟搞定部署</span></a></li><li class="toc-nav-item toc-nav-level-2"><a class="toc-nav-link" href="#vip-container"><span class="toc-nav-number">4.</span> <span class="toc-nav-text">使用 LoggiFly：从新手到高手的进阶之路</span></a><ol class="toc-nav-child"><li class="toc-nav-item toc-nav-level-3"><a class="toc-nav-link" href="#vip-container"><span class="toc-nav-number">4.1.</span> <span class="toc-nav-text">快速上手：环境变量配置</span></a></li><li class="toc-nav-item toc-nav-level-3"><a class="toc-nav-link" href="#vip-container"><span class="toc-nav-number">4.2.</span> <span class="toc-nav-text">进阶玩法：config.yaml 精细化配置</span></a></li><li class="toc-nav-item toc-nav-level-3"><a class="toc-nav-link" href="#vip-container"><span class="toc-nav-number">4.3.</span> <span class="toc-nav-text">实战案例：IT 从业者的福音</span></a></li></ol></li><li class="toc-nav-item toc-nav-level-2"><a class="toc-nav-link" href="#vip-container"><span class="toc-nav-number">5.</span> <span class="toc-nav-text">为什么选择 LoggiFly？与你产生共鸣的理由</span></a></li><li class="toc-nav-item toc-nav-level-2"><a class="toc-nav-link" href="#vip-container"><span class="toc-nav-number">6.</span> <span class="toc-nav-text">总结：LoggiFly，值得你一试！</span></a></li></ol>
+        
+        </div>
+      </aside>
+    
+
+                
+            <!-- Sidebar Container -->
+            <div class="
+                col-lg-8 col-lg-offset-2
+                col-md-10 col-md-offset-1
+                sidebar-container">
+
+                <!-- Featured Tags -->
+                
+                <section>
+                    <!-- no hr -->
+                    <h5><a href="/tags/">FEATURED TAGS</a></h5>
+                    <div class="tags">
+                       
+                          <a class="tag" href="/tags/#技巧" title="技巧">技巧</a>
+                        
+                          <a class="tag" href="/tags/#Linux" title="Linux">Linux</a>
+                        
+                          <a class="tag" href="/tags/#Docker" title="Docker">Docker</a>
+                        
+                    </div>
+                </section>
+                
+
+                <!-- Friends Blog -->
+                
+                <hr>
+                <h5>FRIENDS</h5>
+                <ul class="list-inline">
+
+                    
+                        <li><a href="https://bestgeek.org/" target="_blank">极客视界</a></li>
+                    
+                        <li><a href="https://666666.dev/" target="_blank">IT 人必备工具箱</a></li>
+                    
+                        <li><a href="https://mp.weixin.qq.com/s/ZgoeD1FBp7eouyxBte4MWw" target="_blank">Linux 技术交流群</a></li>
+                    
+                        <li><a href="" target="_blank"></a></li>
+                    
+                        <li><a href="" target="_blank"></a></li>
+                    
+                </ul>
+                
+            </div>
+        </div>
+    </div>
+</article>
+
+
+
+
+
+
+    <!-- 来必力City版公共JS代码 start (一个网页只需插入一次) -->
+    <script type="text/javascript">
+       (function(d, s) {
+           var j, e = d.getElementsByTagName(s)[0];
+    
+           if (typeof LivereTower === 'function') { return; }
+    
+           j = d.createElement(s);
+           j.src = 'https://cdn-city.livere.com/js/embed.dist.js';
+           j.async = true;
+    
+           e.parentNode.insertBefore(j, e);
+       })(document, 'script');
+    </script>
+    <noscript>为正常使用来必力评论功能请激活JavaScript</noscript>
+    <!-- 来必力City版 公共JS代码 end -->
+
+
+
+<!-- async load function -->
+<script>
+    function async(u, c) {
+      var d = document, t = 'script',
+          o = d.createElement(t),
+          s = d.getElementsByTagName(t)[0];
+      o.src = u;
+      if (c) { o.addEventListener('load', function (e) { c(null, e); }, false); }
+      s.parentNode.insertBefore(o, s);
+    }
+</script>
+<!-- anchor-js, Doc:http://bryanbraun.github.io/anchorjs/ -->
+<script>
+    async("https://cdn.bootcss.com/anchor-js/1.1.1/anchor.min.js",function(){
+        anchors.options = {
+          visible: 'hover',
+          placement: 'left',
+          icon: 'ℬ'
+        };
+        anchors.add().remove('.intro-header h1').remove('.subheading').remove('.sidebar-container h5');
+    })
+</script>
+<style>
+    /* place left on bigger screen */
+    @media all and (min-width: 800px) {
+        .anchorjs-link{
+            position: absolute;
+            left: -0.75em;
+            font-size: 1.1em;
+            margin-top : -0.1em;
+        }
+    }
+</style>
+
+
+
+    <!-- Footer -->
+    <!-- Footer -->
+<footer>
+    <div class="container">
+        <div class="row">
+            <div class="col-lg-8 col-lg-offset-2 col-md-10 col-md-offset-1">
+                <ul class="list-inline text-center">
+                
+                    <li>
+                        <a href="/atom.xml">
+                            <span class="fa-stack fa-lg">
+                                <i class="fa fa-circle fa-stack-2x"></i>
+                                <i class="fa fa-rss fa-stack-1x fa-inverse"></i>
+                            </span>
+                        </a>
+                    </li>
+                
+                
+                
+                    <li>
+                        <a target="_blank" href="https://www.zhihu.com/people/80imike">
+                            <span class="fa-stack fa-lg">
+                                <i class="fa fa-circle fa-stack-2x"></i>
+                                <i class="fa  fa-stack-1x fa-inverse">知</i>
+                            </span>
+                        </a>
+                    </li>
+                
+
+                
+                    <li>
+                        <a target="_blank" href="http://weibo.com/2093524665">
+                            <span class="fa-stack fa-lg">
+                                <i class="fa fa-circle fa-stack-2x"></i>
+                                <i class="fa fa-weibo fa-stack-1x fa-inverse"></i>
+                            </span>
+                        </a>
+                    </li>
+                
+
+                
+
+                
+
+                
+
+                </ul>
+                <p class="copyright text-muted">
+                    Copyright &copy; Mike 2025 | Hosted by <a href="https://pages.coding.me" target="_blank" rel="noopener" style="font-weight: bold">Coding Pages</a>
+                    <br>
+                    Theme by <a href="http://beantech.org" target="_blank" rel="noopener">BeanTech</a> 
+                    <span style="display: inline-block; margin: 0 5px;">
+                        <i class="fa fa-heart"></i>
+                    </span> 
+                    re-Ported by <a href="http://www.huweihuang.com" target="_blank" rel="noopener">胡伟煌</a> | 
+                    <iframe
+                        style="margin-left: 2px; margin-bottom:-5px;"
+                        frameborder="0" scrolling="0" width="91px" height="20px"
+                        src="https://ghbtns.com/github-btn.html?user=huweihuang&repo=hexo-theme-huweihuang&type=star&count=true" >
+                    </iframe>
+                </p>
+            </div>
+        </div>
+    </div>
+</footer>
+
+<!-- jQuery -->
+
+<script src="/js/jquery.min.js"></script>
+
+
+<!-- Bootstrap Core JavaScript -->
+
+<script src="/js/bootstrap.min.js"></script>
+
+
+<!-- Custom Theme JavaScript -->
+
+<script src="/js/hux-blog.min.js"></script>
+
+
+
+<!-- async load function -->
+<script>
+    function async(u, c) {
+      var d = document, t = 'script',
+          o = d.createElement(t),
+          s = d.getElementsByTagName(t)[0];
+      o.src = u;
+      if (c) { o.addEventListener('load', function (e) { c(null, e); }, false); }
+      s.parentNode.insertBefore(o, s);
+    }
+</script>
+
+<!-- 
+     Because of the native support for backtick-style fenced code blocks 
+     right within the Markdown is landed in Github Pages, 
+     From V1.6, There is no need for Highlight.js, 
+     so Huxblog drops it officially.
+
+     - https://github.com/blog/2100-github-pages-now-faster-and-simpler-with-jekyll-3-0  
+     - https://help.github.com/articles/creating-and-highlighting-code-blocks/    
+-->
+<!--
+    <script>
+        async("http://cdn.bootcss.com/highlight.js/8.6/highlight.min.js", function(){
+            hljs.initHighlightingOnLoad();
+        })
+    </script>
+    <link href="http://cdn.bootcss.com/highlight.js/8.6/styles/github.min.css" rel="stylesheet">
+-->
+
+
+<!-- jquery.tagcloud.js -->
+<script>
+    // only load tagcloud.js in tag.html
+    if($('#tag_cloud').length !== 0){
+        async("https://www.hi-linux.com/js/jquery.tagcloud.js",function(){
+            $.fn.tagcloud.defaults = {
+                //size: {start: 1, end: 1, unit: 'em'},
+                color: {start: '#bbbbee', end: '#0085a1'},
+            };
+            $('#tag_cloud a').tagcloud();
+        })
+    }
+</script>
+
+<!--fastClick.js -->
+<script>
+    async("https://cdn.bootcss.com/fastclick/1.0.6/fastclick.min.js", function(){
+        var $nav = document.querySelector("nav");
+        if($nav) FastClick.attach($nav);
+    })
+</script>
+
+
+<!-- Google Analytics -->
+
+
+
+
+<!-- Baidu Tongji -->
+
+
+
+<script defer src="https://umami.hi-linux.com/script.js"
+    data-website-id="db99ccfc-f114-4595-8f3b-9dd1fbd3bf19"></script>
+
+
+	<a id="rocket" href="#top" class=""></a>
+	<script type="text/javascript" src="/js/totop.js?v=1.0.0" async=""></script>
+    <script type="text/javascript" src="/js/toc.js?v=1.0.0" async=""></script>
+<!-- Image to hack wechat -->
+<img src="https://www.hi-linux.com/img/icon_wechat.png" width="0" height="0" />
+<!-- Migrate from head to bottom, no longer block render and still work -->
+
+<script>(function(w,d, s, id) {w.webpushr=w.webpushr||function(){(w.webpushr.q=w.webpushr.q||[]).push(arguments)};var js, fjs = d.getElementsByTagName(s)[0];js = d.createElement(s); js.id = id;js.src = 'https://cdn.webpushr.com/app.min.js';fjs.parentNode.appendChild(js);}(window,document, 'script', 'webpushr-jssdk'));webpushr('init','BF9JK7xV9kjWTdMx2lr6RWaPfXV7wNuZaVAJ1bfIGoBNJavqLEBVFMKLubITnCA4bh2fI9iH9tMF95nXnPt7xxY');</script></body>
+
+</html>
